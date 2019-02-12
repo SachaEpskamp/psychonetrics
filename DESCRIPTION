@@ -1,0 +1,11 @@
+Package: psychonetrics
+Type: Package
+Title: Psychometric Network Models
+Version: 0.1
+Author: Sacha Epskamp
+Maintainer: Sacha Epskamp <mail@sachaepskamp.com>
+Description: ...
+License: GPL-2
+Imports: Rcpp (>= 1.0.0), pbapply, qgraph, numDeriv
+LinkingTo: Rcpp, RcppArmadillo
+Bytecompile: true
