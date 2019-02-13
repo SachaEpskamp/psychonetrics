@@ -37,15 +37,6 @@ ggm <- function(
 
   # Generate the full parameter table:
   model@parameters <- generateAllParameterTables(
-    # Kappa:
-    list(adjacency,
-         mat =  "kappa",
-         op =  "--",
-         symmetrical= TRUE, 
-         sampletable=sampleStats,
-         rownames = sampleStats@variables$label,
-         colnames = sampleStats@variables$label),
-    
     # Mu:
     list(mu,
          mat =  "mu",
@@ -53,8 +44,16 @@ ggm <- function(
          symmetrical= FALSE, 
          sampletable=sampleStats,
          rownames = sampleStats@variables$label,
-         colnames = sampleStats@variables$label)
+         colnames = sampleStats@variables$label),
     
+    # Kappa:
+    list(adjacency,
+         mat =  "kappa",
+         op =  "--",
+         symmetrical= TRUE, 
+         sampletable=sampleStats,
+         rownames = sampleStats@variables$label,
+         colnames = sampleStats@variables$label)
   )
   
   # Generate extra matrices needed:
