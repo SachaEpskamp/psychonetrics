@@ -109,7 +109,8 @@ ggm <- function(
     model@baseline_saturated$baseline@fitfunctions$extramatrices$M <- Mmatrix(model@baseline_saturated$baseline@parameters)
     
     # Run:
-    model@baseline_saturated$baseline <- runmodel(model@baseline_saturated$baseline)
+    model@baseline_saturated$baseline <- runmodel(model@baseline_saturated$baseline, addfit = FALSE, addMIs = FALSE)
+    
     
     ### Saturated model ###
     model@baseline_saturated$saturated <- ggm(data = data, 
@@ -128,7 +129,7 @@ ggm <- function(
     model@baseline_saturated$saturated@fitfunctions$extramatrices$M <- Mmatrix(model@baseline_saturated$saturated@parameters)
     
     # Run:
-    model@baseline_saturated$saturated <- runmodel(model@baseline_saturated$saturated)
+    model@baseline_saturated$saturated <- runmodel(model@baseline_saturated$saturated, addfit = FALSE, addMIs = FALSE)
   }
 
   

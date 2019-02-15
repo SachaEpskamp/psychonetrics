@@ -73,12 +73,15 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
   par <- rep(0,length=length(est))
   
   # All ones, make increasing sequence:
-  par[x[ind]==1] <- curMaxPar + seq_len(sum(x[ind]==1))
-  curMaxPar <- max(par)
-  
+  if (any(x[ind]==1)){
+    par[x[ind]==1] <- curMaxPar + seq_len(sum(x[ind]==1))
+    curMaxPar <- max(par)    
+  }
+
+
   # Now loop if needed:
   if (any(x[ind] > 1)){
-    for (p in unique(x[ind & x[ind]!=0 & x[ind]!=1])){
+    for (p in unique(x[ind & x!=0 & x!=1])){
       par[x[ind] == p] <- curMaxPar + 1
       curMaxPar <- curMaxPar + 1
     }

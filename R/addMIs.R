@@ -1,8 +1,22 @@
-# Add the modification indices:
+# Full function:
 addMIs <- addModificationIndices <- function(x){
+ x %>% addMIs_inner(equal=FALSE) %>% addMIs_inner(equal=TRUE) 
+}
+
+# Add the modification indices:
+addMIs_inner <- addModificationIndices_inner <- function(x, equal = FALSE){
   # If no constrained parameters, nothing to do!
   if (!any(x@parameters$par == 0)){
     return(x)
+  }
+  
+  # Clear old MIs:
+  if (!equal){
+    x@parameters$mi[] <- 0
+    x@parameters$pmi[] <- NA
+  } else {
+    x@parameters$mi_equal[] <- 0
+    x@parameters$pmi_equal[] <- NA
   }
   
   # Check if gradient and hessian are present:
@@ -16,9 +30,25 @@ addMIs <- addModificationIndices <- function(x){
   # Fully free:
   # Copy the model:
   modCopy <- x
-  # Add free parameter numbers:
-  modCopy@parameters$par[modCopy@parameters$par==0] <- max(modCopy@parameters$par) + seq_len(sum(modCopy@parameters$par==0))
-  
+
+  # Obtain the full set of parameters that are constrained across all groups:
+  if (equal){
+    sum <- modCopy@parameters %>% group_by_("matrix","row","col") %>% summarize_(anyConstrained = ~any(fixed)) %>% 
+      filter_(~anyConstrained)
+    # Add a unique number to each:
+    sum$par2 <-  max(modCopy@parameters$par) + seq_len(nrow(sum))
+    
+    # Left join back:
+    modCopy@parameters <- modCopy@parameters %>% left_join(sum,by=c("matrix","row","col")) %>% 
+      mutate(par = ifelse(par==0,par2,par))
+    
+  } else {
+    # Add free parameter numbers:
+    modCopy@parameters$par[modCopy@parameters$par==0] <- max(modCopy@parameters$par) + seq_len(sum(modCopy@parameters$par==0))
+    
+  }
+
+
   # Remake the model matrix:
   modCopy@fitfunctions$extramatrices$M <- Mmatrix(modCopy@parameters)
   # Compute a gradient:
@@ -39,16 +69,32 @@ addMIs <- addModificationIndices <- function(x){
   }
   
   # For every new parameter:
-  x@parameters$mi[] <- 0
   curMax <- max(x@parameters$par)
-  for (i in which(x@parameters$par==0)){
-    ind <- modCopy@parameters$par[i]
+  
+  
+  
+  for (i in sort(unique(modCopy@parameters$par[modCopy@parameters$par>1 & x@parameters$par == 0]))){
+    ind <- i
     curInds <- seq_len(curMax)
-    x@parameters$mi[i] <- n * (0.5 * g[i]^2)/(H[ind,ind] - H[ind,curInds,drop=FALSE] %*% solve(H[curInds,curInds]) %*% H[curInds,ind,drop=FALSE])
-    x@parameters$pmi[i] <- pchisq(x@parameters$mi[i],df = 1,lower.tail = FALSE)
+    mi <- n * (0.5 * g[i]^2)/(H[ind,ind] - H[ind,curInds,drop=FALSE] %*% solve(H[curInds,curInds]) %*% H[curInds,ind,drop=FALSE])
+    p <- pchisq(x@parameters$mi[i],df = 1,lower.tail = FALSE)      
+    if (equal){
+      x@parameters$mi_equal[modCopy@parameters$par == i] <- round(mi,3)
+      x@parameters$pmi_equal[modCopy@parameters$par == i] <- p
+    } else {
+      x@parameters$mi[modCopy@parameters$par == i] <- round(mi, 3)
+      x@parameters$pmi[modCopy@parameters$par == i] <- p
+    }
+
   }
   
-  # TODO CONSTRAINED MIs
-  
+  if (equal){
+    x@parameters$mi_equal[is.na(x@parameters$mi_equal)] <- 0
+    x@parameters$pmi_equal[is.na(x@parameters$pmi_equal)] <- 1
+  } else {
+    x@parameters$mi[is.na(x@parameters$mi)] <- 0
+    x@parameters$pmi[is.na(x@parameters$pmi)] <- 1
+  }
+
   return(x)
 }

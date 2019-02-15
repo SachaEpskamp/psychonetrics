@@ -1,5 +1,6 @@
 # Prepare all matrices for the fit, gradient and hessian of GGM models:
 prepare_ggm <- function(x, model){
+
   # New model:
   newMod <- updateModel(x,model)
   

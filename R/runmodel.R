@@ -1,19 +1,19 @@
 # Run a model!
 runmodel <- function(
   x, # psychonetrics model
-  stepwise = FALSE, # Stepwise up search with modification indices?
+  # stepwise = FALSE, # Stepwise up search with modification indices?
   alpha = 0.01, # Alpha to use for modification indices
   matrices, # Matrices to search
   nlminb.control = list(),
-  level = c("default","fitfunction","gradient","hessian")
+  level = c("default","fitfunction","gradient","hessian"),
+  addfit = TRUE,
+  addMIs = TRUE
 ){
   level <- match.arg(level)
   if (!is(x,"psychonetrics")){
     stop("input is not a 'psychonetrics' object")
   }
-  if (stepwise){
-    stop("'stepwise' is not yet implemented")
-  }
+ 
   
   # nlminb control pars:
   control.nlminb <- list(eval.max=20000L,
@@ -31,7 +31,7 @@ runmodel <- function(
   control <- control.nlminb[c("eval.max", "iter.max", "trace",
                               "step.min", "step.max",
                               "abs.tol", "rel.tol", "x.tol", "xf.tol")]
-  
+
   start <- parVector(x)
   
   # Check if Gradient and hessian are present:
@@ -82,6 +82,17 @@ runmodel <- function(
   x@computed <- TRUE
   x@objective <- optim.out$objective
 
+  
+  # Add fit:
+  if (addfit){
+    x <- addfit(x)
+  }
+  # Add MIs:
+  if (addMIs){
+    x <- addMIs(x) 
+  }
+  
+ 
   # Return model:
   return(x)
 }
