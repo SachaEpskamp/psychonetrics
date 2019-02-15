@@ -39,6 +39,7 @@ addMIs <- addModificationIndices <- function(x){
   }
   
   # For every new parameter:
+  x@parameters$mi[] <- 0
   curMax <- max(x@parameters$par)
   for (i in which(x@parameters$par==0)){
     ind <- modCopy@parameters$par[i]
