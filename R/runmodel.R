@@ -32,11 +32,7 @@ runmodel <- function(
                               "step.min", "step.max",
                               "abs.tol", "rel.tol", "x.tol", "xf.tol")]
   
-  # Obtain the starting values:
-  start <- numeric(max(x@parameters$par))
-  for (i in seq_along(start)){
-    start[i] <- x@parameters$est[which(x@parameters$par==i)[1]]
-  }
+  start <- parVector(x)
   
   # Check if Gradient and hessian are present:
   if (level == "default"){
@@ -83,7 +79,9 @@ runmodel <- function(
   # Update model:
   x <- updateModel(optim.out$par,x)
   x@optim <- optim.out
-  
+  x@computed <- TRUE
+  x@objective <- optim.out$objective
+
   # Return model:
   return(x)
 }

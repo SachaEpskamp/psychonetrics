@@ -4,7 +4,8 @@ generate_psychonetrics_samplestats <- setClass("psychonetrics_samplestats",  slo
   cors = "list",
   means = "list",
   groups = "data.frame", # Data frame with information on each group  
-  variables = "data.frame"
+  variables = "data.frame",
+  nobs = "numeric" # Number of observations
 ), prototype = list(groups = data.frame(
   label = character(0),
   id = integer(0),
@@ -37,10 +38,13 @@ generate_psychonetrics <- setClass("psychonetrics", slots = c(
   computed = "logical", # Logical, is the model computed yet?
   sample = "psychonetrics_samplestats", # Sample statistics
   modelmatrices = "list", # Model matrices in list form
-  fitfunctions = "list", # contains fitfunction, gradient, hessian and extramatrices
+  fitfunctions = "list", # contains fitfunction, gradient, hessian and extramatrices, loglik
   timestamp = "psychonetrics_timestamp",
   optim = "list",
-  fitmeasures = "list"
+  fitmeasures = "list",
+  baseline_saturated = "list",
+  equal = "character",
+  objective = "numeric"
 ),
 prototype = list(
   model = "dummy",
@@ -64,6 +68,8 @@ prototype = list(
     symmetrical = logical(0), # Used to determine if matrix is symmetrical
     mi = numeric(0), # Modification index
     pmi = numeric(0), #p-value modification index
+    mi_equal = numeric(0), # Modification index constraning groups to be equal
+    pmi_equal = numeric(0), #p-value modification index constraining groups to be equal
     stringsAsFactors = FALSE
   ),
   matrices = data.frame(

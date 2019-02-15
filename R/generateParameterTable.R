@@ -114,7 +114,11 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
     par = par,
     group = group_name,
     group_id = group_id,
-    fixed = fixed
+    fixed = fixed,
+    mi = NA, # Modification index
+    pmi = NA, #p-value modification index
+    mi_equal = NA, # Modification index constraning groups to be equal
+    pmi_equal = NA #p-value modification index constraining groups to be equal
   )
   # Table for matrices:
   mattable <- data.frame(

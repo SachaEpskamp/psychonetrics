@@ -9,7 +9,9 @@ ggm <- function(
   nobs, # Alternative if data is missing (length ngroup)
   missing = "fiml",
   equal = "none", # Can also be: c("network","means")
-  mu
+  mu,
+  baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
+  fitfunctions # Leave empty
 ){
   # Obtain sample stats:
   sampleStats <- samplestats(data = data, 
@@ -24,10 +26,15 @@ ggm <- function(
   nNode <- nrow(sampleStats@variables)
   
   # Generate model object:
-  model <- generate_psychonetrics(model = "ggm",sample = sampleStats,computed = FALSE)
+  model <- generate_psychonetrics(model = "ggm",sample = sampleStats,computed = FALSE, equal = equal)
   
   # Number of groups:
   nGroup <- nrow(model@sample@groups)
+  
+  # Add number of observations:
+  model@sample@nobs <-  
+    nNode * (nNode+1) / 2 * nGroup + # Covariances per group
+    nNode * nGroup # Means per group
   
   # Fix the adjacency matrix:
   adjacency <- fixAdj(adjacency,nGroup,nNode,"network" %in% equal)
@@ -64,20 +71,67 @@ ggm <- function(
   model@matrices <- pars$mattable
   
   # Form the fitfunctions list:
-  model@fitfunctions <- list(
-    fitfunction = fit_ggm,
-    gradient = gradient_ggm,
-    hessian = hessian_ggm,
-    extramatrices = list(
+  if (missing(fitfunctions)){
+    model@fitfunctions <- list(
+      fitfunction = fit_ggm,
+      gradient = gradient_ggm,
+      hessian = hessian_ggm,
+      loglik=loglik_ggm,
+      extramatrices = list(
         D = as(matrixcalc::duplication.matrix(nNode),"sparseMatrix"),
         M = Mmatrix(model@parameters)
       )
-  )
-  
-  # Form the model matrices
-  model@modelmatrices <- formModelMatrices(model)
-  
+    )    
+  } else {
+    model@fitfunctions <- fitfunctions
+  }
 
+    
+    # Form the model matrices
+    model@modelmatrices <- formModelMatrices(model)
+
+  
+  ### Baseline model ###
+  if (baseline_saturated){
+    model@baseline_saturated$baseline <- ggm(data = data, 
+                                             adjacency = "empty",
+                                             vars = vars,
+                                             groups = groups,
+                                             covs = covs,
+                                             means = means,
+                                             nobs = nobs,
+                                             missing = missing,
+                                             equal = equal,
+                                             baseline_saturated = FALSE,
+                                             fitfunctions = model@fitfunctions) 
+    
+    # Add model:
+    model@baseline_saturated$baseline@fitfunctions$extramatrices$M <- Mmatrix(model@baseline_saturated$baseline@parameters)
+    
+    # Run:
+    model@baseline_saturated$baseline <- runmodel(model@baseline_saturated$baseline)
+    
+    ### Saturated model ###
+    model@baseline_saturated$saturated <- ggm(data = data, 
+                                              adjacency = "full",
+                                              vars = vars,
+                                              groups = groups,
+                                              covs = covs,
+                                              means = means,
+                                              nobs = nobs,
+                                              missing = missing,
+                                              equal = "none",
+                                              baseline_saturated = FALSE,
+                                              fitfunctions = model@fitfunctions)
+    
+    # Add model:
+    model@baseline_saturated$saturated@fitfunctions$extramatrices$M <- Mmatrix(model@baseline_saturated$saturated@parameters)
+    
+    # Run:
+    model@baseline_saturated$saturated <- runmodel(model@baseline_saturated$saturated)
+  }
+
+  
   # Return model:
   return(model)
 }
