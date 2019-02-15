@@ -4,7 +4,7 @@ ggm <- function(
   adjacency = "empty", # (only lower tri is used) "empty", "full" or adjacency structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
   vars, # character indicating the variables Extracted if missing from data - group variable
   groups, # ignored if missing. Can be character indicating groupvar, or vector with names of groups
-  covmat, # alternative covmat (array nvar * nvar * ngroup)
+  covs, # alternative covs (array nvar * nvar * ngroup)
   means, # alternative means (matrix nvar * ngroup)
   nobs, # Alternative if data is missing (length ngroup)
   missing = "fiml",
@@ -15,7 +15,7 @@ ggm <- function(
   sampleStats <- samplestats(data = data, 
                              vars = vars, 
                              groups = groups,
-                             covmat = covmat, 
+                             covs = covs, 
                              means = means, 
                              nobs = nobs, 
                              missing = missing)
@@ -36,7 +36,7 @@ ggm <- function(
   mu <- fixMu(mu,nGroup,nNode,"means" %in% equal)
 
   # Generate the full parameter table:
-  model@parameters <- generateAllParameterTables(
+  pars <- generateAllParameterTables(
     # Mu:
     list(mu,
          mat =  "mu",
@@ -53,14 +53,31 @@ ggm <- function(
          symmetrical= TRUE, 
          sampletable=sampleStats,
          rownames = sampleStats@variables$label,
-         colnames = sampleStats@variables$label)
+         colnames = sampleStats@variables$label,
+         sparse = TRUE,
+         posdef = TRUE
+      )
   )
   
-  # Generate extra matrices needed:
-  model@extraMatrices <- list(
-    D = matrixcalc::duplication.matrix(nNode)
+  # Store in model:
+  model@parameters <- pars$partable
+  model@matrices <- pars$mattable
+  
+  # Form the fitfunctions list:
+  model@fitfunctions <- list(
+    fitfunction = fit_ggm,
+    gradient = gradient_ggm,
+    hessian = hessian_ggm,
+    extramatrices = list(
+        D = as(matrixcalc::duplication.matrix(nNode),"sparseMatrix"),
+        M = Mmatrix(model@parameters)
+      )
   )
   
+  # Form the model matrices
+  model@modelmatrices <- formModelMatrices(model)
+  
+
   # Return model:
   return(model)
 }

@@ -1,7 +1,8 @@
 # psychonetrics sample:
 generate_psychonetrics_samplestats <- setClass("psychonetrics_samplestats",  slots = c(
-  covmat = "array",
-  means = "matrix",
+  covs = "list",
+  cors = "list",
+  means = "list",
   groups = "data.frame", # Data frame with information on each group  
   variables = "data.frame"
 ), prototype = list(groups = data.frame(
@@ -14,38 +15,68 @@ variables = data.frame(
   id = integer(0)
 )))
 
-# Parameter table:
+# Timestamp:
+setOldClass("sessionInfo")
+psychonetrics_timestamp <- setClass("psychonetrics_timestamp",  slots = c(
+  time = "POSIXct",
+  sessionInfo = "sessionInfo"))
 
+
+generate_psychonetrics_timestamp <- function(){
+  stamp <- psychonetrics_timestamp()
+  stamp@time <- Sys.time()
+  stamp@sessionInfo <- sessionInfo()
+  stamp
+}
 
 # Psychonetrics model:
 generate_psychonetrics <- setClass("psychonetrics", slots = c(
   model = "character", # Model framework
   parameters = "data.frame", # Parameter table data.frame(from,  edge, to,  est,  std,  se,  matrix,  row,  col,  par)
+  matrices = "data.frame",
   computed = "logical", # Logical, is the model computed yet?
   sample = "psychonetrics_samplestats", # Sample statistics
-  extraMatrices = "list" # General extra matrices list
+  modelmatrices = "list", # Model matrices in list form
+  fitfunctions = "list", # contains fitfunction, gradient, hessian and extramatrices
+  timestamp = "psychonetrics_timestamp",
+  optim = "list",
+  fitmeasures = "list"
+),
+prototype = list(
+  model = "dummy",
+  parameters = data.frame(
+    var1 = character(0),
+    var1_id = integer(0),
+    op = character(0),
+    var2 = character(0),
+    var2_id = integer(0),
+    est = numeric(0),
+    std = numeric(0),
+    se = numeric(0),
+    p = numeric(0),
+    matrix = character(0),
+    row = numeric(0),
+    col = numeric(0),
+    par = integer(0),
+    group = character(0),
+    group_id = integer(0),
+    fixed = logical(0),
+    symmetrical = logical(0), # Used to determine if matrix is symmetrical
+    mi = numeric(0), # Modification index
+    pmi = numeric(0), #p-value modification index
+    stringsAsFactors = FALSE
   ),
-  prototype = list(
-    model = "dummy",
-    parameters = data.frame(
-      var1 = character(0),
-      var1_id = integer(0),
-      op = character(0),
-      var2 = character(0),
-      var2_id = integer(0),
-      est = numeric(0),
-      std = numeric(0),
-      se = numeric(0),
-      p = numeric(0),
-      matrix = character(0),
-      row = numeric(0),
-      col = numeric(0),
-      par = integer(0),
-      group = character(0),
-      group_id = integer(0),
-      fixed = logical(0),stringsAsFactors = FALSE
-    ),
-    computed = FALSE
-  ))
+  matrices = data.frame(
+    name = character(0),
+    nrow = integer(0),
+    ncol = integer(0),
+    ngroup = integer(0),
+    symmetrical = logical(0),
+    sparse = logical(0),
+    posdef = logical(0)
+  ),
+  computed = FALSE,
+  timestamp = generate_psychonetrics_timestamp()
+))
 
 generate_psychonetrics()

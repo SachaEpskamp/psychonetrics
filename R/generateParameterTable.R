@@ -5,12 +5,24 @@ generateAllParameterTables <- function(...){
   res <- list()
   for (i in seq_along(dots)){
     res[[i]] <- do.call(generateParameterTable,c(dots[[i]],list(curMaxPar=curMaxPar)))
-    curMaxPar <- max(res[[i]]$par)
+    curMaxPar <- max(res[[i]]$partable$par)
   }
-  do.call(rbind,res)
+  res <- list(
+    partable = do.call(rbind,lapply(res,"[[","partable")),
+    mattable = do.call(rbind,lapply(res,"[[","mattable"))
+  )
+  
+  # Order parameter table by group id:
+  res$partable <- res$partable %>% arrange_(~group_id)
+  # Relabel the parameter labels to be a bit more consistent:
+  res$partable$par[res$partable$par!=0] <- as.numeric(factor(res$partable$par[res$partable$par!=0], 
+            levels = unique(res$partable$par[res$partable$par!=0])))
+  
+  # Return:
+  res
 }
 
-generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, sampletable, rownames, colnames, rowid, colid){
+generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, sampletable, rownames, colnames, rowid, colid, sparse = FALSE, posdef = FALSE){
   # rowid and colid can be missing:
   if (missing(rowid)){
     rowid <- seq_along(rownames)
@@ -21,13 +33,17 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
   
   # Indices to use:
   if (symmetrical){
-    ind <- lower.tri(x,diag=TRUE)
+    ind <- array(TRUE,dim=dim(x))
+    for (i in 1:dim(ind)[3]){
+      ind[,,i] <- lower.tri(ind[,,i],diag=TRUE)
+    }
+    # ind <- lower.tri(x,diag=TRUE)
   } else {
     ind <- rep(TRUE,length(x))
   }
   # Obtain row:
   row <- slice.index(x,1)[ind]
-  
+
   if (length(dim(x)) == 3){
     # Obtain col:
     col <- slice.index(x,2)[ind]
@@ -35,7 +51,7 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
     group <- slice.index(x,3)[ind]    
   } else {
     # Obtain col:
-    col <- NA
+    col <- 1
     # Obtain group:
     group <- slice.index(x,2)[ind]
   }
@@ -44,7 +60,7 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
   if (symmetrical){
     est <- array(diag(nrow(x)),dim(x))[ind]
   } else {
-    est <- 0
+    est <- rep(0,length(x))
   }
   
   # Fixed are values that are zero:
@@ -82,7 +98,7 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
   group_id <- group
 
   # Make the table:
-  table <- data.frame(
+  partable <- data.frame(
     var1 = var1,
     var1_id = var1_id,
     op = op,
@@ -100,6 +116,19 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
     group_id = group_id,
     fixed = fixed
   )
+  # Table for matrices:
+  mattable <- data.frame(
+    name = mat,
+    nrow = as.integer(max(row)),
+    ncol = as.integer(ifelse(all(!is.na(col)),max(col),1)),
+    ngroup = max(group_id),
+    symmetrical = symmetrical,
+    sparse = sparse,
+    posdef=posdef
+  )
   
-  return(table)
+  return(list(
+    partable = partable,
+    mattable = mattable
+  ))
 }

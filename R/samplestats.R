@@ -3,17 +3,17 @@ samplestats <- function(
   data, # Dataset
   vars, # character indicating the variables Extracted if missing from data - group variable
   groups, # ignored if missing. Can be character indicating groupvar, or vector with names of groups
-  covmat, # alternative covmat (array nvar * nvar * ngroup)
+  covs, # alternative covs (array nvar * nvar * ngroup)
   means, # alternative means (matrix nvar * ngroup)
   nobs, # Alternative if data is missing (length ngroup)
   missing = "fiml"){
   
   # Check data:
-  if (missing(data) & missing(covmat)){
-    stop("'data' and 'covmat' may not both be missing")
+  if (missing(data) & missing(covs)){
+    stop("'data' and 'covs' may not both be missing")
   }
-  if (!missing(data) & !missing(covmat)){
-    stop("'data' and 'covmat' may not both *not* be missing")
+  if (!missing(data) & !missing(covs)){
+    stop("'data' and 'covs' may not both *not* be missing")
   }
   
   # If data is supplied:
@@ -51,13 +51,28 @@ samplestats <- function(
     lavOut <- lavaan::lavCor(data[,c(vars,groups)], missing = missing,output = "lavaan", group = groups)
     sampleStats <- lavaan::lavInspect(lavOut, what = "sample")
     
-    # Create covmat and means arguments:
+    # Create covs and means arguments:
     if (nGroup == 1){
-      covmat <- array(sampleStats$cov, c(nVars,nVars,1))
-      means <- matrix(sampleStats$mean, nVars, 1)
+      cov <- sampleStats$cov
+      class(cov) <- "matrix"
+      covs <- list(as(cov,"dpoMatrix"))
+      cors <- list(new("corMatrix", cov2cor(cov), sd = diag(cov)))
+      means <- list(matrix(unclass(sampleStats$mean)))
     } else {
-      covmat <- do.call(abind::abind, c(lapply(sampleStats,"[[","cov"), list(along = 3)))
-      means <- do.call(abind::abind, c(lapply(sampleStats,"[[","mean"), list(along = 2)))
+      cors <- lapply(sampleStats,function(x){
+        cov <- x$cov
+        class(cov) <- "matrix"
+        mat <- new("corMatrix", cov2cor(cov), sd = diag(cov))
+        mat
+      })
+      covs <- lapply(sampleStats,function(x){
+        cov <- x$cov
+        class(cov) <- "matrix"
+        as(cov,"dpoMatrix")
+      })
+      means <- lapply(sampleStats,function(x){
+        matrix(unclass(x$mean))
+      })
       groupNames <- names(sampleStats)
     }
     if (!missing(nobs)){
@@ -80,35 +95,48 @@ samplestats <- function(
       stop("'nobs' must be a vector with sample size per group")
     }
     
-    # Check if covmat is array:
-    if (!is.array(covmat)){
-      covmat <- array(covmat, c(nVars, nVars, nGroup))
+    # Check if covs is array:
+    if (!is.array(covs)){
+      class(cors) <- "matrix"
+      covs <- list(as(covs,"dpoMatrix"))
+      cors <- list(new("corMatrix", cov2cor(covs), sd = diag(covs)))
     }
     # Check if means is missing:
     if (missing(means)){
-      means <- matrix(0, nVars, nGroup)
+      means <- lapply(1:nGroup,function(x)matrix(0,nVars,1))
     }
     
     # Check if means is matrix:
     if (!is.matrix(means)){
-      means <- matrix(means, nVars, nGroup)
+      means <-lapply(1:nGroup,function(x)means)  
     }
   }
   
+  # Check if cov is dpoMatrix:
+  for (i in seq_along(covs)){
+    if (!is(covs[[i]],"dpoMatrix")){
+      covs[[i]] <- as(covs[[i]], "dpoMatrix")
+    }
+  }
+  
+  # Set names:
+  names(covs) <- groupNames
+  names(means) <- groupNames
+  
   # Generate samplestats object:
-  object <- generate_psychonetrics_samplestats(covmat = covmat,means = means)
+  object <- generate_psychonetrics_samplestats(covs = covs, cors = cors, means = means)
   
   # Fill groups:
   object@groups <- data.frame(
     label = groupNames,
     id = seq_along(groupNames),
-    nobs = nobs
+    nobs = nobs, stringsAsFactors = FALSE
   )
   
   # Fill variables:
   object@variables <- data.frame(
     label = vars,
-    id = seq_along(vars)
+    id = seq_along(vars), stringsAsFactors = FALSE
   )
   
   # Return object:
