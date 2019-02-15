@@ -1,5 +1,6 @@
 # Implied model for GGM. Requires appropriate model matrices:
 implied_ggm <- function(x){
+
   # For each group:
   nGroup <- length(x)
   Result <- lapply(seq_len(nGroup), function(g){
@@ -9,6 +10,7 @@ implied_ggm <- function(x){
     
     # Implied variance--covariance:
     sigma <- as(solve(kappa),"dpoMatrix")
+    # sigma <- as(solve(kappa),"dpoMatrix")
     
     # Implied means
     mu <- x[[g]]$mu

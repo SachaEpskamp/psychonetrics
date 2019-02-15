@@ -70,6 +70,8 @@ prototype = list(
     pmi = numeric(0), #p-value modification index
     mi_equal = numeric(0), # Modification index constraning groups to be equal
     pmi_equal = numeric(0), #p-value modification index constraining groups to be equal
+    minimum = numeric(0),
+    maximum = numeric(0),
     stringsAsFactors = FALSE
   ),
   matrices = data.frame(

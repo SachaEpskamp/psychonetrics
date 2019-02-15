@@ -32,7 +32,10 @@ runmodel <- function(
                               "step.min", "step.max",
                               "abs.tol", "rel.tol", "x.tol", "xf.tol")]
 
+  # Start and bounts:
   start <- parVector(x)
+  lower <- lowerBound(x)
+  upper <- upperBound(x)
   
   # Check if Gradient and hessian are present:
   if (level == "default"){
@@ -51,8 +54,8 @@ runmodel <- function(
                         objective=x@fitfunctions$fitfunction,
                         gradient=NULL,
                         hessian = NULL,
-                        lower=-Inf,
-                        upper=Inf,
+                        lower=lower,
+                        upper=upper,
                         model = x,
                         control=control)
     # scale=SCALE, # FIXME: What is this in lavaan?
@@ -61,8 +64,8 @@ runmodel <- function(
                         objective=x@fitfunctions$fitfunction,
                         gradient=x@fitfunctions$gradient,
                         hessian = NULL,
-                        lower=-Inf,
-                        upper=Inf,
+                        lower=lower,
+                        upper=upper,
                         model = x,
                         control=control)
   } else {
@@ -70,8 +73,8 @@ runmodel <- function(
                         objective=x@fitfunctions$fitfunction,
                         gradient=x@fitfunctions$gradient,
                         hessian = x@fitfunctions$hessian,
-                        lower=-Inf,
-                        upper=Inf,
+                        lower=lower,
+                        upper=upper,
                         model = x,
                         control=control)
   }
