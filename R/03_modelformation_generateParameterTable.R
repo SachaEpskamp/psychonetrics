@@ -5,7 +5,7 @@ generateAllParameterTables <- function(...){
   res <- list()
   for (i in seq_along(dots)){
     res[[i]] <- do.call(generateParameterTable,c(dots[[i]],list(curMaxPar=curMaxPar)))
-    curMaxPar <- max(res[[i]]$partable$par)
+    curMaxPar <- max(curMaxPar,res[[i]]$partable$par)
   }
   res <- list(
     partable = do.call(rbind,lapply(res,"[[","partable")),

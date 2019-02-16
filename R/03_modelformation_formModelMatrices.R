@@ -19,7 +19,10 @@ formModelMatrices <- function(x){
         mat[upper.tri(mat)] <- t(mat)[upper.tri(mat)]
       } 
       # What kind of matrix?
-      if (mats$sparse[i]){
+      if (mats$diagonal[i]){
+        mat <- as(mat, "diagonalMatrix")
+        
+      } else if (mats$sparse[i]){
         if (mats$symmetrical[i]){
           mat <- as(mat, "dsCMatrix")
         } else {

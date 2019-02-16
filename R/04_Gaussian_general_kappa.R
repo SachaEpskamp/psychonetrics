@@ -10,7 +10,7 @@ hessian_general_kappa <- function(x, model){
   full_hessian <- Reduce("bdiag",hessian_per_group)
   
   # Add model:
-  hes <- t(model@fitfunctions$extramatrices$M) %*% full_hessian %*% model@fitfunctions$extramatrices$M
+  hes <- t(prep$groupModels[[1]]$M) %*% full_hessian %*% prep$groupModels[[1]]$M
   
   # Return:
   return(hes)

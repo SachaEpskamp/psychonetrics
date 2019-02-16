@@ -22,14 +22,21 @@ prepare_precision <- function(x, model){
   # Sample stats:
   S <- model@sample@covs
   means <- model@sample@means
+  
+  # Extra mats:
+  extraMatrices <- list(
+    M = Mmatrix(model@parameters),
+    D = duplicationMatrix(nrow(model@sample@variables))
+  )
 
   # Fill per group:
   groupModels <- list()
   for (g in 1:nGroup){
-    groupModels[[g]] <- c(mats[[g]],imp[[g]], model@fitfunctions$extramatrices) # FIXME: This will lead to extra matrices to be stored?
+    groupModels[[g]] <- c(mats[[g]],imp[[g]], extraMatrices) # FIXME: This will lead to extra matrices to be stored?
     groupModels[[g]]$S <- S[[g]]
     groupModels[[g]]$means <- means[[g]]
   }
+  
   
   # Return
   return(list(
