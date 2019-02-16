@@ -1,5 +1,5 @@
-# Implied model for GGM. Requires appropriate model matrices:
-implied_ggm <- function(x){
+# Implied model for precision. Requires appropriate model matrices:
+implied_precision <- function(x){
 
   # For each group:
   nGroup <- length(x)
@@ -9,8 +9,9 @@ implied_ggm <- function(x){
     kappa <- x[[g]]$kappa
     
     # Implied variance--covariance:
-    sigma <- as(solve(kappa),"dpoMatrix")
     # sigma <- as(solve(kappa),"dpoMatrix")
+    # sigma <- as(solve(kappa),"dpoMatrix")
+    sigma <- solve(kappa)
     
     # Implied means
     mu <- x[[g]]$mu

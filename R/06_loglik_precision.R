@@ -1,5 +1,5 @@
 # function to scale from fit function to log likelihood:
-loglik_ggm <- function(x){
+loglik_precision <- function(x){
   # Prepare
 
   n <- sum(x@sample@groups$nobs)

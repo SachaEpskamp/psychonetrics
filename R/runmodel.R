@@ -13,6 +13,20 @@ runmodel <- function(
   if (!is(x,"psychonetrics")){
     stop("input is not a 'psychonetrics' object")
   }
+  
+
+  # Evaluate baseline model:
+  if (!is.null(x@baseline_saturated$baseline) && !x@baseline_saturated$baseline@computed){
+    # Run:
+    x@baseline_saturated$baseline <- runmodel(x@baseline_saturated$baseline, addfit = FALSE, addMIs = FALSE)
+  }
+    
+  # Evaluate saturated model:
+  if (!is.null(x@baseline_saturated$saturated) && !x@baseline_saturated$saturated@computed){
+    # Run:
+    x@baseline_saturated$saturated <- runmodel(x@baseline_saturated$saturated, addfit = FALSE, addMIs = FALSE)
+  }
+  
  
   
   # nlminb control pars:

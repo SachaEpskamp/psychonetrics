@@ -1,65 +1,73 @@
-# Fix adjacency matrix structures:
-fixAdj <- function(adjacency, nGroup, nNode, equal = FALSE){
-  # Check adjacency:
-  # Make adjacency if one of the defaults is used:
-  if (is.character(adjacency)){
+# Fix kappa matrix structures:
+fixAdj <- function(kappa, nGroup, nNode, equal = FALSE, diag0 = FALSE, diagonal = FALSE){
+  # Check kappa:
+  # Make kappa if one of the defaults is used:
+  if (is.character(kappa)){
     
     # Empty network:
-    if (adjacency == "empty"){
+    if (kappa == "empty"){
       
       # Equal for all groups:
       if (equal){
-        adjacency <- array(diag(1+seq_len(nNode)), c(nNode, nNode, nGroup))
+        kappa <- array(diag(1+seq_len(nNode)), c(nNode, nNode, nGroup))
       } else {
         # Different for all groups:
-        adjacency <- array(diag(nNode), c(nNode, nNode, nGroup))
+        kappa <- array(diag(nNode), c(nNode, nNode, nGroup))
       }
     } else {
       # Full network:
       if (equal){
-        adjacency <- array(0, c(nNode, nNode, nGroup))
+        kappa <- array(0, c(nNode, nNode, nGroup))
         for (i in 1:nGroup){
-          adjacency[,,i][lower.tri(adjacency[,,i],diag=TRUE)] <- 1 + seq_len(sum(lower.tri(adjacency[,,i],diag=TRUE)))
-          # adjacency[,,i][upper.tri(adjacency[,,i])] <- t(adjacency)[upper.tri(adjacency[,,i])] # Actually let's just ignore the upper.tri part!
+          kappa[,,i][lower.tri(kappa[,,i],diag=TRUE)] <- 1 + seq_len(sum(lower.tri(kappa[,,i],diag=TRUE)))
+          # kappa[,,i][upper.tri(kappa[,,i])] <- t(kappa)[upper.tri(kappa[,,i])] # Actually let's just ignore the upper.tri part!
         }
       } else {
         # Different for all groups:
-        adjacency <- array(1, c(nNode, nNode, nGroup))
+        kappa <- array(1, c(nNode, nNode, nGroup))
       }     
     }
   }
   
   
-  # Check if the adjacency is a matrix:
-  if (length(dim(adjacency)) == 2){
-    adjacency <- array(adjacency, c(nNode, nNode, nGroup))
+  # Check if the kappa is a matrix:
+  if (length(dim(kappa)) == 2){
+    kappa <- array(kappa, c(nNode, nNode, nGroup))
   }
   
   # Check dimensions:
-  if (dim(adjacency)[1]!=nNode){
-    stop("Number of rows in 'adjacency' does not equal the number of variables")
+  if (dim(kappa)[1]!=nNode){
+    stop("Number of rows in 'kappa' does not equal the number of variables")
   }
-  if (dim(adjacency)[2]!=nNode){
-    stop("Number of columns in 'adjacency' does not equal the number of variables")
+  if (dim(kappa)[2]!=nNode){
+    stop("Number of columns in 'kappa' does not equal the number of variables")
   }
-  if (dim(adjacency)[3]!=nGroup){
-    stop("Number of layers in 'adjacency' does not equal the number of groups")
+  if (dim(kappa)[3]!=nGroup){
+    stop("Number of layers in 'kappa' does not equal the number of groups")
   }
   
-  # Clear al upper tris:
+  # Clear al upper tris and diag if needed:
   for (i in 1:nGroup){
-    adjacency[,,i][upper.tri(adjacency[,,i])] <- 0
+    # Remove diagonal:
+    if (diag0){
+      kappa[,,i][upper.tri(kappa[,,i],diag=TRUE)] <- 0  
+    } else if (diagonal){
+      # Keep only diagonal:
+      kappa[,,i][diag(nrow(kappa[,,i]))!=1] <- 0  
+    } else {
+      kappa[,,i][upper.tri(kappa[,,i])] <- 0
+    }
   }
   
   # Should there be equality constrains?
-  if (equal && any(adjacency==1)){
-    curMax <- max(adjacency)
-    adjacency[,,1][adjacency[,,1]==1&lower.tri(adjacency[,,1],diag=TRUE)] <- curMax + seq_len(sum(adjacency[,,1]==1&lower.tri(adjacency[,,1],diag=TRUE)))
+  if (equal && any(kappa==1)){
+    curMax <- max(kappa)
+    kappa[,,1][kappa[,,1]==1&lower.tri(kappa[,,1],diag=TRUE)] <- curMax + seq_len(sum(kappa[,,1]==1&lower.tri(kappa[,,1],diag=TRUE)))
     if (nGroup > 1){
       for (i in 2:nGroup){
-        adjacency[,,i][adjacency[,,i]==1] <- adjacency[,,1][adjacency[,,i]==1]
+        kappa[,,i][kappa[,,i]==1] <- kappa[,,1][kappa[,,i]==1]
       }      
     }
   }
-  adjacency
+  kappa
 }

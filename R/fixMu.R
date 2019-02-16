@@ -1,4 +1,4 @@
-# Fix adjacency matrix structures:
+# Fix kappa matrix structures:
 fixMu <- function(mu, nGroup, nNode, equal = FALSE){
   
   # Missing:

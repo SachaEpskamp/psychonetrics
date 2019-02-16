@@ -4,6 +4,10 @@ Vec <- function(x){
     return(matrix(c(x)))
   } else {
     # Assume Matrix package
-    return(Matrix(x@x))
+    if (is(x,"sparseMatrix")){
+      return(c(as.matrix(x)))
+    } else {
+      return(Matrix(x@x))  
+    }
   }
 }

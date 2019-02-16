@@ -1,5 +1,5 @@
-# Prepare all matrices for the fit, gradient and hessian of GGM models:
-prepare_ggm <- function(x, model){
+# Prepare all matrices for the fit, gradient and hessian of precision models:
+prepare_precision <- function(x, model){
 
   # New model:
   newMod <- updateModel(x,model)
@@ -17,7 +17,7 @@ prepare_ggm <- function(x, model){
   mats <- formModelMatrices(newMod)
   
   # Compute implied matrices:
-  imp <- implied_ggm(mats)
+  imp <- implied_precision(mats)
 
   # Sample stats:
   S <- model@sample@covs

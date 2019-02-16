@@ -1,5 +1,5 @@
 # Fit function per group:
-gradient_ggm_group <- function(S,kappa,means,mu,D,sigma,...){
+gradient_precision_group <- function(S,kappa,means,mu,D,sigma,...){
   # Mean part:
   grad_mean <- -2 * kappa %*% (means - mu)
   
@@ -10,13 +10,13 @@ gradient_ggm_group <- function(S,kappa,means,mu,D,sigma,...){
   rBind(grad_mean,grad_kappa)
 }
 
-# Fit function for the ggm: -2n* log likelihood
-gradient_ggm <- function(x, model){
+# Fit function for the precision: -2n* log likelihood
+gradient_precision <- function(x, model){
   # Prepare
-  prep <- prepare_ggm(x, model)
+  prep <- prepare_precision(x, model)
 
   # Fit function per group:
-  gradient_per_group <- lapply(prep$groupModels,do.call,what=gradient_ggm_group)
+  gradient_per_group <- lapply(prep$groupModels,do.call,what=gradient_precision_group)
   
   # Bind by row:
   full_gradient <- Reduce("rBind",gradient_per_group)

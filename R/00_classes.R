@@ -81,7 +81,8 @@ prototype = list(
     ngroup = integer(0),
     symmetrical = logical(0),
     sparse = logical(0),
-    posdef = logical(0)
+    posdef = logical(0),
+    diagonal = logical(0)
   ),
   computed = FALSE,
   timestamp = generate_psychonetrics_timestamp()

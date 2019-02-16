@@ -181,12 +181,12 @@ addfit <- function(
   return(x)
 }
 # 
-# print.ggmFit <- function(x,...){
+# print.precisionFit <- function(x,...){
 #   name <- deparse(substitute(x))[[1]]
 #   if (nchar(name) > 10) name <- "object"
 #   if (name=="x") name <- "object"
 #   
-#   cat("\nggmFit object:\n",
+#   cat("\nprecisionFit object:\n",
 #       paste0("Use plot(",name,") to plot the network structure"),
 #       "\n",
 #       paste0("Fit measures stored under ",name,"$fitMeasures"),
@@ -199,6 +199,6 @@ addfit <- function(
 #   print(fit)
 # }
 # 
-# plot.ggmFit <- function(x,...){
+# plot.precisionFit <- function(x,...){
 #   qgraph::qgraph(x$network,...)
 # }

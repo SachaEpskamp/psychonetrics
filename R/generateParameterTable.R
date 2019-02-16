@@ -22,7 +22,7 @@ generateAllParameterTables <- function(...){
   res
 }
 
-generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, sampletable, rownames, colnames, rowid, colid, sparse = FALSE, posdef = FALSE){
+generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, sampletable, rownames, colnames, rowid, colid, sparse = FALSE, posdef = FALSE, diag0=FALSE, diagonal = FALSE){
   # rowid and colid can be missing:
   if (missing(rowid)){
     rowid <- seq_along(rownames)
@@ -32,10 +32,15 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
   }
   
   # Indices to use:
-  if (symmetrical){
+  if (diagonal){
+    ind <- array(FALSE,dim=dim(x))
+    for (i in 1:dim(ind)[3]){
+      ind[,,i] <- diag(nrow(ind[,,i])) == 1
+    }
+  } else if (symmetrical){
     ind <- array(TRUE,dim=dim(x))
     for (i in 1:dim(ind)[3]){
-      ind[,,i] <- lower.tri(ind[,,i],diag=TRUE)
+      ind[,,i] <- lower.tri(ind[,,i],diag=!diag0)
     }
     # ind <- lower.tri(x,diag=TRUE)
   } else {
@@ -123,22 +128,25 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
     mi_equal = NA, # Modification index constraning groups to be equal
     pmi_equal = NA, #p-value modification index constraining groups to be equal
     minimum = -Inf,
-    maximum = Inf
+    maximum = Inf,
+    stringsAsFactors = FALSE
   )
   
   #FIXME: Temporary fix to make diagonals of symmetrical matrices non-negative:
   if (symmetrical){
-    partable$minimum[partable$var1 == partable$var2] <- 1e-10
+    partable$minimum[partable$var1_id == partable$var2_id] <- 1e-14
   }
+  
   # Table for matrices:
   mattable <- data.frame(
     name = mat,
-    nrow = as.integer(max(row)),
-    ncol = as.integer(ifelse(all(!is.na(col)),max(col),1)),
+    nrow = dim(x)[1],
+    ncol = ifelse(length(dim(x)) > 2,dim(x)[2],1),
     ngroup = max(group_id),
     symmetrical = symmetrical,
     sparse = sparse,
-    posdef=posdef
+    posdef=posdef,
+    diagonal= diagonal
   )
   
   return(list(

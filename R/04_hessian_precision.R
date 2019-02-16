@@ -1,5 +1,5 @@
 # Fit function per group:
-hessian_ggm_group <- function(S,kappa,means,mu,D,sigma,...){
+hessian_precision_group <- function(S,kappa,means,mu,D,sigma,...){
 
   # Mean-mean part:
   hes_mean_mean <- 2*kappa
@@ -28,20 +28,21 @@ hessian_ggm_group <- function(S,kappa,means,mu,D,sigma,...){
   )
 }
 
-# Fit function for the ggm: -2n* log likelihood
-hessian_ggm <- function(x, model){
-  # Prepare
-  prep <- prepare_ggm(x, model)
-
-  # Fit function per group:
-  hessian_per_group <- lapply(prep$groupModels,do.call,what=hessian_ggm_group)
-  
-  # Make block matrix:
-  full_hessian <- Reduce("bdiag",hessian_per_group)
-  
-  # Add model:
-  hes <- t(model@fitfunctions$extramatrices$M) %*% full_hessian %*% model@fitfunctions$extramatrices$M
-  
-  # Return:
-  return(as.matrix(hes))
+# Fit function for the precision: -2n* log likelihood
+hessian_precision <- function(x, model){
+  return(as.matrix(hessian_general_kappa(x,model)))
+  # # Prepare
+  # prep <- prepare_precision(x, model)
+  # 
+  # # Fit function per group:
+  # hessian_per_group <- lapply(prep$groupModels,do.call,what=hessian_precision_group)
+  # 
+  # # Make block matrix:
+  # full_hessian <- Reduce("bdiag",hessian_per_group)
+  # 
+  # # Add model:
+  # hes <- t(model@fitfunctions$extramatrices$M) %*% full_hessian %*% model@fitfunctions$extramatrices$M
+  # 
+  # # Return:
+  # return(as.matrix(hes))
 }
