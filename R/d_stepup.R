@@ -26,7 +26,7 @@ stepup <- function(
         x@fitfunctions$extramatrices$M <- Mmatrix(x@parameters) # FIXME: Make nice function for this
         
         # Run:
-        x <- x %>% runmodel(...)
+        x <- x %>% runmodel(...,log=FALSE)
       } else {
         break
       }
@@ -41,7 +41,7 @@ stepup <- function(
         x@fitfunctions$extramatrices$M <- Mmatrix(x@parameters)
         
         # Run:
-        x <- x %>% runmodel(...)
+        x <- x %>% runmodel(...,log=FALSE)
       } else {
         break
       }
@@ -49,6 +49,10 @@ stepup <- function(
   
     
   }
+  
+  # Add log:
+  x <- addLog(x, "Performed step-up model search")
+  
   return(x)
     
 }

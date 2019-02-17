@@ -6,6 +6,11 @@ hessian_general_kappa <- function(x, model){
   # Fit function per group:
   hessian_per_group <- lapply(prep$groupModels,do.call,what=hessian_precision_group)
   
+  # Weight:
+  for (i in 1:length(prep$groupModels)){
+    hessian_per_group[[i]] <- (prep$nPerGroup[i] / prep$nTotal) * hessian_per_group[[i]]
+  }
+  
   # Make block matrix:
   full_hessian <- Reduce("bdiag",hessian_per_group)
   

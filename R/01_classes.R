@@ -18,16 +18,29 @@ variables = data.frame(
 
 # Timestamp:
 setOldClass("sessionInfo")
-psychonetrics_timestamp <- setClass("psychonetrics_timestamp",  slots = c(
+psychonetrics_log <- setClass("psychonetrics_log",  slots = c(
+  event = "character",
   time = "POSIXct",
   sessionInfo = "sessionInfo"))
 
 
-generate_psychonetrics_timestamp <- function(){
-  stamp <- psychonetrics_timestamp()
+generate_psychonetrics_logentry <- function(event){
+  stamp <- psychonetrics_log()
+  stamp@event <- event
   stamp@time <- Sys.time()
   stamp@sessionInfo <- sessionInfo()
   stamp
+}
+
+addLog <- function(x,event){
+  x@log[[length(x@log)+1]] <- generate_psychonetrics_logentry(event)
+  x
+}
+
+createLogList <- function(){
+  res <- list(generate_psychonetrics_logentry("Model created"))
+  class(res) <- "psychonetrics_log"
+  return(res)
 }
 
 # Psychonetrics model:
@@ -39,7 +52,7 @@ generate_psychonetrics <- setClass("psychonetrics", slots = c(
   sample = "psychonetrics_samplestats", # Sample statistics
   modelmatrices = "list", # Model matrices in list form
   fitfunctions = "list", # contains fitfunction, gradient, hessian and extramatrices, loglik
-  timestamp = "psychonetrics_timestamp",
+  log = "psychonetrics_log",
   optim = "list",
   fitmeasures = "list",
   baseline_saturated = "list",
@@ -85,7 +98,7 @@ prototype = list(
     diagonal = logical(0)
   ),
   computed = FALSE,
-  timestamp = generate_psychonetrics_timestamp()
+  log = createLogList()
 ))
 
 generate_psychonetrics()

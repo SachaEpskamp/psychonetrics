@@ -12,7 +12,7 @@ fit_precision <- function(x, model){
   prep <- prepare_precision(x, model)
 
   # Fit function per group:
-  fit_per_group <- prep$nPerGroup / prep$nTotal * sapply(prep$groupModels,do.call,what=fit_precision_group)
+  fit_per_group <- (prep$nPerGroup / prep$nTotal) * sapply(prep$groupModels,do.call,what=fit_precision_group)
 
   # Sum and return:
   sum(fit_per_group)

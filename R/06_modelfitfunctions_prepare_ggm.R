@@ -27,6 +27,8 @@ prepare_ggm <- function(x, model){
   extraMatrices <- list(
     M = Mmatrix(model@parameters),
     D = duplicationMatrix(nVar),
+    L = eliminationMatrix(nVar),
+    Dstar = duplicationMatrix(nVar,diag = FALSE),
     E = diagonalizationMatrix(nVar)
   )
 

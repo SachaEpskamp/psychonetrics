@@ -95,7 +95,7 @@ ggm <- function(
   if (missing(fitfunctions)){
     model@fitfunctions <- list(
       fitfunction = fit_ggm,
-      # gradient = gradient_precision,
+      gradient = gradient_ggm,
       # hessian = hessian_precision,
       loglik=loglik_ggm
       # extramatrices = list(

@@ -7,7 +7,8 @@ runmodel <- function(
   nlminb.control = list(),
   level = c("default","fitfunction","gradient","hessian"),
   addfit = TRUE,
-  addMIs = TRUE
+  addMIs = TRUE,
+  log = TRUE
 ){
   level <- match.arg(level)
   if (!is(x,"psychonetrics")){
@@ -109,7 +110,12 @@ runmodel <- function(
     x <- addMIs(x) 
   }
   
- 
+  if (log){
+    # Add log:
+    x <- addLog(x, "Evaluated model")    
+  }
+
+  
   # Return model:
   return(x)
 }

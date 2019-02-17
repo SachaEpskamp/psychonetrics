@@ -18,6 +18,11 @@ gradient_gaussian <- function(x, model){
   # Fit function per group:
   gradient_per_group <- lapply(prep$groupModels,do.call,what=gradient_gaussian_group)
   
+  # Weight:
+  for (i in 1:length(prep$groupModels)){
+    gradient_per_group[[i]] <- (prep$nPerGroup[i] / prep$nTotal) * gradient_per_group[[i]]
+  }
+  
   # Bind by row:
   full_gradient <- Reduce("rBind",gradient_per_group)
 
