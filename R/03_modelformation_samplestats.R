@@ -55,6 +55,7 @@ samplestats <- function(
     if (nGroup == 1){
       cov <- sampleStats$cov
       class(cov) <- "matrix"
+      cov <- 0.5*(cov + t(cov))
       covs <- list(as(cov,"dpoMatrix"))
       cors <- list(new("corMatrix", cov2cor(cov), sd = diag(cov)))
       means <- list(matrix(unclass(sampleStats$mean)))

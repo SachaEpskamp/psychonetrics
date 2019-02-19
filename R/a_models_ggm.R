@@ -85,7 +85,7 @@ ggm <- function(
          sparse = TRUE,
          posdef = TRUE,
          diagonal = TRUE,
-         lower = 0
+         lower = 1e-10
     )
     
   )

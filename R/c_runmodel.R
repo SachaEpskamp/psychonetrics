@@ -9,7 +9,8 @@ runmodel <- function(
   addfit = TRUE,
   addMIs = TRUE,
   addSEs=TRUE,
-  log = TRUE
+  log = TRUE,
+  verbose = TRUE
 ){
   level <- match.arg(level)
   if (!is(x,"psychonetrics")){
@@ -18,15 +19,17 @@ runmodel <- function(
   
 
   # Evaluate baseline model:
+  if (verbose) message("Estimating baseline model!")
   if (!is.null(x@baseline_saturated$baseline) && !x@baseline_saturated$baseline@computed){
     # Run:
-    x@baseline_saturated$baseline <- runmodel(x@baseline_saturated$baseline, addfit = FALSE, addMIs = FALSE)
+    x@baseline_saturated$baseline <- runmodel(x@baseline_saturated$baseline, addfit = FALSE, addMIs = FALSE, verbose = FALSE)
   }
     
   # Evaluate saturated model:
+  if (verbose) message("Estimating saturated model!")
   if (!is.null(x@baseline_saturated$saturated) && !x@baseline_saturated$saturated@computed){
     # Run:
-    x@baseline_saturated$saturated <- runmodel(x@baseline_saturated$saturated, addfit = FALSE, addMIs = FALSE)
+    x@baseline_saturated$saturated <- runmodel(x@baseline_saturated$saturated, addfit = FALSE, addMIs = FALSE, verbose = FALSE)
   }
   
  
@@ -37,7 +40,8 @@ runmodel <- function(
                          trace=0L,
                          #abs.tol=1e-20, ### important!! fx never negative
                          abs.tol=(.Machine$double.eps * 10),
-                         rel.tol=1e-10,
+                         # rel.tol=1e-10,
+                         rel.tol=1e-5,
                          #step.min=2.2e-14, # in =< 0.5-12
                          step.min=1.0, # 1.0 in < 0.5-21
                          step.max=1.0,
@@ -64,6 +68,7 @@ runmodel <- function(
     }    
   }
   
+  if (verbose) message("Estimating model!")
   ### START OPTIMIZATION ###
   if (level == "fitfunction"){
     optim.out <- nlminb(start=start,
@@ -73,7 +78,8 @@ runmodel <- function(
                         lower=lower,
                         upper=upper,
                         model = x,
-                        control=control)
+                        control=control
+                        )
     # scale=SCALE, # FIXME: What is this in lavaan?
   } else if (level == "gradient"){
     optim.out <- nlminb(start=start,
@@ -83,7 +89,8 @@ runmodel <- function(
                         lower=lower,
                         upper=upper,
                         model = x,
-                        control=control)
+                        control=control
+                        )
   } else {
     optim.out <- nlminb(start=start,
                         objective=x@fitfunctions$fitfunction,
@@ -92,7 +99,9 @@ runmodel <- function(
                         lower=lower,
                         upper=upper,
                         model = x,
-                        control=control)
+                        control=control
+                        )
+
   }
   
   # Update model:
