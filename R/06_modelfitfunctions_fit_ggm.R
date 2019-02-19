@@ -1,9 +1,9 @@
 # Fit function per group:
 fit_ggm_group <- function(S,kappa,means,mu,...){
-  # if (any(eigen(kappa)$values < 0)) return(Inf)
+  if (any(eigen(kappa)$values < 0)) return(Inf)
   nvar <- ncol(kappa)
   res <- sum(diag(S %*% kappa)) + t(means - mu) %*% kappa %*% (means - mu) - 
-    log(max(0,det(S %*% kappa))) - nvar
+    log(det(S %*% kappa)) - nvar
   as.numeric(res)
 }
 
