@@ -22,7 +22,8 @@ generateAllParameterTables <- function(...){
   res
 }
 
-generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, sampletable, rownames, colnames, rowid, colid, sparse = FALSE, posdef = FALSE, diag0=FALSE, diagonal = FALSE){
+generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, sampletable, rownames, colnames, rowid, colid, sparse = FALSE, posdef = FALSE, diag0=FALSE, diagonal = FALSE,
+                                   lower = -Inf, upper = Inf){
   # rowid and colid can be missing:
   if (missing(rowid)){
     rowid <- seq_along(rownames)
@@ -97,13 +98,32 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
   var1_id <- rowid[row]
   if (length(dim(x))>2){
     var2 <- rownames[col]
-    var2_id <- colid[row]    
+    var2_id <- colid[col]    
   } else {
     var2 <- NA
     var2_id <- NA
   }
   group_name <- sampletable@groups$label[group]
   group_id <- group
+  
+  # Fix lower and upper limits:
+  
+  if (!all(lower == -Inf)){
+    if (length(dim(lower))!=3){
+      lower <- array(lower,dim = dim(x))
+    }
+  }
+  if (!all(upper == Inf)){
+    if (length(dim(lower))!=3){
+      upper <- array(upper,dim = dim(x))
+    }
+  }
+  if (length(lower)==1){
+    lower <-  array(lower,dim = dim(x))
+  }
+  if (length(upper)==1){
+    upper <-  array(upper,dim = dim(x))
+  }
 
   # Make the table:
   partable <- data.frame(
@@ -127,15 +147,15 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
     pmi = NA, #p-value modification index
     mi_equal = NA, # Modification index constraning groups to be equal
     pmi_equal = NA, #p-value modification index constraining groups to be equal
-    minimum = -Inf,
-    maximum = Inf,
+    minimum = lower[ind],
+    maximum = upper[ind],
     stringsAsFactors = FALSE
   )
   
-  #FIXME: Temporary fix to make diagonals of symmetrical matrices non-negative:
-  if (symmetrical){
-    partable$minimum[partable$var1_id == partable$var2_id] <- 1e-14
-  }
+  # #FIXME: Temporary fix to make diagonals of symmetrical matrices non-negative:
+  # if (symmetrical){
+  #   partable$minimum[partable$var1_id == partable$var2_id] <- 1e-14
+  # }
   
   # Table for matrices:
   mattable <- data.frame(

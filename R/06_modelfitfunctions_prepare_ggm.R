@@ -25,11 +25,16 @@ prepare_ggm <- function(x, model){
   
   # Extra mats:
   extraMatrices <- list(
-    M = Mmatrix(model@parameters),
-    D = duplicationMatrix(nVar),
-    L = eliminationMatrix(nVar),
-    Dstar = duplicationMatrix(nVar,diag = FALSE),
-    E = diagonalizationMatrix(nVar)
+    M = Mmatrix(model@parameters), # Model matrix
+    D = duplicationMatrix(nVar), # non-strict duplciation matrix
+    L = eliminationMatrix(nVar), # Elinimation matrix
+    Dstar = duplicationMatrix(nVar,diag = FALSE), # Strict duplicaton matrix
+    A = diagonalizationMatrix(nVar), # Diagonalization matrix
+    An2 = diagonalizationMatrix(nVar^2), # Larger diagonalization matrix
+    In = Diagonal(nVar), # Identity of dim n
+    In2 = Diagonal(nVar^2), # Identity of dim n^2
+    In3 = Diagonal(nVar^3), # Identity of dim n^3
+    E = basisMatrix(nVar) # Basis matrix
   )
 
   # Fill per group:

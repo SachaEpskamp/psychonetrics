@@ -8,6 +8,7 @@ runmodel <- function(
   level = c("default","fitfunction","gradient","hessian"),
   addfit = TRUE,
   addMIs = TRUE,
+  addSEs=TRUE,
   log = TRUE
 ){
   level <- match.arg(level)
@@ -108,6 +109,10 @@ runmodel <- function(
   # Add MIs:
   if (addMIs){
     x <- addMIs(x) 
+  }
+  # Add SEs:
+  if (addSEs){
+    x <- addSEs(x)
   }
   
   if (log){

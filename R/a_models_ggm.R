@@ -69,7 +69,9 @@ ggm <- function(
          colnames = sampleStats@variables$label,
          sparse = TRUE,
          posdef = TRUE,
-         diag0=TRUE
+         diag0=TRUE,
+         lower = -1,
+         upper = 1
       ),
     
     # Delta:
@@ -82,7 +84,8 @@ ggm <- function(
          colnames = sampleStats@variables$label,
          sparse = TRUE,
          posdef = TRUE,
-         diagonal = TRUE
+         diagonal = TRUE,
+         lower = 0
     )
     
   )
@@ -96,7 +99,7 @@ ggm <- function(
     model@fitfunctions <- list(
       fitfunction = fit_ggm,
       gradient = gradient_ggm,
-      # hessian = hessian_precision,
+      hessian = hessian_ggm,
       loglik=loglik_ggm
       # extramatrices = list(
         # D = as(matrixcalc::duplication.matrix(nNode),"sparseMatrix"),

@@ -1,10 +1,23 @@
-# jacobian function per group:
-jacobian_gaussian_group_kappa <- function(S,kappa,means,mu,D,sigma,...){
+jacobian_gaussian_group_kappaVersion_meanPart <- function(kappa,mu,means,...){
   # Mean part:
   grad_mean <- -2 * t(means - mu) %*% kappa
-  
+  grad_mean
+}
+
+jacobian_gaussian_group_kappaVersion_kappaPart <- function(S,means,mu,sigma,D,...){
   # Network part:
   grad_kappa <- t(Vec(S) + Vec((means - mu) %*% t(means - mu)) - Vec(sigma)) %*% D
+  grad_kappa
+}
+
+
+# jacobian function per group:
+jacobian_gaussian_group_kappa <- function(...){
+  # Mean part:
+  grad_mean <- jacobian_gaussian_group_kappaVersion_meanPart(...)
+  
+  # Network part:
+  grad_kappa <- jacobian_gaussian_group_kappaVersion_kappaPart(...)
 
   # Combine and return:
   cbind(grad_mean,grad_kappa)

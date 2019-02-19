@@ -7,12 +7,15 @@ stepup <- function(
 ){
 
     if (missing(matrices)){
-      matrices <- "kappa" #FIXME: I am lazy now...
+      if (x@model == "ggm"){
+        matrices <- "omega"
+      } else if (x@model == "precision"){
+        matrices <- "kappa"
+      } else stop("No default argument for 'matrices' for current model.")
     }
   
   # Start loop:
   repeat{
-
   # Stepwise up?
     if (!"network" %in% x@equal){ # FIXME:  I am lazy, must be more general
       if (any(x@parameters$mi[x@parameters$matrix %in% matrices] > qchisq(alpha,1,lower.tail=FALSE))){

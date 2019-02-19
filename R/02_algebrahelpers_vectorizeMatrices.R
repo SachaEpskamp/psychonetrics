@@ -16,12 +16,21 @@ eliminationMatrix <- function(n, diag = TRUE){
 }
 
 # Diagonalization matrix:
-E <- function(i,n){
-  E <- matrix(0,n,n)
-  E[i,i] <- 1
-  E
+A <- function(i,n){
+  A <- matrix(0,n,n)
+  A[i,i] <- 1
+  A
+}
+diagonalizationMatrix <- function(n){
+    as(Reduce(cbind,lapply(1:n,function(x)c(A(x,n)))),"sparseMatrix")
 }
 
-diagonalizationMatrix <- function(n){
-    as(Reduce(cbind,lapply(1:n,function(x)c(E(x,n)))),"sparseMatrix")
+# Basis matrix:
+basisVector <- function(x,n){
+  sparseMatrix(i = x,j=1,dims=c(n,1))
+}
+basisMatrix <- function(n){
+  do.call(rbind,lapply(seq_len(n),function(i,n){
+    kronecker(Diagonal(n), basisVector(i,n))
+  },n=n))
 }

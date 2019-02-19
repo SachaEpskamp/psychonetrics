@@ -16,18 +16,17 @@ hessian_ggm <- function(x, model){
   # Prepare
   prep <- prepare_ggm(x, model)
 
-  # Jacobian:
-  Hgauss <- hessian_gaussian_kappa(prep)
-  
-  # d_phi_theta:
-  d_phi_theta <- d_phi_theta_ggm(prep)
-  
   # Model matrix:
   M <- Mmatrix(model@parameters)
   
-  # Full Hessian: # FIXME: This is not true :(
-  browser()
-  Hes <- t(M) %*% t(d_phi_theta) %*% Hgauss %*% d_phi_theta %*% M
+  # Hessian:
+  H <- H_ggm(prep)
+  
+  # Full Hessian:
+  Hes <- t(M) %*% H %*% M
+  
+  # Make symmetric # FIXME: why?
+  Hes <- 0.5* (Hes+ t(Hes))
   
   # Return:
   return(as.matrix(Hes))
