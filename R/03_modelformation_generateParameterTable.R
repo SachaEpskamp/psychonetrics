@@ -22,6 +22,8 @@ generateAllParameterTables <- function(...){
   res
 }
 
+# 
+
 generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, sampletable, rownames, colnames, rowid, colid, sparse = FALSE, posdef = FALSE, diag0=FALSE, diagonal = FALSE,
                                    lower = -Inf, upper = Inf){
   # rowid and colid can be missing:
