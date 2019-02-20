@@ -100,11 +100,18 @@ ggm <- function(
       fitfunction = fit_ggm,
       gradient = gradient_ggm,
       hessian = hessian_ggm,
-      loglik=loglik_ggm
-      # extramatrices = list(
-        # D = as(matrixcalc::duplication.matrix(nNode),"sparseMatrix"),
-        # M = Mmatrix(model@parameters)
-      # )
+      loglik=loglik_ggm,
+      extramatrices = list(
+          D = duplicationMatrix(nNode), # non-strict duplciation matrix
+          L = eliminationMatrix(nNode), # Elinimation matrix
+          Dstar = duplicationMatrix(nNode,diag = FALSE), # Strict duplicaton matrix
+          A = diagonalizationMatrix(nNode), # Diagonalization matrix
+          An2 = diagonalizationMatrix(nNode^2), # Larger diagonalization matrix
+          In = Diagonal(nNode), # Identity of dim n
+          In2 = Diagonal(nNode^2), # Identity of dim n^2
+          In3 = Diagonal(nNode^3), # Identity of dim n^3
+          E = basisMatrix(nNode) # Basis matrix
+        )
     )    
   } else {
     model@fitfunctions <- fitfunctions
