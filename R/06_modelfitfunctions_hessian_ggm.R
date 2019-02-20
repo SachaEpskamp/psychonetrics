@@ -7,7 +7,7 @@
 #   grad_kappa <- t(D) %*% (Vec(S) + Vec((means - mu) %*% t(means - mu)) - Vec(sigma))
 #   
 #   # Combine and return:
-#   rBind(grad_mean,grad_kappa)
+#   rbind(grad_mean,grad_kappa)
 # }
 
 # Fit function for the precision: -2n* log likelihood

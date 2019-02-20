@@ -2,7 +2,6 @@
 runmodel <- function(
   x, # psychonetrics model
   # stepwise = FALSE, # Stepwise up search with modification indices?
-  alpha = 0.01, # Alpha to use for modification indices
   matrices, # Matrices to search
   nlminb.control = list(),
   level = c("default","fitfunction","gradient","hessian"),
@@ -19,15 +18,17 @@ runmodel <- function(
   
 
   # Evaluate baseline model:
-  if (verbose) message("Estimating baseline model!")
+
   if (!is.null(x@baseline_saturated$baseline) && !x@baseline_saturated$baseline@computed){
+    if (verbose) message("Estimating baseline model...")
     # Run:
     x@baseline_saturated$baseline <- runmodel(x@baseline_saturated$baseline, addfit = FALSE, addMIs = FALSE, verbose = FALSE)
   }
     
   # Evaluate saturated model:
-  if (verbose) message("Estimating saturated model!")
+ 
   if (!is.null(x@baseline_saturated$saturated) && !x@baseline_saturated$saturated@computed){
+    if (verbose) message("Estimating saturated model...")
     # Run:
     x@baseline_saturated$saturated <- runmodel(x@baseline_saturated$saturated, addfit = FALSE, addMIs = FALSE, verbose = FALSE)
   }
@@ -68,7 +69,7 @@ runmodel <- function(
     }    
   }
   
-  if (verbose) message("Estimating model!")
+  if (verbose) message("Estimating model...")
   ### START OPTIMIZATION ###
   if (level == "fitfunction"){
     optim.out <- nlminb(start=start,

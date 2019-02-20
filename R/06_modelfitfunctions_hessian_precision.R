@@ -23,8 +23,8 @@ hessian_precision_group <- function(S,kappa,means,mu,D,sigma,...){
   
   # Combine and return:
   cbind(
-    rBind(hes_mean_mean,hes_kappa_mean),
-    rBind(hes_mean_kappa,hes_kappa_kappa)
+    rbind(hes_mean_mean,hes_kappa_mean),
+    rbind(hes_mean_kappa,hes_kappa_kappa)
   )
 }
 

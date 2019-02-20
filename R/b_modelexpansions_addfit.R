@@ -1,16 +1,6 @@
 # Add fit measures to psychonetrics object!
 
-# Nice umber function # FIXME: Not used now
-goodNum <- function(x){
-  sapply(x,function(xx){
-    if (xx < 0.0001 & xx > 0){
-      return("< 0.0001")
-    }
-    digits <- max(0,floor(log10(abs(xx))) + 1)
-    isInt <- xx%%1 == 0
-    gsub("\\.$","",formatC(signif(unlist(xx),digits=digits+(!isInt)*2), digits=digits+(!isInt)*2,format="fg", flag="#"))
-  })  
-}
+
 
 # Computes fit measures
 addfit <- function(
