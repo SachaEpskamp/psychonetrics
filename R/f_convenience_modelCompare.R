@@ -1,6 +1,5 @@
 # Compare function for psychonetrics models:
 compare <- function(...){
-  psychonetrics_print_logo()
   # Obtain dots:
   dots <- list(...)
   
@@ -67,10 +66,11 @@ print.psychonetrics_compare <- function(x){
   }
   
   # Output something:
-  cat(
-    paste0("\t\t####################################\n",
-           "\t\t## psychonetrics model comparison ##\n",
-           "\t\t####################################\n\n"))
+  # cat(
+  #   paste0("\t\t####################################\n",
+  #          "\t\t## psychonetrics model comparison ##\n",
+  #          "\t\t####################################\n\n"))
+  psychonetrics_print_logo()
   
   print.data.frame(x,row.names=FALSE)
   
