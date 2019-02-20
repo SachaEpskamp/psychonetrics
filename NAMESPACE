@@ -1,5 +1,5 @@
-useDynLib(psychonetrics, .registration=TRUE)
-importFrom(Rcpp, evalCpp)
+# useDynLib(psychonetrics, .registration=TRUE)
+# importFrom(Rcpp, evalCpp)
 importFrom(lavaan, lavCor, lavInspect)
 exportPattern("^[[:alpha:]]+")
 import(dplyr)
