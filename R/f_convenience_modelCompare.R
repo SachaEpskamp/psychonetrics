@@ -71,7 +71,7 @@ print.psychonetrics_compare <- function(x){
            "\t\t## psychonetrics model comparison ##\n",
            "\t\t####################################\n\n"))
   
-  print.data.frame(x)
+  print.data.frame(x,row.names=FALSE)
   
   cat("\nNote: Chi-square difference test assumes models are nested.")
 }

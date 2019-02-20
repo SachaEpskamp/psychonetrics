@@ -48,7 +48,6 @@ addMIs_inner <- addModificationIndices_inner <- function(x, equal = FALSE){
     
   }
 
-
   # Remake the model matrix:
   modCopy@fitfunctions$extramatrices$M <- Mmatrix(modCopy@parameters)
   # Compute a gradient:
@@ -70,14 +69,13 @@ addMIs_inner <- addModificationIndices_inner <- function(x, equal = FALSE){
   
   # For every new parameter:
   curMax <- max(x@parameters$par)
-  
-  
+
   
   for (i in sort(unique(modCopy@parameters$par[modCopy@parameters$par>1 & x@parameters$par == 0]))){
     ind <- i
     curInds <- seq_len(curMax)
     mi <- n * (0.5 * g[i]^2)/(H[ind,ind] - H[ind,curInds,drop=FALSE] %*% solve(H[curInds,curInds]) %*% H[curInds,ind,drop=FALSE])
-    p <- pchisq(x@parameters$mi[i],df = 1,lower.tail = FALSE)      
+    p <- pchisq(mi,df = 1,lower.tail = FALSE)      
     if (equal){
       x@parameters$mi_equal[modCopy@parameters$par == i] <- mi # round(mi,3)
       x@parameters$pmi_equal[modCopy@parameters$par == i] <- p
