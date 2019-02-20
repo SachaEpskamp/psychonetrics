@@ -7,7 +7,7 @@ gradient_gaussian_group <- function(S,kappa,means,mu,D,sigma,...){
   grad_kappa <- t(D) %*% (Vec(S) + Vec((means - mu) %*% t(means - mu)) - Vec(sigma))
   
   # Combine and return:
-  rBind(grad_mean,grad_kappa)
+  rbind(grad_mean,grad_kappa)
 }
 
 # Fit function for the precision: -2n* log likelihood
@@ -24,7 +24,7 @@ gradient_gaussian <- function(x, model){
   }
   
   # Bind by row:
-  full_gradient <- Reduce("rBind",gradient_per_group)
+  full_gradient <- Reduce("rbind",gradient_per_group)
 
   grad <- full_gradient
   
