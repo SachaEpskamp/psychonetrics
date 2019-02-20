@@ -45,7 +45,7 @@ definition = function(object){
     if (!is.null(object@fitmeasures)){
       cat("\n\nFit:",
           "\n\t- Model Fit Test Statistic:",goodNum(object@fitmeasures$chisq),
-          "\n\t- Degrees of freedom:",goodNum(object@fitmeasures$df),
+          "\n\t- Degrees of freedom:",object@fitmeasures$df,
           "\n\t- p-value (Chi-square):",goodNum(object@fitmeasures$pvalue)
           # "\n\t- RMSEA:",goodNum(object@fitmeasures$rmsea)
       )

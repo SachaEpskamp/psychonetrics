@@ -18,10 +18,10 @@ runmodel <- function(
   
 
   # Evaluate baseline model:
-
   if (!is.null(x@baseline_saturated$baseline) && !x@baseline_saturated$baseline@computed){
     if (verbose) message("Estimating baseline model...")
     # Run:
+
     x@baseline_saturated$baseline <- runmodel(x@baseline_saturated$baseline, addfit = FALSE, addMIs = FALSE, verbose = FALSE)
   }
     
