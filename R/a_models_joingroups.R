@@ -62,13 +62,14 @@ joingroups <- function(..., verbose = TRUE, log = TRUE, runmodel = FALSE,baselin
   names(mod@sample@means) <- mod@sample@groups$label
   
   mod@sample@nobs <- sum(sapply(dots,function(x)x@sample@nobs))
-  
+
 
   # Now add other models, add the parameters and the logs
   for (i in 2:length(dots)){
     newmod <- dots[[2]]@parameters
     newmod$group_id <- max(mod@parameters$group_id) + newmod$group_id
     newmod$par[newmod$par!=0] <- max(mod@parameters$par) + newmod$par[newmod$par!=0]
+
     mod@parameters <- rbind(mod@parameters,newmod)
     
     # obtain both logs:
@@ -85,6 +86,10 @@ joingroups <- function(..., verbose = TRUE, log = TRUE, runmodel = FALSE,baselin
       mod@log[[l]] <- comb[[l]]
     }
   }
+  
+  # Group name:
+  # Group:
+  mod@parameters$group <- mod@sample@groups$label[match(mod@parameters$group_id,mod@sample@groups$id)]
   
   # New model matrices:
   mod@modelmatrices <- formModelMatrices(mod)

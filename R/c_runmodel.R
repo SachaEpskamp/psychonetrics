@@ -79,7 +79,7 @@ runmodel <- function(
                         lower=lower,
                         upper=upper,
                         model = x,
-                        control=control
+                        # control=control
                         )
     # scale=SCALE, # FIXME: What is this in lavaan?
   } else if (level == "gradient"){
@@ -90,7 +90,7 @@ runmodel <- function(
                         lower=lower,
                         upper=upper,
                         model = x,
-                        control=control
+                        # control=control
                         )
   } else {
     optim.out <- nlminb(start=start,
@@ -99,8 +99,8 @@ runmodel <- function(
                         hessian = x@fitfunctions$hessian,
                         lower=lower,
                         upper=upper,
-                        model = x,
-                        control=control
+                        model = x
+                        # control=control
                         )
 
   }

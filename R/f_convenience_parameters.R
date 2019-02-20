@@ -14,7 +14,6 @@ parameters <- function(x){
   parTable <- parTable %>% filter_(~!fixed|est != 0) %>% 
     select_("var1","op","var2","est","se","p","matrix","row","col","group","par")
   
-    
   # Make var2 nicer:
   parTable$var2 <- ifelse(is.na(parTable$var2),"",parTable$var2)
   
@@ -30,7 +29,7 @@ parameters <- function(x){
   
   # For each group:
   for (g in x@sample@groups$label){
-    cat("\n Modification indices for group",g)
+    cat("\n Parameters for group",g)
     # for each matrix:
     for (mat in unique(parTable$matrix[parTable$group == g])){
       if (x@matrices$diagonal[x@matrices$name==mat]){

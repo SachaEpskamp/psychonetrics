@@ -72,6 +72,8 @@ addMIs_inner <- addModificationIndices_inner <- function(x, equal = FALSE){
 
   
   for (i in sort(unique(modCopy@parameters$par[modCopy@parameters$par>1 & x@parameters$par == 0]))){
+  # for (i in sort(unique(modCopy@parameters$par[modCopy@parameters$par>1 & (x@parameters$par == 0 | duplicated(x@parameters$par)|rev(duplicated(rev(x@parameters$par))))]))){
+  # for (i in sort(unique(modCopy@parameters$par))){
     ind <- i
     curInds <- seq_len(curMax)
     mi <- n * (0.5 * g[i]^2)/(H[ind,ind] - H[ind,curInds,drop=FALSE] %*% solve(H[curInds,curInds]) %*% H[curInds,ind,drop=FALSE])
