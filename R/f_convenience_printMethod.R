@@ -8,10 +8,11 @@ definition = function(object){
            fields="Version")
   
   # Make super cool header:
-  cat(
-    paste0("\t\t#########################\n",
-           "\t\t## psychonetrics model ##\n",
-           "\t\t#########################\n\n"))
+  # cat(
+  #   paste0("\t\t#########################\n",
+  #          "\t\t## psychonetrics model ##\n",
+  #          "\t\t#########################\n\n"))
+  psychonetrics_print_logo()
   
   # output some general stats:
   cat("General:",

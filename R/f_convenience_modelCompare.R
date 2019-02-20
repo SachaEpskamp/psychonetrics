@@ -1,5 +1,6 @@
 # Compare function for psychonetrics models:
 compare <- function(...){
+  psychonetrics_print_logo()
   # Obtain dots:
   dots <- list(...)
   

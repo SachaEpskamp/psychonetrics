@@ -1,10 +1,11 @@
 # psychonetrics parameter extraction:
 parameters <- function(x){
-  # AWESOME HEADER!!!
-  cat(
-    paste0("\t##################################\n",
-           "\t## psychonetrics parameter list ##\n",
-           "\t##################################\n\n"))
+  # # AWESOME HEADER!!!
+  # cat(
+  #   paste0("\t##################################\n",
+  #          "\t## psychonetrics parameter list ##\n",
+  #          "\t##################################\n\n"))
+  psychonetrics_print_logo()
   # Obtain the parameter table:
   parTable <- x@parameters
   
