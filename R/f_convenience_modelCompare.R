@@ -41,7 +41,7 @@ compare <- function(...){
   )
   
   # Arrange table by Df:
-  Tab <- Tab %>% arrange_(~-DF)
+  Tab <- Tab %>% arrange_(~DF)
   
   # Compute chis difference:
   Tab$Chisq_diff <- c(NA,abs(diff(Tab$Chisq)))
@@ -61,7 +61,7 @@ compare <- function(...){
 print.psychonetrics_compare <- function(x){
 
   # Make all numbers nicer
-  for (i in 2:ncol(x)){
+  for (i in 3:ncol(x)){
     x[,i] <- goodNum(x[,i])
   }
   
