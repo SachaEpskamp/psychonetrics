@@ -3,10 +3,11 @@ MIs <- function(x,all = FALSE,sortby = c("mi","mi_equal"), top = 10,verbose = TR
   sortby <- match.arg(sortby)
   
   # AWESOME HEADER!!!
-  cat(
-    paste0("\t########################################\n",
-           "\t## psychonetrics modification indices ##\n",
-           "\t########################################\n\n"))
+  psychonetrics_print_logo()
+  # cat(
+  #   paste0("\t########################################\n",
+  #          "\t## psychonetrics modification indices ##\n",
+  #          "\t########################################\n\n"))
   # Obtain the parameter table:
   parTable <- x@parameters
 
@@ -27,7 +28,7 @@ MIs <- function(x,all = FALSE,sortby = c("mi","mi_equal"), top = 10,verbose = TR
     topx$pmi <- goodNum(topx$pmi)
     topx$mi_equal <- goodNum(topx$mi_equal)
     topx$pmi_equal <- goodNum(topx$pmi_equal)
-    cat("Top ",top,"modification indices ",paste0("(ordered by ",sortby,")\n"))
+    cat("Top ",top,"modification indices ",paste0("(ordered by ",sortby,")\n\n"))
     print.data.frame(topx, row.names=FALSE)
   } else {
     # Make the entire table nice:
