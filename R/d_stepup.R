@@ -18,10 +18,10 @@ stepup <- function(
   repeat{
   # Stepwise up?
     if (!"network" %in% x@equal){ # FIXME:  I am lazy, must be more general
-      if (any(x@parameters$mi[x@parameters$matrix %in% matrices] > qchisq(alpha,1,lower.tail=FALSE))){
+      if (any(x@parameters$mi[x@parameters$matrix %in% matrices & x@parameters$fixed] > qchisq(alpha,1,lower.tail=FALSE))){
 
         # FIXME: Make nice free parameter function
-        best <- which(x@parameters$mi == max(x@parameters$mi[x@parameters$matrix %in% matrices]))
+        best <- which(x@parameters$mi == max(x@parameters$mi[x@parameters$matrix %in% matrices & x@parameters$fixed]))
         x@parameters$par[best] <- max(x@parameters$par) + 1
         x@parameters$fixed[best] <- FALSE
         
@@ -34,9 +34,9 @@ stepup <- function(
         break
       }
     } else {
-      if (any(x@parameters$mi_equal[x@parameters$matrix %in% matrices] > qchisq(alpha,1,lower.tail=FALSE))){
+      if (any(x@parameters$mi_equal[x@parameters$matrix %in% matrices & x@parameters$fixed] > qchisq(alpha,1,lower.tail=FALSE))){
         # FIXME: Make nice free parameter function
-        best <- which(x@parameters$mi_equal == max(x@parameters$mi_equal[x@parameters$matrix %in% matrices]))
+        best <- which(x@parameters$mi_equal == max(x@parameters$mi_equal[x@parameters$matrix %in% matrices & x@parameters$fixed]))
         x@parameters$par[best] <- max(x@parameters$par) + 1
         x@parameters$fixed[best] <- FALSE
         

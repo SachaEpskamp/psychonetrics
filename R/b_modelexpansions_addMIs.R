@@ -46,6 +46,12 @@ addMIs_inner <- addModificationIndices_inner <- function(x, equal = FALSE){
     # Add free parameter numbers:
     modCopy@parameters$par[modCopy@parameters$par==0] <- max(modCopy@parameters$par) + seq_len(sum(modCopy@parameters$par==0))
     
+    # For each group, free all parameters from equality constraints:
+    if (nrow(modCopy@sample@groups)>1){
+      for (g in 2:nrow(modCopy@sample@groups)){
+        modCopy@parameters$par[modCopy@parameters$group_id == g & duplicated(modCopy@parameters$par)] <- max(modCopy@parameters$par) + seq_len(sum(modCopy@parameters$group_id == g & duplicated(modCopy@parameters$par)))
+      }
+    }
   }
 
   # Remake the model matrix:
@@ -71,19 +77,20 @@ addMIs_inner <- addModificationIndices_inner <- function(x, equal = FALSE){
   curMax <- max(x@parameters$par)
 
   
-  for (i in sort(unique(modCopy@parameters$par[modCopy@parameters$par>1 & x@parameters$par == 0]))){
+  # for (i in sort(unique(modCopy@parameters$par[modCopy@parameters$par>1 & x@parameters$par == 0]))){
   # for (i in sort(unique(modCopy@parameters$par[modCopy@parameters$par>1 & (x@parameters$par == 0 | duplicated(x@parameters$par)|rev(duplicated(rev(x@parameters$par))))]))){
-  # for (i in sort(unique(modCopy@parameters$par))){
+  for (i in sort(unique(modCopy@parameters$par))){
     ind <- i
     curInds <- seq_len(curMax)
+    curInds <- curInds[curInds != i]
     mi <- n * (0.5 * g[i]^2)/(H[ind,ind] - H[ind,curInds,drop=FALSE] %*% solve(H[curInds,curInds]) %*% H[curInds,ind,drop=FALSE])
     p <- pchisq(mi,df = 1,lower.tail = FALSE)      
     if (equal){
-      x@parameters$mi_equal[modCopy@parameters$par == i] <- mi # round(mi,3)
-      x@parameters$pmi_equal[modCopy@parameters$par == i] <- p
+      x@parameters$mi_equal[modCopy@parameters$par == i] <- round(mi,10) # round(mi,3)
+      x@parameters$pmi_equal[modCopy@parameters$par == i] <- round(p, 10)
     } else {
-      x@parameters$mi[modCopy@parameters$par == i] <- mi # round(mi, 3)
-      x@parameters$pmi[modCopy@parameters$par == i] <- p
+      x@parameters$mi[modCopy@parameters$par == i] <- round(mi,10) # round(mi, 3)
+      x@parameters$pmi[modCopy@parameters$par == i] <- round(p,10)
     }
 
   }

@@ -1,6 +1,7 @@
 # psychonetrics parameter extraction:
-MIs <- function(x,all = FALSE,sortby = c("mi","mi_equal"), top = 10,verbose = TRUE){
+MIs <- function(x,all = FALSE,matrices, sortby = c("mi","mi_equal"), top = 10,verbose = TRUE){
   sortby <- match.arg(sortby)
+  if (missing(matrices)) matrices <- x@matrices$name
   
   # AWESOME HEADER!!!
   psychonetrics_print_logo()
@@ -12,8 +13,10 @@ MIs <- function(x,all = FALSE,sortby = c("mi","mi_equal"), top = 10,verbose = TR
   parTable <- x@parameters
 
   # filter only non-zero parameters and select only relevant columns:
-  parTable <- parTable %>% filter_(~fixed,~!is.na(mi)) %>% 
-    select_("var1","op","var2","mi","pmi","mi_equal","pmi_equal","matrix","row","col","group")
+  # parTable <- parTable %>% filter_(~fixed,~!is.na(mi)) %>% 
+  #   select_("var1","op","var2","mi","pmi","mi_equal","pmi_equal","matrix","row","col","group")
+  parTable <- parTable %>% filter_(~mi!=0) %>% 
+    select_("var1","op","var2","est","mi","pmi","mi_equal","pmi_equal","matrix","row","col","group")
   
   # If nothing, return:
   if (nrow(parTable)==0){
@@ -31,6 +34,7 @@ MIs <- function(x,all = FALSE,sortby = c("mi","mi_equal"), top = 10,verbose = TR
     cat("Top ",top,"modification indices ",paste0("(ordered by ",sortby,")\n\n"))
     print.data.frame(topx, row.names=FALSE)
   } else {
+    parTable <- parTable[order(parTable[[sortby]],decreasing = TRUE),] 
     # Make the entire table nice:
     parTable$mi <- goodNum(parTable$mi)
     parTable$pmi <- goodNum(parTable$pmi)
@@ -51,7 +55,7 @@ MIs <- function(x,all = FALSE,sortby = c("mi","mi_equal"), top = 10,verbose = TR
           brackets <- "" 
         }
         subTable <- parTable %>% filter_(~group == g,~matrix==mat) %>% select_(~-matrix,~-group) 
-        subTable <- subTable[order(subTable[[sortby]],decreasing = TRUE),] 
+        # subTable <- subTable[order(subTable[[sortby]],decreasing = TRUE),] 
         if (nrow(subTable) > 0){
           cat("\n\t- ",mat,brackets,"\n")
           print.data.frame(subTable, row.names=FALSE)          
