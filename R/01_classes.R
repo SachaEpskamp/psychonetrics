@@ -85,6 +85,7 @@ prototype = list(
     pmi_equal = numeric(0), #p-value modification index constraining groups to be equal
     minimum = numeric(0),
     maximum = numeric(0),
+    identified = logical(0), # Indicating a parameter is fixed to identify the model!
     stringsAsFactors = FALSE
   ),
   matrices = data.frame(

@@ -40,16 +40,16 @@ addMIs_inner <- addModificationIndices_inner <- function(x, equal = FALSE){
     
     # Left join back:
     modCopy@parameters <- modCopy@parameters %>% left_join(sum,by=c("matrix","row","col")) %>% 
-      mutate(par = ifelse(par==0,par2,par))
+      mutate(par = ifelse(identified,0,ifelse(par==0,par2,par)))
     
   } else {
     # Add free parameter numbers:
-    modCopy@parameters$par[modCopy@parameters$par==0] <- max(modCopy@parameters$par) + seq_len(sum(modCopy@parameters$par==0))
+    modCopy@parameters$par[modCopy@parameters$par==0 & !modCopy@parameters$identified] <- max(modCopy@parameters$par) + seq_len(sum(modCopy@parameters$par==0 & !modCopy@parameters$identified))
     
     # For each group, free all parameters from equality constraints:
     if (nrow(modCopy@sample@groups)>1){
       for (g in 2:nrow(modCopy@sample@groups)){
-        modCopy@parameters$par[modCopy@parameters$group_id == g & duplicated(modCopy@parameters$par)] <- max(modCopy@parameters$par) + seq_len(sum(modCopy@parameters$group_id == g & duplicated(modCopy@parameters$par)))
+        modCopy@parameters$par[modCopy@parameters$group_id == g & duplicated(modCopy@parameters$par) & !modCopy@parameters$identified] <- max(modCopy@parameters$par) + seq_len(sum(modCopy@parameters$group_id == g & duplicated(modCopy@parameters$par) & !modCopy@parameters$identified))
       }
     }
   }
@@ -79,12 +79,13 @@ addMIs_inner <- addModificationIndices_inner <- function(x, equal = FALSE){
   
   # for (i in sort(unique(modCopy@parameters$par[modCopy@parameters$par>1 & x@parameters$par == 0]))){
   # for (i in sort(unique(modCopy@parameters$par[modCopy@parameters$par>1 & (x@parameters$par == 0 | duplicated(x@parameters$par)|rev(duplicated(rev(x@parameters$par))))]))){
-  for (i in sort(unique(modCopy@parameters$par))){
+  for (i in sort(unique(modCopy@parameters$par[modCopy@parameters$par != 0]))){
     ind <- i
     curInds <- seq_len(curMax)
     curInds <- curInds[curInds != i]
     mi <- n * (0.5 * g[i]^2)/(H[ind,ind] - H[ind,curInds,drop=FALSE] %*% solve(H[curInds,curInds]) %*% H[curInds,ind,drop=FALSE])
     p <- pchisq(mi,df = 1,lower.tail = FALSE)      
+
     if (equal){
       x@parameters$mi_equal[modCopy@parameters$par == i] <- round(mi,10) # round(mi,3)
       x@parameters$pmi_equal[modCopy@parameters$par == i] <- round(p, 10)

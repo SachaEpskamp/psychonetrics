@@ -24,6 +24,8 @@ prune <- function(
       matrices <- "omega"
     } else if (x@model == "precision"){
       matrices <- "kappa"
+    } else if (x@model == "lnm"){
+      matrices <- "omega_eta"
     }
   }
   

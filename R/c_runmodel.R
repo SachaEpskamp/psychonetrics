@@ -22,7 +22,7 @@ runmodel <- function(
     if (verbose) message("Estimating baseline model...")
     # Run:
 
-    x@baseline_saturated$baseline <- runmodel(x@baseline_saturated$baseline, addfit = FALSE, addMIs = FALSE, verbose = FALSE)
+    x@baseline_saturated$baseline <- runmodel(x@baseline_saturated$baseline, addfit = FALSE, addMIs = FALSE, verbose = FALSE,addSEs=FALSE)
   }
     
   # Evaluate saturated model:
@@ -30,7 +30,7 @@ runmodel <- function(
   if (!is.null(x@baseline_saturated$saturated) && !x@baseline_saturated$saturated@computed){
     if (verbose) message("Estimating saturated model...")
     # Run:
-    x@baseline_saturated$saturated <- runmodel(x@baseline_saturated$saturated, addfit = FALSE, addMIs = FALSE, verbose = FALSE)
+    x@baseline_saturated$saturated <- runmodel(x@baseline_saturated$saturated, addfit = FALSE, addMIs = FALSE, verbose = FALSE,addSEs=FALSE)
   }
   
  
@@ -79,7 +79,7 @@ runmodel <- function(
                         lower=lower,
                         upper=upper,
                         model = x,
-                        # control=control
+                        control=control
                         )
     # scale=SCALE, # FIXME: What is this in lavaan?
   } else if (level == "gradient"){
@@ -90,7 +90,7 @@ runmodel <- function(
                         lower=lower,
                         upper=upper,
                         model = x,
-                        # control=control
+                        control=control
                         )
   } else {
     optim.out <- nlminb(start=start,
@@ -99,8 +99,8 @@ runmodel <- function(
                         hessian = x@fitfunctions$hessian,
                         lower=lower,
                         upper=upper,
-                        model = x
-                        # control=control
+                        model = x,
+                        control=control
                         )
 
   }

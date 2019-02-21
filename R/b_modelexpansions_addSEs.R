@@ -40,7 +40,6 @@ addSEs <-  function(x){
   } else {
     H <- numDeriv::hessian(x@fitfunctions$fitfunction,parVector(x), model=x) 
   }
-  
   # Obtain SEs
   # SEs <-  sqrt(abs(diag(solve(-n/2*H))))
   SEs <-  sqrt(abs(diag(solve(H))))

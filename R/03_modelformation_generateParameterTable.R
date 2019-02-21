@@ -156,6 +156,7 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
     pmi_equal = NA, #p-value modification index constraining groups to be equal
     minimum = lower[ind],
     maximum = upper[ind],
+    identified = FALSE,
     stringsAsFactors = FALSE
   )
   
