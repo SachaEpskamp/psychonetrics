@@ -25,6 +25,16 @@ groupequal <- function(
   if (missing(col)){
     col <- unique(x@parameters$col[x@parameters$matrix == matrix])
   }
+  # If row is character, convert to number:
+  if (is.character(row) | is.character(col)){
+    labs <- labtoind(x,row,col,matrix)
+  }
+  if (is.character(row)){
+    row <- labs$row
+  }
+  if (is.character(col)){
+    col <- labs$col
+  }
   # If the matrix is symmetric, add them to each other:
   if (x@matrices$symmetric[x@matrices$name == matrix]){
     row0 <- row
