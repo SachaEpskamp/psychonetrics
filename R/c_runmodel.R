@@ -13,6 +13,7 @@ runmodel <- function(
   optim.control = list(),
   inverseHessian = TRUE
 ){
+
   optimizer <- match.arg(optimizer)
   level <- match.arg(level)
   if (!is(x,"psychonetrics")){
@@ -74,12 +75,15 @@ runmodel <- function(
   
   # Default optimizer:
   optimizer <- match.arg(optimizer)
-  if (level == "hessian" && optimizer == "default"){
-    optimizer <- "nlminb"
-  } else {
-    optimizer <- "ucminf"
+  if (optimizer == "default"){
+    if (level == "hessian"){
+      optimizer <- "nlminb"
+    } else {
+      optimizer <- "ucminf"
+    }
+    
   }
-  
+
   # if (optimizer%in% c("Nelder-Mead","L-BFGS-B","ucminf") & level == "hessian"){
   if (optimizer%in% c("ucminf") & level == "hessian"){
     warning("Optimizer does not support analytical Hessian. Using numeric Hessian instead.")
@@ -88,7 +92,22 @@ runmodel <- function(
   
   if (verbose) message("Estimating model...")
   # Form optimizer arguments:
+
   if (optimizer == "nlminb"){
+    control.nlminb <- list(eval.max=20000L,
+                           iter.max=10000L,
+                           trace=0L,
+                           #abs.tol=1e-20, ### important!! fx never negative
+                           abs.tol=(.Machine$double.eps * 10),
+                           # rel.tol=1e-10,
+                           rel.tol=1e-5,
+                           #step.min=2.2e-14, # in =< 0.5-12
+                           step.min=1.0, # 1.0 in < 0.5-21
+                           step.max=1.0,
+                           x.tol=1.5e-8,
+                           xf.tol=2.2e-14)
+    
+    optim.control$control <- control.nlminb
     optim.control$start <- start
     optim.control$objective <- x@fitfunctions$fitfunction
     optim.control$lower <- lower
@@ -157,9 +176,8 @@ runmodel <- function(
       optimresults$inverseHessian <- optim.out$invhessian
     }
   }
-  
+
 # 
-#   browser()
 #   ### START OPTIMIZATION ###
 #   if (level == "fitfunction"){
 #     if (optimizer == "nlminb"){

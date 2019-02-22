@@ -41,7 +41,8 @@ addfit <- function(
 
   # Compute Fmin:
   fitMeasures$fmin <- x@objective
-  fitMeasures$chisq <- 2 * Ncons * fitMeasures$fmin
+  # fitMeasures$chisq <- 2 * Ncons * fitMeasures$fmin
+  fitMeasures$chisq <- Ncons * fitMeasures$fmin
   fitMeasures$pvalue <- pchisq(fitMeasures$chisq, fitMeasures$df, lower.tail = FALSE)
   
   # Baseline model:

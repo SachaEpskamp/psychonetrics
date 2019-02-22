@@ -163,8 +163,12 @@ lnm <- function(
   )
   
   # Set lambda start:
-  pars$partable$est[pars$partable$matrix=="lambda" & !pars$partable$fixed] <- 0.05
+  pars$partable$est[pars$partable$matrix=="lambda" & !pars$partable$fixed] <- 0.5
 
+  # Set tau startL
+  for (g in 1:nGroup){
+    pars$partable$est[pars$partable$matrix=="tau" & pars$partable$group_id == g] <- sampleStats@means[[g]]
+  }
   
   # Store in model:
   model@parameters <- pars$partable
