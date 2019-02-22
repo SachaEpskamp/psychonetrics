@@ -1,6 +1,8 @@
 # Add standard errors and p-values!
 # Add the modification indices:
-addSEs <-  function(x){
+addSEs <-  function(x
+                    # approxHessian = FALSE # Approximate the hessian even if it is already stored
+                    ){
   # If not computed, warn user!
   if (!x@computed){
     warning("Model was not computed, interpret standard errors and p-values with care!")
@@ -16,33 +18,36 @@ addSEs <-  function(x){
   x@parameters$se[] <- NA
   x@parameters$p[] <- NA
 
-  # Check if gradient and hessian are present:
-  gradient <- !is.null(x@fitfunctions$gradient)
-  hessian <- !is.null(x@fitfunctions$hessian)
-  
   # Sample size:
   n <- sum(x@sample@groups$nobs)
   
-  # Add two kinds of MIs, one for all fixed parameters free, and one for all fixed free but cosntrained per group #
-  
-  # # Compute a gradient:
-  # if (gradient){
-  #   g <- x@fitfunctions$gradient(parVector(modCopy), modCopy)
-  # } else {
-  #  g <- numDeriv::grad(x@fitfunctions$fitfunction,parVector(modCopy), model=modCopy) 
-  # }
-  
-  # Compute a hessian:
-  if (hessian){
-    H <- x@fitfunctions$hessian(parVector(x), x)
-  } else if (gradient){
-    H <- numDeriv::jacobian(x@fitfunctions$gradient,parVector(x), model=x) 
+  # Compute a hessian if requested or needed:
+  if (!is.null(x@information)){
+    Hinv <- corpcor::pseudoinverse(x@information)
+  } else if (!is.null(x@optim$inverseHessian)){
+    Hinv <- x@optim$inverseHessian
   } else {
-    H <- numDeriv::hessian(x@fitfunctions$fitfunction,parVector(x), model=x) 
-  }
+    # Check if gradient and hessian are present:
+    gradient <- !is.null(x@fitfunctions$gradient)
+    hessian <- !is.null(x@fitfunctions$hessian)
+    
+    if (hessian){
+      H <- x@fitfunctions$hessian(parVector(x), x)
+    } else if (gradient){
+      H <- numDeriv::jacobian(x@fitfunctions$gradient,parVector(x), model=x) 
+    } else {
+      H <- numDeriv::hessian(x@fitfunctions$fitfunction,parVector(x), model=x) 
+    }
+    
+    # Invert:
+    Hinv <- corpcor::pseudoinverse(H)
+  } 
+ 
   # Obtain SEs
   # SEs <-  sqrt(abs(diag(solve(-n/2*H))))
-  SEs <-  sqrt(abs(diag(solve(H))))
+  # Hinv <- solve(x@fitfunctions$information(x))
+  SEs <-  sqrt(abs(diag(Hinv)))
+  
   # 
   # 
   # x <- sqrt(abs(diag(solve(H))))

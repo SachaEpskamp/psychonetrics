@@ -2,6 +2,7 @@
 stepup <- function(
   x, # psychonetrics model
   alpha = 0.01, # Alpha to use for modification indices
+  criterion = "bic", # Stop when criterion is no longer improved. Can also be none to ignore
   matrices, # Matrices to search
   ... # Fit arguments
 ){
@@ -16,8 +17,14 @@ stepup <- function(
       } else stop("No default argument for 'matrices' for current model.")
     }
   
+  # Check if MIs are added:
+  if (all(is.na(x@parameters$mi))){
+    x <- x %>% addMIs(matrices = matrices)
+  }
+  
   # Start loop:
   repeat{
+    oldMod <- x
   # Stepwise up?
     if (!"network" %in% x@equal){ # FIXME:  I am lazy, must be more general
       if (any(x@parameters$mi[x@parameters$matrix %in% matrices & x@parameters$fixed] > qchisq(alpha,1,lower.tail=FALSE))){
@@ -51,8 +58,16 @@ stepup <- function(
         break
       }
     }
-  
     
+    # Check criterion:
+    if (criterion != "none"){
+      oldCrit <- oldMod@fitmeasures[[criterion]]
+      newCrit <- x@fitmeasures[[criterion]]
+      if (oldCrit < newCrit){
+        x <- oldMod
+        break
+      }
+    }
   }
   
   # Add log:

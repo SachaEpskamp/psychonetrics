@@ -177,6 +177,7 @@ lnm <- function(
       gradient = gradient_lnm,
       # hessian = hessian_ggm,
       loglik=loglik_ggm,
+      information = Fisher_lnm,
       extramatrices = list(
         D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
         L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix

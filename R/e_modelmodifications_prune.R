@@ -48,7 +48,7 @@ prune <- function(
   }
   
   # Test for significance:
-  nonsig <- x@parameters$p > alpha_adjust
+  nonsig <- x@parameters$p > alpha_adjust & (seq_len(nrow(x@parameters)) %in% whichTest)
   
   # If any non-sig, adjust:
   if (all(is.na(nonsig)) || !any(nonsig[!is.na(nonsig)])){

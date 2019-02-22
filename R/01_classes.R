@@ -57,7 +57,8 @@ generate_psychonetrics <- setClass("psychonetrics", slots = c(
   fitmeasures = "list",
   baseline_saturated = "list",
   equal = "character",
-  objective = "numeric"
+  objective = "numeric",
+  information = "matrix"
 ),
 prototype = list(
   model = "dummy",
