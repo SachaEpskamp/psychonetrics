@@ -70,7 +70,8 @@ print.psychonetrics_compare <- function(x){
   #   paste0("\t\t####################################\n",
   #          "\t\t## psychonetrics model comparison ##\n",
   #          "\t\t####################################\n\n"))
-  psychonetrics_print_logo()
+  # psychonetrics_print_logo()
+  # No awesome header :(
   
   print.data.frame(x,row.names=FALSE)
   

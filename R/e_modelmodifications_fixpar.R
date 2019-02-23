@@ -66,15 +66,16 @@ fixpar <- function(
   
   # Fix the parameters:
   x@parameters$est[whichCons] <- value
-  x@parameters$std[whichCons] <- NA
+  # x@parameters$std[whichCons] <- NA
   x@parameters$par[whichCons] <- 0
-  x@parameters$se[whichCons] <- NA
-  x@parameters$p[whichCons] <- NA
-  x@parameters$mi[whichCons] <- NA
-  x@parameters$pmi[whichCons] <- NA
-  x@parameters$mi_equal[whichCons] <- NA
-  x@parameters$pmi_equal[whichCons] <- NA
+  # x@parameters$se[whichCons] <- NA
+  # x@parameters$p[whichCons] <- NA
+  # x@parameters$mi[whichCons] <- NA
+  # x@parameters$pmi[whichCons] <- NA
+  # x@parameters$mi_equal[whichCons] <- NA
+  # x@parameters$pmi_equal[whichCons] <- NA
   x@parameters$fixed[whichCons] <- TRUE
+  x@parameters <- clearpars(x@parameters,whichCons)
 
   # Relabel:
   x@parameters   <- parRelabel(x@parameters)

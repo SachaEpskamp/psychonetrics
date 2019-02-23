@@ -5,7 +5,8 @@ parameters <- function(x){
   #   paste0("\t##################################\n",
   #          "\t## psychonetrics parameter list ##\n",
   #          "\t##################################\n\n"))
-  psychonetrics_print_logo()
+  # psychonetrics_print_logo()
+  # No awesome header :(
   # Obtain the parameter table:
   parTable <- x@parameters
   

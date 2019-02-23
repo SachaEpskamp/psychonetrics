@@ -58,7 +58,8 @@ generate_psychonetrics <- setClass("psychonetrics", slots = c(
   baseline_saturated = "list",
   equal = "character",
   objective = "numeric",
-  information = "matrix"
+  information = "matrix",
+  identification = "character"
 ),
 prototype = list(
   model = "dummy",
@@ -82,8 +83,13 @@ prototype = list(
     symmetrical = logical(0), # Used to determine if matrix is symmetrical
     mi = numeric(0), # Modification index
     pmi = numeric(0), #p-value modification index
+    epc = numeric(0),
+    mi_free = numeric(0), # Modification index
+    pmi_free = numeric(0), #p-value modification index
+    epc_free = numeric(0),
     mi_equal = numeric(0), # Modification index constraning groups to be equal
     pmi_equal = numeric(0), #p-value modification index constraining groups to be equal
+    pmi_free = numeric(0), #p-value modification index constraining groups to be equal
     minimum = numeric(0),
     maximum = numeric(0),
     identified = logical(0), # Indicating a parameter is fixed to identify the model!
@@ -100,7 +106,8 @@ prototype = list(
     diagonal = logical(0)
   ),
   computed = FALSE,
-  log = createLogList()
+  log = createLogList(),
+  identification = "none"
 ))
 
 generate_psychonetrics()

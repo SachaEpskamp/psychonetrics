@@ -7,6 +7,7 @@ groupfree <- function(
   verbose = TRUE,
   log = TRUE,
   runmodel = FALSE,
+  identify = TRUE,
   ...){
   if (missing(matrix)){
     stop("'matrix' argument may not be missing")
@@ -75,21 +76,32 @@ groupfree <- function(
   # Relabel:
   x@parameters <- parRelabel(x@parameters)
   
+
+  
+
+  # Clear the parameters (let's keep the old estimates, why not):
+  # x@parameters$est[whichFree] <- 0
+  # x@parameters$std[whichFree] <- 0
+  # x@parameters$se[whichFree] <- 0
+  # x@parameters$p[whichFree] <- 0
+  # x@parameters$mi[whichFree] <- NA
+  # x@parameters$pmi[whichFree] <- NA
+  # x@parameters$mi_equal[whichFree] <- NA
+  # x@parameters$pmi_equal[whichFree] <- NA
+  x@parameters <- clearpars(x@parameters,whichFree)
+
+  # Identify:
+  if (identify){
+    x <- identify(x)
+  }
+  
+  
   # Output:
   if (verbose){
     message(paste0("Freed ",max(x@parameters$par)-curMax," parameters!"))
   }
   
-  # Clear the parameters (let's keep the old estimates, why not):
-  # x@parameters$est[whichFree] <- 0
-  x@parameters$std[whichFree] <- 0
-  x@parameters$se[whichFree] <- 0
-  x@parameters$p[whichFree] <- 0
-  x@parameters$mi[whichFree] <- NA
-  x@parameters$pmi[whichFree] <- NA
-  x@parameters$mi_equal[whichFree] <- NA
-  x@parameters$pmi_equal[whichFree] <- NA
-
+  
   # Write to log:
   if (log){
     # Add log:

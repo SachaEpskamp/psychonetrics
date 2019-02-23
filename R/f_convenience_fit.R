@@ -12,7 +12,8 @@ fit <- function(x){
   #   paste0("\t################################\n",
   #          "\t## psychonetrics fit measures ##\n",
   #          "\t################################\n\n"))
-  psychonetrics_print_logo()
+  # psychonetrics_print_logo() 
+  # No awesome header :(
   
   df <- data.frame(
     Measure = names(x@fitmeasures),

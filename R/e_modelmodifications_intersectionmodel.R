@@ -4,6 +4,7 @@ intersectionmodel <- function(
   runmodel = FALSE,
   verbose = TRUE,
   log = TRUE,
+  identify = TRUE,
   ...){
   # If only one group, nothing to do!
   if (nrow(x@sample@groups) == 1){
@@ -29,26 +30,35 @@ intersectionmodel <- function(
     return(x)
   }
   
-  if (verbose){
-    message(paste0("Fixing ",length(whichFix)," parameters!"))
-  }
-  
+
   # Set computed:
   x@computed <- FALSE
   
   # Fix the parameters:
   x@parameters$fixed[whichFix] <- TRUE
   x@parameters$par[whichFix] <- 0
-  x@parameters$mi[whichFix] <- NA
-  x@parameters$pmi[whichFix] <- NA
-  x@parameters$mi_equal[whichFix] <- NA
-  x@parameters$pmi_equal[whichFix] <- NA
-  x@parameters$est[whichFix] <- 0
-  x@parameters$std[whichFix] <- 0
-  x@parameters$se[whichFix] <- 0
-
+  # x@parameters$mi[whichFix] <- NA
+  # x@parameters$pmi[whichFix] <- NA
+  # x@parameters$mi_equal[whichFix] <- NA
+  # x@parameters$pmi_equal[whichFix] <- NA
+  # x@parameters$est[whichFix] <- 0
+  # x@parameters$std[whichFix] <- 0
+  # x@parameters$se[whichFix] <- 0
+  x@parameters <- clearpars(x@parameters,whichFix)
+  
   # Relabel
   x@parameters <- parRelabel(x@parameters)
+  
+  # Identify:
+  if (identify){
+    x <- identify(x)
+  }
+  
+  if (verbose){
+    message(paste0("Fixing ",length(whichFix)," parameters!"))
+  }
+  
+  
   
   if (log){
     # Add log:

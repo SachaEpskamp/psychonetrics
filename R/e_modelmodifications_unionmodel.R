@@ -4,6 +4,7 @@ unionmodel <- function(
   runmodel = FALSE,
   verbose = TRUE,
   log = TRUE,
+  identify = TRUE,
   ...){
   # If only one group, nothing to do!
   if (nrow(x@sample@groups) == 1){
@@ -29,23 +30,32 @@ unionmodel <- function(
     return(x)
   }
   
-  if (verbose){
-    message(paste0("Freeing ",length(whichFree)," parameters!"))
-  }
-  
+
   # Set computed:
   x@computed <- FALSE
   
   # Free the parameters:
   x@parameters$fixed[whichFree] <- FALSE
   x@parameters$par[whichFree] <- max(x@parameters$par) + seq_len(length(whichFree))
-  x@parameters$mi[whichFree] <- NA
-  x@parameters$pmi[whichFree] <- NA
-  x@parameters$mi_equal[whichFree] <- NA
-  x@parameters$pmi_equal[whichFree] <- NA
+  # x@parameters$mi[whichFree] <- NA
+  # x@parameters$pmi[whichFree] <- NA
+  # x@parameters$mi_equal[whichFree] <- NA
+  # x@parameters$pmi_equal[whichFree] <- NA
+  
+  x@parameters <- clearpars(x@parameters,whichFree)
 
   # Just in case... # FIXME: Not needed right?
   x@parameters   <- parRelabel(x@parameters)
+  
+  # Identify:
+  if (identify){
+    x <- identify(x)
+  }
+  
+  if (verbose){
+    message(paste0("Freeing ",length(whichFree)," parameters!"))
+  }
+  
   
   if (log){
     # Add log:

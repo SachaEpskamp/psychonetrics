@@ -1,22 +1,55 @@
+MIs <- function(x, all = FALSE, matrices, type = c("normal","equal","free"), top = 10,verbose = TRUE){
+  # Check if equal and free are needed:
+  if (any(type != "normal")){
+    if (nrow(x@sample@groups) == 1){
+      type <- "normal"
+    }
+  }
+  
+  # Print the tables:
+  for (t in seq_along(type)){
+    MIs_inner(x, all=all, matrices = matrices, type = type[t], top = top, verbose = verbose)
+  }
+  
+}
+
 # psychonetrics parameter extraction:
-MIs <- function(x,all = FALSE,matrices, sortby = c("mi","mi_equal"), top = 10,verbose = TRUE){
-  sortby <- match.arg(sortby)
+MIs_inner <- function(x,all = FALSE, matrices, type = c("normal","equal","free"), top = 10,verbose = TRUE){
+  # sortby <- match.arg(sortby)
   if (missing(matrices)) matrices <- x@matrices$name
   
   # AWESOME HEADER!!!
-  psychonetrics_print_logo()
+  # psychonetrics_print_logo()
+  # No awesome header :(
   # cat(
   #   paste0("\t########################################\n",
   #          "\t## psychonetrics modification indices ##\n",
   #          "\t########################################\n\n"))
   # Obtain the parameter table:
   parTable <- x@parameters
+  
+  # Which columns to use?
+  micol <- switch(type,
+                  "normal" = "mi",
+                  "equal" = "mi_equal",
+                  "free" = "mi_free"
+                  )
+  pcol <- switch(type,
+                  "normal" = "pmi",
+                  "equal" = "pmi_equal",
+                  "free" = "pmi_free"
+  )
+  epccol <- switch(type,
+                 "normal" = "epc",
+                 "equal" = "epc_equal",
+                 "free" = "epc_free"
+  )
 
   # filter only non-zero parameters and select only relevant columns:
   # parTable <- parTable %>% filter_(~fixed,~!is.na(mi)) %>% 
   #   select_("var1","op","var2","mi","pmi","mi_equal","pmi_equal","matrix","row","col","group")
   parTable <- parTable %>% filter_(~mi!=0) %>% 
-    select_("var1","op","var2","est","mi","pmi","mi_equal","pmi_equal","matrix","row","col","group")
+    select_("var1","op","var2","est",micol,pcol,epccol,"matrix","row","col","group")
   
   # If nothing, return:
   if (nrow(parTable)==0){
@@ -26,25 +59,37 @@ MIs <- function(x,all = FALSE,matrices, sortby = c("mi","mi_equal"), top = 10,ve
   
   if (!all){
     # Display the top x:
-    topx <- parTable[order(parTable[[sortby]],decreasing = TRUE),] %>% head(top)
-    topx$mi <- goodNum(topx$mi)
-    topx$pmi <- goodNum(topx$pmi)
-    topx$mi_equal <- goodNum(topx$mi_equal)
-    topx$pmi_equal <- goodNum(topx$pmi_equal)
-    cat("Top ",top,"modification indices ",paste0("(ordered by ",sortby,")\n\n"))
+    topx <- parTable[order(parTable[[micol]],decreasing = TRUE),] %>% head(top)
+    topx[[micol]] <- goodNum(topx[[micol]])
+    topx[[pcol]] <- goodNum(topx[[pcol]])
+    topx[[epccol]] <- goodNum2(topx[[epccol]])
+   
+    # cat("Top ",top,"modification indices ",paste0("(ordered by ",sortby,")\n\n"))
+    message <- switch(type,
+              "normal" = paste0("\nTop ",top," modification indices:\n\n"),
+              "equal" = paste0("\nTop ",top," group-constrained modification indices:\n\n"),
+              "free" = paste0("\nTop ",top," equality-free modification indices:\n\n"))
+    cat(message)
     print.data.frame(topx, row.names=FALSE)
+    
   } else {
-    parTable <- parTable[order(parTable[[sortby]],decreasing = TRUE),] 
+    parTable <- parTable[order(parTable[[micol]],decreasing = TRUE),] 
     # Make the entire table nice:
-    parTable$mi <- goodNum(parTable$mi)
-    parTable$pmi <- goodNum(parTable$pmi)
-    parTable$mi_equal <- goodNum(parTable$mi_equal)
-    parTable$pmi_equal <- goodNum(parTable$pmi_equal)
-    
-    
+    parTable[[micol]] <- goodNum(parTable[[micol]])
+    parTable[[pcol]] <- goodNum(parTable[[pcol]])
+    parTable[[epccol]] <- goodNum2(parTable[[epccol]])
+
     # For each group:
+    message <- switch(type,
+                      "normal" = paste0("Modification indices for group :",x@sample@groups$label[g]),
+                      "equal" = paste0("Group-constrained modification indicesfor group :",x@sample@groups$label[g]),
+                      "free" = paste0("Equality-free modification indices for group :",x@sample@groups$label[g]))
+    cat(message)
+    
+    
     for (g in x@sample@groups$label){
-      cat("\n Modification indices for group",g,"\n")
+      # cat(paste0("\n\nGroup ",x@sample@groups$label[g]))
+      
       # for each matrix:
       for (mat in unique(parTable$matrix[parTable$group == g])){
         if (x@matrices$diagonal[x@matrices$name==mat]){
@@ -64,9 +109,9 @@ MIs <- function(x,all = FALSE,matrices, sortby = c("mi","mi_equal"), top = 10,ve
     }
     
   }
-  cat("\nNote: mi_equal = modification index if parameter is added in all groups (constrained equal)")
+  # cat("\nNote: mi_equal = modification index if parameter is added in all groups (constrained equal)")
   
   
-  invisible(x@parameters %>% filter_(~fixed,~!is.na(mi)) %>% 
-              select_("var1","op","var2","mi","pmi","mi_equal","pmi_equal","matrix","row","col","group"))
+  # invisible(x@parameters %>% filter_(~fixed,~!is.na(mi)) %>% 
+              # select_("var1","op","var2","mi","pmi","mi_equal","pmi_equal","matrix","row","col","group"))
 }

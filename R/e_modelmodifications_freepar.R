@@ -68,15 +68,17 @@ freepar <- function(
   if (!missing(start)){
     x@parameters$est[whichFree] <- start  
   }
-  x@parameters$std[whichFree] <- NA
+  # x@parameters$std[whichFree] <- NA
   x@parameters$par[whichFree] <- curMax + seq_len(length(whichFree))
-  x@parameters$se[whichFree] <- NA
-  x@parameters$p[whichFree] <- NA
-  x@parameters$mi[whichFree] <- NA
-  x@parameters$pmi[whichFree] <- NA
-  x@parameters$mi_equal[whichFree] <- NA
-  x@parameters$pmi_equal[whichFree] <- NA
+  # x@parameters$se[whichFree] <- NA
+  # x@parameters$p[whichFree] <- NA
+  # x@parameters$mi[whichFree] <- NA
+  # x@parameters$pmi[whichFree] <- NA
+  # x@parameters$mi_equal[whichFree] <- NA
+  # x@parameters$pmi_equal[whichFree] <- NA
   x@parameters$fixed[whichFree] <- FALSE
+  
+  x@parameters <- clearpars(x@parameters,whichFree)
 
   # Relabel:
   x@parameters   <- parRelabel(x@parameters)

@@ -1,22 +1,34 @@
 # Full function:
-addMIs <- function(x,approxHessian=FALSE, matrices = "all", verbose = TRUE, freeconstrains = FALSE){
-  full <- TRUE
-  if (full){
-    if (approxHessian){
-      warning("'approxHessian' ignored when full = TRUE")
+addMIs <- function(x, matrices = "all", type =  c("normal","free","equal"),verbose = TRUE){
+  # full <- TRUE
+  # if (full){
+  if (verbose){
+    message("Computing modification indices...")
+  }
+  
+  if ("normal" %in% type){
+
+    x <-  x %>% addMIs_inner_full(type = "normal")     
+  }
+  
+  if (nrow(x@sample@groups) > 1){
+    if ("free" %in% type){
+      # if (verbose){
+      #   message("Computing constrain-free modification indices...")
+      # }
+      x <- x %>% addMIs_inner_full(type = "free")         
     }
-    if (verbose){
-      message("Computing modification indices...")
+    if ("equal" %in% type){
+      
+      # if (verbose){
+      #   message("Computing group-constrained indices...")
+      # }
+      x <- x %>% addMIs_inner_full(type = "equal")       
     }
-    x <-  x %>% addMIs_inner_full(equal=FALSE,freeconstrains=freeconstrains) 
-    if (nrow(x@sample@groups) > 1){
-      if (verbose){
-        message("Computing group-constrained indices...")
-      }
-      x <- x %>% addMIs_inner_full(equal=TRUE,freeconstrains=freeconstrains) 
-    }
-    return(x)
-  } 
+    
+  }
+  return(x)
+  # } 
   # else {
   #   if (verbose){
   #     message("Computing modification indices...")
@@ -193,19 +205,27 @@ addMIs <- function(x,approxHessian=FALSE, matrices = "all", verbose = TRUE, free
 
 
 # Add the modification indices (FULL VERSION):
-addMIs_inner_full <- function(x, equal = FALSE, freeconstrains = FALSE){
+addMIs_inner_full <- function(x, type =  c("normal","free","equal")){
+  type <- match.arg(type)
+  
   # If no constrained parameters, nothing to do!
   if (!any(x@parameters$par == 0)){
     return(x)
   }
   
   # Clear old MIs:
-  if (!equal){
+  if (type == "normal"){
     x@parameters$mi[] <- 0
     x@parameters$pmi[] <- NA
+    x@parameters$epc[] <- NA
+  } else if (type == "free"){
+    x@parameters$mi_free[] <- 0
+    x@parameters$pmi_free[] <- NA
+    x@parameters$epc_free[] <- NA
   } else {
     x@parameters$mi_equal[] <- 0
     x@parameters$pmi_equal[] <- NA
+    x@parameters$epc_equal[] <- NA
   }
   
   # Sample size:
@@ -217,7 +237,7 @@ addMIs_inner_full <- function(x, equal = FALSE, freeconstrains = FALSE){
   modCopy <- x
   
   # Obtain the full set of parameters that are constrained across all groups:
-  if (equal){
+  if (type == "equal"){
     sum <- modCopy@parameters %>% group_by_("matrix","row","col") %>% summarize_(anyConstrained = ~any(fixed)) %>% 
       filter_(~anyConstrained)
     # Add a unique number to each:
@@ -232,14 +252,14 @@ addMIs_inner_full <- function(x, equal = FALSE, freeconstrains = FALSE){
     modCopy@parameters$par[modCopy@parameters$par==0 & !modCopy@parameters$identified] <- max(modCopy@parameters$par) + seq_len(sum(modCopy@parameters$par==0 & !modCopy@parameters$identified))
     
     # For each group, free all parameters from equality constraints:
-    if (freeconstrains){
+    if (type == "free"){
       if (nrow(modCopy@sample@groups)>1){
         for (g in 2:nrow(modCopy@sample@groups)){
           modCopy@parameters$par[modCopy@parameters$group_id == g & duplicated(modCopy@parameters$par) & !modCopy@parameters$identified] <- max(modCopy@parameters$par) + seq_len(sum(modCopy@parameters$group_id == g & duplicated(modCopy@parameters$par) & !modCopy@parameters$identified))
         }
       }      
     }
-
+    
   }
   
   # Identify:
@@ -278,11 +298,11 @@ addMIs_inner_full <- function(x, equal = FALSE, freeconstrains = FALSE){
   } else {
     H <- numDeriv::hessian(x@fitfunctions$fitfunction,parVector(modCopy), model=modCopy) 
   }
-
+  
   # For every new parameter:
   curMax <- max(x@parameters$par)
   
-
+  
   # for (i in sort(unique(modCopy@parameters$par[modCopy@parameters$par>1 & x@parameters$par == 0]))){
   # for (i in sort(unique(modCopy@parameters$par[modCopy@parameters$par>1 & (x@parameters$par == 0 | duplicated(x@parameters$par)|rev(duplicated(rev(x@parameters$par))))]))){
   for (i in sort(unique(modCopy@parameters$par[modCopy@parameters$par != 0]))){
@@ -303,28 +323,41 @@ addMIs_inner_full <- function(x, equal = FALSE, freeconstrains = FALSE){
       mi <- (n/Neff) * n * (0.5 * g[i]^2)/numerator
       mi <- as.numeric(mi)
       p <- pchisq(mi,df = 1,lower.tail = FALSE)     
+      epc <- g[i]
     }
     
-
-
- 
-    if (equal){
-      x@parameters$mi_equal[modCopy@parameters$par == i] <- round(mi,10) # round(mi,3)
-      x@parameters$pmi_equal[modCopy@parameters$par == i] <- round(p, 10)
-    } else {
+    
+    
+    
+    if (type == "normal"){
       x@parameters$mi[modCopy@parameters$par == i] <- round(mi,10) # round(mi, 3)
       x@parameters$pmi[modCopy@parameters$par == i] <- round(p,10)
+      x@parameters$epc[modCopy@parameters$par == i] <- round(epc,10)
+    } else if (type == "free"){
+      x@parameters$mi_free[modCopy@parameters$par == i] <- round(mi,10) # round(mi, 3)
+      x@parameters$pmi_free[modCopy@parameters$par == i] <- round(p,10)
+    } else {
+      x@parameters$mi_equal[modCopy@parameters$par == i] <- round(mi,10) # round(mi,3)
+      x@parameters$pmi_equal[modCopy@parameters$par == i] <- round(p, 10)
     }
     
   }
   
-  if (equal){
-    x@parameters$mi_equal[is.na(x@parameters$mi_equal)] <- 0
-    x@parameters$pmi_equal[is.na(x@parameters$pmi_equal)] <- 1
-  } else {
+  # Make the rest nicer:
+  if (type == "normal"){
     x@parameters$mi[is.na(x@parameters$mi)] <- 0
-    x@parameters$pmi[is.na(x@parameters$pmi)] <- 1
+    x@parameters$pmi[is.na(x@parameters$mi)] <- 1
+    # x@parameters$epc[is.na(x@parameters$mi)] <- 0
+  } else if (type == "free"){
+    x@parameters$mi_free[is.na(x@parameters$mi_free)] <- 0
+    x@parameters$pmi_free[is.na(x@parameters$mi_free)] <- 1
+    # x@parameters$epc_free[is.na(x@parameters$mi_free)] <- 0
+  } else {
+    x@parameters$mi_equal[is.na(x@parameters$mi_equal)] <- 0
+    x@parameters$pmi_equal[is.na(x@parameters$mi_equal)] <- 1
+    # x@parameters$epc_equal[is.na(x@parameters$mi_equal)] <- 0
   }
+  
   
   return(x)
 }

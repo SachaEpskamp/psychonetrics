@@ -82,13 +82,14 @@ groupequal <- function(
   
   # Clear the parameters:
   # x@parameters$est[whichCons] <- 0
-  x@parameters$std[whichCons] <- 0
-  x@parameters$se[whichCons] <- NA
-  x@parameters$p[whichCons] <- NA
-  x@parameters$mi[whichCons] <- NA
-  x@parameters$pmi[whichCons] <- NA
-  x@parameters$mi_equal[whichCons] <- NA
-  x@parameters$pmi_equal[whichCons] <- NA
+  # x@parameters$std[whichCons] <- 0
+  # x@parameters$se[whichCons] <- NA
+  # x@parameters$p[whichCons] <- NA
+  # x@parameters$mi[whichCons] <- NA
+  # x@parameters$pmi[whichCons] <- NA
+  # x@parameters$mi_equal[whichCons] <- NA
+  # x@parameters$pmi_equal[whichCons] <- NA
+  x@parameters <- clearpars(x@parameters,whichCons)
   
   # For every parameter, take mean as starting value:
   x@parameters  <-    x@parameters %>% group_by_("par") %>% mutate_(est=~ifelse(par==0,est,mean(est,na.rm=TRUE))) %>% ungroup

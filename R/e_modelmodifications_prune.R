@@ -8,6 +8,7 @@ prune <- function(
   recursive = TRUE,
   verbose = TRUE,
   log = TRUE,
+  identify = TRUE,
   ...){
   # If not computed, nothing to do:
   if (!x@computed){
@@ -59,25 +60,34 @@ prune <- function(
     return(x)
   } 
   
-  if (verbose){
-    message(paste0("Clearing ",length(unique(x@parameters$par[nonsig]))," parameters!"))
-  }
-  
+
   # Set computed:
   x@computed <- FALSE
   
   # Clear the parameters:
   x@parameters$est[nonsig] <- 0
-  x@parameters$std[nonsig] <- 0
-  x@parameters$se[nonsig] <- 0
+  # x@parameters$std[nonsig] <- 0
+  # x@parameters$se[nonsig] <- 0
   x@parameters$fixed[nonsig] <- TRUE
   x@parameters$par[nonsig] <- 0
-  x@parameters$mi[nonsig] <- NA
-  x@parameters$pmi[nonsig] <- NA
-  x@parameters$mi_equal[nonsig] <- NA
-  x@parameters$pmi_equal[nonsig] <- NA
+  # x@parameters$mi[nonsig] <- NA
+  # x@parameters$pmi[nonsig] <- NA
+  # x@parameters$mi_equal[nonsig] <- NA
+  # x@parameters$pmi_equal[nonsig] <- NA
+  
+  x@parameters <- clearpars(x@parameters,nonsig)
 
   x@parameters   <- parRelabel(x@parameters)
+  
+  # Identify:
+  if (identify){
+    x <- identify(x)
+  }
+  
+  if (verbose){
+    message(paste0("Clearing ",length(unique(x@parameters$par[nonsig]))," parameters!"))
+  }
+  
   
   if (log){
     # Add log:

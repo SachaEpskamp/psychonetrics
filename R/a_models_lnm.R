@@ -17,8 +17,11 @@ lnm <- function(
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   fitfunctions, # Leave empty
-  identify = TRUE
+  identify = TRUE,
+  identification = c("scaling","loadings")
 ){
+  identification <- match.arg(identification)
+  
   # Obtain sample stats:
   sampleStats <- samplestats(data = data, 
                              vars = vars, 
@@ -32,7 +35,7 @@ lnm <- function(
   nNode <- nrow(sampleStats@variables)
   
   # Generate model object:
-  model <- generate_psychonetrics(model = "lnm",sample = sampleStats,computed = FALSE, equal = equal)
+  model <- generate_psychonetrics(model = "lnm",sample = sampleStats,computed = FALSE, equal = equal,identification = identification)
   
   # Number of groups:
   nGroup <- nrow(model@sample@groups)
@@ -100,7 +103,7 @@ lnm <- function(
     ev1 <- sign(eigen(sampleStats@covs[[1]])$vectors[,1])
     ev1 <- ev1 * sign(mean(ev1))
     lambdaStart[,,g] <- 0.5*(lambdaStart[,,g]!=0)*ev1
-    omegaStart[,,g] <- 0.1
+    omegaStart[,,g] <- ifelse(omegaStart[,,g] ==0, 0, 0.1)
     diag(omegaStart[,,g] ) <- 0
   }
   
@@ -227,32 +230,61 @@ lnm <- function(
   
   ### Baseline model ###
   if (baseline_saturated){
-    model@baseline_saturated$baseline <- ggm(data = data, 
-                                             omega = "empty",
+    # model@baseline_saturated$baseline <- ggm(data = data, 
+    #                                          omega = "empty",
+    #                                          vars = vars,
+    #                                          groups = groups,
+    #                                          covs = covs,
+    #                                          means = means,
+    #                                          nobs = nobs,
+    #                                          missing = missing,
+    #                                          equal = equal,
+    #                                          baseline_saturated = FALSE) 
+    
+    # FIXME: Via lnm for now... 
+    model@baseline_saturated$baseline <- lnm(data, 
+                                             lambda = diag(nNode), omega_eta = "empty", 
+                                             sigma_epsilon = "empty", 
                                              vars = vars,
+                                             identification = "loadings",
                                              groups = groups,
                                              covs = covs,
                                              means = means,
                                              nobs = nobs,
                                              missing = missing,
                                              equal = equal,
-                                             baseline_saturated = FALSE) 
+                                             baseline_saturated = FALSE)
     
     # Add model:
     # model@baseline_saturated$baseline@fitfunctions$extramatrices$M <- Mmatrix(model@baseline_saturated$baseline@parameters)
     
     
     ### Saturated model ###
-    model@baseline_saturated$saturated <- ggm(data = data, 
-                                              omega = "full",
-                                              vars = vars,
-                                              groups = groups,
-                                              covs = covs,
-                                              means = means,
-                                              nobs = nobs,
-                                              missing = missing,
-                                              equal = "none",
-                                              baseline_saturated = FALSE)
+    model@baseline_saturated$saturated <- lnm(data, 
+           lambda = diag(nNode), 
+           omega_eta = "full", 
+           sigma_epsilon = "empty", 
+           vars = vars,
+           identification = "loadings",
+           groups = groups,
+           covs = covs,
+           means = means,
+           nobs = nobs,
+           missing = missing,
+           equal = equal,
+           baseline_saturated = FALSE)
+    
+    
+    # model@baseline_saturated$saturated <- ggm(data = data, 
+    #                                           omega = "full",
+    #                                           vars = vars,
+    #                                           groups = groups,
+    #                                           covs = covs,
+    #                                           means = means,
+    #                                           nobs = nobs,
+    #                                           missing = missing,
+    #                                           equal = "none",
+    #                                           baseline_saturated = FALSE)
     
     # Add model:
     # model@baseline_saturated$saturated@fitfunctions$extramatrices$M <- Mmatrix(model@baseline_saturated$saturated@parameters)

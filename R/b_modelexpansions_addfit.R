@@ -48,7 +48,7 @@ addfit <- function(
   # Baseline model:
   if (!is.null(x@baseline_saturated$baseline) && x@baseline_saturated$baseline@computed){
     fitMeasures$fmin_baseline <- x@baseline_saturated$baseline@objective
-    fitMeasures$baseline.chisq <- 2 * Ncons * fitMeasures$fmin_baseline
+    fitMeasures$baseline.chisq <-  Ncons * fitMeasures$fmin_baseline
     fitMeasures$baseline.df <- fitMeasures$nobs - max(x@baseline_saturated$baseline@parameters$par)
     fitMeasures$baseline.pvalue <- pchisq(fitMeasures$baseline.chisq, fitMeasures$baseline.df, lower.tail = FALSE)
     
