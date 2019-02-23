@@ -7,6 +7,7 @@ groupequal <- function(
   verbose = TRUE,
   log = TRUE,
   runmodel = FALSE,
+  identify = TRUE,
   ...){
   if (missing(matrix)){
     stop("'matrix' argument may not be missing")
@@ -79,13 +80,8 @@ groupequal <- function(
   # Relabel:
   x@parameters   <- parRelabel(x@parameters)
   
-  # Output:
-  if (verbose){
-    message(paste0("Constrained ",curMax - max(x@parameters$par)," parameters!"))
-  }
-  
   # Clear the parameters:
-  x@parameters$est[whichCons] <- 0
+  # x@parameters$est[whichCons] <- 0
   x@parameters$std[whichCons] <- 0
   x@parameters$se[whichCons] <- NA
   x@parameters$p[whichCons] <- NA
@@ -93,7 +89,21 @@ groupequal <- function(
   x@parameters$pmi[whichCons] <- NA
   x@parameters$mi_equal[whichCons] <- NA
   x@parameters$pmi_equal[whichCons] <- NA
+  
+  # For every parameter, take mean as starting value:
+  x@parameters  <-    x@parameters %>% group_by_("par") %>% mutate_(est=~ifelse(par==0,est,mean(est,na.rm=TRUE))) %>% ungroup
 
+  # Identify:
+  if (identify){
+    x <- identify(x)
+  }
+  
+  # Output:
+  if (verbose){
+    message(paste0("Constrained ",curMax - max(x@parameters$par)," parameters!"))
+  }
+  
+  
   # Write to log:
   if (log){
     # Add log:

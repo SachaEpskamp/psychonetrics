@@ -35,15 +35,22 @@ Fisher_lnm <- function(model){
   I <- Matrix(0,nTotal,nTotal)
   # For each group
   for (g in 1:nGroups){
+
     # Indices of the mean part:
     meanPart <- (g-1)*nPerGroup + seq_len(nMeans)
     varPart <- (g-1)*nPerGroup + nMeans + seq_len(nVarCov)
+    groupPart <- (g-1)*nPar_perGroup + seq_len(nPar_perGroup)
     kappa <- prep$groupModels[[g]]$kappa
     
+    # Duplication mat:
     D <- prep$groupModels[[g]]$D
+
+    # Fill in
     I[(g-1)*nPar_perGroup + seq_len(nPar_perGroup),(g-1)*nPar_perGroup + seq_len(nPar_perGroup)] <-
-      2*t(d_phi_theta[meanPart,]) %*% kappa %*% d_phi_theta[meanPart,] +
-      t(d_phi_theta[varPart,]) %*% t(D) %*% (kappa %(x)% kappa) %*% D %*% d_phi_theta[varPart,]
+      # (prep$nPerGroup[g] / prep$nTotal) *
+      ( prep$nTotal / prep$nPerGroup[g]) *
+      2*t(d_phi_theta[meanPart,groupPart]) %*% kappa %*% d_phi_theta[meanPart,groupPart] +
+      t(d_phi_theta[varPart,groupPart]) %*% t(D) %*% (kappa %(x)% kappa) %*% D %*% d_phi_theta[varPart,groupPart]
 
 # 
 #     

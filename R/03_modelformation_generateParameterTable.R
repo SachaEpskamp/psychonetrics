@@ -30,7 +30,7 @@ parRelabel <- function(x){
 }
 
 generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, sampletable, rownames, colnames, rowid, colid, sparse = FALSE, posdef = FALSE, diag0=FALSE, diagonal = FALSE,
-                                   lower = -Inf, upper = Inf){
+                                   lower = -Inf, upper = Inf, start){
   # rowid and colid can be missing:
   if (missing(rowid)){
     rowid <- seq_along(rownames)
@@ -104,7 +104,7 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
   var1 <- rownames[row]
   var1_id <- rowid[row]
   if (length(dim(x))>2){
-    var2 <- rownames[col]
+    var2 <- colnames[col]
     var2_id <- colid[col]    
   } else {
     var2 <- NA
@@ -160,6 +160,9 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
     stringsAsFactors = FALSE
   )
   
+  if (!missing(start)){
+    partable$est <- start[ind]
+  }
   # #FIXME: Temporary fix to make diagonals of symmetrical matrices non-negative:
   # if (symmetrical){
   #   partable$minimum[partable$var1_id == partable$var2_id] <- 1e-14

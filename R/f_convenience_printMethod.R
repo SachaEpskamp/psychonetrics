@@ -17,7 +17,7 @@ definition = function(object){
   # output some general stats:
   cat("General:",
     "\n\t- psychonetrics version:",version,
-    "\n\t- Last edited:",as.character(object@log[[length(object@log)]]@time))
+    "\n\t- Model last edited at:",as.character(object@log[[length(object@log)]]@time))
   
   # output some sample specific stats:
   cat("\n\nSample:",
@@ -26,8 +26,14 @@ definition = function(object){
       "\n\t- Number of observed summary statistics:",object@sample@nobs)
   
   # output some model specific stats:
+  mod <- switch(
+    object@model,
+    "lnm" = "Latent Network Model (LNM)",
+    "ggm" = "Gaussian graphical model (GGM)",
+    "precision" = "Precision matrix"
+  )
   cat("\n\nModel:",
-      "\n\t- model used:",object@model,
+      "\n\t- model used:",mod,
       "\n\t- Number of parameters:",max(object@parameters$par))
   
   # Not computeD:
@@ -36,9 +42,10 @@ definition = function(object){
   } else {
     # output some optimizer results:
     cat("\n\nOptimizer:",
-        "\n\t- Optimizer used:","NLMINB",
-        "\n\t- Number of iterations:",object@optim$iterations,
-        "\n\t- Message:",object@optim$message
+        "\n\t- Optimizer used:",object@optim$optimizer,
+        # "\n\t- Number of iterations:",object@optim$iterations,
+        "\n\t- Message:",object@optim$message,
+        "\n\t- Method used:","Maximum likelihood"
         )
     
     # output some fit measures (inspired by Lavaan):

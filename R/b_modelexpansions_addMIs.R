@@ -1,5 +1,5 @@
 # Full function:
-addMIs <- function(x,approxHessian=FALSE, matrices = "all", verbose = TRUE){
+addMIs <- function(x,approxHessian=FALSE, matrices = "all", verbose = TRUE, freeconstrains = FALSE){
   full <- TRUE
   if (full){
     if (approxHessian){
@@ -8,12 +8,12 @@ addMIs <- function(x,approxHessian=FALSE, matrices = "all", verbose = TRUE){
     if (verbose){
       message("Computing modification indices...")
     }
-    x <-  x %>% addMIs_inner_full(equal=FALSE) 
+    x <-  x %>% addMIs_inner_full(equal=FALSE,freeconstrains=freeconstrains) 
     if (nrow(x@sample@groups) > 1){
       if (verbose){
         message("Computing group-constrained indices...")
       }
-      x <- x %>% addMIs_inner_full(equal=TRUE) 
+      x <- x %>% addMIs_inner_full(equal=TRUE,freeconstrains=freeconstrains) 
     }
     return(x)
   } 
@@ -193,7 +193,7 @@ addMIs <- function(x,approxHessian=FALSE, matrices = "all", verbose = TRUE){
 
 
 # Add the modification indices (FULL VERSION):
-addMIs_inner_full <- function(x, equal = FALSE){
+addMIs_inner_full <- function(x, equal = FALSE, freeconstrains = FALSE){
   # If no constrained parameters, nothing to do!
   if (!any(x@parameters$par == 0)){
     return(x)
@@ -232,12 +232,18 @@ addMIs_inner_full <- function(x, equal = FALSE){
     modCopy@parameters$par[modCopy@parameters$par==0 & !modCopy@parameters$identified] <- max(modCopy@parameters$par) + seq_len(sum(modCopy@parameters$par==0 & !modCopy@parameters$identified))
     
     # For each group, free all parameters from equality constraints:
-    if (nrow(modCopy@sample@groups)>1){
-      for (g in 2:nrow(modCopy@sample@groups)){
-        modCopy@parameters$par[modCopy@parameters$group_id == g & duplicated(modCopy@parameters$par) & !modCopy@parameters$identified] <- max(modCopy@parameters$par) + seq_len(sum(modCopy@parameters$group_id == g & duplicated(modCopy@parameters$par) & !modCopy@parameters$identified))
-      }
+    if (freeconstrains){
+      if (nrow(modCopy@sample@groups)>1){
+        for (g in 2:nrow(modCopy@sample@groups)){
+          modCopy@parameters$par[modCopy@parameters$group_id == g & duplicated(modCopy@parameters$par) & !modCopy@parameters$identified] <- max(modCopy@parameters$par) + seq_len(sum(modCopy@parameters$group_id == g & duplicated(modCopy@parameters$par) & !modCopy@parameters$identified))
+        }
+      }      
     }
+
   }
+  
+  # Identify:
+  # modCopy <- identify(modCopy)
   
   # Remake the model matrix:
   modCopy@fitfunctions$extramatrices$M <- Mmatrix(modCopy@parameters)
@@ -284,11 +290,17 @@ addMIs_inner_full <- function(x, equal = FALSE){
     curInds <- seq_len(curMax)
     curInds <- curInds[curInds != i]
     numerator <- as.numeric(H[ind,ind] - H[ind,curInds,drop=FALSE] %*% solve(H[curInds,curInds]) %*% H[curInds,ind,drop=FALSE])
+    
+    # Effective n:
+    groups <- unique(modCopy@parameters$group_id[modCopy@parameters$par == i])
+    Neff <- sum(modCopy@sample@groups$nobs[modCopy@sample@groups$id %in% groups])
+    
+    
     if (abs(numerator) < 1e-10){
       mi <- NA
       p <- NA
     } else {
-      mi <- n * (0.5 * g[i]^2)/numerator
+      mi <- (n/Neff) * n * (0.5 * g[i]^2)/numerator
       mi <- as.numeric(mi)
       p <- pchisq(mi,df = 1,lower.tail = FALSE)     
     }

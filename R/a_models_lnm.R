@@ -88,6 +88,22 @@ lnm <- function(
   }
   
   
+  # Generate starting values:
+  lambdaStart <- lambda
+  omegaStart <- omega_eta
+  tauStart <- tau
+  for (g in 1:nGroup){
+    # Means with sample means:
+    tauStart[,g] <- sampleStats@means[[g]]
+    
+    # First principal component:
+    ev1 <- sign(eigen(sampleStats@covs[[1]])$vectors[,1])
+    ev1 <- ev1 * sign(mean(ev1))
+    lambdaStart[,,g] <- 0.5*(lambdaStart[,,g]!=0)*ev1
+    omegaStart[,,g] <- 0.1
+    diag(omegaStart[,,g] ) <- 0
+  }
+  
   # Generate the full parameter table:
   pars <- generateAllParameterTables(
     # Tau:
@@ -97,7 +113,8 @@ lnm <- function(
          symmetrical= FALSE, 
          sampletable=sampleStats,
          rownames = sampleStats@variables$label,
-         colnames = "1"),
+         colnames = "1",
+         start = tauStart),
     
     # mu_eta:
     list(mu_eta,
@@ -115,7 +132,8 @@ lnm <- function(
          sampletable=sampleStats,
          rownames = sampleStats@variables$label,
          colnames = latents,
-         sparse = TRUE
+         sparse = TRUE,
+         start = lambdaStart
     ),
     
     # Omega:
@@ -130,7 +148,8 @@ lnm <- function(
          posdef = TRUE,
          diag0=TRUE,
          lower = -1,
-         upper = 1
+         upper = 1,
+         start = omegaStart
     ),
     
     # Delta_eta:
@@ -161,15 +180,15 @@ lnm <- function(
     )
     
   )
-  
-  # Set lambda start:
-  pars$partable$est[pars$partable$matrix=="lambda" & !pars$partable$fixed] <- 0.5
-
-  # Set tau startL
-  for (g in 1:nGroup){
-    pars$partable$est[pars$partable$matrix=="tau" & pars$partable$group_id == g] <- sampleStats@means[[g]]
-  }
-  
+  # 
+  # # Set lambda start:
+  # pars$partable$est[pars$partable$matrix=="lambda" & !pars$partable$fixed] <- 0.5
+  # 
+  # # Set tau start
+  # for (g in 1:nGroup){
+  #   pars$partable$est[pars$partable$matrix=="tau" & pars$partable$group_id == g] <- sampleStats@means[[g]]
+  # }
+  # 
   # Store in model:
   model@parameters <- pars$partable
   model@matrices <- pars$mattable

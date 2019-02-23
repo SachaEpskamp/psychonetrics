@@ -48,6 +48,24 @@ ggm <- function(
   # Check delta:
   delta <- fixAdj(delta,nGroup,nNode,"scaling" %in% equal,diagonal=TRUE)
 
+  # Generate starting values:
+  omegaStart <- omega
+  deltaStart <- delta
+  muStart <- mu
+  for (g in 1:nGroup){
+    # Zero pattern:
+    zeroes <- which(omega[,,g] == 0 & delta[,,g] == 0,arr.ind=TRUE)
+    
+    # Glasso to obtain starting values:
+    glasRes <- glasso(as.matrix(sampleStats@covs[[g]]), rho = 0.0001, zero = zeroes)
+    omegaStart[,,g] <- as.matrix(qgraph::wi2net(glasRes$wi))
+    diag(omegaStart[,,g]) <- 0
+    diag(deltaStart[,,g]) <- sqrt(diag(as.matrix(glasRes$wi)))
+    
+    # Means with sample means:
+    muStart[,g] <- sampleStats@means[[g]]
+  }
+  
   # Generate the full parameter table:
   pars <- generateAllParameterTables(
     # Mu:
@@ -57,7 +75,8 @@ ggm <- function(
          symmetrical= FALSE, 
          sampletable=sampleStats,
          rownames = sampleStats@variables$label,
-         colnames = sampleStats@variables$label),
+         colnames = sampleStats@variables$label,
+         start = muStart),
     
     # Omega:
     list(omega,
@@ -71,7 +90,8 @@ ggm <- function(
          posdef = TRUE,
          diag0=TRUE,
          lower = -1,
-         upper = 1
+         upper = 1,
+         start = omegaStart
       ),
     
     # Delta:
@@ -85,11 +105,16 @@ ggm <- function(
          sparse = TRUE,
          posdef = TRUE,
          diagonal = TRUE,
-         lower = 1e-10
+         lower = 1e-10,
+         start = deltaStart
     )
     
   )
 
+  # For every parameter, take mean as starting value:
+  pars$partable  <- pars$partable %>% group_by_("par") %>% mutate(est=mean(est)) %>% ungroup
+  
+  
   # Store in model:
   model@parameters <- pars$partable
   model@matrices <- pars$mattable
