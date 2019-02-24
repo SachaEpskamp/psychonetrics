@@ -94,19 +94,35 @@ lnm <- function(
   # Generate starting values:
   lambdaStart <- lambda
   omegaStart <- omega_eta
+  deltaStart <- delta_eta
   tauStart <- tau
   for (g in 1:nGroup){
     # Means with sample means:
     tauStart[,g] <- sampleStats@means[[g]]
     
+    # For each factor:
+    for (f in seq_len(ncol(lambdaStart))){
+      # First principal component of sub cov:
+      ev1 <- eigen(sampleStats@covs[[g]][lambda[,f,g]!=0,lambda[,f,g]!=0])$vectors[,1]
+      lambdaStart[lambdaStart[,f,g]!=0,f,g] <- ev1 / ev1[1]
+    }
     # First principal component:
-    ev1 <- sign(eigen(sampleStats@covs[[1]])$vectors[,1])
-    ev1 <- ev1 * sign(mean(ev1))
-    lambdaStart[,,g] <- 0.5*(lambdaStart[,,g]!=0)*ev1
-    omegaStart[,,g] <- ifelse(omegaStart[,,g] ==0, 0, 0.1)
+    # ev1 <- sign(eigen(sampleStats@covs[[g]])$vectors[,1])
+    # ev1 <- ev1 * sign(ifelse(mean(ev1)!=0,mean(ev1),1))
+    # lambdaStart[,,g] <- 0.5*(lambdaStart[,,g]!=0)*ev1
+    # lambdaStart[,,g] <- 0.5*(lambdaStart[,,g]!=0)
+    # For the network, compute a rough glasso network:
+    zeroes <- which(omega_eta[,,g]==0 & t(omega_eta[,,g])==0,arr.ind=TRUE)
+    glas <- glasso(as.matrix(t(lambdaStart[,,g]) %*% sampleStats@covs[[g]] %*% lambdaStart[,,g]),
+                   rho = 0.1, zero = zeroes)
+    
+    omegaStart[,,g] <- as.matrix(qgraph::wi2net(glas$wi))
     diag(omegaStart[,,g] ) <- 0
+    
+    # Delta:
+    deltaStart[,,g] <- diag(sqrt(diag(glas$wi)))
   }
-  
+
   # Generate the full parameter table:
   pars <- generateAllParameterTables(
     # Tau:

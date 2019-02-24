@@ -60,6 +60,8 @@ prune <- function(
     return(x)
   } 
   
+  
+  curPars <- max(x@parameters$par)
 
   # Set computed:
   x@computed <- FALSE
@@ -85,7 +87,7 @@ prune <- function(
   }
   
   if (verbose){
-    message(paste0("Clearing ",length(unique(x@parameters$par[nonsig]))," parameters!"))
+    message(paste0("Clearing ",curPars - max(x@parameters$par)," parameters!"))
   }
   
   
