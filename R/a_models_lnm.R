@@ -18,7 +18,7 @@ lnm <- function(
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   fitfunctions, # Leave empty
   identify = TRUE,
-  identification = c("scaling","loadings")
+  identification = c("loadings","scaling")
 ){
   identification <- match.arg(identification)
   
@@ -112,15 +112,23 @@ lnm <- function(
     # lambdaStart[,,g] <- 0.5*(lambdaStart[,,g]!=0)*ev1
     # lambdaStart[,,g] <- 0.5*(lambdaStart[,,g]!=0)
     # For the network, compute a rough glasso network:
-    zeroes <- which(omega_eta[,,g]==0 & t(omega_eta[,,g])==0,arr.ind=TRUE)
-    glas <- glasso(as.matrix(t(lambdaStart[,,g]) %*% sampleStats@covs[[g]] %*% lambdaStart[,,g]),
-                   rho = 0.1, zero = zeroes)
-    
-    omegaStart[,,g] <- as.matrix(qgraph::wi2net(glas$wi))
+    zeroes <- which(omega_eta[,,g]==0 & t(omega_eta[,,g])==0 & diag(nLatent) != 1,arr.ind=TRUE)
+    if (nrow(zeroes) == 0){
+      # glas <- glasso(as.matrix(t(lambdaStart[,,g]) %*% sampleStats@covs[[g]] %*% lambdaStart[,,g]),
+      #                rho = 1e-10, zero = zeroes)      
+      wi <- corpcor::pseudoinverse(t(lambdaStart[,,g]) %*% sampleStats@covs[[g]] %*% lambdaStart[,,g])
+    } else {
+      glas <- glasso(as.matrix(t(lambdaStart[,,g]) %*% sampleStats@covs[[g]] %*% lambdaStart[,,g]),
+                     rho = 1e-10, zero = zeroes)
+      wi <- glas$wi
+    }
+
+    # Network starting values:
+    omegaStart[,,g] <- as.matrix(qgraph::wi2net(wi))
     diag(omegaStart[,,g] ) <- 0
     
     # Delta:
-    deltaStart[,,g] <- diag(sqrt(diag(glas$wi)))
+    deltaStart[,,g] <- diag(1/sqrt(diag(wi)))
   }
 
   # Generate the full parameter table:
@@ -182,7 +190,8 @@ lnm <- function(
          sparse = TRUE,
          posdef = TRUE,
          diagonal = TRUE,
-         lower = 1e-10
+         lower = 0,
+         start = deltaStart
     ),
     
     # Sigma_epsilon:
