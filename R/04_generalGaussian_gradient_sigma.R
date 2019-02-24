@@ -1,5 +1,6 @@
 jacobian_gaussian_group_sigmaVersion_meanPart <- function(sigma,mu,means,kappa,...){
   # Mean part:
+  # grad_mean <- -2 * t(means - mu) %*% kappa
   grad_mean <- -2 * t(means - mu) %*% kappa
   grad_mean
 }

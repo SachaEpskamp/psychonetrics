@@ -8,11 +8,16 @@ d_mu_mueta_lnm <- function(lambda,...){
   lambda
 }
 
-# Derivative of factor loadings:
-d_sigma_lambda_lnm <- function(L,lambda,sigma_eta,Ineta,C,...){
+# Derivative of factor loadings to means:
+d_mu_lambda_lnm <- function(mu_eta,In,...){
+  t(mu_eta) %(x)% In
+}
+
+# Derivative of factor loadings to vars:
+d_sigma_lambda_lnm <- function(L,lambda,sigma_eta,In,C,...){
   L %*% (
-    ((lambda %*% sigma_eta) %(x)% Ineta) + 
-      (Ineta %(x)% (lambda %*% sigma_eta))%*%C
+    ((lambda %*% sigma_eta) %(x)% In) + 
+      (In %(x)% (lambda %*% sigma_eta))%*%C
   )
 }
 
@@ -77,6 +82,7 @@ d_phi_theta_lnm_group <- function(lambda,...){
   Jac[meanInds,muetaInds] <- d_mu_mueta_lnm(lambda=lambda,...)
   
   # Fill factor loading part:
+  Jac[meanInds,lambdaInds] <- d_mu_lambda_lnm(...)
   Jac[sigmaInds,lambdaInds] <- d_sigma_lambda_lnm(lambda=lambda,...)
   
   # Fill network part:
