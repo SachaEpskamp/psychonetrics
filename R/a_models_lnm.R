@@ -299,6 +299,10 @@ lnm <- function(
            equal = equal,
            baseline_saturated = FALSE)
     
+    # Treat as computed:
+    model@baseline_saturated$saturated@computed <- TRUE
+    model@baseline_saturated$saturated@objective <- fit_lnm(parVector(model@baseline_saturated$saturated),model@baseline_saturated$saturated)
+
     
     # model@baseline_saturated$saturated <- ggm(data = data, 
     #                                           omega = "full",
