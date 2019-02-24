@@ -12,7 +12,6 @@
 
 # Fit function for the precision: -2n* log likelihood
 gradient_lnm <- function(x, model){
-  
   # Prepare
   prep <- prepare_lnm(x, model)
 
@@ -27,7 +26,7 @@ gradient_lnm <- function(x, model){
   
   # Full Jacobian:
   Jac <- Jgauss %*% d_phi_theta %*% M
-  
+
   # Return:
   return(as.vector(Jac))
 }
