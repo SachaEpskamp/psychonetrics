@@ -58,9 +58,34 @@ addfit <- function(
     
     dfb <- fitMeasures$baseline.df
     dfm <- fitMeasures$df
+    # 
+    # t1 <- (X2 - df)*df.null
+    # t2 <- (X2.null - df.null)*df
+    # if(df > 0 && abs(t2) > 0) {
+    #   indices["tli"] <- indices["nnfi"] <- 1 - t1/t2
+    # } else {
+    #   indices["tli"] <- indices["nnfi"] <- 1
+    # }
     
     fitMeasures$nfi <- (Tb - Tm) / Tb
+    
+    if(dfb > 0 && Tb > 0) {
+      t1 <- Tb - Tm
+      t2 <- Tb
+      fitMeasures$pnfi <- (dfm/dfb) * t1/t2
+    } else {
+      fitMeasures$pnfi <- as.numeric(NA)
+    }
+    
     fitMeasures$tli <-  (Tb/dfb - Tm/dfm) / (Tb/dfb - 1) 
+
+    
+    t1 <- (Tm - dfm)*dfb
+    t2 <- (Tb - dfb)*dfm
+    fitMeasures$nnfi <- ifelse(dfm > 0 & abs(t2) > 0, 1 - t1/t2, 1)
+    
+
+    
     fitMeasures$rfi <-  (Tb/dfb - Tm/dfm) / (Tb/dfb ) 
     fitMeasures$ifi <-  (Tb - Tm) / (Tb - dfm)
     fitMeasures$rni <-  ((Tb- dfb) - (Tm - dfm)) / (Tb - dfb)
@@ -76,6 +101,7 @@ addfit <- function(
       # Incremental Fit Indices
       fitMeasures$nfi <- NA
       fitMeasures$tli <- NA
+      fitMeasures$nnfi <- NA
       fitMeasures$rfi <- NA
       fitMeasures$ifi <- NA
       fitMeasures$rni <- NA
@@ -84,7 +110,12 @@ addfit <- function(
   
   
   # RMSEA
-  fitMeasures$rmsea <- sqrt( max(Tm - dfm,0) / (Ncons * dfm))
+  # fitMeasures$rmsea <- sqrt( max(Tm - dfm,0) / (Ncons * dfm))
+  fitMeasures$rmsea <-  sqrt( max( c((Tm/Ncons)/dfm - 1/Ncons, 0) ) )
+  
+  # FIXME: Multi-group correction from lavaan source code:
+  nGroups <- nrow(x@sample@groups)
+  fitMeasures$rmsea <-  fitMeasures$rmsea  * sqrt(nGroups)
   
   # Codes for rmsea confidence interval taken from lavaan:
   lower.lambda <- function(lambda) {
@@ -101,7 +132,7 @@ addfit <- function(
       lambda.l <- try(uniroot(f=lower.lambda, lower=0, upper=Tm)$root,
                       silent=TRUE)      
     }
-    fitMeasures$rmsea.ci.lower <- sqrt( lambda.l/(sampleSize*dfm) )
+    fitMeasures$rmsea.ci.lower <- sqrt( lambda.l/(sampleSize*dfm) ) * sqrt(nGroups)
   }
   
   N.RMSEA <- max(sampleSize, Tm*4) 
@@ -124,11 +155,11 @@ addfit <- function(
     
     if(inherits(lambda.u, "try-error")) {lambda.u <- NA }
     
-    fitMeasures$rmsea.ci.upper <- sqrt( lambda.u/(sampleSize*dfm) )
+    fitMeasures$rmsea.ci.upper <- sqrt( lambda.u/(sampleSize*dfm) )  * sqrt(nGroups)
   }
   
   fitMeasures$rmsea.pvalue <- 
-    1 - pchisq(Tm, df=dfm, ncp=(sampleSize*dfm*0.05^2))
+    1 - pchisq(Tm, df=dfm, ncp=(sampleSize*dfm*0.05^2/nGroups))
   
   # information criteria:
 
