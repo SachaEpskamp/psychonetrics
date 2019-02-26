@@ -6,15 +6,12 @@ implied_ggm <- function(x){
   Result <- lapply(seq_len(nGroup), function(g){
     
     # Implied precision:
-    kappa <- x[[g]]$delta %*% (diag(nrow(x[[g]]$omega)) -  x[[g]]$omega) %*% x[[g]]$delta
-    
-    # Implied variance--covariance:
-    # sigma <- as(solve(kappa),"dpoMatrix")
-    # sigma <- as(solve(kappa),"dpoMatrix")
-    sigma <- solve(kappa)
+    sigma <- x[[g]]$delta %*% x[[g]]$IminOinv %*% x[[g]]$delta
+    kappa <- solve(sigma)
+
     
     # Implied means
-    mu <- x[[g]]$mu
+    # mu <- x[[g]]$mu
     
     return(list(
       kappa = kappa,

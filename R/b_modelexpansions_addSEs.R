@@ -24,24 +24,29 @@ addSEs <-  function(x
   # Compute a hessian if requested or needed:
   if (!is.null(x@information)){
     Hinv <- corpcor::pseudoinverse(x@information)
-  } else if (!is.null(x@optim$inverseHessian)){
-    Hinv <- x@optim$inverseHessian
   } else {
-    # Check if gradient and hessian are present:
-    gradient <- !is.null(x@fitfunctions$gradient)
-    hessian <- !is.null(x@fitfunctions$hessian)
-    
-    if (hessian){
-      H <- x@fitfunctions$hessian(parVector(x), x)
-    } else if (gradient){
-      H <- numDeriv::jacobian(x@fitfunctions$gradient,parVector(x), model=x) 
-    } else {
-      H <- numDeriv::hessian(x@fitfunctions$fitfunction,parVector(x), model=x) 
-    }
-    
-    # Invert:
-    Hinv <- corpcor::pseudoinverse(H)
+    Hinv <- corpcor::pseudoinverse(psychonetrics_FisherInformation(x))
   } 
+  # if (!is.null(x@information)){
+  #   Hinv <- corpcor::pseudoinverse(x@information)
+  # } else if (!is.null(x@optim$inverseHessian)){
+  #   Hinv <- x@optim$inverseHessian
+  # } else {
+  #   # Check if gradient and hessian are present:
+  #   gradient <- !is.null(x@fitfunctions$gradient)
+  #   hessian <- !is.null(x@fitfunctions$hessian)
+  #   
+  #   if (hessian){
+  #     H <- x@fitfunctions$hessian(parVector(x), x)
+  #   } else if (gradient){
+  #     H <- numDeriv::jacobian(x@fitfunctions$gradient,parVector(x), model=x) 
+  #   } else {
+  #     H <- numDeriv::hessian(x@fitfunctions$fitfunction,parVector(x), model=x) 
+  #   }
+  #   
+  #   # Invert:
+  #   Hinv <- corpcor::pseudoinverse(H)
+  # } 
  
   # Obtain SEs
   # SEs <-  sqrt(abs(diag(solve(-n/2*H))))
@@ -53,12 +58,14 @@ addSEs <-  function(x
   # x <- sqrt(abs(diag(solve(H))))
   # sqrt(2/n) * x -
   # SEs
+  N <- sum(x@sample@groups$nobs)
   # Add standard errors:
   for (i in unique(x@parameters$par[x@parameters$par!=0])){
     # Compute effective N:
     groups <- unique(x@parameters$group_id[x@parameters$par == i])
     Neff <- sum(x@sample@groups$nobs[x@sample@groups$id %in% groups])
-    x@parameters$se[x@parameters$par == i] <- sqrt(2/Neff) * SEs[i]
+    # x@parameters$se[x@parameters$par == i] <- sqrt(2/(Neff/N)) * SEs[i]
+    x@parameters$se[x@parameters$par == i] <- 2 * SEs[i]
   }
   
   # Add p-value:

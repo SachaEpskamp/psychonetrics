@@ -1,5 +1,5 @@
 # Fit function per group:
-fit_lnm_group <- function(S,kappa,means,mu,sigma,...){
+maxLikEstimator_Gauss_group <- function(S,kappa,means,mu,sigma,...){
   if (any(eigen(kappa)$values < 0)) {
     SK <- Matrix::nearPD(S %*% kappa)$mat
     kappa <- Matrix::nearPD(kappa)$mat
@@ -12,13 +12,13 @@ fit_lnm_group <- function(S,kappa,means,mu,sigma,...){
   as.numeric(res)
 }
 
-# Fit function for the lnm: -2n* log likelihood
-fit_lnm <- function(x, model){
+# Fit function for Gauss ML: -2n* log likelihood
+maxLikEstimator_Gauss <- function(x, model){
   # Prepare
-  prep <- prepare_lnm(x, model)
+  prep <- prepareModel(x, model)
 
   # Fit function per group:
-  fit_per_group <- prep$nPerGroup / prep$nTotal * sapply(prep$groupModels,do.call,what=fit_lnm_group)
+  fit_per_group <- prep$nPerGroup / prep$nTotal * sapply(prep$groupModels,do.call,what=maxLikEstimator_Gauss_group)
 
   # Sum and return:
   sum(fit_per_group)

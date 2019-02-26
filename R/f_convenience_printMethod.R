@@ -40,12 +40,18 @@ definition = function(object){
   if (!object@computed){
     cat("\n\nModel has not yet been computed. Use 'runmodel' to compute parameters and fit measures.")
   } else {
+    estimator <- switch(x@estimator,
+            "ML" = "Maximum likelihood estimation (ML)",
+            "ULS" = "Unweighted least squares (ULS)",
+            "WLS" = "Weighted least squares (WLS)",
+            "DWLS" = "Diagonally weighted least squares (DWLS)")
+    
     # output some optimizer results:
-    cat("\n\nOptimizer:",
+    cat("\n\nEstimation:",
         "\n\t- Optimizer used:",object@optim$optimizer,
+        "\n\t- Estimator used:",estimator,
         # "\n\t- Number of iterations:",object@optim$iterations,
-        "\n\t- Message:",object@optim$message,
-        "\n\t- Method used:","Maximum likelihood"
+        "\n\t- Message:",object@optim$message
         )
     
     # output some fit measures (inspired by Lavaan):

@@ -1,6 +1,5 @@
-# Prepare all matrices for the fit, gradient and hessian of precision models:
-prepare_precision <- function(x, model){
-
+# Prepare all matrices for the fit, gradient and hessian of ggm models:
+prepare_ggm <- function(x, model){
   # New model:
   newMod <- updateModel(x,model)
   
@@ -16,23 +15,27 @@ prepare_precision <- function(x, model){
   # Form the model matrices:
   mats <- formModelMatrices(newMod)
   
+  # Add a few that will be useful:
+  for (g in 1:nGroup){
+    mats[[g]]$IminOinv <- solve(Diagonal(nrow(mats[[g]]$omega)) - mats[[g]]$omega)
+  }
+
   # Compute implied matrices:
-  imp <- implied_precision(mats)
+  imp <- implied_ggm(mats)
 
   # Sample stats:
   S <- model@sample@covs
   means <- model@sample@means
+  nVar <- nrow(model@sample@variables)
   
   # Extra mats:
-  extraMatrices <- list(
-    M = Mmatrix(model@parameters),
-    D = duplicationMatrix(nrow(model@sample@variables))
+  mMat <- list(
+    M = Mmatrix(model@parameters)
   )
-
-  # Fill per group:
+   # Fill per group:
   groupModels <- list()
   for (g in 1:nGroup){
-    groupModels[[g]] <- c(mats[[g]],imp[[g]], extraMatrices) # FIXME: This will lead to extra matrices to be stored?
+    groupModels[[g]] <- c(mats[[g]],imp[[g]], mMat, model@extramatrices) # FIXME: This will lead to extra matrices to be stored?
     groupModels[[g]]$S <- S[[g]]
     groupModels[[g]]$means <- means[[g]]
   }

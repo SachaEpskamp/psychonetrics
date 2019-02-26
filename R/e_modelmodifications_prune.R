@@ -27,6 +27,8 @@ prune <- function(
       matrices <- "kappa"
     } else if (x@model == "lnm"){
       matrices <- "omega_eta"
+    } else {
+      stop("'no default 'matrix' argument implemented yet..")
     }
   }
   

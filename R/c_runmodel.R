@@ -3,18 +3,18 @@ runmodel <- function(
   x, # psychonetrics model
   # stepwise = FALSE, # Stepwise up search with modification indices?
   matrices, # Matrices to search
-  level = c("default","fitfunction","gradient","hessian"),
+  level = c("gradient","fitfunction"),
   addfit = TRUE,
   addMIs = TRUE,
   addSEs=TRUE,
   log = TRUE,
   verbose = TRUE,
-  optimizer = c("default","ucminf","nlminb"),
-  optim.control = list(),
-  inverseHessian = TRUE
+  # optimizer = c("default","ucminf","nlminb"),
+  optim.control = list()
+  # inverseHessian = TRUE
 ){
-
-  optimizer <- match.arg(optimizer)
+  optimizer <- x@optimizer
+  # optimizer <- match.arg(optimizer)
   level <- match.arg(level)
   if (!is(x,"psychonetrics")){
     stop("input is not a 'psychonetrics' object")
@@ -26,7 +26,7 @@ runmodel <- function(
     if (verbose) message("Estimating baseline model...")
     # Run:
     
-    x@baseline_saturated$baseline <- runmodel(x@baseline_saturated$baseline, addfit = FALSE, addMIs = FALSE, verbose = FALSE,addSEs=FALSE,optimizer = optimizer,inverseHessian=FALSE)
+    x@baseline_saturated$baseline <- runmodel(x@baseline_saturated$baseline, addfit = FALSE, addMIs = FALSE, verbose = FALSE,addSEs=FALSE)
   }
   
   # Evaluate saturated model:
@@ -34,7 +34,7 @@ runmodel <- function(
   if (!is.null(x@baseline_saturated$saturated) && !x@baseline_saturated$saturated@computed){
     if (verbose) message("Estimating saturated model...")
     # Run:
-    x@baseline_saturated$saturated <- runmodel(x@baseline_saturated$saturated, addfit = FALSE, addMIs = FALSE, verbose = FALSE,addSEs=FALSE,optimizer = optimizer,inverseHessian=FALSE)
+    x@baseline_saturated$saturated <- runmodel(x@baseline_saturated$saturated, addfit = FALSE, addMIs = FALSE, verbose = FALSE,addSEs=FALSE)
   }
   
   
@@ -63,32 +63,32 @@ runmodel <- function(
   upper <- upperBound(x)
   
   # Check if Gradient and hessian are present:
-  if (level == "default"){
-    if (!is.null(x@fitfunctions$gradient) & !is.null(x@fitfunctions$hessian)){
-      level <- "hessian"
-    } else  if (!is.null(x@fitfunctions$gradient)){
-      level <- "gradient"
-    } else {
-      level <- "fitfunction"
-    }    
-  }
+  # if (level == "default"){
+  #   if (!is.null(x@fitfunctions$gradient) & !is.null(x@fitfunctions$hessian)){
+  #     level <- "hessian"
+  #   } else  if (!is.null(x@fitfunctions$gradient)){
+  #     level <- "gradient"
+  #   } else {
+  #     level <- "fitfunction"
+  #   }    
+  # }
   
   # Default optimizer:
-  optimizer <- match.arg(optimizer)
-  if (optimizer == "default"){
-    if (level == "hessian"){
-      optimizer <- "nlminb"
-    } else {
-      optimizer <- "ucminf"
-    }
-    
-  }
+  # optimizer <- match.arg(optimizer)
+  # if (optimizer == "default"){
+  #   if (level == "hessian"){
+  #     optimizer <- "nlminb"
+  #   } else {
+  #     optimizer <- "ucminf"
+  #   }
+  #   
+  # }
 
   # if (optimizer%in% c("Nelder-Mead","L-BFGS-B","ucminf") & level == "hessian"){
-  if (optimizer%in% c("ucminf") & level == "hessian"){
-    warning("Optimizer does not support analytical Hessian. Using numeric Hessian instead.")
-    level <- "gradient"
-  }
+  # if (optimizer%in% c("ucminf") & level == "hessian"){
+  #   warning("Optimizer does not support analytical Hessian. Using numeric Hessian instead.")
+  #   level <- "gradient"
+  # }
   
   if (verbose) message("Estimating model...")
   # Form optimizer arguments:
@@ -109,16 +109,17 @@ runmodel <- function(
     
     optim.control$control <- control.nlminb
     optim.control$start <- start
-    optim.control$objective <- x@fitfunctions$fitfunction
+    optim.control$objective <- psychonetrics_fitfunction
     optim.control$lower <- lower
     optim.control$upper <- upper
     optim.control$model <- x
     if (level != "fitfunction"){
-      optim.control$gradient <- x@fitfunctions$gradient
+      # optim.control$gradient <- x@fitfunctions$gradient
+      optim.control$gradient <- psychonetrics_gradient
     }
-    if (level == "hessian"){
-      x@fitfunctions$hessian <- x@fitfunctions$hessian
-    }
+    # if (level == "hessian"){
+    #   x@fitfunctions$hessian <- x@fitfunctions$hessian
+    # }
     
     # Run model:
     optim.out <- do.call(nlminb,optim.control)
@@ -135,28 +136,28 @@ runmodel <- function(
       optimizer = optimizer
     )
     
-    # Compute inverse Hessian if needed:
-    if (inverseHessian){
-      if (level == "hessian"){
-        H <- x@fitfunctions$hessian(optim.out$par, x)
-      } else if (level == "gradient"){
-        H <- numDeriv::jacobian(x@fitfunctions$gradient, optim.out$par, model = x)
-      } else {
-        H <- numDeriv::hessian(x@fitfunctions$fitfunction, optim.out$par, model = x)        
-      }
-      Hinv <- corpcor::pseudoinverse(H)
-      optimresults$inverseHessian <- Hinv
-    }
+    # # Compute inverse Hessian if needed:
+    # if (inverseHessian){
+    #   if (level == "hessian"){
+    #     H <- x@fitfunctions$hessian(optim.out$par, x)
+    #   } else if (level == "gradient"){
+    #     H <- numDeriv::jacobian(x@fitfunctions$gradient, optim.out$par, model = x)
+    #   } else {
+    #     H <- numDeriv::hessian(x@fitfunctions$fitfunction, optim.out$par, model = x)        
+    #   }
+    #   Hinv <- corpcor::pseudoinverse(H)
+    #   optimresults$inverseHessian <- Hinv
+    # }
   } else if (optimizer == "ucminf"){
     optim.control$par <- start
-    optim.control$fn <- x@fitfunctions$fitfunction
+    optim.control$fn <- psychonetrics_fitfunction
     optim.control$model <- x
     if (level != "fitfunction"){
-      optim.control$gr <- x@fitfunctions$gradient
+      optim.control$gr <- psychonetrics_gradient
     }
-    if (inverseHessian){
-      optim.control$hessian <- 2
-    }
+    # if (inverseHessian){
+    #   optim.control$hessian <- 2
+    # }
     
     # Run model:
     optim.out <- do.call(ucminf,optim.control)
@@ -172,9 +173,9 @@ runmodel <- function(
       optimizer = optimizer
     )
     
-    if (inverseHessian){
-      optimresults$inverseHessian <- optim.out$invhessian
-    }
+    # if (inverseHessian){
+    #   optimresults$inverseHessian <- optim.out$invhessian
+    # }
   }
 
 # 
@@ -270,9 +271,9 @@ runmodel <- function(
   x@objective <- optimresults$value
   
   # Add information:
-  if (!is.null(x@fitfunctions$information)){
-    x@information <- as.matrix(x@fitfunctions$information(x))
-  }
+  # if (!is.null(x@fitfunctions$information)){
+    x@information <- psychonetrics_FisherInformation(x)
+  # }
   # Add fit:
   if (addfit){
     x <- addfit(x)

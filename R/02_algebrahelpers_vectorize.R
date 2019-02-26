@@ -11,3 +11,10 @@ Vec <- function(x){
     }
   }
 }
+
+Vech <- function(x,diag=TRUE){
+  if (class(x)!="matrix"){
+    x <- as.matrix(x)
+  }
+  return(x[lower.tri(x,diag=diag)])
+}

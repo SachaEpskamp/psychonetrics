@@ -26,7 +26,7 @@ stepup <- function(
   repeat{
     oldMod <- x
   # Stepwise up?
-    if (!"network" %in% x@equal){ # FIXME:  I am lazy, must be more general
+    if (!any(matrices %in% x@equal)){ # FIXME: this will add equality constraints for all matrices...
       if (any(x@parameters$mi[x@parameters$matrix %in% matrices & x@parameters$fixed] > qchisq(alpha,1,lower.tail=FALSE))){
 
         # FIXME: Make nice free parameter function
@@ -35,7 +35,7 @@ stepup <- function(
         x@parameters$fixed[best] <- FALSE
         
         # Update the model:
-        x@fitfunctions$extramatrices$M <- Mmatrix(x@parameters) # FIXME: Make nice function for this
+        x@extramatrices$M <- Mmatrix(x@parameters) # FIXME: Make nice function for this
         
         # Run:
         x <- x %>% runmodel(...,log=FALSE)
@@ -50,7 +50,7 @@ stepup <- function(
         x@parameters$fixed[best] <- FALSE
         
         # Update the model:
-        x@fitfunctions$extramatrices$M <- Mmatrix(x@parameters)
+        x@extramatrices$M <- Mmatrix(x@parameters)
         
         # Run:
         x <- x %>% runmodel(...,log=FALSE)

@@ -16,9 +16,11 @@ lnm <- function(
   missing = "fiml",
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
-  fitfunctions, # Leave empty
+  # fitfunctions, # Leave empty
   identify = TRUE,
-  identification = c("loadings","scaling")
+  identification = c("loadings","scaling"),
+  estimator = "ML",
+  optimizer = "ucminf"
 ){
   identification <- match.arg(identification)
   
@@ -35,7 +37,9 @@ lnm <- function(
   nNode <- nrow(sampleStats@variables)
   
   # Generate model object:
-  model <- generate_psychonetrics(model = "lnm",sample = sampleStats,computed = FALSE, equal = equal,identification = identification)
+  model <- generate_psychonetrics(model = "lnm",sample = sampleStats,computed = FALSE, 
+                                  equal = equal,identification = identification,
+                                  optimizer = optimizer, estimator = estimator, distribution = "Gaussian")
   
   # Number of groups:
   nGroup <- nrow(model@sample@groups)
@@ -220,34 +224,44 @@ lnm <- function(
   # Store in model:
   model@parameters <- pars$partable
   model@matrices <- pars$mattable
-
+  model@extramatrices <- list(
+    D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
+    L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
+    Dstar = psychonetrics::duplicationMatrix(nLatent,diag = FALSE), # Strict duplicaton matrix
+    ITheta = Diagonal(nNode*(nNode+1)/2),
+    In = Diagonal(nNode), # Identity of dim n
+    Inlatent = Diagonal(nLatent),
+    C = as(lavaan::lav_matrix_commutation(nNode, nLatent),"sparseMatrix"),
+    A = psychonetrics::diagonalizationMatrix(nLatent)
+  )
+    
   # Form the fitfunctions list:
-  if (missing(fitfunctions)){
-    model@fitfunctions <- list(
-      fitfunction = fit_lnm,
-      gradient = gradient_lnm,
-      # hessian = hessian_ggm,
-      loglik=loglik_ggm,
-      information = Fisher_lnm,
-      extramatrices = list(
-        D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
-        L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
-        Dstar = psychonetrics::duplicationMatrix(nLatent,diag = FALSE), # Strict duplicaton matrix
-        ITheta = Diagonal(nNode*(nNode+1)/2),
-        # A = diagonalizationMatrix(nNode), # Diagonalization matrix
-        # An2 = diagonalizationMatrix(nNode^2), # Larger diagonalization matrix
-        In = Diagonal(nNode), # Identity of dim n
-        Inlatent = Diagonal(nLatent),
-        C = as(lavaan::lav_matrix_commutation(nNode, nLatent),"sparseMatrix"),
-        A = psychonetrics::diagonalizationMatrix(nLatent)
-        # In2 = Diagonal(nNode^2), # Identity of dim n^2
-        # In3 = Diagonal(nNode^3), # Identity of dim n^3
-        # E = basisMatrix(nNode) # Basis matrix
-      )
-    )    
-  } else {
-    model@fitfunctions <- fitfunctions
-  }
+  # if (missing(fitfunctions)){
+  #   model@fitfunctions <- list(
+  #     fitfunction = fit_lnm,
+  #     gradient = gradient_lnm,
+  #     # hessian = hessian_ggm,
+  #     loglik=loglik_ggm,
+  #     information = Fisher_lnm,
+      # extramatrices = list(
+      #   D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
+      #   L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
+      #   Dstar = psychonetrics::duplicationMatrix(nLatent,diag = FALSE), # Strict duplicaton matrix
+      #   ITheta = Diagonal(nNode*(nNode+1)/2),
+      #   # A = diagonalizationMatrix(nNode), # Diagonalization matrix
+      #   # An2 = diagonalizationMatrix(nNode^2), # Larger diagonalization matrix
+      #   In = Diagonal(nNode), # Identity of dim n
+      #   Inlatent = Diagonal(nLatent),
+      #   C = as(lavaan::lav_matrix_commutation(nNode, nLatent),"sparseMatrix"),
+      #   A = psychonetrics::diagonalizationMatrix(nLatent)
+      #   # In2 = Diagonal(nNode^2), # Identity of dim n^2
+      #   # In3 = Diagonal(nNode^3), # Identity of dim n^3
+      #   # E = basisMatrix(nNode) # Basis matrix
+      # )
+  #   )    
+  # } else {
+  #   model@fitfunctions <- fitfunctions
+  # }
   
   # Form the model matrices
   model@modelmatrices <- formModelMatrices(model)
@@ -301,7 +315,7 @@ lnm <- function(
     
     # Treat as computed:
     model@baseline_saturated$saturated@computed <- TRUE
-    model@baseline_saturated$saturated@objective <- fit_lnm(parVector(model@baseline_saturated$saturated),model@baseline_saturated$saturated)
+    model@baseline_saturated$saturated@objective <- psychonetrics_fitfunction(parVector(model@baseline_saturated$saturated),model@baseline_saturated$saturated)
 
     
     # model@baseline_saturated$saturated <- ggm(data = data, 

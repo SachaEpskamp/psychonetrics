@@ -38,3 +38,53 @@ checkJacobian <- function(x, f, jac, transpose = FALSE, plot = TRUE,  perturbSta
     numeric = numeric
   ))
 }
+
+
+# Same, but first replaces observed values with their implied ones
+checkFisher <- function(x, f, fis, transpose = FALSE, plot = TRUE,  perturbStart = FALSE){
+
+  start <- parVector(x)
+  prep <- prepareModel(start, x)
+  for (g in 1:nrow(x@sample@groups)){
+    x@sample@means[[g]] <- prep$groupModels[[g]]$mu
+    x@sample@covs[[g]] <- prep$groupModels[[g]]$sigma
+  }
+
+  # 
+  # 
+  # if (perturbStart){
+  #   start <- start + runif(length(start),0,0.25)
+  # }
+  
+  # Analytic:
+  analytic <- fis(x)
+  
+  # If not a matrix, make matrix:
+  if (!is.matrix(analytic)){
+    analytic <- matrix(analytic)
+  }
+  
+  # Numeric:
+  numeric <- numDeriv::jacobian(f,start,model=x)
+  
+  # If not a matrix, make matrix:
+  if (!is.matrix(numeric)){
+    numeric <- matrix(numeric)
+  }
+  
+  # transpose:
+  if (transpose){
+    numeric <- t(numeric)
+  }
+  
+  # plot:
+  if (plot){
+    plot(Vec(analytic),Vec(numeric),xlab="analytic",ylab="numeric")
+    abline(0,1)
+  }
+  
+  return(list(
+    analytic = analytic,
+    numeric = numeric
+  ))
+}

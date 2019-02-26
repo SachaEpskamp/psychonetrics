@@ -51,7 +51,7 @@ generate_psychonetrics <- setClass("psychonetrics", slots = c(
   computed = "logical", # Logical, is the model computed yet?
   sample = "psychonetrics_samplestats", # Sample statistics
   modelmatrices = "list", # Model matrices in list form
-  fitfunctions = "list", # contains fitfunction, gradient, hessian and extramatrices, loglik
+  # fitfunctions = "list", # contains fitfunction, gradient, hessian and extramatrices, logliks
   log = "psychonetrics_log",
   optim = "list",
   fitmeasures = "list",
@@ -59,7 +59,11 @@ generate_psychonetrics <- setClass("psychonetrics", slots = c(
   equal = "character",
   objective = "numeric",
   information = "matrix",
-  identification = "character"
+  identification = "character",
+  optimizer = "character",
+  estimator = "character",
+  distribution = "character",
+  extramatrices = "list" # Contains extra matrices
 ),
 prototype = list(
   model = "dummy",
@@ -107,7 +111,9 @@ prototype = list(
   ),
   computed = FALSE,
   log = createLogList(),
-  identification = "none"
+  identification = "none",
+  optimizer = "ucminf",
+  estimator = "ML"
 ))
 
 generate_psychonetrics()

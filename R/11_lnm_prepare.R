@@ -1,5 +1,5 @@
-# Prepare all matrices for the fit, gradient and hessian of ggm models:
-prepare_ggm <- function(x, model){
+# Prepare all matrices for the fit, gradient and hessian of lnm models:
+prepare_lnm <- function(x, model){
   # New model:
   newMod <- updateModel(x,model)
   
@@ -14,9 +14,15 @@ prepare_ggm <- function(x, model){
 
   # Form the model matrices:
   mats <- formModelMatrices(newMod)
+  
+  # Add a few that will be useful:
+  for (g in 1:nGroup){
+    mats[[g]]$IminOinv <- solve(Diagonal(nrow(mats[[g]]$omega_eta)) - mats[[g]]$omega_eta)
+    mats[[g]]$sigma_eta <- mats[[g]]$delta %*% mats[[g]]$IminOinv %*% mats[[g]]$delta
+  }
 
   # Compute implied matrices:
-  imp <- implied_ggm(mats)
+  imp <- implied_lnm(mats)
 
   # Sample stats:
   S <- model@sample@covs
@@ -43,7 +49,7 @@ prepare_ggm <- function(x, model){
   # Fill per group:
   groupModels <- list()
   for (g in 1:nGroup){
-    groupModels[[g]] <- c(mats[[g]],imp[[g]], mMat, model@fitfunctions$extramatrices) # FIXME: This will lead to extra matrices to be stored?
+    groupModels[[g]] <- c(mats[[g]],imp[[g]], mMat, model@extramatrices) # FIXME: This will lead to extra matrices to be stored?
     groupModels[[g]]$S <- S[[g]]
     groupModels[[g]]$means <- means[[g]]
   }

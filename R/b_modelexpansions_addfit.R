@@ -11,21 +11,40 @@ addfit <- function(
     stop("Model has not yet been run. Use runmodel(object) first!")
   }
   
+
   # Sample size:
   sampleSize <- sum(x@sample@groups$nobs)
   
-  # FIXME: Not sure if needed still...
-  mimic <- "lavaan"
-
-  # Number of observations (not sure if this is needed, check):
-  if (mimic == "lavaan"){
-    Ncons <- sampleSize
-  } else {
-    Ncons <- sampleSize - 1
-  }
- 
   # Fitmeasures list:
   fitMeasures <- list()
+  
+  # log likelihoods:
+  # Saturated:
+  if (x@estimator == "ML"){
+    if (!is.null(x@baseline_saturated$saturated)){
+      satLL <- psychonetrics_logLikelihood(x@baseline_saturated$saturated)    
+    } else {
+      satLL <- NA
+    }
+    # Baseline:
+    if (!is.null(x@baseline_saturated$baseline)){
+      basLL <- psychonetrics_logLikelihood(x@baseline_saturated$baseline)
+    } else {
+      basLL <- NA
+    }
+    
+    # Model:
+    LL <-  psychonetrics_logLikelihood(x)
+  } else {
+    satLL <- NA
+    basLL <- NA
+    LL <- NA
+  }
+
+  # Add to list:
+  fitMeasures$logl <- LL
+  fitMeasures$unrestricted.logl <- satLL
+  fitMeasures$baseline.logl <- basLL
   
   # Number of variables:
   fitMeasures$nvar <- nVar <- nrow(x@sample@variables)
@@ -40,24 +59,37 @@ addfit <- function(
   fitMeasures$df <- fitMeasures$nobs - fitMeasures$npar
 
   # Compute Fmin:
-  fitMeasures$fmin <- x@objective
-  # fitMeasures$chisq <- 2 * Ncons * fitMeasures$fmin
-  fitMeasures$chisq <- Ncons * fitMeasures$fmin
+  fitMeasures$objective <- x@objective
+  
+  # Likelihood ratio:
+  if (x@estimator == "ML"){
+    fitMeasures$chisq <- -2 * (LL - satLL)
+  } else  if (x@estimator == "ULS"){
+    fitMeasures$chisq <- x@objective  * (sampleSize)
+  } 
   fitMeasures$pvalue <- pchisq(fitMeasures$chisq, fitMeasures$df, lower.tail = FALSE)
+  
+  # Some pars:
+  Tm <- fitMeasures$chisq
+  dfm <- fitMeasures$df
   
   # Baseline model:
   if (!is.null(x@baseline_saturated$baseline) && x@baseline_saturated$baseline@computed){
-    fitMeasures$fmin_baseline <- x@baseline_saturated$baseline@objective
-    fitMeasures$baseline.chisq <-  Ncons * fitMeasures$fmin_baseline
+    # fitMeasures$fmin_baseline <- x@baseline_saturated$baseline@objective
+    # fitMeasures$baseline.chisq <-  sampleSize * fitMeasures$fmin_baseline
+    if (x@estimator == "ML"){
+      fitMeasures$baseline.chisq <-  -2 * (basLL - satLL)
+    } else  if (x@estimator == "ULS"){
+      fitMeasures$baseline.chisq <- x@baseline_saturated$baseline@objective  * (sampleSize)
+    } 
+
     fitMeasures$baseline.df <- fitMeasures$nobs - max(x@baseline_saturated$baseline@parameters$par)
     fitMeasures$baseline.pvalue <- pchisq(fitMeasures$baseline.chisq, fitMeasures$baseline.df, lower.tail = FALSE)
     
     # Incremental Fit Indices
     Tb <- fitMeasures$baseline.chisq
-    Tm <- fitMeasures$chisq
     
     dfb <- fitMeasures$baseline.df
-    dfm <- fitMeasures$df
     # 
     # t1 <- (X2 - df)*df.null
     # t2 <- (X2.null - df.null)*df
@@ -110,8 +142,8 @@ addfit <- function(
   
   
   # RMSEA
-  # fitMeasures$rmsea <- sqrt( max(Tm - dfm,0) / (Ncons * dfm))
-  fitMeasures$rmsea <-  sqrt( max( c((Tm/Ncons)/dfm - 1/Ncons, 0) ) )
+  # fitMeasures$rmsea <- sqrt( max(Tm - dfm,0) / (sampleSize * dfm))
+  fitMeasures$rmsea <-  sqrt( max( c((Tm/sampleSize)/dfm - 1/sampleSize, 0) ) )
   
   # FIXME: Multi-group correction from lavaan source code:
   nGroups <- nrow(x@sample@groups)
@@ -163,16 +195,6 @@ addfit <- function(
   
   # information criteria:
 
-  # Saturated log-likelihood:
-  satLL <- x@fitfunctions$loglik(x@baseline_saturated$saturated)
-  # satLL <- ( -c -(sampleSize/2) * log(det(covMat)) - (sampleSize/2)*nVar )
-
-  # log likelihood:
-  LL <-  x@fitfunctions$loglik(x)
-  
-  
-  fitMeasures$logl <- LL
-  fitMeasures$unrestricted.logl <- satLL
 
   # Deviance based AIC (traditional definition)
   fitMeasures$aic.ll <-  -2*LL + 2* fitMeasures$npar
