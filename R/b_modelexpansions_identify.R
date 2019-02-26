@@ -56,9 +56,12 @@ identify_lnm <- function(x){
       # Clear
       x@parameters <- clearpars(x@parameters, scaling)
     } else {
+
       # Set all first factor loadings equal to 1:
       for (i in unique(x@parameters$col[x@parameters$matrix == "lambda"])){
-        firstLoading <- which(!x@parameters$fixed & x@parameters$matrix == "lambda" & x@parameters$col == i)[1]  
+        # firstLoading <- which(!x@parameters$fixed & x@parameters$matrix == "lambda" & x@parameters$col == i)[1]  
+        firstLoading <- which((!x@parameters$fixed | (x@parameters$fixed & x@parameters$est != 0)) & x@parameters$matrix == "lambda" & x@parameters$col == i)[1] 
+
         x@parameters$est[firstLoading] <- 1
         x@parameters$par[firstLoading] <- 0
         x@parameters$fixed[firstLoading] <- TRUE
