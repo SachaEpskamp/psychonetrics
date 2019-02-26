@@ -29,8 +29,7 @@ definition = function(object){
   mod <- switch(
     object@model,
     "lnm" = "Latent Network Model (LNM)",
-    "ggm" = "Gaussian graphical model (GGM)",
-    "precision" = "Precision matrix"
+    "ggm" = "Gaussian graphical model (GGM)"
   )
   cat("\n\nModel:",
       "\n\t- model used:",mod,
@@ -40,7 +39,7 @@ definition = function(object){
   if (!object@computed){
     cat("\n\nModel has not yet been computed. Use 'runmodel' to compute parameters and fit measures.")
   } else {
-    estimator <- switch(x@estimator,
+    estimator <- switch(object@estimator,
             "ML" = "Maximum likelihood estimation (ML)",
             "ULS" = "Unweighted least squares (ULS)",
             "WLS" = "Weighted least squares (WLS)",
