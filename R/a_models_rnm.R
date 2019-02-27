@@ -71,7 +71,7 @@ rnm <- function(
   tau_eta <- fixMu(tau_eta,nGroup,nLatent,"tau_eta" %in% equal)
   
   # Fix the beta matrix:
-  beta <- fixMatrix(beta,nGroup,nLatent,"beta" %in% equal,diag0=TRUE)
+  beta <- fixMatrix(beta,nGroup,nLatent,nLatent,"beta" %in% equal,diag0=TRUE)
 
   # Fix sigma_zeta:
   if (is.character(sigma_zeta) && sigma_zeta == "empty"){

@@ -133,57 +133,110 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
   }
 
   # Make the table:
-  partable <- data.frame(
-    var1 = var1,
-    var1_id = var1_id,
-    op = op,
-    var2 = var2,
-    var2_id = var2_id,
-    est = est,
-    std = NA,
-    se = NA,
-    p = NA,
-    matrix = mat,
-    row = row,
-    col = col,
-    par = par,
-    group = group_name,
-    group_id = group_id,
-    fixed = fixed,
-    mi = NA, # Modification index
-    pmi = NA, #p-value modification index
-    epc = NA,
-    mi_free = NA, # Modification index
-    pmi_free = NA, #p-value modification index
-    epc_free = NA,
-    mi_equal = NA, # Modification index constraning groups to be equal
-    pmi_equal = NA, #p-value modification index constraining groups to be equal
-    epc_equal = NA, #p-value modification index constraining groups to be equal
-    minimum = lower[ind],
-    maximum = upper[ind],
-    identified = FALSE,
-    stringsAsFactors = FALSE
-  )
-  
-  if (!missing(start)){
-    partable$est <- start[ind]
-  }
+  # if (length(est) > 0){
+    partable <- data.frame(
+      var1 = var1,
+      var1_id = var1_id,
+      op = op,
+      var2 = var2,
+      var2_id = var2_id,
+      est = est,
+      std = NA,
+      se = NA,
+      p = NA,
+      matrix = mat,
+      row = row,
+      col = col,
+      par = par,
+      group = group_name,
+      group_id = group_id,
+      fixed = fixed,
+      mi = NA, # Modification index
+      pmi = NA, #p-value modification index
+      epc = NA,
+      mi_free = NA, # Modification index
+      pmi_free = NA, #p-value modification index
+      epc_free = NA,
+      mi_equal = NA, # Modification index constraning groups to be equal
+      pmi_equal = NA, #p-value modification index constraining groups to be equal
+      epc_equal = NA, #p-value modification index constraining groups to be equal
+      minimum = lower[ind],
+      maximum = upper[ind],
+      identified = FALSE,
+      stringsAsFactors = FALSE
+    )
+    
+    if (!missing(start)){
+      partable$est <- start[ind]
+    }
+    
+    # Table for matrices:
+    mattable <- data.frame(
+      name = mat,
+      nrow = dim(x)[1],
+      ncol = ifelse(length(dim(x)) > 2,dim(x)[2],1),
+      ngroup = max(group_id),
+      symmetrical = symmetrical,
+      sparse = sparse,
+      posdef=posdef,
+      diagonal= diagonal
+    )
+  #   
+  # } else {
+  #   
+  #   partable <-data.frame(
+  #     var1 = character(0),
+  #     var1_id = integer(0),
+  #     op = character(0),
+  #     var2 = character(0),
+  #     var2_id = integer(0),
+  #     est = numeric(0),
+  #     std = numeric(0),
+  #     se = numeric(0),
+  #     p = numeric(0),
+  #     matrix = character(0),
+  #     row = numeric(0),
+  #     col = numeric(0),
+  #     par = integer(0),
+  #     group = character(0),
+  #     group_id = integer(0),
+  #     fixed = logical(0),
+  #     symmetrical = logical(0), # Used to determine if matrix is symmetrical
+  #     mi = numeric(0), # Modification index
+  #     pmi = numeric(0), #p-value modification index
+  #     epc = numeric(0),
+  #     mi_free = numeric(0), # Modification index
+  #     pmi_free = numeric(0), #p-value modification index
+  #     epc_free = numeric(0),
+  #     mi_equal = numeric(0), # Modification index constraning groups to be equal
+  #     pmi_equal = numeric(0), #p-value modification index constraining groups to be equal
+  #     pmi_free = numeric(0), #p-value modification index constraining groups to be equal
+  #     minimum = numeric(0),
+  #     maximum = numeric(0),
+  #     identified = logical(0), # Indicating a parameter is fixed to identify the model!
+  #     stringsAsFactors = FALSE
+  #   )
+  #   
+  #   # Table for matrices:
+  #   mattable <- data.frame(
+  #     name = mat,
+  #     nrow = dim(x)[1],
+  #     ncol = ifelse(length(dim(x)) > 2,dim(x)[2],1),
+  #     ngroup = NA,
+  #     symmetrical = symmetrical,
+  #     sparse = sparse,
+  #     posdef=posdef,
+  #     diagonal= diagonal
+  #   )
+  # }
+
+
   # #FIXME: Temporary fix to make diagonals of symmetrical matrices non-negative:
   # if (symmetrical){
   #   partable$minimum[partable$var1_id == partable$var2_id] <- 1e-14
   # }
   
-  # Table for matrices:
-  mattable <- data.frame(
-    name = mat,
-    nrow = dim(x)[1],
-    ncol = ifelse(length(dim(x)) > 2,dim(x)[2],1),
-    ngroup = max(group_id),
-    symmetrical = symmetrical,
-    sparse = sparse,
-    posdef=posdef,
-    diagonal= diagonal
-  )
+
   
   return(list(
     partable = partable,
