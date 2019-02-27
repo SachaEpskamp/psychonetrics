@@ -125,7 +125,7 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal")){
   # For every new parameter:
   curMax <- max(x@parameters$par)
   
-  
+
   # for (i in sort(unique(modCopy@parameters$par[modCopy@parameters$par>1 & x@parameters$par == 0]))){
   # for (i in sort(unique(modCopy@parameters$par[modCopy@parameters$par>1 & (x@parameters$par == 0 | duplicated(x@parameters$par)|rev(duplicated(rev(x@parameters$par))))]))){
   for (i in sort(unique(modCopy@parameters$par[modCopy@parameters$par != 0]))){
@@ -150,7 +150,7 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal")){
       
       mi <- as.numeric(mi)
       p <- pchisq(mi,df = 1,lower.tail = FALSE)     
-      epc <- g[i]
+      # epc <- g[i]
     }
     
     
@@ -159,7 +159,7 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal")){
     if (type == "normal"){
       x@parameters$mi[modCopy@parameters$par == i] <- round(mi,10) # round(mi, 3)
       x@parameters$pmi[modCopy@parameters$par == i] <- round(p,10)
-      x@parameters$epc[modCopy@parameters$par == i] <- round(epc,10)
+      # x@parameters$epc[modCopy@parameters$par == i] <- round(epc,10)
     } else if (type == "free"){
       x@parameters$mi_free[modCopy@parameters$par == i] <- round(mi,10) # round(mi, 3)
       x@parameters$pmi_free[modCopy@parameters$par == i] <- round(p,10)
