@@ -29,7 +29,8 @@ definition = function(object){
   mod <- switch(
     object@model,
     "lnm" = "Latent Network Model (LNM)",
-    "ggm" = "Gaussian graphical model (GGM)"
+    "ggm" = "Gaussian graphical model (GGM)",
+    "rnm" = "Residual network model (RNM)"
   )
   cat("\n\nModel:",
       "\n\t- model used:",mod,
@@ -72,5 +73,7 @@ definition = function(object){
         "\n\t- Use 'psychonetrics::MIs' to inspect modification indices"
     )
   }
+  # Newline to end:
+  cat("\n")
   
 })

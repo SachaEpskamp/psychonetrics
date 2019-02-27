@@ -20,7 +20,8 @@ psychonetrics_gradient <- function(x, model){
   modelJacobian <- switch(
     model@model,
     "lnm" = d_phi_theta_lnm,
-    "ggm" = d_phi_theta_ggm
+    "ggm" = d_phi_theta_ggm,
+    "rnm" = d_phi_theta_rnm
   )
   modelPart <- modelJacobian(prep)
  

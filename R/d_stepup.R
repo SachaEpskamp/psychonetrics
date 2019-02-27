@@ -14,6 +14,8 @@ stepup <- function(
         matrices <- "kappa"
       }  else if (x@model == "lnm"){
         matrices <- "omega_eta"
+      } else if (x@model == "rnm"){
+        matrices <- "omega_epsilon"
       } else stop("No default argument for 'matrices' for current model.")
     }
   
