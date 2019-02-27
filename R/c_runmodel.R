@@ -273,6 +273,9 @@ runmodel <- function(
   # Add information:
   # if (!is.null(x@fitfunctions$information)){
     x@information <- psychonetrics_FisherInformation(x)
+    if (any(eigen(x@information)$values < 0)){
+      warning("Information matrix is not positive semi-definite. Model might not be identified.")
+    }
   # }
   # Add fit:
   if (addfit){

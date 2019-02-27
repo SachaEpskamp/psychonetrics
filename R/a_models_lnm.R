@@ -107,8 +107,10 @@ lnm <- function(
     # For each factor:
     for (f in seq_len(ncol(lambdaStart))){
       # First principal component of sub cov:
-      ev1 <- eigen(sampleStats@covs[[g]][lambda[,f,g]!=0,lambda[,f,g]!=0])$vectors[,1]
-      lambdaStart[lambdaStart[,f,g]!=0,f,g] <- ev1 / ev1[1]
+      if (any(lambda[,f,g]!=0)){
+        ev1 <- eigen(sampleStats@covs[[g]][lambda[,f,g]!=0,lambda[,f,g]!=0])$vectors[,1]
+        lambdaStart[lambdaStart[,f,g]!=0,f,g] <- ev1 / ev1[1]        
+      } 
     }
     # First principal component:
     # ev1 <- sign(eigen(sampleStats@covs[[g]])$vectors[,1])
@@ -126,9 +128,11 @@ lnm <- function(
                      rho = 1e-10, zero = zeroes)
       wi <- glas$wi
     }
-
+    
     # Network starting values:
-    omegaStart[,,g] <- as.matrix(qgraph::wi2net(wi))
+    pcors <- as.matrix(qgraph::wi2net(wi))
+    pcors[upper.tri(pcors)] <- 0
+    omegaStart[,,g] <- ifelse(pcors!=0,pcors,ifelse(omegaStart[,,g]!=0,0.1,0))
     diag(omegaStart[,,g] ) <- 0
     
     # Delta:

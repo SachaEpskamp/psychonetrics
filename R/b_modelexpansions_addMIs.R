@@ -132,7 +132,7 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal")){
     ind <- i
     curInds <- seq_len(curMax)
     curInds <- curInds[curInds != i]
-    numerator <- as.numeric(H[ind,ind] - H[ind,curInds,drop=FALSE] %*% solve(H[curInds,curInds]) %*% H[curInds,ind,drop=FALSE])
+    numerator <- as.numeric(H[ind,ind] - H[ind,curInds,drop=FALSE] %*% corpcor::pseudoinverse(H[curInds,curInds]) %*% H[curInds,ind,drop=FALSE])
     
     # Effective n:
     groups <- unique(modCopy@parameters$group_id[modCopy@parameters$par == i])
