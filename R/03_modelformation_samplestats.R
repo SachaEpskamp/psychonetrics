@@ -101,14 +101,49 @@ samplestats <- function(
       class(cors) <- "matrix"
       covs <- list(as(covs,"dpoMatrix"))
       cors <- list(new("corMatrix", cov2cor(covs), sd = diag(covs)))
+      nVars <- ncol(covs[[1]])
+    } else {
+
+      # Make array
+      if (length(dim(covs)) == 2){
+        if (!is.null(colnames(covs))){
+          vars <- colnames(covs)
+        } else {
+          vars <- paste0("V",seq_len(ncol(covs)))
+        }
+        covs <- array(covs,c(dim(covs),nGroup))
+        dimnames(covs) <- list(vars,vars,NULL)
+      }
+      
+      # Now create list:
+      covsArray <- covs
+      covs <- list()
+      cors <- list()
+      for (g in 1:nGroup){
+        covs[[g]] <- as(covsArray[,,g],"dpoMatrix")
+        cors[[g]] <- new("corMatrix", cov2cor(covsArray[,,g]), sd = diag(covsArray[,,g])) 
+      }
     }
+    
+    # Number of vars:
+    nVars <- nrow(covs[[1]])
+
+    # Varnames:
+    if (missing(vars)){
+      if (!is.null(colnames(covs[[1]]))){
+        vars <- colnames(covs[[1]])
+      } else {
+        vars <- paste0("V",seq_len(nVars))
+      }
+    }
+
     # Check if means is missing:
     if (missing(means)){
       means <- lapply(1:nGroup,function(x)matrix(0,nVars,1))
     }
     
     # Check if means is matrix:
-    if (!is.matrix(means)){
+    if (is.matrix(means)){
       means <-lapply(1:nGroup,function(x)means)  
     }
   }

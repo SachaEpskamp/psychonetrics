@@ -176,6 +176,7 @@ rnm <- function(
 
     # Set delta to it's inversed square root:
     # delta_epsilon_start[,,g] <- (1*delta_epsilon_start[,,g]!=0) * sqrt(solve(Theta))
+
     delta_epsilon_start[,,g] <- (1*delta_epsilon_start[,,g]!=0) * solve(sqrt(solve(Theta)))
     
     # This means that the factor-part is expected to be:
@@ -190,6 +191,7 @@ rnm <- function(
     # Let's put this as starting value:
     sigma_zeta_start[,,g] <- (sigma_zeta[,,g]!=0) * PsiEstimate
   }
+
 
   # Generate the full parameter table:
   pars <- generateAllParameterTables(
