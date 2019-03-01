@@ -30,7 +30,8 @@ definition = function(object){
     object@model,
     "lnm" = "Latent Network Model (LNM)",
     "ggm" = "Gaussian graphical model (GGM)",
-    "rnm" = "Residual network model (RNM)"
+    "rnm" = "Residual network model (RNM)",
+    "gvar" = "Graphical vector-autoregression (GVAR)"
   )
   cat("\n\nModel:",
       "\n\t- model used:",mod,

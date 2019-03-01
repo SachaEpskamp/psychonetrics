@@ -1,5 +1,5 @@
 # Simple function to check if a gradient or hessian is correct:
-checkJacobian <- function(x, f, jac, transpose = FALSE, plot = TRUE,  perturbStart = FALSE){
+checkJacobian <- function(x, f = psychonetrics_fitfunction, jac = psychonetrics_gradient, transpose = FALSE, plot = TRUE,  perturbStart = FALSE){
   start <- parVector(x)
   
   if (perturbStart){
@@ -41,7 +41,7 @@ checkJacobian <- function(x, f, jac, transpose = FALSE, plot = TRUE,  perturbSta
 
 
 # Same, but first replaces observed values with their implied ones
-checkFisher <- function(x, f, fis, transpose = FALSE, plot = TRUE,  perturbStart = FALSE){
+checkFisher <- function(x, f = psychonetrics_gradient, fis = psychonetrics_FisherInformation, transpose = FALSE, plot = TRUE,  perturbStart = FALSE){
 
   start <- parVector(x)
   prep <- prepareModel(start, x)

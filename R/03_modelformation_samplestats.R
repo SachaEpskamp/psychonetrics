@@ -25,11 +25,10 @@ samplestats <- function(
       data <- as.data.frame(data)
     }
     # If group variable is missing, add (dummy):
-    if (missing(groups)){
+    if (missing(groups)|| is.null(groups)){
       groups <- "singlegroup"
       data[[groups]] <- "singlegroup"
     }
-    
     # Extract group names:
     groupNames <- unique(data[[groups]])
     
@@ -98,7 +97,7 @@ samplestats <- function(
     
     # Check if covs is array:
     if (!is.array(covs)){
-      class(cors) <- "matrix"
+      class(covs) <- "matrix"
       covs <- list(as(covs,"dpoMatrix"))
       cors <- list(new("corMatrix", cov2cor(covs), sd = diag(covs)))
       nVars <- ncol(covs[[1]])

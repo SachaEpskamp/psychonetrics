@@ -37,3 +37,10 @@ basisMatrix <- function(n){
     kronecker(Diagonal(n), basisVector(i,n))
   },n=n))
 }
+
+# E matrix:
+Emat <- function(n,mat = diag(n)){
+  do.call(rbind,lapply(seq_len(n),function(i,n){
+    kronecker(Diagonal(n),mat[,i])
+  },n=n))
+}

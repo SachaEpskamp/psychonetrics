@@ -6,7 +6,8 @@ prepareModel <- function(x, model){
   prepFun <- switch(framework,
         "lnm" = prepare_lnm,
         "ggm" = prepare_ggm,
-        "rnm" = prepare_rnm)
+        "rnm" = prepare_rnm,
+        "gvar" = prepare_gvar)
   
   # Run and return:
   prepFun(x, model)

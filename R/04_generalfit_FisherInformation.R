@@ -29,7 +29,8 @@ psychonetrics_FisherInformation <- function(model){
     model@model,
     "lnm" = d_phi_theta_lnm,
     "ggm" = d_phi_theta_ggm,
-    "rnm" = d_phi_theta_rnm
+    "rnm" = d_phi_theta_rnm,
+    "gvar" = d_phi_theta_gvar
   )
   modelPart <- modelJacobian(prep)
   

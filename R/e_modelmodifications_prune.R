@@ -29,6 +29,8 @@ prune <- function(
       matrices <- "omega_eta"
     } else if (x@model == "rnm"){
       matrices <- "omega_epsilon"
+    } else if (x@model == "gvar"){
+      matrices <- c("beta","omega_zeta")
     } else {
       stop("'no default 'matrix' argument implemented yet..")
     }

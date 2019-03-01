@@ -6,7 +6,7 @@ jacobian_gaussian_group_sigmaVersion_meanPart <- function(sigma,mu,means,kappa,.
 }
 
 jacobian_gaussian_group_sigmaVersion_sigmaPart <- function(S,means,mu,sigma,D,kappa,...){
-  # Network part:
+  # sigma part:
   grad_sigma <- - t(Vec(S) + Vec((means - mu) %*% t(means - mu)) - Vec(sigma)) %*% (kappa %(x)% kappa) %*% D
   grad_sigma
 }
@@ -17,7 +17,7 @@ jacobian_gaussian_group_sigma <- function(...){
   # Mean part:
   grad_mean <- jacobian_gaussian_group_sigmaVersion_meanPart(...)
   
-  # Network part:
+  # sigma part:
   grad_sigma <- jacobian_gaussian_group_sigmaVersion_sigmaPart(...)
 
   # Combine and return:
