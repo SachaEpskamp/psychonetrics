@@ -35,7 +35,6 @@ gvar <- function(
     } else {
       vars <- colnames(data)[colnames(data)!=groups]
     }
-    
   }
   # Obtain sample stats:
   sampleStats <- samplestats(data = data, 
@@ -45,6 +44,7 @@ gvar <- function(
                              means = means, 
                              nobs = nobs, 
                              missing = missing)
+
   # Check if number of variables is an even number:
   if (nrow(sampleStats@variables)%%2!=0){
     stop("Number of variables is not an even number: variance-covariance matrix cannot be a Toeplitz matrix. ")
@@ -61,10 +61,11 @@ gvar <- function(
   # Number of groups:
   nGroup <- nrow(model@sample@groups)
   
+  nVar <- nNode * 2
   # Add number of observations:
   model@sample@nobs <-  
-    nNode * (nNode+1) / 2 * nGroup + # Covariances per group
-    nNode * nGroup # Means per group
+    nVar * (nVar+1) / 2 * nGroup + # Covariances per group
+    nVar * nGroup # Means per group
   
   # Fix mu
   mu <- fixMu(mu,nGroup,nNode*2,"mu" %in% equal)
@@ -237,14 +238,16 @@ gvar <- function(
   ### Baseline model ###
   if (baseline_saturated){
     # Via ggm:
-    warning("Baseline and saturated are not correct yet")
-    model@baseline_saturated$baseline <- ggm(data, 
-                                             omega = "empty",
+    # Baseline GGM should be block matrix:
+    basGGM <- matrix(0,nNode*2,nNode*2)
+    basGGM[1:nNode,1:nNode] <- 1
+
+    model@baseline_saturated$baseline <- ggm(omega = basGGM,
                                              vars = vars,
                                              groups = groups,
-                                             covs = covs,
-                                             means = means,
-                                             nobs = nobs,
+                                             covs = sampleStats@covs,
+                                             means = sampleStats@means,
+                                             nobs = sampleStats@groups$nobs,
                                              missing = missing,
                                              equal = equal,
                                              baseline_saturated = FALSE)

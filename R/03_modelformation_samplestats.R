@@ -17,7 +17,7 @@ samplestats <- function(
   }
   
   # If data is supplied:
-  if (!missing(data)){
+  if (!missing(data) && !is.null(data)){
     if (!is.data.frame(data) & !is.matrix(data)){
       stop("'data' must be a data frame or matrix")
     }
@@ -82,8 +82,10 @@ samplestats <- function(
   } else {
     ### Input via matrices ###
     # Check groups:
-    if (missing(groups)){
+    if (missing(groups) || is.null(groups)){
       groups <- groupNames <- "singlegroup"
+    } else {
+      groupNames <- groups
     }
     nGroup <- length(groups)
     
@@ -97,9 +99,16 @@ samplestats <- function(
     
     # Check if covs is array:
     if (!is.array(covs)){
-      class(covs) <- "matrix"
-      covs <- list(as(covs,"dpoMatrix"))
-      cors <- list(new("corMatrix", cov2cor(covs), sd = diag(covs)))
+      if (!is.list(covs)){
+        class(covs) <- "matrix"
+        covs <- list(as(covs,"dpoMatrix"))        
+        cors <- list(new("corMatrix", cov2cor(covs), sd = diag(covs)))
+      } else {
+        cors <- lapply(covs,function(x){
+          new("corMatrix", cov2cor(x), sd = diag(x))
+        })
+      }
+      
       nVars <- ncol(covs[[1]])
     } else {
 
