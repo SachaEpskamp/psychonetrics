@@ -1,4 +1,3 @@
-importFrom(Rcpp, evalCpp)
 importFrom(lavaan, lavCor, lavInspect)
 exportPattern("^[[:alpha:]]+")
 import(dplyr)
@@ -12,3 +11,8 @@ importFrom(corpcor, pseudoinverse)
 import(ucminf)
 import(glasso)
 importFrom(qgraph,qgraph,wi2net)
+importFrom("graphics", "abline", "par")
+  importFrom("methods", "as", "is", "new")
+  importFrom("stats", "nlminb", "pchisq", "pnorm", "qchisq", "runif",
+             "uniroot")
+  importFrom("utils", "sessionInfo")
