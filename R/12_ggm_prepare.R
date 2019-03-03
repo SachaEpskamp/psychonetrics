@@ -23,6 +23,7 @@ prepare_ggm <- function(x, model){
   # Compute implied matrices:
   imp <- implied_ggm(mats)
 
+  
   # Sample stats:
   S <- model@sample@covs
   means <- model@sample@means
@@ -38,6 +39,36 @@ prepare_ggm <- function(x, model){
     groupModels[[g]] <- c(mats[[g]],imp[[g]], mMat, model@extramatrices) # FIXME: This will lead to extra matrices to be stored?
     groupModels[[g]]$S <- S[[g]]
     groupModels[[g]]$means <- means[[g]]
+    if (model@rawts){
+      groupModels[[g]]$Drawts <- model@Drawts[[g]]
+    }
+  }
+  
+  # rawts
+  if (model@rawts){
+    # Change the implied matrices to full size:
+    for (g in 1:nGroup){
+      # Missing pattern:
+      missings <- model@sample@missingness[[g]]
+      
+      # Create the massive matrix:
+      muFull <- Reduce("rbind",lapply(seq_len(nrow(missings)),function(x)groupModels[[g]]$mu))
+      sigFull <- Reduce("bdiag",lapply(seq_len(nrow(missings)),function(x)groupModels[[g]]$sigma))
+  
+      # Cut out the rows and cols:
+      obsvec <- !as.vector(t(missings))
+      muFull <- muFull[obsvec,,drop=FALSE]
+      sigFull <- sigFull[obsvec,obsvec]
+      
+      # Overwrite:
+      groupModels[[g]]$mu <- muFull
+      groupModels[[g]]$sigma <- sigFull
+      groupModels[[g]]$kappa <- solve(sigFull)
+      # groupModels[[g]]$missings <- missings
+      # groupModels[[g]]$rawts <- TRUE
+      # groupModels[[g]]$blockdiagonal <- TRUE
+    }
+    
   }
   
   

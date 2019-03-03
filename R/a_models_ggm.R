@@ -9,12 +9,16 @@ ggm <- function(
   covs, # alternative covs (array nvar * nvar * ngroup)
   means, # alternative means (matrix nvar * ngroup)
   nobs, # Alternative if data is missing (length ngroup)
-  missing = "fiml",
+  missing = "listwise",
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   estimator = "ML",
-  optimizer = "ucminf"
+  optimizer = "ucminf",
+  rawts = FALSE # Set to TRUE to do rawts estimation instead...
 ){
+  if (rawts){
+    warning("'rawts' is only included for testing purposes. Please do not use!")
+  }
 
   # Obtain sample stats:
   sampleStats <- samplestats(data = data, 
@@ -23,15 +27,17 @@ ggm <- function(
                              covs = covs, 
                              means = means, 
                              nobs = nobs, 
-                             missing = missing)
-  
+                             missing = missing,
+                             rawts = rawts)
+
   # Check some things:
   nNode <- nrow(sampleStats@variables)
   
   # Generate model object:
   model <- generate_psychonetrics(model = "ggm",sample = sampleStats,computed = FALSE, 
                                   equal = equal,
-                                  optimizer = optimizer, estimator = estimator, distribution = "Gaussian")
+                                  optimizer = optimizer, estimator = estimator, distribution = "Gaussian",
+                                  rawts = rawts)
   
   # Number of groups:
   nGroup <- nrow(model@sample@groups)
@@ -55,26 +61,52 @@ ggm <- function(
   omegaStart <- omega
   deltaStart <- delta
   muStart <- mu
-  for (g in 1:nGroup){
-    # Means with sample means:
-    muStart[,g] <- sampleStats@means[[g]]
-    
-    # For the network, compute a rough glasso network:
-    zeroes <- which(omegaStart[,,g]==0 & t(omegaStart[,,g])==0 & diag(nNode) != 1,arr.ind=TRUE)
-    if (nrow(zeroes) == 0){
-      wi <- corpcor::pseudoinverse(sampleStats@covs[[g]])
+  
+  # If we are in the rawts world.. let's get la cov matrix estimate from lavaan:
+  if (rawts){
+    if (missing(groups)){
+      lavOut <- lavCor(as.data.frame(data[,vars]), missing = "fiml", output="lavaan")
     } else {
-      glas <- glasso(as.matrix(sampleStats@covs[[g]]),
-                     rho = 1e-10, zero = zeroes)
-      wi <- glas$wi
+      lavOut <- lavCor(as.data.frame(data[,vars]), missing = "fiml", output="lavaan", group = group)
     }
-
-    # Network starting values:
-    omegaStart[,,g] <- as.matrix(qgraph::wi2net(wi))
-    diag(omegaStart[,,g] ) <- 0
+    lavOut <- lavaan::lavInspect(lavOut, what = "sample")
+  }
+  
+  for (g in 1:nGroup){
     
-    # Delta:
-    deltaStart[,,g] <- diag(1/sqrt(diag(wi)))
+    # Are we in the rawts world?
+    if (rawts){
+      if (missing(groups)){
+        covest <- lavOut$cov
+        meanest <- lavOut$mean
+      } else {
+        covest <- lavOut$cov[[g]]
+        meanest <- lavOut$mean[[g]]
+      }
+    } else {
+      covest <- sampleStats@covs[[g]]
+      meanest <-  sampleStats@means[[g]]
+    }
+      
+      # Means with sample means:
+      muStart[,g] <- meanest
+      
+      # For the network, compute a rough glasso network:
+      zeroes <- which(omegaStart[,,g]==0 & t(omegaStart[,,g])==0 & diag(nNode) != 1,arr.ind=TRUE)
+      if (nrow(zeroes) == 0){
+        wi <- corpcor::pseudoinverse(covest)
+      } else {
+        glas <- glasso(as.matrix(covest),
+                       rho = 1e-10, zero = zeroes)
+        wi <- glas$wi
+      }
+      
+      # Network starting values:
+      omegaStart[,,g] <- as.matrix(qgraph::wi2net(wi))
+      diag(omegaStart[,,g] ) <- 0
+      
+      # Delta:
+      deltaStart[,,g] <- diag(1/sqrt(diag(wi)))
   }
 
   # Generate the full parameter table:
@@ -134,6 +166,47 @@ ggm <- function(
     A = psychonetrics::diagonalizationMatrix(nNode)
   )
     
+  # If we are in the rawts world, we need Drawts duplication matrix for every group...
+  if (rawts){
+    # I need to fill this list:
+    Drawts <- list()
+    
+    # Dummy matrices with indices:
+    muDummy <- matrix(1:nNode)
+    sigDummy <- matrix(0,nNode,nNode)
+    sigDummy[lower.tri(sigDummy,diag=TRUE)] <- max(muDummy) + seq_len(nNode*(nNode+1)/2)
+    sigDummy[upper.tri(sigDummy)] <- t(sigDummy)[upper.tri(sigDummy)]
+    muDummy <- as(muDummy,"Matrix")
+    sigDummy <- as(sigDummy,"Matrix")
+    for (g in 1:nGroup){
+      missings <- sampleStats@missingness[[g]]
+      
+      # Create the massive matrix:
+      muFull <- Reduce("rbind",lapply(seq_len(nrow(missings)),function(x)muDummy))
+      sigFull <- Reduce("bdiag",lapply(seq_len(nrow(missings)),function(x)sigDummy))
+      
+      # Cut out the rows and cols:
+      obsvec <- !as.vector(t(missings))
+      muFull <- muFull[obsvec,]
+      sigFull <- as.matrix(sigFull[obsvec,obsvec])
+      
+      # Now make a vector with the indices for the full rawts distiributional parameter set:
+      distVec <- c(as.vector(muFull),as.vector(sigFull))
+      nTotal <- length(distVec)
+      distVecrawts <- seq_along(distVec)[distVec!=0]
+      distVec <- distVec[distVec!=0]
+      # Now I can make the matrix:
+
+      Drawts[[g]] <- sparseMatrix(
+        i = distVecrawts, j = distVec, dims = c(nTotal, max(sigDummy))
+      )
+    }
+
+
+    # Add these to the model:
+    model@Drawts = Drawts
+  }
+  
   
   # Form the model matrices
   model@modelmatrices <- formModelMatrices(model)

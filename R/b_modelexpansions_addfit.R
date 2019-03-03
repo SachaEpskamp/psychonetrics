@@ -148,7 +148,7 @@ addfit <- function(
   # FIXME: Multi-group correction from lavaan source code:
   nGroups <- nrow(x@sample@groups)
   fitMeasures$rmsea <-  fitMeasures$rmsea  * sqrt(nGroups)
-  
+
   # Codes for rmsea confidence interval taken from lavaan:
   lower.lambda <- function(lambda) {
     (pchisq(Tm, df=dfm, ncp=lambda) - 0.95)

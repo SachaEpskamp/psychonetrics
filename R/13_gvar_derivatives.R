@@ -1,6 +1,6 @@
 # Derivative of tau with respect to mu:
-d_mu_mu_gvar <- function(mu,...){
-  Diagonal(length(mu))
+d_mu_mu_gvar <- function(beta,...){
+  Diagonal(nrow(beta))
 }
 
 # Derivative of exogenous variances part
@@ -76,7 +76,7 @@ d_phi_theta_gvar_group <- function(beta,P,...){
   deltaInds <- max(omegaInds) + seq_len(nNode)
 
   # fill intercept part:
-  Jac[meanInds,interceptInds] <- d_mu_mu_gvar(...)
+  Jac[meanInds,interceptInds] <- d_mu_mu_gvar(beta=beta,...)
   
   # Fill the exo var part:
   Jac[sigmaStarInds,exovarInds] <- d_sigmastar_sigmastar_gvar(...)

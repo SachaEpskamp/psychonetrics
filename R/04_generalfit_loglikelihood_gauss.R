@@ -1,13 +1,17 @@
 # Fit function per group:
 logLikelihood_gaussian_group <- function(S,kappa,means,mu,sigma,...){
   if (any(eigen(kappa)$values < 0)) {
-    SK <- Matrix::nearPD(S %*% kappa)$mat
     kappa <- Matrix::nearPD(kappa)$mat
+    if (!all(S==0)){
+      SK <- Matrix::nearPD(S %*% kappa)$mat  
+    } else {
+      SK <- S %*% kappa
+    }
   } else {
     SK <- S %*% kappa
   }
   nvar <- ncol(kappa)
-  res <-  log(det(kappa)) - log((2*pi)^nvar) - sum(diag(SK)) - t(means - mu) %*% kappa %*% (means - mu)
+  res <-  log(det(kappa)) - nvar * log((2*pi)) - sum(diag(SK)) - t(means - mu) %*% kappa %*% (means - mu)
   as.numeric(res)
 }
 

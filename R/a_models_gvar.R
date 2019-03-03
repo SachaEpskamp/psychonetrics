@@ -13,13 +13,15 @@ gvar <- function(
   covs, # alternative covs (array nvar * nvar * ngroup)
   means, # alternative means (matrix nvar * ngroup)
   nobs, # Alternative if data is missing (length ngroup)
-  missing = "fiml",
+  missing = "pairwise",
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   # fitfunctions, # Leave empty
   estimator = "ML",
-  optimizer = "ucminf"
+  optimizer = "ucminf",
+  rawts = FALSE
 ){
+
   # FIXME: Not sure why needed...
   if (missing(vars)) vars2 <- NULL else vars2 <- vars
   if (missing(idvar)) idvar <- NULL
@@ -27,15 +29,28 @@ gvar <- function(
   if (missing(beepvar)) beepvar <- NULL
   if (missing(groups)) groups <- NULL
   
-  # If data is not missing, make augmented data:
+  # If data is missing with rawts, stop:
+  if (rawts && missing(data)){
+    stop("'data' may not be missing with rawts = TRUE")
+  }
   if (!missing(data)){
-    data <- tsData(data, vars = vars2, beepvar = beepvar, dayvar = dayvar, idvar = idvar, groupvar = groups)
-    if (is.null(groups)){
-      vars <- colnames(data)  
-    } else {
-      vars <- colnames(data)[colnames(data)!=groups]
+    data <- as.data.frame(data)
+    if (is.null(names(data))){
+      names(data) <- paste0("V",seq_len(ncol(data)))
     }
   }
+  
+  # If data is not missing, make augmented data:
+  if (!missing(data) && !rawts){
+    data <- tsData(data, vars = vars2, beepvar = beepvar, dayvar = dayvar, idvar = idvar, groupvar = groups)
+  }
+  # Extract var names:
+  if (is.null(groups)){
+    vars <- colnames(data)  
+  } else {
+    vars <- colnames(data)[colnames(data)!=groups]
+  }
+  
   # Obtain sample stats:
   sampleStats <- samplestats(data = data, 
                              vars = vars, 
@@ -43,24 +58,30 @@ gvar <- function(
                              covs = covs, 
                              means = means, 
                              nobs = nobs, 
-                             missing = missing)
+                             missing = missing,
+                             rawts = rawts)
 
   # Check if number of variables is an even number:
-  if (nrow(sampleStats@variables)%%2!=0){
+  if (!rawts && nrow(sampleStats@variables)%%2!=0){
     stop("Number of variables is not an even number: variance-covariance matrix cannot be a Toeplitz matrix. ")
   }
-  
+
   # Check some things:
-  nNode <- nrow(sampleStats@variables) / 2
+  if (rawts){
+    nNode <- nrow(sampleStats@variables) 
+  } else {
+    nNode <- nrow(sampleStats@variables) / 2
+  }
   
   # Generate model object:
   model <- generate_psychonetrics(model = "gvar",sample = sampleStats,computed = FALSE, 
-                                  equal = equal,
+                                  equal = equal,rawts = rawts,
                                   optimizer = optimizer, estimator = estimator, distribution = "Gaussian")
   
   # Number of groups:
   nGroup <- nrow(model@sample@groups)
   
+  # FIXME: Keep this the same for now for rawts = TRUE
   nVar <- nNode * 2
   # Add number of observations:
   model@sample@nobs <-  
@@ -68,7 +89,12 @@ gvar <- function(
     nVar * nGroup # Means per group
   
   # Fix mu
-  mu <- fixMu(mu,nGroup,nNode*2,"mu" %in% equal)
+  if (rawts){
+    mu <- fixMu(mu,nGroup,nNode,"mu" %in% equal)  
+  } else {
+    mu <- fixMu(mu,nGroup,nNode*2,"mu" %in% equal)
+  }
+  
   
   # Fix the omega_zeta matrix:
   omega_zeta <- fixAdj(omega_zeta,nGroup,nNode,"omega_zeta" %in% equal,diag0=TRUE)
@@ -80,30 +106,74 @@ gvar <- function(
   beta <- fixMatrix(beta,nGroup,nNode,nNode,"beta" %in% equal)
  
   # Exogenous varcov:
-  exoVarCov <- fixAdj("full",nGroup,nNode)
+  if (!rawts){
+    exoVarCov <- fixAdj("full",nGroup,nNode)    
+  }
+
   
   # Generate starting values:
   omegaStart <- omega_zeta
   deltaStart <- delta_zeta
   muStart <- mu
   betaStart <- beta
-  exoStart <- exoVarCov
+  
+  if (!rawts){
+    exoStart <- exoVarCov    
+  }
+  
+  
+  # If we are in the rawts world.. let's get la cov matrix estimate from lavaan:
+  if (rawts){
+    tempdata <- tsData(data, vars = vars2, beepvar = beepvar, dayvar = dayvar, idvar = idvar, groupvar = groups)
+    if (missing(groups) || is.null(groups)){
+      lavOut <- lavCor(as.data.frame(tempdata), missing = "fiml", output="lavaan")
+      lavOut <- lavaan::lavInspect(lavOut, what = "sample")
+      means <- list(lavOut$mean)
+      covs <- list(lavOut$cov)
+    } else {
+      lavOut <- lavCor(as.data.frame(tempdata), missing = "fiml", output="lavaan", group = group)
+      lavOut <- lavaan::lavInspect(lavOut, what = "sample")
+      means <- lavOut$mean
+      covs <- lavOut$cov
+    }
+    
+  } else {
+    means <- sampleStats@means
+    covs <- sampleStats@covs
+  }
+
   for (g in 1:nGroup){
+    
+    # If rawts, make some dummy means and varcovs:
+    
+      curSstar <-  as.matrix(covs[[g]][1:nNode,1:nNode])
+      curMeans <-  means[[g]]
+      curS0 <- covs[[g]][nNode + (1:nNode),nNode + (1:nNode)]
+      curS1 <- covs[[g]][nNode + (1:nNode),1:nNode]
+    
+    
     # Means with sample means:
-    muStart[,g] <- sampleStats@means[[g]]
+      if (rawts){
+        muStart[,g] <- curMeans[nNode + (1:nNode)]
+      } else {
+        muStart[,g] <- curMeans    
+      }
+    
     
     # Let's get three blocks:
-    exoStart[,,g] <- as.matrix(sampleStats@covs[[g]][1:nNode,1:nNode])
-    Sstar <- exoStart[,,g]
-    S1 <- sampleStats@covs[[g]][nNode + (1:nNode),1:nNode]
-    S0 <- sampleStats@covs[[g]][nNode + (1:nNode),nNode + (1:nNode)]
+    if (!rawts){
+      exoStart[,,g] <- curSstar      
+    }
+
+    S1 <- curS1
+    S0 <- curS0
     S0inv <- corpcor::pseudoinverse(S0)
     
     # A prior guess for beta is:
     betaStart[,,g] <- (beta[,,g]!=0) * as.matrix(S1 %*% S0inv)
     
     # A prior guess for the contemporaneous covariances is (Schur complement):
-    contCov <- as.matrix(Sstar - t(S1) %*% S0inv %*% S1)
+    contCov <- as.matrix(curSstar - t(S1) %*% S0inv %*% S1)
     
     # Let's use this as starting estimate:
     zeroes <- which(omega_zeta[,,g]==0 & t(omega_zeta[,,g])==0 & diag(nNode) != 1,arr.ind=TRUE)
@@ -128,94 +198,71 @@ gvar <- function(
     # deltaStart[,,g] <- diag(1/sqrt(diag(wi)))
     deltaStart[,,g] <- diag(sqrt(diag(wi)))
   }
+  
+  # Full parameter table:
+  matList <- list()
+  matList$mu <-  list(mu,
+                      mat =  "mu",
+                      op =  "~1",
+                      symmetrical= FALSE, 
+                      sampletable=sampleStats,
+                      rownames = sampleStats@variables$label,
+                      colnames = "1",
+                      start = muStart)
+  
+  if (!rawts){
+    matList$exoVarCov <-  list(exoVarCov,
+                               mat =  "exogenous_sigma",
+                               op =  "~~",
+                               symmetrical= TRUE, 
+                               sampletable=sampleStats,
+                               rownames = sampleStats@variables$label[1:nNode],
+                               colnames = sampleStats@variables$label[1:nNode],
+                               start = exoStart)    
+  }
+  
+  matList$beta <-  list(beta,
+                        mat =  "beta",
+                        op =  "<-",
+                        sampletable=sampleStats,
+                        rownames = sampleStats@variables$label[nNode + (1:nNode)],
+                        colnames = sampleStats@variables$label[1:nNode],
+                        sparse = TRUE,
+                        start = betaStart
+  )
+
+  matList$omega_zeta <- list(omega_zeta,
+                             mat =  "omega_zeta",
+                             op =  "--",
+                             symmetrical= TRUE, 
+                             sampletable=sampleStats,
+                             rownames = sampleStats@variables$label[nNode + (1:nNode)],
+                             colnames = sampleStats@variables$label[nNode + (1:nNode)],
+                             sparse = TRUE,
+                             posdef = TRUE,
+                             diag0=TRUE,
+                             lower = -1,
+                             upper = 1,
+                             start = omegaStart
+  )
+  
+  matList$delta_zeta <-  list(delta_zeta,
+                                 mat =  "delta_zeta",
+                                 op =  "~/~",
+                                 symmetrical= TRUE, 
+                                 sampletable=sampleStats,
+                                 rownames = sampleStats@variables$label[nNode + (1:nNode)],
+                                 colnames = sampleStats@variables$label[nNode + (1:nNode)],
+                                 sparse = TRUE,
+                                 posdef = TRUE,
+                                 diagonal = TRUE,
+                                 lower = 0,
+                                 start = deltaStart
+  )
 
   # Generate the full parameter table:
-  pars <- generateAllParameterTables(
-    # mu:
-    list(mu,
-         mat =  "mu",
-         op =  "~1",
-         symmetrical= FALSE, 
-         sampletable=sampleStats,
-         rownames = sampleStats@variables$label,
-         colnames = "1",
-         start = muStart),
-    
-    # Exogenous variancecovariances:
-    list(exoVarCov,
-         mat =  "exogenous_sigma",
-         op =  "~~",
-         symmetrical= TRUE, 
-         sampletable=sampleStats,
-         rownames = sampleStats@variables$label[1:nNode],
-         colnames = sampleStats@variables$label[1:nNode],
-         start = exoStart),
-    
-    # Beta:
-    list(beta,
-         mat =  "beta",
-         op =  "<-",
-         sampletable=sampleStats,
-         rownames = sampleStats@variables$label[nNode + (1:nNode)],
-         colnames = sampleStats@variables$label[1:nNode],
-         sparse = TRUE,
-         start = betaStart
-    ),
-    
-    # Omega:
-    list(omega_zeta,
-         mat =  "omega_zeta",
-         op =  "--",
-         symmetrical= TRUE, 
-         sampletable=sampleStats,
-         rownames = sampleStats@variables$label[nNode + (1:nNode)],
-         colnames = sampleStats@variables$label[nNode + (1:nNode)],
-         sparse = TRUE,
-         posdef = TRUE,
-         diag0=TRUE,
-         lower = -1,
-         upper = 1,
-         start = omegaStart
-    ),
-    
-    # Delta_zeta:
-    list(delta_zeta,
-         mat =  "delta_zeta",
-         op =  "~/~",
-         symmetrical= TRUE, 
-         sampletable=sampleStats,
-         rownames = sampleStats@variables$label[nNode + (1:nNode)],
-         colnames = sampleStats@variables$label[nNode + (1:nNode)],
-         sparse = TRUE,
-         posdef = TRUE,
-         diagonal = TRUE,
-         lower = 0,
-         start = deltaStart
-    )
-    
-  )
-  # 
-  # # Set lambda start:
-  # pars$partable$est[pars$partable$matrix=="lambda" & !pars$partable$fixed] <- 0.5
-  # 
-  # # Set mu start
-  # for (g in 1:nGroup){
-  #   pars$partable$est[pars$partable$matrix=="mu" & pars$partable$group_id == g] <- sampleStats@means[[g]]
-  # }
-  # 
-  # Come up with P...
-  # Dummy matrix to contain indices:
-  dummySigma <- matrix(0,nNode*2,nNode*2)
-  smallMat <- matrix(0,nNode,nNode)
-  dummySigma[1:nNode,1:nNode][lower.tri(smallMat,diag=TRUE)] <- seq_len(nNode*(nNode+1)/2)
-  dummySigma[nNode + (1:nNode),nNode + (1:nNode)][lower.tri(smallMat,diag=TRUE)] <- max(dummySigma) + seq_len(nNode*(nNode+1)/2)
-  dummySigma[nNode + (1:nNode),1:nNode] <- max(dummySigma) + seq_len(nNode^2)
-  inds <- dummySigma[lower.tri(dummySigma,diag=TRUE)]
-  
-  # P matrix:
-  # P <- bdiag(Diagonal(nNode*2),sparseMatrix(j=seq_along(inds),i=inds))
-  P <- bdiag(Diagonal(nNode*2),sparseMatrix(j=seq_along(inds),i=order(inds)))
-
+  pars <- do.call(generateAllParameterTables, matList)
+ 
   
   # Store in model:
   model@parameters <- pars$partable
@@ -227,9 +274,101 @@ gvar <- function(
     Dstar = psychonetrics::duplicationMatrix(nNode,diag = FALSE), # Strict duplicaton matrix
     In = Diagonal(nNode), # Identity of dim n
     In2 = Diagonal(nNode), # Identity of dim n^2
-    A = psychonetrics::diagonalizationMatrix(nNode),
-    P=P # Permutation matrix
+    A = psychonetrics::diagonalizationMatrix(nNode)
+    # P=P # Permutation matrix
   )
+  
+  
+  if (!rawts){
+    # Come up with P...
+    # Dummy matrix to contain indices:
+    dummySigma <- matrix(0,nNode*2,nNode*2)
+    smallMat <- matrix(0,nNode,nNode)
+    dummySigma[1:nNode,1:nNode][lower.tri(smallMat,diag=TRUE)] <- seq_len(nNode*(nNode+1)/2)
+    dummySigma[nNode + (1:nNode),nNode + (1:nNode)][lower.tri(smallMat,diag=TRUE)] <- max(dummySigma) + seq_len(nNode*(nNode+1)/2)
+    dummySigma[nNode + (1:nNode),1:nNode] <- max(dummySigma) + seq_len(nNode^2)
+    inds <- dummySigma[lower.tri(dummySigma,diag=TRUE)]
+    
+    # P matrix:
+    # P <- bdiag(Diagonal(nNode*2),sparseMatrix(j=seq_along(inds),i=inds))
+    model@extramatrices$P <- bdiag(Diagonal(nNode*2),sparseMatrix(j=seq_along(inds),i=order(inds)))
+  }
+
+  
+  
+  
+  
+  # If we are in the rawts world, we need Drawts duplication matrix for every group...
+  if (rawts){
+    # I need to fill this list:
+    Drawts <- list()
+    
+    # Dummy matrices with indices:
+    muDummy <- matrix(1:nNode)
+    sigDummy <- matrix(0,nNode,nNode)
+    sigDummy[lower.tri(sigDummy,diag=TRUE)] <- max(muDummy) + seq_len(nNode*(nNode+1)/2)
+    sigDummy[upper.tri(sigDummy)] <- t(sigDummy)[upper.tri(sigDummy)]
+    
+    U <- list(sigDummy)
+    # Now make all lag-k blocks...
+    maxN <- max(sapply(sampleStats@missingness,nrow))
+    
+    # Form blocks:
+    for (i in 1:(maxN-1)){
+      U[[length(U) + 1]] <- matrix(max(unlist(U)) + seq_len(nNode^2), nNode, nNode)
+    }
+    
+    # # Magic code from stackovervlow:
+    #   k <- min(unlist(lapply(U, dim)))
+    #   n <- length(U)
+    #   #
+    #   # Create the "strip".
+    #   #
+    #   strip <- array(NA, dim=c(k,k,2*n-1))
+    #   for (i in 1:n) strip[,,i] <- U[[n+1-i]]
+    #   if (n > 1) for (i in 2:n) strip[,,n+i-1] <- t(U[[i]])
+    #   #
+    #   # Assemble into "block-Toeplitz" form.
+    #   #
+    #   allSigmas <- array(NA, dim=c(k,k,n,n))
+    #   #
+    #   # Blast the strip across X.
+    #   #
+    #   for (i in 1:n) allSigmas[,,,i] <- strip[,,(n+1-i):(2*n-i)]
+    #   allSigmas <- matrix(aperm(allSigmas, c(1,3,2,4)), n*k)
+    allSigmas <- blockToeplitz(U)
+
+    
+    for (g in 1:nGroup){
+      missings <- sampleStats@missingness[[g]]
+      
+      # Create the massive matrix:
+      muFull <- Reduce("rbind",lapply(seq_len(nrow(missings)),function(x)muDummy))
+      
+      # sigFull <- Reduce("bdiag",lapply(seq_len(nrow(missings)),function(x)sigDummy))
+      sigFull <- allSigmas[seq_len(nrow(missings)*nNode), seq_len(nrow(missings)*nNode)]
+      
+      # Cut out the rows and cols:
+      obsvec <- !as.vector(t(missings))
+      muFull <- muFull[obsvec,]
+      sigFull <- as.matrix(sigFull[obsvec,obsvec])
+      
+      # Now make a vector with the indices for the full rawts distiributional parameter set:
+      distVec <- c(as.vector(muFull),as.vector(sigFull))
+      nTotal <- length(distVec)
+      distVecrawts <- seq_along(distVec)[distVec!=0]
+      distVec <- distVec[distVec!=0]
+      # Now I can make the matrix:
+      
+      Drawts[[g]] <- sparseMatrix(
+        i = distVecrawts, j = distVec, dims = c(nTotal, max(U[[nrow(missings)]]))
+      )
+    }
+    
+    
+    # Add these to the model:
+    model@Drawts = Drawts
+  }
     
   # Form the model matrices
   model@modelmatrices <- formModelMatrices(model)
@@ -237,42 +376,76 @@ gvar <- function(
   
   ### Baseline model ###
   if (baseline_saturated){
-    # Via ggm:
-    # Baseline GGM should be block matrix:
-    basGGM <- matrix(0,nNode*2,nNode*2)
-    basGGM[1:nNode,1:nNode] <- 1
 
-    model@baseline_saturated$baseline <- ggm(omega = basGGM,
-                                             vars = vars,
-                                             groups = groups,
-                                             covs = sampleStats@covs,
-                                             means = sampleStats@means,
-                                             nobs = sampleStats@groups$nobs,
-                                             missing = missing,
-                                             equal = equal,
-                                             baseline_saturated = FALSE)
     
-    # Add model:
-    # model@baseline_saturated$baseline@fitfunctions$extramatrices$M <- Mmatrix(model@baseline_saturated$baseline@parameters)
-    
-    
-    ### Saturated model ###
-    model@baseline_saturated$saturated <- ggm(data, 
-                                              omega = "full", 
-                                              vars = vars,
-                                              groups = groups,
-                                              covs = covs,
-                                              means = means,
-                                              nobs = nobs,
-                                              missing = missing,
-                                              equal = equal,
-                                              baseline_saturated = FALSE)
-    
-    # Treat as computed:
-    model@baseline_saturated$saturated@computed <- TRUE
-    
-    # Add saturated fit
-    model@baseline_saturated$saturated@objective <- psychonetrics_fitfunction(parVector(model@baseline_saturated$saturated),model@baseline_saturated$saturated)
+    # Normally via ggm:
+    if (!rawts){
+      # Baseline GGM should be block matrix:
+      basGGM <- matrix(0,nNode*2,nNode*2)
+      basGGM[1:nNode,1:nNode] <- 1
+      
+      model@baseline_saturated$baseline <- ggm(omega = basGGM,
+                                               vars = vars,
+                                               groups = groups,
+                                               covs = sampleStats@covs,
+                                               means = sampleStats@means,
+                                               nobs = sampleStats@groups$nobs,
+                                               missing = missing,
+                                               equal = equal,
+                                               baseline_saturated = FALSE)
+      
+      # Add model:
+      # model@baseline_saturated$baseline@fitfunctions$extramatrices$M <- Mmatrix(model@baseline_saturated$baseline@parameters)
+      
+      
+      ### Saturated model ###
+      model@baseline_saturated$saturated <- ggm(data, 
+                                                omega = "full", 
+                                                vars = vars,
+                                                groups = groups,
+                                                covs = covs,
+                                                means = means,
+                                                nobs = nobs,
+                                                missing = missing,
+                                                equal = equal,
+                                                baseline_saturated = FALSE)
+      
+      # Treat as computed:
+      model@baseline_saturated$saturated@computed <- TRUE
+      
+      # Add saturated fit
+      model@baseline_saturated$saturated@objective <- psychonetrics_fitfunction(parVector(model@baseline_saturated$saturated),model@baseline_saturated$saturated)
+    } else {
+      
+      # Via gvar:
+      model@baseline_saturated$baseline <- gvar(data,omega_zeta = "empty", beta = "empty",
+                                               vars = vars,
+                                               groups = groups,
+                                               missing = missing,
+                                               equal = equal,
+                                               baseline_saturated = FALSE, rawts = TRUE)
+      
+      # Add model:
+      # model@baseline_saturated$baseline@fitfunctions$extramatrices$M <- Mmatrix(model@baseline_saturated$baseline@parameters)
+      
+
+      ### Saturated model ###
+      model@baseline_saturated$saturated <- gvar(data,omega_zeta = "full", beta = "full",
+                                                 vars = vars,
+                                                 groups = groups,
+                                                 missing = missing,
+                                                 equal = equal,
+                                                 baseline_saturated = FALSE, rawts = TRUE)
+      
+      
+      # Treat as computed:
+      model@baseline_saturated$saturated@computed <- TRUE
+      
+      # Add saturated fit
+      model@baseline_saturated$saturated@objective <- psychonetrics_fitfunction(parVector(model@baseline_saturated$saturated),model@baseline_saturated$saturated)
+      
+    }
+   
   }
   
  

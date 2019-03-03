@@ -13,8 +13,7 @@ checkJacobian <- function(x, f = psychonetrics_fitfunction, jac = psychonetrics_
   if (!is.matrix(analytic)){
     analytic <- matrix(analytic)
   }
-  
-  # Numeric:
+
   numeric <- numDeriv::jacobian(f,start,model=x)
   
   # If not a matrix, make matrix:
@@ -26,7 +25,7 @@ checkJacobian <- function(x, f = psychonetrics_fitfunction, jac = psychonetrics_
   if (transpose){
     numeric <- t(numeric)
   }
-  
+
   # plot:
   if (plot){
     plot(Vec(analytic),Vec(numeric),xlab="analytic",ylab="numeric")

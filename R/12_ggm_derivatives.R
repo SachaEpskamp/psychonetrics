@@ -1,6 +1,6 @@
 # Derivative of mu with respect to mu:
-d_mu_mu_ggm <- function(mu,...){
-  Diagonal(length(mu))
+d_mu_mu_ggm <- function(omega,...){
+  Diagonal(n = nrow(omega))
 }
 
 
@@ -43,16 +43,14 @@ d_phi_theta_ggm_group <- function(omega,...){
   omegainds <- max(interceptInds) + seq_len(nvar*(nvar-1)/2)
   deltainds <- max(omegainds) + seq_len(nvar)
 
-
   # fill intercept part:
-  Jac[meanInds,interceptInds] <- d_mu_mu_ggm(...)
-  
+  Jac[meanInds,interceptInds] <- d_mu_mu_ggm(omega=omega,...)
     # Fill network part:
-  Jac[sigmaInds,omegainds] <- d_sigma_omega_ggm(lambda=lambda,...)
+  Jac[sigmaInds,omegainds] <- d_sigma_omega_ggm(...)
   
   # Fill scaling part:
-  Jac[sigmaInds,deltainds] <- d_sigma_delta_ggm(lambda=lambda,...)
-  
+  Jac[sigmaInds,deltainds] <- d_sigma_delta_ggm(...)
+
   # Return jacobian:
   return(Jac)
 }

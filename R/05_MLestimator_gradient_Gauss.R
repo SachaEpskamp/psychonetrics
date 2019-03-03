@@ -5,23 +5,32 @@ jacobian_gaussian_group_sigmaVersion_meanPart <- function(sigma,mu,means,kappa,.
   grad_mean
 }
 
-jacobian_gaussian_group_sigmaVersion_sigmaPart <- function(S,means,mu,sigma,D,kappa,...){
-  # sigma part:
-  grad_sigma <- - t(Vec(S) + Vec((means - mu) %*% t(means - mu)) - Vec(sigma)) %*% (kappa %(x)% kappa) %*% D
+jacobian_gaussian_group_sigmaVersion_sigmaPart <- function(S,means,mu,sigma,D,kappa,Drawts,...){
+    if (nrow(Drawts) != ncol(Drawts)){
+      D <- Diagonal(n = nrow(sigma)^2)
+    } 
+
+    # sigma part:
+    grad_sigma <- - t(Vec(S) + Vec((means - mu) %*% t(means - mu)) - Vec(sigma)) %*% (kappa %(x)% kappa) %*% D
+
+
   grad_sigma
 }
 
 
 # jacobian function per group:
-jacobian_gaussian_group_sigma <- function(...){
+jacobian_gaussian_group_sigma <- function(...,Drawts,mu,sigma){
+  if (missing(Drawts)){
+    Drawts <- Diagonal(NROW(mu) +  nrow(sigma) * ( nrow(sigma)+1) / 2)
+  }
   # Mean part:
-  grad_mean <- jacobian_gaussian_group_sigmaVersion_meanPart(...)
-  
+  grad_mean <- jacobian_gaussian_group_sigmaVersion_meanPart(mu=mu,sigma=sigma,...)
+
   # sigma part:
-  grad_sigma <- jacobian_gaussian_group_sigmaVersion_sigmaPart(...)
+  grad_sigma <- jacobian_gaussian_group_sigmaVersion_sigmaPart(mu=mu,sigma=sigma,...,Drawts=Drawts)
 
   # Combine and return:
-  cbind(grad_mean,grad_sigma)
+  cbind(grad_mean,grad_sigma) %*% Drawts
 }
 
 # Now for all groups:

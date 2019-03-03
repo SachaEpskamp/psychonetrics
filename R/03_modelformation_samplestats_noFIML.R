@@ -1,0 +1,216 @@
+# Inner function to make sample stats object:
+samplestats_norawts <- function(
+  data, # Dataset
+  vars, # character indicating the variables Extracted if missing from data - group variable
+  groups, # ignored if missing. Can be character indicating groupvar, or vector with names of groups
+  covs, # alternative covs (array nvar * nvar * ngroup)
+  means, # alternative means (matrix nvar * ngroup)
+  nobs, # Alternative if data is missing (length ngroup)
+  missing = c("listwise","pairwise")){
+  missing <- match.arg(missing)
+  
+  # Check data:
+  if (missing(data) & missing(covs)){
+    stop("'data' and 'covs' may not both be missing")
+  }
+  if (!missing(data) & !missing(covs)){
+    stop("'data' and 'covs' may not both *not* be missing")
+  }
+  
+  # If data is supplied:
+  if (!missing(data) && !is.null(data)){
+    if (!is.data.frame(data) & !is.matrix(data)){
+      stop("'data' must be a data frame or matrix")
+    }
+    if (is.matrix(data)){
+      data <- as.data.frame(data)
+    }
+    # If group variable is missing, add (dummy):
+    if (missing(groups)|| is.null(groups)){
+      groups <- "singlegroup"
+      data[[groups]] <- "singlegroup"
+    }
+    # Extract group names:
+    groupNames <- unique(data[[groups]])
+    
+    # number of groups:
+    nGroup <- length(groupNames)
+    
+    # Overwrite group with integer:
+    data[[groups]] <- match(data[[groups]], groupNames)
+    
+    # If vars is missing, obtain from data:
+    if (missing(vars)){
+      vars <- names(data[,names(data)!=groups])
+    }
+    
+    # Number of variables:
+    nVars <- length(vars)
+    
+    # Estimate covariances:
+    # lavOut <- lavaan::lavCor(data[,c(vars,groups)], missing = missing,output = "lavaan", group = groups, 
+    #                          meanstructure = TRUE)
+    # sampleStats <- lavaan::lavInspect(lavOut, what = "sample")
+    
+    # If missing is listwise, just cut out all NA rows:
+    if (missing == "listwise"){
+      data <- data[rowSums(is.na(data[,c(vars)])) == 0,]
+    }
+    
+    # Create covs and means arguments:
+    if (nGroup == 1){
+      cov <- cov(data[,c(vars)], use = switch(
+        missing, "listwise" = "complete.obs", "pairwise" = "pairwise.complete.obs"
+      ))
+      cov <- 0.5*(cov + t(cov))
+      covs <- list(as(cov,"dsyMatrix"))
+      cors <- list(new("corMatrix", cov2cor(cov), sd = diag(cov)))
+      means <- list(colMeans(data[,c(vars)], na.rm = TRUE))
+      groupNames <- unique(data[[groups]])
+      
+    } else {
+      covs <- list()
+      cors <- list()
+      means <- list()
+      groupNames <- unique(data[[groups]])
+      
+      for (g in 1:nGroup){
+        subData <- data[data[[groups]] == g,c(vars)]
+        cov <- cov(subData, use = switch(
+          missing, "listwise" = "complete.obs", "pairwise" = "pairwise.complete.obs"
+        ))
+        cov <- 0.5*(cov + t(cov))
+        covs[[g]] <- as(cov,"dsyMatrix")
+        cors[[g]] <- new("corMatrix", cov2cor(cov), sd = diag(cov))
+        means[[g]] <- colMeans(subData, na.rm = TRUE)
+      }
+      
+      
+      # cors <- lapply(sampleStats,function(x){
+      #   cov <- x$cov
+      #   class(cov) <- "matrix"
+      #   mat <- new("corMatrix", cov2cor(cov), sd = diag(cov))
+      #   mat
+      # })
+      # covs <- lapply(sampleStats,function(x){
+      #   cov <- x$cov
+      #   class(cov) <- "matrix"
+      #   as(cov,"dpoMatrix")
+      # })
+      # means <- lapply(sampleStats,function(x){
+      #   matrix(unclass(x$mean))
+      # })
+      # groupNames <- names(sampleStats)
+    }
+    if (!missing(nobs)){
+      warning("'nobs' argument ignored and obtained from data")
+    }
+
+    nobs <- as.vector(tapply(data[[groups]],data[[groups]],length))
+  } else {
+    ### Input via matrices ###
+    # Check groups:
+    if (missing(groups) || is.null(groups)){
+      groups <- groupNames <- "singlegroup"
+    } else {
+      groupNames <- groups
+    }
+    nGroup <- length(groups)
+    
+    # if nobs missing, stop:
+    if (missing(nobs)){
+      stop("'nobs' may not be missing")
+    }
+    if (length(nobs) != nGroup){
+      stop("'nobs' must be a vector with sample size per group")
+    }
+    
+    # Check if covs is array:
+    if (!is.array(covs)){
+      if (!is.list(covs)){
+        class(covs) <- "matrix"
+        covs <- list(as(covs,"dpoMatrix"))        
+        cors <- list(new("corMatrix", cov2cor(covs), sd = diag(covs)))
+      } else {
+        cors <- lapply(covs,function(x){
+          new("corMatrix", cov2cor(x), sd = diag(x))
+        })
+      }
+      
+      nVars <- ncol(covs[[1]])
+    } else {
+
+      # Make array
+      if (length(dim(covs)) == 2){
+        if (!is.null(colnames(covs))){
+          vars <- colnames(covs)
+        } else {
+          vars <- paste0("V",seq_len(ncol(covs)))
+        }
+        covs <- array(covs,c(dim(covs),nGroup))
+        dimnames(covs) <- list(vars,vars,NULL)
+      }
+      
+      # Now create list:
+      covsArray <- covs
+      covs <- list()
+      cors <- list()
+      for (g in 1:nGroup){
+        covs[[g]] <- as(covsArray[,,g],"dpoMatrix")
+        cors[[g]] <- new("corMatrix", cov2cor(covsArray[,,g]), sd = diag(covsArray[,,g])) 
+      }
+    }
+    
+    # Number of vars:
+    nVars <- nrow(covs[[1]])
+
+    # Varnames:
+    if (missing(vars)){
+      if (!is.null(colnames(covs[[1]]))){
+        vars <- colnames(covs[[1]])
+      } else {
+        vars <- paste0("V",seq_len(nVars))
+      }
+    }
+
+    # Check if means is missing:
+    if (missing(means)){
+      means <- lapply(1:nGroup,function(x)matrix(0,nVars,1))
+    }
+    
+    # Check if means is matrix:
+    if (is.matrix(means)){
+      means <-lapply(1:nGroup,function(x)means)  
+    }
+  }
+  
+  # Check if cov is dpoMatrix:
+  for (i in seq_along(covs)){
+    if (!is(covs[[i]],"dsyMatrix")){
+      covs[[i]] <- as(covs[[i]], "dsyMatrix")
+    }
+  }
+  
+  # Set names:
+  names(covs) <- groupNames
+  names(means) <- groupNames
+  
+  # Generate samplestats object:
+  object <- generate_psychonetrics_samplestats(covs = covs, cors = cors, means = means)
+  
+  # Fill groups:
+  object@groups <- data.frame(
+    label = groupNames,
+    id = seq_along(groupNames),
+    nobs = nobs, stringsAsFactors = FALSE
+  )
+  
+  # Fill variables:
+  object@variables <- data.frame(
+    label = vars,
+    id = seq_along(vars), stringsAsFactors = FALSE
+  )
+  
+  # Return object:
+  return(object)
+}

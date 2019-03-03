@@ -26,11 +26,20 @@ prepare_gvar <- function(x, model){
     mats[[g]]$E <- Emat(nrow(mats[[g]]$beta),mats[[g]]$beta)
     mats[[g]]$SigmaZeta <- as.matrix(mats[[g]]$delta_zeta %*% mats[[g]]$OmegaStar %*% mats[[g]]$delta_zeta)
     mats[[g]]$sigmaZetaVec <- as.vector(mats[[g]]$SigmaZeta)
+    if (model@rawts){
+      mats[[g]]$mis <-  model@sample@missingness[[g]]  
+    }
+    
   }
-
-  # Compute implied matrices:
-  imp <- implied_gvar(mats)
-
+  
+  # Raw ts?
+  if (!model@rawts){
+    imp <- implied_gvar_norawts(mats)
+  } else {
+    # Compute implied matrices:
+    imp <- implied_gvar_rawts(mats)
+  }
+  
   # Sample stats:
   S <- model@sample@covs
   means <- model@sample@means
@@ -56,9 +65,15 @@ prepare_gvar <- function(x, model){
   # Fill per group:
   groupModels <- list()
   for (g in 1:nGroup){
-    groupModels[[g]] <- c(mats[[g]],imp[[g]], mMat, model@extramatrices) # FIXME: This will lead to extra matrices to be stored?
+    if (model@rawts){
+      mats[[g]] <- mats[[g]][names(mats[[g]]) != "mu"]
+    }
+    groupModels[[g]] <- c( mats[[g]],imp[[g]], mMat, model@extramatrices) # FIXME: This will lead to extra matrices to be stored?
     groupModels[[g]]$S <- S[[g]]
     groupModels[[g]]$means <- means[[g]]
+    if (model@rawts){
+      groupModels[[g]]$Drawts <- model@Drawts[[g]]
+    }
   }
   
   

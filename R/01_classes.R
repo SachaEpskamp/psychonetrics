@@ -5,7 +5,8 @@ generate_psychonetrics_samplestats <- setClass("psychonetrics_samplestats",  slo
   means = "list",
   groups = "data.frame", # Data frame with information on each group  
   variables = "data.frame",
-  nobs = "numeric" # Number of observations
+  nobs = "numeric", # Number of observations
+  missingness = "list" # Missing patterns, only used when rawts = TRUE
 ), prototype = list(groups = data.frame(
   label = character(0),
   id = integer(0),
@@ -63,7 +64,9 @@ generate_psychonetrics <- setClass("psychonetrics", slots = c(
   optimizer = "character",
   estimator = "character",
   distribution = "character",
-  extramatrices = "list" # Contains extra matrices
+  extramatrices = "list", # Contains extra matrices
+  rawts = "logical",
+  Drawts = "list"
 ),
 prototype = list(
   model = "dummy",
@@ -113,7 +116,8 @@ prototype = list(
   log = createLogList(),
   identification = "none",
   optimizer = "ucminf",
-  estimator = "ML"
+  estimator = "ML",
+  rawts = FALSE
 ))
 
 generate_psychonetrics()

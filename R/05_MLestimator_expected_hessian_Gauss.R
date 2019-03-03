@@ -2,21 +2,28 @@ expected_hessian_Gaussian_group_meanPart <- function(kappa,...){
   2*kappa
 }
 
-expected_hessian_Gaussian_group_varPart <- function(kappa,D,...){
+expected_hessian_Gaussian_group_varPart <- function(kappa,D,Drawts,...){
+  if (nrow(Drawts) != ncol(Drawts)){
+    D <- Diagonal(n = nrow(kappa)^2)
+  } 
+  
   t(D) %*% (kappa %(x)% kappa) %*% D
 }
 
 # Per group:
-expected_hessian_Gaussian_group <- function(...){
+expected_hessian_Gaussian_group <- function(...,Drawts,mu,sigma){
+  if (missing(Drawts)){
+    Drawts <- Diagonal(NROW(mu) +  nrow(sigma) * ( nrow(sigma)+1) / 2)
+  }
   
   # Mean part:
   meanPart <- expected_hessian_Gaussian_group_meanPart(...)
  
   # Variance part:
-  varPart <- expected_hessian_Gaussian_group_varPart(...)
+  varPart <- expected_hessian_Gaussian_group_varPart(...,Drawts=Drawts)
   
   # Return as block matrix:
-  bdiag(meanPart, varPart)
+  foo <- t(Drawts) %*% bdiag(meanPart, varPart) %*% Drawts
 }
 
 # Total:
