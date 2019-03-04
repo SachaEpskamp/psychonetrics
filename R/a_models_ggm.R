@@ -92,27 +92,34 @@ ggm <- function(
       # Means with sample means:
       muStart[,g] <- meanest
       
-      # For the network, compute a rough glasso network:
-      zeroes <- which(omegaStart[,,g]==0 & t(omegaStart[,,g])==0 & diag(nNode) != 1,arr.ind=TRUE)
-      if (nrow(zeroes) == 0){
-        wi <- corpcor::pseudoinverse(covest)
+      # If the estimator is fiml, let's not bother with the sample var cov matrix and instead start with some general starting values:
+      if (estimator == "fiml"){
+        omegaStart[,,g] <- ifelse(covest > 0, 0.05, -0.05)
+        deltaStart[,,g] <- diag(nrow( deltaStart[,,g]))
       } else {
-        glas <- glasso(as.matrix(covest),
-                       rho = 1e-10, zero = zeroes)
-        wi <- glas$wi
+        # For the network, compute a rough glasso network:
+        zeroes <- which(omegaStart[,,g]==0 & t(omegaStart[,,g])==0 & diag(nNode) != 1,arr.ind=TRUE)
+        if (nrow(zeroes) == 0){
+          wi <- corpcor::pseudoinverse(covest)
+        } else {
+          glas <- glasso(as.matrix(covest),
+                         rho = 1e-10, zero = zeroes)
+          wi <- glas$wi
+        }
+        
+        # Network starting values:
+        omegaStart[,,g] <- as.matrix(qgraph::wi2net(wi))
+        diag(omegaStart[,,g] ) <- 0
+        
+        # # FIXME: Quick and dirty fiml fix:
+        # if (estimator == "FIML"){
+        #   omegaStart[,,g] <- 0.5 * omegaStart[,,g]
+        # }
+        
+        # Delta:
+        deltaStart[,,g] <- diag(1/sqrt(diag(wi)))
       }
-      
-      # Network starting values:
-      omegaStart[,,g] <- as.matrix(qgraph::wi2net(wi))
-      diag(omegaStart[,,g] ) <- 0
-      
-      # FIXME: Quick and dirty fiml fix:
-      if (estimator == "FIML"){
-        omegaStart[,,g] <- 0.5 * omegaStart[,,g]
-      }
-      
-      # Delta:
-      deltaStart[,,g] <- diag(1/sqrt(diag(wi)))
+
   }
 
   # Generate the full parameter table:
