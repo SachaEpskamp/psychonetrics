@@ -20,7 +20,7 @@ implied_gvar_norawts <- function(x){
       cbind(exoCov,t(Sigma1)),
       cbind(Sigma1,Sigma0)
     )
-    
+
     # FIXME: forcing symmetric, but not sure why this is needed...
     sigma <- 0.5*(sigma + t(sigma))
     

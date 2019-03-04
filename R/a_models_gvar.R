@@ -18,7 +18,7 @@ gvar <- function(
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   # fitfunctions, # Leave empty
   estimator = "ML",
-  optimizer = "ucminf",
+  optimizer = "nlminb", #ucminf",
   rawts = FALSE
 ){
 
@@ -208,11 +208,12 @@ gvar <- function(
     # If we are in the FIML world, all this stuff is dangerous, and I use conservative starting values instead:
     if (estimator == "FIML"){
       deltaStart[,,g] <- ifelse(deltaStart[,,g]!=0,1,0)
-      omegaStart[,,g] <- 1*(omegaStart[,,g]!=0) * ifelse(omegaStart[,,g]>0,0.05,-0.05)
-      betaStart[,,g] <- 1*(betaStart[,,g]!=0) * ifelse(betaStart[,,g]>0,0.05,-0.05)
+      omegaStart[,,g] <- 1*(omegaStart[,,g]!=0) * ifelse(omegaStart[,,g]>0,0.01,-0.01)
+      betaStart[,,g] <- 1*(betaStart[,,g]!=0) * ifelse(betaStart[,,g]>0,0.01,-0.01)
       
       if (!rawts){
-        exoStart[,,g] <- 1*(exoStart[,,g]!=0) * ifelse(exoStart[,,g]>0,0.05,-0.05)
+        exoStart[,,g] <- 1*(exoStart[,,g]!=0) * ifelse(exoStart[,,g]>0,0.01,-0.01)
+        diag(exoStart[,,g]) <- 1
       }
       
     }

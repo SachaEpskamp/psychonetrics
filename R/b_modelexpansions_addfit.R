@@ -100,7 +100,7 @@ addfit <- function(
     # }
     
     fitMeasures$nfi <- (Tb - Tm) / Tb
-    
+
     if(dfb > 0 && Tb > 0) {
       t1 <- Tb - Tm
       t2 <- Tb
