@@ -147,9 +147,13 @@ addfit <- function(
   }
   
   # If LLs are not good, break here:
-  if (!is.finite(Tm) )
+
+  if (!is.finite(Tm) ){
+    return(x)
+  }
   
   # RMSEA
+
   # fitMeasures$rmsea <- sqrt( max(Tm - dfm,0) / (sampleSize * dfm))
   fitMeasures$rmsea <-  sqrt( max( c((Tm/sampleSize)/dfm - 1/sampleSize, 0) ) )
   
