@@ -101,6 +101,12 @@ addfit <- function(
     
     fitMeasures$nfi <- (Tb - Tm) / Tb
 
+    
+    # Stop here if baseline is not good:
+    if (!is.finite(dfb) || !is.finite(Tb)){
+      return(x)
+    }
+    
     if(dfb > 0 && Tb > 0) {
       t1 <- Tb - Tm
       t2 <- Tb
@@ -140,6 +146,8 @@ addfit <- function(
       fitMeasures$cfi <- NA
   }
   
+  # If LLs are not good, break here:
+  if (!is.finite(Tm) )
   
   # RMSEA
   # fitMeasures$rmsea <- sqrt( max(Tm - dfm,0) / (sampleSize * dfm))

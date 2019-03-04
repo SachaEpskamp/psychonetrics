@@ -13,7 +13,17 @@ expected_hessian_fiml_Gaussian_group_meanPart <- function(kappa,data,sigma,...){
     } else {
       obs <- unlist(!is.na(data[i,]))
       if (!any(obs)) next
-      kappa_p <- solve(as.matrix(sigma)[obs,obs])
+      # Handle possible non positive definiteness:
+      sig_p <- as.matrix(sigma)[obs,obs]
+      if (any(eigen(sig_p)$values < 0)){
+        if (all(eigen(sig_p)$values < 0)){
+          next # FIXME: Not sure what to do else about this...
+        }
+        sig_p <- Matrix::nearPD(sig_p)$mat
+      }
+      kappa_p <- solve(sig_p)
+      
+      
       
       # Find the proper elimination matrix:
       inds <- which(obs)

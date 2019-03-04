@@ -15,7 +15,15 @@ jacobian_fiml_gaussian_group_sigmaVersion_meanPart <- function(sigma,mu,kappa,da
     } else {
       obs <- unlist(!is.na(data[i,]))
       if (!any(obs)) next
-      kappa_p <- solve(as.matrix(sigma)[obs,obs])
+      # Handle possible non positive definiteness:
+      sig_p <- as.matrix(sigma)[obs,obs]
+      if (any(eigen(sig_p)$values < 0)){
+        if (all(eigen(sig_p)$values < 0)){
+          next # FIXME: Not sure what to do else about this...
+        }
+        sig_p <- Matrix::nearPD(sig_p)$mat
+      }
+      kappa_p <- solve(sig_p)
       mu_p <- mu[obs,]
       y <- unlist(data[i,obs])
       
@@ -58,8 +66,19 @@ jacobian_fiml_gaussian_group_sigmaVersion_sigmaPart <- function(mu,sigma,D,kappa
       if (!any(obs)) next
       mu_p <- mu[obs,]
       y <- unlist(data[i,obs])
-      sigma_p <- as.matrix(sigma)[obs,obs]
-      kappa_p <- solve(sigma_p)
+      # sigma_p <- as.matrix(sigma)[obs,obs]
+      # 
+      # Handle possible non positive definiteness:
+      sig_p <- as.matrix(sigma)[obs,obs]
+      if (any(eigen(sig_p)$values < 0)){
+        if (all(eigen(sig_p)$values < 0)){
+          next # FIXME: Not sure what to do else about this...
+        }
+        sig_p <- Matrix::nearPD(sig_p)$mat
+      }
+      kappa_p <- solve(sig_p)
+      
+      
       KkronK_p <-  (kappa_p %(x)% kappa_p)
       
       # Find the proper elimination matrix:
@@ -67,7 +86,7 @@ jacobian_fiml_gaussian_group_sigmaVersion_sigmaPart <- function(mu,sigma,D,kappa
       L <- sparseMatrix(i=seq_along(inds),j=inds,dims=c(length(inds),ncol(sigma)^2))
     }
     # Update Jacobian:
-    curJac <- curJac + t(Vec((y - mu_p) %*% t(y - mu_p) - sigma_p)) %*% (KkronK_p) %*% L %*% D
+    curJac <- curJac + t(Vec((y - mu_p) %*% t(y - mu_p) - sig_p)) %*% (KkronK_p) %*% L %*% D
   }
   
   # Return:
