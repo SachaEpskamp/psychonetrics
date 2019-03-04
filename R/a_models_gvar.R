@@ -276,7 +276,7 @@ gvar <- function(
                                  sparse = TRUE,
                                  posdef = TRUE,
                                  diagonal = TRUE,
-                                 lower = 0,
+                                 lower = 0.01,
                                  start = deltaStart
   )
 
