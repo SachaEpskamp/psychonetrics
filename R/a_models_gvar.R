@@ -134,23 +134,23 @@ gvar <- function(
     } else {
       lavOut <- lavCor(as.data.frame(tempdata), missing = "fiml", output="lavaan", group = group)
       lavOut <- lavaan::lavInspect(lavOut, what = "sample")
-      means <- lavOut$mean
-      covs <- lavOut$cov
+      curmeans <- lavOut$mean
+      curcovs <- lavOut$cov
     }
     
   } else {
-    means <- sampleStats@means
-    covs <- sampleStats@covs
+    curmeans <- sampleStats@means
+    curcovs <- sampleStats@covs
   }
 
   for (g in 1:nGroup){
     
     # If rawts, make some dummy means and varcovs:
     
-      curSstar <-  as.matrix(covs[[g]][1:nNode,1:nNode])
-      curMeans <-  means[[g]]
-      curS0 <- covs[[g]][nNode + (1:nNode),nNode + (1:nNode)]
-      curS1 <- covs[[g]][nNode + (1:nNode),1:nNode]
+      curSstar <-  as.matrix(curcovs[[g]][1:nNode,1:nNode])
+      curMeans <-  curmeans[[g]]
+      curS0 <- curcovs[[g]][nNode + (1:nNode),nNode + (1:nNode)]
+      curS1 <- curcovs[[g]][nNode + (1:nNode),1:nNode]
     
     
     # Means with sample means:
@@ -175,13 +175,19 @@ gvar <- function(
     
     # A prior guess for the contemporaneous covariances is (Schur complement):
     contCov <- as.matrix(curSstar - t(S1) %*% S0inv %*% S1)
-    
+
+    # Make posdef if not posdev:
+    if (any(eigen(contCov)$values < 0)){
+      contCov <- as.matrix(Matrix::nearPD(contCov)$mat)
+    }
+        
     # Let's use this as starting estimate:
     zeroes <- which(omega_zeta[,,g]==0 & t(omega_zeta[,,g])==0 & diag(nNode) != 1,arr.ind=TRUE)
+
+
+    
     if (nrow(zeroes) == 0){
-      # glas <- glasso(as.matrix(t(lambdaStart[,,g]) %*% sampleStats@covs[[g]] %*% lambdaStart[,,g]),
-      #                rho = 1e-10, zero = zeroes)      
-      # wi <- corpcor::pseudoinverse(contCov)
+     
       wi <- glasso(contCov, rho = 0.1)$wi
     } else {
       glas <- glasso(contCov,
@@ -198,6 +204,18 @@ gvar <- function(
     # Delta:
     # deltaStart[,,g] <- diag(1/sqrt(diag(wi)))
     deltaStart[,,g] <- diag(sqrt(diag(wi)))
+    
+    # If we are in the FIML world, all this stuff is dangerous, and I use conservative starting values instead:
+    if (estimator == "FIML"){
+      deltaStart[,,g] <- ifelse(deltaStart[,,g]!=0,1,0)
+      omegaStart[,,g] <- 1*(omegaStart[,,g]!=0) * ifelse(omegaStart[,,g]>0,0.05,-0.05)
+      betaStart[,,g] <- 1*(betaStart[,,g]!=0) * ifelse(betaStart[,,g]>0,0.05,-0.05)
+      
+      if (!rawts){
+        exoStart[,,g] <- 1*(exoStart[,,g]!=0) * ifelse(exoStart[,,g]>0,0.05,-0.05)
+      }
+      
+    }
   }
   
   # Full parameter table:
@@ -386,7 +404,7 @@ gvar <- function(
       basGGM <- diag(nNode*2)
       basGGM[1:nNode,1:nNode] <- 1
       
-      model@baseline_saturated$baseline <- varcov(data,
+      model@baseline_saturated$baseline <- varcov(data = data,
                                                sigma = basGGM,
                                                vars = vars,
                                                groups = groups,
@@ -401,7 +419,7 @@ gvar <- function(
       # Add model:
       # model@baseline_saturated$baseline@fitfunctions$extramatrices$M <- Mmatrix(model@baseline_saturated$baseline@parameters)
       ### Saturated model ###
-      model@baseline_saturated$saturated <- varcov(data, 
+      model@baseline_saturated$saturated <- varcov(data = data, 
                                                    sigma = "full", 
                                                    vars = vars,
                                                    groups = groups,

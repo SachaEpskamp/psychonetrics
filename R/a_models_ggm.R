@@ -94,8 +94,8 @@ ggm <- function(
       
       # If the estimator is fiml, let's not bother with the sample var cov matrix and instead start with some general starting values:
       if (estimator == "fiml"){
-        omegaStart[,,g] <- ifelse(covest > 0, 0.05, -0.05)
-        deltaStart[,,g] <- diag(nrow( deltaStart[,,g]))
+        omegaStart[,,g] <- 1*(omegaStart[,,g]!=0) * ifelse(covest > 0, 0.05, -0.05)
+        deltaStart[,,g] <- 1*(deltaStart[,,g]!=0) * diag(nrow( deltaStart[,,g]))
       } else {
         # For the network, compute a rough glasso network:
         zeroes <- which(omegaStart[,,g]==0 & t(omegaStart[,,g])==0 & diag(nNode) != 1,arr.ind=TRUE)
