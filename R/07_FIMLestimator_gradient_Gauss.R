@@ -57,7 +57,7 @@ jacobian_fiml_gaussian_group_sigmaVersion_sigmaPart <- function(mu,sigma,D,kappa
     if (!any(is.na(data[i,]))){
       mu_p <- mu
       y <- unlist(data[i,])
-      sigma_p <- sigma
+      sig_p <- sigma
       # Elimination matrix:
       L <- Diagonal(n=nrow(sigma)^2)
       KkronK_p <- KkronK
