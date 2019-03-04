@@ -19,6 +19,7 @@ prepare_gvar <- function(x, model){
   # Add a few that will be useful:
   for (g in 1:nGroup){
     mats[[g]]$OmegaStar <- solve(Diagonal(nrow(mats[[g]]$omega_zeta)) - mats[[g]]$omega_zeta)
+    if (any(eigen(mats[[g]]$OmegaStar )$values < 0)) warning("I - Omega_zeta is not positive definite, gradient may not be correct.")
     mats[[g]]$DeltaOmegaStar <- mats[[g]]$delta_zeta %*% mats[[g]]$OmegaStar 
     mats[[g]]$BetaStar <- solve(Diagonal(nrow(mats[[g]]$beta)^2) - (mats[[g]]$beta %(x)% mats[[g]]$beta))
     mats[[g]]$L_betaStar <- model@extramatrices$L %*%  mats[[g]]$BetaStar 

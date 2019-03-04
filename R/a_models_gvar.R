@@ -363,6 +363,7 @@ gvar <- function(
       Drawts[[g]] <- sparseMatrix(
         i = distVecrawts, j = distVec, dims = c(nTotal, max(U[[nrow(missings)]]))
       )
+
     }
     
     

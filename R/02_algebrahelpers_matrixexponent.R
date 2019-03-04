@@ -1,10 +1,10 @@
-'%^%' <- function(A,b) {
+'%^%' <- function(A,b, tol = 1e-10) {
   if (b==0){
     return(diag(nrow(A)))
   } else {
     res <- Reduce('%*%',rep(list(A),b)) 
     # Tolerance:
-    res[abs(res) < 1e-3] <- 0
+    res[abs(res) < tol] <- 0
     as(res, "sparseMatrix")
   }
 }

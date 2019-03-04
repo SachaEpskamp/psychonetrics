@@ -42,22 +42,23 @@
 # }
 
 # Derivative of sigmak with respect to beta:
-d_sigmak_beta_gvar <- function(IkronBeta,D2,Jb,sigma,beta,In,k,...){
+d_sigmak_beta_gvar <- function(IkronBeta,D2,Jb,sigma,beta,In,k,betak,sigmaZetaVec,BetaStar,...){
   n <- nrow(beta)
-  sigma0 <- sigma[n + (1:n), n + (1:n)]
-  (In %(x)% (beta %^% k)) %*% D2 %*% Jb + Reduce("+",lapply(1:k,function(i){
+  # sigma0 <- sigma[n + (1:n), n + (1:n)]
+  sigma0 <- Matrix(as.vector(BetaStar %*% sigmaZetaVec),nrow(beta),ncol(beta))
+  (In %(x)% betak) %*% D2 %*% Jb + Reduce("+",lapply(1:k,function(i){
     ((sigma0 %*% (t(beta)%^%(i-1))) %(x)% (beta%^%(k-i)))
   }))
 }
 
 # Derivative of sigmak with respect to omega:
-d_sigmak_omega_gvar <- function(IkronBeta,D2,Jo,k,In,beta,...){
-  (In %(x)% (beta %^% k)) %*%  D2 %*% Jo
+d_sigmak_omega_gvar <- function(IkronBeta,D2,Jo,k,In,beta,betak,...){
+  (In %(x)% betak) %*%  D2 %*% Jo
 }
 
 # Derivative of sigmak with respect to delta:
-d_sigmak_delta_gvar <- function(IkronBeta,D2,Jd,k,In,beta,...){
-  (In %(x)% (beta %^% k)) %*%  D2 %*% Jd
+d_sigmak_delta_gvar <- function(IkronBeta,D2,Jd,k,In,beta,betak,...){
+  (In %(x)% betak) %*%  D2 %*% Jd
 }
 
 # Full jacobian of phi (distribution parameters) with respect to theta (model parameters) for a group
@@ -116,16 +117,22 @@ d_phi_theta_gvar_group_rawts <- function(beta,P,mis,...){
   Jac[sigma0Inds,deltaInds] <- Jd <- d_sigma0_delta_gvar(...)
   
 ##
-  # for (i in 1:nLag){
-    for (i in 1:4){ # FIXME: Let's try with lag 4 max
+  for (i in 1:nLag){
+    betak <- beta %^% i
+    
+    # Don't bother if all zero:
+    # if (all(betak == 0)){
+    #   break
+    # }
+    # for (i in 1:10){ # FIXME: Let's try with lag 10 max
     # Fill sigma1 to beta part:
-    Jac[sigmaInds[[i]],betaInds] <- d_sigmak_beta_gvar(beta=beta,Jb=Jb,k=i,...)
+    Jac[sigmaInds[[i]],betaInds] <- d_sigmak_beta_gvar(beta=beta,Jb=Jb,k=i,betak=betak,...)
     
     # Fill sigma1 to omega part:
-    Jac[sigmaInds[[i]],omegaInds] <- d_sigmak_omega_gvar(beta=beta,Jo=Jo,k=i,...)
+    Jac[sigmaInds[[i]],omegaInds] <- d_sigmak_omega_gvar(beta=beta,Jo=Jo,k=i,betak=betak,...)
     
     # Fill sigma1 to delta part:
-    Jac[sigmaInds[[i]],deltaInds] <- d_sigmak_delta_gvar(beta=beta,Jd=Jd,k=i,...)
+    Jac[sigmaInds[[i]],deltaInds] <- d_sigmak_delta_gvar(beta=beta,Jd=Jd,k=i,betak=betak,...)
   }
   
   

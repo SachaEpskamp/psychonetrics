@@ -76,7 +76,7 @@ d_phi_theta_gvar_group <- function(beta,P,...){
   deltaInds <- max(omegaInds) + seq_len(nNode)
 
   # fill intercept part:
-  Jac[meanInds,interceptInds] <- d_mu_mu_gvar(beta=beta,...)
+  Jac[meanInds,interceptInds] <- bdiag(d_mu_mu_gvar(beta=beta,...),d_mu_mu_gvar(beta=beta,...))
   
   # Fill the exo var part:
   Jac[sigmaStarInds,exovarInds] <- d_sigmastar_sigmastar_gvar(...)
@@ -103,7 +103,6 @@ d_phi_theta_gvar_group <- function(beta,P,...){
   # Permute the matrix:
   Jac <- P %*% Jac
 
-  
   # Return jacobian:
   return(Jac)
 }

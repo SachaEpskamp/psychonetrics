@@ -4,6 +4,7 @@ implied_gvar_norawts <- function(x){
   # For each group:
   nGroup <- length(x)
   Result <- lapply(seq_len(nGroup), function(g){
+
     # Implied exogenous covariances:
     exoCov <- x[[g]]$exogenous_sigma
 

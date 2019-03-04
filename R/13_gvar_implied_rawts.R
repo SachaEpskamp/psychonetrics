@@ -16,11 +16,12 @@ implied_gvar_rawts <- function(x){
     
     # Implied lag-k:
     SigmaK <- lapply(lags-1, function(l){
-      as.matrix((x[[g]]$beta%^%l) %*% Sigma0)
+      betak <- x[[g]]$beta%^%l
+      as.matrix(betak %*% Sigma0)
     })
-    
+
     # Now make the Toeplitz block matrix of computational terror:
-    sigFull <- as(blockToeplitz(SigmaK),"dsyMatrix")
+    sigFull <- as(blockToeplitz(SigmaK),"sparseMatrix")
     
     # And create the massive MU:
     muFull <- Reduce("rbind",lapply(seq_len(nrow(missings)),function(i)x[[g]]$mu))
@@ -29,17 +30,27 @@ implied_gvar_rawts <- function(x){
     # Cut out the rows and cols:
     obsvec <- !as.vector(t(missings))
     muFull <- muFull[obsvec,,drop=FALSE]
-    sigFull <- sigFull[obsvec,obsvec]
-    
+    sigFull <- as(sigFull[obsvec,obsvec],"sparseMatrix")
+  
     # Precision:
 
+
     # This is intractible. let's instead do glasso
-    # kappa <- solve(sigFull)
-    kappa <- as(glasso::glasso(as.matrix(sigFull), rho = 0.1)$wi, "sparseMatrix")
+    # zeroes <- which(glasso::glasso(as.matrix(sigFull), rho = 0.01)$wi == 0,arr.ind = TRUEwarnings)
+    # if (nrow(zeroes) > 0){
+    #   kappa <- as(glasso::glasso(as.matrix(sigFull), rho = 0, zero = zeroes)$wi, "sparseMatrix")  
+    # } else {
+    #   kappa <- as(solve(sigFull),"sparseMatrix")
+    # }
+    
+
+    # Let's make kappa artificially sparse:
+    kappa <- as(solve(sigFull),"sparseMatrix")
+    kappa[abs(kappa) < 1e-3 & diag(nrow(kappa))!=1] <- 0
     
     
     return(list(
-      kappa = kappa,
+      kappa = as(kappa,"sparseMatrix"),
       sigma = as(sigFull,"sparseMatrix"),
       mu = muFull
     )
