@@ -118,6 +118,7 @@ d_phi_theta_gvar_group_rawts <- function(beta,P,mis,...){
   
 ##
   for (i in 1:nLag){
+  # for (i in 1:10){ # FIXME: Let's try with lag 10 max
     betak <- beta %^% i
     
     # Don't bother if all zero:

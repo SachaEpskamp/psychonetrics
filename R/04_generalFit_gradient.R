@@ -12,7 +12,9 @@ psychonetrics_gradient <- function(x, model){
                   "Gaussian" = jacobian_gaussian_sigma
     ),
     "ULS" = switch(model@distribution,
-                "Gaussian" = ULS_gradient_Gauss)
+                "Gaussian" = ULS_gradient_Gauss),
+    "FIML" = switch(model@distribution,
+                   "Gaussian" = jacobian_fiml_gaussian_sigma)
   )
   estimatorPart <- estimatorJacobian(prep)
   
@@ -22,7 +24,8 @@ psychonetrics_gradient <- function(x, model){
     "lnm" = d_phi_theta_lnm,
     "ggm" = d_phi_theta_ggm,
     "rnm" = d_phi_theta_rnm,
-    "gvar" = ifelse(model@rawts,d_phi_theta_gvar_rawts,d_phi_theta_gvar)
+    "gvar" = ifelse(model@rawts,d_phi_theta_gvar_rawts,d_phi_theta_gvar),
+    "varcov" = d_phi_theta_varcov
   )
   modelPart <- modelJacobian(prep)
  

@@ -7,8 +7,19 @@ prepareModel <- function(x, model){
         "lnm" = prepare_lnm,
         "ggm" = prepare_ggm,
         "rnm" = prepare_rnm,
-        "gvar" = prepare_gvar)
+        "gvar" = prepare_gvar,
+        "varcov" = prepare_varcov)
+# prepare:
+  prep <- prepFun(x, model)
+    
+  # If the estimator is FIML, add the raw data:
+  if (model@estimator == "FIML"){
+    # Add the raw data to each group:
+    for (g in seq_along(prep$groupModels)){
+      prep$groupModels[[g]]$data <- model@sample@data[[g]]
+    }
+  }
   
-  # Run and return:
-  prepFun(x, model)
+ # Return:
+  return(prep)
 }

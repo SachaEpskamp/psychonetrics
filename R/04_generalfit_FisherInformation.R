@@ -20,6 +20,9 @@ psychonetrics_FisherInformation <- function(model){
     ),
     "ULS" = switch(model@distribution,
                   "Gaussian" = expected_hessian_ULS_Gaussian
+    ),
+    "FIML" = switch(model@distribution,
+                   "Gaussian" = expected_hessian_fiml_Gaussian
     )
   )
   estimatorPartHessian <- estimatorHessian(prep)
@@ -30,7 +33,8 @@ psychonetrics_FisherInformation <- function(model){
     "lnm" = d_phi_theta_lnm,
     "ggm" = d_phi_theta_ggm,
     "rnm" = d_phi_theta_rnm,
-    "gvar" =  ifelse(model@rawts,d_phi_theta_gvar_rawts,d_phi_theta_gvar)
+    "gvar" =  ifelse(model@rawts,d_phi_theta_gvar_rawts,d_phi_theta_gvar),
+    "varcov" = d_phi_theta_varcov
   )
   modelPart <- modelJacobian(prep)
   

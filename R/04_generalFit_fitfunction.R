@@ -7,7 +7,8 @@ psychonetrics_fitfunction <- function(x, model){
   estFun <- switch(
     estimator,
     "ML" = maxLikEstimator,
-    "ULS" = ULSestimator
+    "ULS" = ULSestimator,
+    "FIML" = fimlEstimator
   )
   
   # Run and return:

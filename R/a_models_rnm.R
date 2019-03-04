@@ -32,7 +32,8 @@ rnm <- function(
                              covs = covs, 
                              means = means, 
                              nobs = nobs, 
-                             missing = missing)
+                             missing  = ifelse(estimator == "FIML","pairwise",missing),
+                             fulldata = estimator == "FIML")
   
   # Check some things:
   nNode <- nrow(sampleStats@variables)
@@ -300,40 +301,46 @@ rnm <- function(
   
   
   ### Baseline model ###
+  ### Baseline model ###
   if (baseline_saturated){
-    # Via ggm:
-    model@baseline_saturated$baseline <- ggm(data, 
-                                             omega = "empty",
-                                             vars = vars,
-                                             groups = groups,
-                                             covs = covs,
-                                             means = means,
-                                             nobs = nobs,
-                                             missing = missing,
-                                             equal = equal,
-                                             baseline_saturated = FALSE)
+    
+    # Form baseline model:
+    model@baseline_saturated$baseline <- varcov(data, 
+                                                sigma = "empty",
+                                                vars = vars,
+                                                groups = groups,
+                                                covs = covs,
+                                                means = means,
+                                                nobs = nobs,
+                                                missing = missing,
+                                                equal = equal,
+                                                estimator = estimator,
+                                                baseline_saturated = FALSE)
     
     # Add model:
     # model@baseline_saturated$baseline@fitfunctions$extramatrices$M <- Mmatrix(model@baseline_saturated$baseline@parameters)
     
     
     ### Saturated model ###
-    model@baseline_saturated$saturated <- ggm(data, 
-                                              omega = "full", 
-                                              vars = vars,
-                                              groups = groups,
-                                              covs = covs,
-                                              means = means,
-                                              nobs = nobs,
-                                              missing = missing,
-                                              equal = equal,
-                                              baseline_saturated = FALSE)
+    model@baseline_saturated$saturated <- varcov(data, 
+                                                 sigma = "full", 
+                                                 vars = vars,
+                                                 groups = groups,
+                                                 covs = covs,
+                                                 means = means,
+                                                 nobs = nobs,
+                                                 missing = missing,
+                                                 equal = equal,
+                                                 estimator = estimator,
+                                                 baseline_saturated = FALSE)
     
-    # Treat as computed:
-    model@baseline_saturated$saturated@computed <- TRUE
-    
-    # Add saturated fit
-    model@baseline_saturated$saturated@objective <- psychonetrics_fitfunction(parVector(model@baseline_saturated$saturated),model@baseline_saturated$saturated)
+    # if not FIML, Treat as computed:
+    if (estimator != "FIML"){
+      model@baseline_saturated$saturated@computed <- TRUE
+      
+      # FIXME: TODO
+      model@baseline_saturated$saturated@objective <- psychonetrics_fitfunction(parVector(model@baseline_saturated$saturated),model@baseline_saturated$saturated)      
+    }
   }
   
   # TODO: Identify model:

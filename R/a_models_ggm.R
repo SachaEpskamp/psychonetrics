@@ -13,7 +13,7 @@ ggm <- function(
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   estimator = "ML",
-  optimizer = "ucminf",
+  optimizer = "nlminb", #"ucminf",
   rawts = FALSE # Set to TRUE to do rawts estimation instead...
 ){
   if (rawts){
@@ -27,8 +27,9 @@ ggm <- function(
                              covs = covs, 
                              means = means, 
                              nobs = nobs, 
-                             missing = missing,
-                             rawts = rawts)
+                             missing = ifelse(estimator == "FIML","pairwise",missing),
+                             rawts = rawts,
+                             fulldata = estimator == "FIML")
 
   # Check some things:
   nNode <- nrow(sampleStats@variables)
@@ -104,6 +105,11 @@ ggm <- function(
       # Network starting values:
       omegaStart[,,g] <- as.matrix(qgraph::wi2net(wi))
       diag(omegaStart[,,g] ) <- 0
+      
+      # FIXME: Quick and dirty fiml fix:
+      if (estimator == "FIML"){
+        omegaStart[,,g] <- 0.5 * omegaStart[,,g]
+      }
       
       # Delta:
       deltaStart[,,g] <- diag(1/sqrt(diag(wi)))
@@ -214,41 +220,44 @@ ggm <- function(
   
   ### Baseline model ###
   if (baseline_saturated){
-   
+    
     # Form baseline model:
-    model@baseline_saturated$baseline <- ggm(data, 
-                                             omega = "empty",
-                                             vars = vars,
-                                             groups = groups,
-                                             covs = covs,
-                                             means = means,
-                                             nobs = nobs,
-                                             missing = missing,
-                                             equal = equal,
-                                             baseline_saturated = FALSE)
+    model@baseline_saturated$baseline <- varcov(data, 
+                                                sigma = "empty",
+                                                vars = vars,
+                                                groups = groups,
+                                                covs = covs,
+                                                means = means,
+                                                nobs = nobs,
+                                                missing = missing,
+                                                equal = equal,
+                                                estimator = estimator,
+                                                baseline_saturated = FALSE)
     
     # Add model:
     # model@baseline_saturated$baseline@fitfunctions$extramatrices$M <- Mmatrix(model@baseline_saturated$baseline@parameters)
     
     
     ### Saturated model ###
-    model@baseline_saturated$saturated <- ggm(data, 
-           omega = "full", 
-           vars = vars,
-           groups = groups,
-           covs = covs,
-           means = means,
-           nobs = nobs,
-           missing = missing,
-           equal = equal,
-           baseline_saturated = FALSE)
+    model@baseline_saturated$saturated <- varcov(data, 
+                                                 sigma = "full", 
+                                                 vars = vars,
+                                                 groups = groups,
+                                                 covs = covs,
+                                                 means = means,
+                                                 nobs = nobs,
+                                                 missing = missing,
+                                                 equal = equal,
+                                                 estimator = estimator,
+                                                 baseline_saturated = FALSE)
     
-    # Treat as computed:
-    model@baseline_saturated$saturated@computed <- TRUE
-    
-    # FIXME: TODO
-    model@baseline_saturated$saturated@objective <- psychonetrics_fitfunction(parVector(model@baseline_saturated$saturated),model@baseline_saturated$saturated)
-
+    # if not FIML, Treat as computed:
+    if (estimator != "FIML"){
+      model@baseline_saturated$saturated@computed <- TRUE
+      
+      # FIXME: TODO
+      model@baseline_saturated$saturated@objective <- psychonetrics_fitfunction(parVector(model@baseline_saturated$saturated),model@baseline_saturated$saturated)      
+    }
   }
   
   # Return model:

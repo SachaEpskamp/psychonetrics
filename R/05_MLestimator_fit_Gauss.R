@@ -1,5 +1,6 @@
 # Fit function per group:
 maxLikEstimator_Gauss_group <- function(S,kappa,means,mu,sigma,...){
+  
   if (any(eigen(kappa)$values < 0)) {
     kappa <- Matrix::nearPD(kappa)$mat
     # if (!all(S==0)){
@@ -7,15 +8,15 @@ maxLikEstimator_Gauss_group <- function(S,kappa,means,mu,sigma,...){
     # } else {
     #   SK <- Diagonal(n = nrow(S))
     # }
-  } else {
-    # if (!all(S==0)){
-    #   SK <- S %*% kappa
-    # } else {
-    #   SK <- Diagonal(n = nrow(S))
-    # }
+  # } else {
+  #   # if (!all(S==0)){
+  #   #   SK <- S %*% kappa
+  #   # } else {
+  #   #   SK <- Diagonal(n = nrow(S))
+  #   # }
   }
 
-  nvar <- ncol(kappa) 
+  # nvar <- ncol(kappa) 
   res <-  sum(diag(S %*% kappa)) + t(means - mu) %*% kappa %*% (means - mu)  - log(det(kappa))
   # res <- sum(diag(S %*% kappa)) + t(means - mu) %*% kappa %*% (means - mu) +
     # log(det(kappa)) 

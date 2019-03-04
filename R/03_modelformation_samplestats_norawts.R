@@ -6,7 +6,8 @@ samplestats_norawts <- function(
   covs, # alternative covs (array nvar * nvar * ngroup)
   means, # alternative means (matrix nvar * ngroup)
   nobs, # Alternative if data is missing (length ngroup)
-  missing = c("listwise","pairwise")){
+  missing = c("listwise","pairwise"),
+  fulldata = FALSE){
   missing <- match.arg(missing)
   
   # Check data:
@@ -53,13 +54,13 @@ samplestats_norawts <- function(
     # sampleStats <- lavaan::lavInspect(lavOut, what = "sample")
     
     # If missing is listwise, just cut out all NA rows:
-    if (missing == "listwise"){
+    if (missing == "listwise" && !fulldata){
       data <- data[rowSums(is.na(data[,c(vars)])) == 0,]
     }
     
     # Create covs and means arguments:
     if (nGroup == 1){
-      cov <- cov(data[,c(vars)], use = switch(
+      cov <- (nrow(data[,c(vars)])-1)/(nrow(data[,c(vars)])) * cov(data[,c(vars)], use = switch(
         missing, "listwise" = "complete.obs", "pairwise" = "pairwise.complete.obs"
       ))
       cov <- 0.5*(cov + t(cov))
@@ -76,7 +77,8 @@ samplestats_norawts <- function(
       
       for (g in 1:nGroup){
         subData <- data[data[[groups]] == g,c(vars)]
-        cov <- cov(subData, use = switch(
+        cov <-  (nrow(subData)-1)/(nrow(subData)) * 
+          cov(subData, use = switch(
           missing, "listwise" = "complete.obs", "pairwise" = "pairwise.complete.obs"
         ))
         cov <- 0.5*(cov + t(cov))
@@ -210,6 +212,14 @@ samplestats_norawts <- function(
     label = vars,
     id = seq_along(vars), stringsAsFactors = FALSE
   )
+  
+  # add datA:
+  if (fulldata){
+    object@data <- lapply(seq_along(groupNames),function(x){
+      data[data[[groups]] == x,vars]
+    })
+  }
+    
   
   # Return object:
   return(object)

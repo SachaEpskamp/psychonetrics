@@ -31,7 +31,8 @@ definition = function(object){
     "lnm" = "Latent Network Model (LNM)",
     "ggm" = "Gaussian graphical model (GGM)",
     "rnm" = "Residual network model (RNM)",
-    "gvar" = "Graphical vector-autoregression (GVAR)"
+    "gvar" = "Graphical vector-autoregression (GVAR)",
+    "varcov" = "Variance-covariance matrix (varcov)"
   )
   cat("\n\nModel:",
       "\n\t- model used:",mod,
@@ -43,6 +44,7 @@ definition = function(object){
   } else {
     estimator <- switch(object@estimator,
             "ML" = "Maximum likelihood estimation (ML)",
+            "FIML" = "Full information maximum likelihood (FIML)",
             "ULS" = "Unweighted least squares (ULS)",
             "WLS" = "Weighted least squares (WLS)",
             "DWLS" = "Diagonally weighted least squares (DWLS)")

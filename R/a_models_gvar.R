@@ -58,8 +58,9 @@ gvar <- function(
                              covs = covs, 
                              means = means, 
                              nobs = nobs, 
-                             missing = missing,
-                             rawts = rawts)
+                             missing  = ifelse(estimator == "FIML","pairwise",missing),
+                             rawts = rawts,
+                             fulldata = estimator == "FIML")
 
   # Check if number of variables is an even number:
   if (!rawts && nrow(sampleStats@variables)%%2!=0){
@@ -225,7 +226,7 @@ gvar <- function(
                         mat =  "beta",
                         op =  "<-",
                         sampletable=sampleStats,
-                        rownames = sampleStats@variables$label[nNode + (1:nNode)],
+                        rownames = sampleStats@variables$label[(!rawts*nNode) + (1:nNode)],
                         colnames = sampleStats@variables$label[1:nNode],
                         sparse = TRUE,
                         start = betaStart
@@ -236,8 +237,8 @@ gvar <- function(
                              op =  "--",
                              symmetrical= TRUE, 
                              sampletable=sampleStats,
-                             rownames = sampleStats@variables$label[nNode + (1:nNode)],
-                             colnames = sampleStats@variables$label[nNode + (1:nNode)],
+                             rownames = sampleStats@variables$label[(!rawts*nNode) + (1:nNode)],
+                             colnames = sampleStats@variables$label[(!rawts*nNode) + (1:nNode)],
                              sparse = TRUE,
                              posdef = TRUE,
                              diag0=TRUE,
@@ -251,8 +252,8 @@ gvar <- function(
                                  op =  "~/~",
                                  symmetrical= TRUE, 
                                  sampletable=sampleStats,
-                                 rownames = sampleStats@variables$label[nNode + (1:nNode)],
-                                 colnames = sampleStats@variables$label[nNode + (1:nNode)],
+                                 rownames = sampleStats@variables$label[(!rawts*nNode) + (1:nNode)],
+                                 colnames = sampleStats@variables$label[(!rawts*nNode) + (1:nNode)],
                                  sparse = TRUE,
                                  posdef = TRUE,
                                  diagonal = TRUE,
@@ -382,40 +383,43 @@ gvar <- function(
     # Normally via ggm:
     if (!rawts){
       # Baseline GGM should be block matrix:
-      basGGM <- matrix(0,nNode*2,nNode*2)
+      basGGM <- diag(nNode*2)
       basGGM[1:nNode,1:nNode] <- 1
       
-      model@baseline_saturated$baseline <- ggm(omega = basGGM,
+      model@baseline_saturated$baseline <- varcov(data,
+                                               sigma = basGGM,
                                                vars = vars,
                                                groups = groups,
-                                               covs = sampleStats@covs,
-                                               means = sampleStats@means,
-                                               nobs = sampleStats@groups$nobs,
+                                               covs = covs,
+                                               means = means,
+                                               nobs = nobs,
                                                missing = missing,
                                                equal = equal,
+                                               estimator = estimator,
                                                baseline_saturated = FALSE)
       
       # Add model:
       # model@baseline_saturated$baseline@fitfunctions$extramatrices$M <- Mmatrix(model@baseline_saturated$baseline@parameters)
-      
-      
       ### Saturated model ###
-      model@baseline_saturated$saturated <- ggm(data, 
-                                                omega = "full", 
-                                                vars = vars,
-                                                groups = groups,
-                                                covs = covs,
-                                                means = means,
-                                                nobs = nobs,
-                                                missing = missing,
-                                                equal = equal,
-                                                baseline_saturated = FALSE)
+      model@baseline_saturated$saturated <- varcov(data, 
+                                                   sigma = "full", 
+                                                   vars = vars,
+                                                   groups = groups,
+                                                   covs = covs,
+                                                   means = means,
+                                                   nobs = nobs,
+                                                   missing = missing,
+                                                   equal = equal,
+                                                   estimator = estimator,
+                                                   baseline_saturated = FALSE)
       
-      # Treat as computed:
-      model@baseline_saturated$saturated@computed <- TRUE
-      
-      # Add saturated fit
-      model@baseline_saturated$saturated@objective <- psychonetrics_fitfunction(parVector(model@baseline_saturated$saturated),model@baseline_saturated$saturated)
+      # if not FIML, Treat as computed:
+      if (estimator != "FIML"){
+        model@baseline_saturated$saturated@computed <- TRUE
+        
+        # FIXME: TODO
+        model@baseline_saturated$saturated@objective <- psychonetrics_fitfunction(parVector(model@baseline_saturated$saturated),model@baseline_saturated$saturated)      
+      }
     } else {
       
       # Via gvar:

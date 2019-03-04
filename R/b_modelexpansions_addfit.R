@@ -20,7 +20,7 @@ addfit <- function(
   
   # log likelihoods:
   # Saturated:
-  if (x@estimator == "ML"){
+  if (x@estimator %in% c("FIML","ML")){
     if (!is.null(x@baseline_saturated$saturated)){
       satLL <- psychonetrics_logLikelihood(x@baseline_saturated$saturated)    
     } else {
@@ -62,7 +62,7 @@ addfit <- function(
   fitMeasures$objective <- x@objective
   
   # Likelihood ratio:
-  if (x@estimator == "ML"){
+  if (x@estimator %in% c("FIML","ML")){
     fitMeasures$chisq <- -2 * (LL - satLL)
   } else  if (x@estimator == "ULS"){
     fitMeasures$chisq <- x@objective  * (sampleSize)
@@ -77,7 +77,7 @@ addfit <- function(
   if (!is.null(x@baseline_saturated$baseline) && x@baseline_saturated$baseline@computed){
     # fitMeasures$fmin_baseline <- x@baseline_saturated$baseline@objective
     # fitMeasures$baseline.chisq <-  sampleSize * fitMeasures$fmin_baseline
-    if (x@estimator == "ML"){
+    if (x@estimator%in% c("FIML","ML")){
       fitMeasures$baseline.chisq <-  -2 * (basLL - satLL)
     } else  if (x@estimator == "ULS"){
       fitMeasures$baseline.chisq <- x@baseline_saturated$baseline@objective  * (sampleSize)
