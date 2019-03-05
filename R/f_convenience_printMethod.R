@@ -32,7 +32,8 @@ definition = function(object){
     "ggm" = "Gaussian graphical model (GGM)",
     "rnm" = "Residual network model (RNM)",
     "gvar" = "Graphical vector-autoregression (GVAR)",
-    "varcov" = "Variance-covariance matrix (varcov)"
+    "varcov" = "Variance-covariance matrix (varcov)",
+    "cholesky" = "Cholesky decomposition (cholesky)"
   )
   cat("\n\nModel:",
       "\n\t- model used:",mod,
