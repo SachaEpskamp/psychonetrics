@@ -1,7 +1,7 @@
 # Latent network model creator
-varcov <- function(
+cholesky <- function(
   data, # Dataset
-  sigma = "full", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
+  lowertri = "full", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
   mu,
   vars, # character indicating the variables Extracted if missing from data - group variable
   groups, # ignored if missing. Can be character indicating groupvar, or vector with names of groups
@@ -34,7 +34,7 @@ varcov <- function(
   nNode <- nrow(sampleStats@variables)
   
   # Generate model object:
-  model <- generate_psychonetrics(model = "varcov",sample = sampleStats,computed = FALSE, 
+  model <- generate_psychonetrics(model = "cholesky",sample = sampleStats,computed = FALSE, 
                                   equal = equal,
                                   optimizer = optimizer, estimator = estimator, distribution = "Gaussian",
                                   rawts = rawts)
@@ -50,28 +50,33 @@ varcov <- function(
   # Fix mu
   mu <- fixMu(mu,nGroup,nNode,"mu" %in% equal)
   
-  # Fix sigma
-  sigma <- fixAdj(sigma,nGroup,nNode,"sigma" %in% equal)
+  # Fix lowertri
+  lowertri <- fixAdj(lowertri,nGroup,nNode,"lowertri" %in% equal)
   
   # Generate starting values:
-  sigmaStart <- sigma
+  lowertriStart <- lowertri
   muStart <- mu
   
   
   for (g in 1:nGroup){
-    covest <- as.matrix(spectralshift(sampleStats@covs[[g]]))
+    covest <- sampleStats@covs[[g]]
+    # Spectral shift if needed:
+    if (any(Re(eigen(covest)$values) < 0)){
+      covest <- spectralshift(covest)
+    }
+    
     meanest <-  as.matrix(sampleStats@means[[g]])
 
       # Means with sample means:
       muStart[,g] <- 1*(mu[,g]!=0) * meanest
-      
-      # Covs with sample covs:
-      sigmaStart[,,g] <-  1*(sigmaStart[,,g]!=0) * covest
+
+      Lest <- t(as.matrix(chol(covest)))
+      # Chol with sample cholesky:
+      lowertriStart[,,g] <-  1*(lowertriStart[,,g]!=0) * Lest
       
       # # If the estimator is fiml, be more conservative:
       # if (estimator == "FIML"){
-      #   sigmaStart[,,g] <- 1*(sigmaStart[,,g]!=0) * ifelse(sigmaStart[,,g] > 0, 0.05, -0.05)
-      #   diag(sigmaStart[,,g]) <- 1
+      #   lowertriStart[,,g] <- 1*(lowertriStart[,,g]!=0) * ifelse(lowertriStart[,,g] > 0, 0.05, -0.05)
       # }
   }
 
@@ -89,26 +94,27 @@ varcov <- function(
     
  
     # Sigma:
-    list(sigma,
-         mat =  "sigma",
-         op =  "~~",
-         symmetrical= TRUE, 
+    list(lowertri,
+         mat =  "lowertri",
+         op =  "~chol~",
+         lowertri= TRUE, 
          sampletable=sampleStats,
          rownames = sampleStats@variables$label,
          colnames = sampleStats@variables$label,
          sparse = TRUE,
          posdef = TRUE,
-         start = sigmaStart
+         start = lowertriStart
     )
   )
-  
+
   # Store in model:
   model@parameters <- pars$partable
   model@matrices <- pars$mattable
   model@extramatrices <- list(
     D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
     L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
-    In = Diagonal(nNode) # Identity of dim n
+    In = Diagonal(nNode), # Identity of dim n
+    C = as(lavaan::lav_matrix_commutation(nNode,nNode),"sparseMatrix")
   )
     
   # Form the model matrices

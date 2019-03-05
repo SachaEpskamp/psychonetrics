@@ -6,7 +6,7 @@ implied_gvar_norawts <- function(x){
   Result <- lapply(seq_len(nGroup), function(g){
 
     # Implied exogenous covariances:
-    exoCov <- x[[g]]$exogenous_sigma
+    exoCov <- x[[g]]$exo_cholesky %*% t( x[[g]]$exo_cholesky)
 
     # Implied stationary distribution (vectorized)
     vecSigma <- x[[g]]$BetaStar %*% x[[g]]$sigmaZetaVec

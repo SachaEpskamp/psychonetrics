@@ -78,14 +78,14 @@ ggm <- function(
     # Are we in the rawts world?
     if (rawts){
       if (missing(groups)){
-        covest <- lavOut$cov
+        covest <-as.matrix(spectralshift( lavOut$cov))
         meanest <- lavOut$mean
       } else {
-        covest <- lavOut$cov[[g]]
+        covest <- as.matrix(spectralshift(lavOut$cov[[g]]))
         meanest <- lavOut$mean[[g]]
       }
     } else {
-      covest <- sampleStats@covs[[g]]
+      covest <- as.matrix(spectralshift(sampleStats@covs[[g]]))
       meanest <-  sampleStats@means[[g]]
     }
       
@@ -93,10 +93,10 @@ ggm <- function(
       muStart[,g] <- meanest
       
       # If the estimator is fiml, let's not bother with the sample var cov matrix and instead start with some general starting values:
-      if (estimator == "fiml"){
-        omegaStart[,,g] <- 1*(omegaStart[,,g]!=0) * ifelse(covest > 0, 0.05, -0.05)
-        deltaStart[,,g] <- 1*(deltaStart[,,g]!=0) * diag(nrow( deltaStart[,,g]))
-      } else {
+      # if (estimator == "fiml"){
+      #   omegaStart[,,g] <- 1*(omegaStart[,,g]!=0) * ifelse(covest > 0, 0.05, -0.05)
+      #   deltaStart[,,g] <- 1*(deltaStart[,,g]!=0) * diag(nrow( deltaStart[,,g]))
+      # } else {
         # For the network, compute a rough glasso network:
         zeroes <- which(omegaStart[,,g]==0 & t(omegaStart[,,g])==0 & diag(nNode) != 1,arr.ind=TRUE)
         if (nrow(zeroes) == 0){
@@ -118,7 +118,7 @@ ggm <- function(
         
         # Delta:
         deltaStart[,,g] <- diag(1/sqrt(diag(wi)))
-      }
+      # }
 
   }
 
@@ -229,8 +229,8 @@ ggm <- function(
   if (baseline_saturated){
     
     # Form baseline model:
-    model@baseline_saturated$baseline <- varcov(data, 
-                                                sigma = "empty",
+    model@baseline_saturated$baseline <- cholesky(data, 
+                                                lowertri = "empty",
                                                 vars = vars,
                                                 groups = groups,
                                                 covs = covs,
@@ -246,8 +246,8 @@ ggm <- function(
     
     
     ### Saturated model ###
-    model@baseline_saturated$saturated <- varcov(data, 
-                                                 sigma = "full", 
+    model@baseline_saturated$saturated <- cholesky(data, 
+                                                 lowertri = "full", 
                                                  vars = vars,
                                                  groups = groups,
                                                  covs = covs,

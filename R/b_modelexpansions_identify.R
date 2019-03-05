@@ -1,6 +1,6 @@
 # this function will automatically identify models:
 identify <- function(x){
-  if (x@model == "ggm" | x@model == "precision"| x@model == "gvar" | x@model == "varcov"){
+  if (x@model == "ggm" | x@model == "precision"| x@model == "gvar" | x@model == "varcov" | x@model == "cholesky"){
     # Nothing to do..
     return(x)
   }

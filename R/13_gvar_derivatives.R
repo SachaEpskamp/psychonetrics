@@ -4,9 +4,11 @@ d_mu_mu_gvar <- function(beta,...){
 }
 
 # Derivative of exogenous variances part
-d_sigmastar_sigmastar_gvar <- function(exogenous_sigma,...){
-  n <- nrow(exogenous_sigma)
-  Diagonal(n*(n+1)/2)
+d_sigmastar_exo_cholesky_gvar <- function(In, L, C, exo_cholesky, ...){
+  L %*% (
+    ( In %(x)% exo_cholesky) %*% C %*% t(L) + 
+      (exo_cholesky %(x)% In) %*% t(L)
+  )
 }
 
 # derivative of sigma0 with respect to beta:
@@ -79,7 +81,7 @@ d_phi_theta_gvar_group <- function(beta,P,...){
   Jac[meanInds,interceptInds] <- bdiag(d_mu_mu_gvar(beta=beta,...),d_mu_mu_gvar(beta=beta,...))
   
   # Fill the exo var part:
-  Jac[sigmaStarInds,exovarInds] <- d_sigmastar_sigmastar_gvar(...)
+  Jac[sigmaStarInds,exovarInds] <- d_sigmastar_exo_cholesky_gvar(...)
   
   # Fill sigma0 to beta part:
   Jac[sigma0Inds,betaInds] <- Jb <- d_sigma0_beta_gvar(...)

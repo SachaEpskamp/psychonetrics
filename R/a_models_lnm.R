@@ -106,25 +106,28 @@ lnm <- function(
     # Means with sample means:
     tauStart[,g] <- sampleStats@means[[g]]
     
+    # Current cov estimate:
+    covest <- as.matrix(spectralshift(sampleStats@covs[[g]]))
+    
     # Factor loadings:
     for (f in seq_len(ncol(lambdaStart))){
       # First principal component of sub cov:
       if (any(lambda[,f,g]!=0)){
-        ev1 <- eigen(sampleStats@covs[[g]][lambda[,f,g]!=0,lambda[,f,g]!=0])$vectors[,1]
+        ev1 <- eigen(covest[lambda[,f,g]!=0,lambda[,f,g]!=0])$vectors[,1]
         lambdaStart[lambdaStart[,f,g]!=0,f,g] <- ev1 / ev1[1]        
       } 
     }
     
     # Residual variances, let's start by putting the vars on 1/4 times the observed variances:
-    Theta <- diag(diag(sampleStats@covs[[g]])/4)
+    Theta <- diag(diag(covest)/4)
     
     # Check if this is positive definite:
-    ev <- eigen(sampleStats@covs[[g]] - Theta)$values
+    ev <- eigen(covest - Theta)$values
     
     # Shrink until it is positive definite:
     loop <- 0
     repeat{
-      ev <- eigen(sampleStats@covs[[g]] - Theta)$values
+      ev <- eigen(covest - Theta)$values
       if (loop == 100){
         # give up...
         Theta <- diag(nrow(Theta))
@@ -142,7 +145,7 @@ lnm <- function(
     sigma_epsilon_start[,,g] <- Theta
     
     # This means that the factor-part is expected to be:
-    factorPart <- sampleStats@covs[[g]] - Theta
+    factorPart <- covest - Theta
     
     # Let's take a pseudoinverse:
     inv <- corpcor::pseudoinverse(kronecker(lambdaStart[,,g],lambdaStart[,,g]))
@@ -163,7 +166,7 @@ lnm <- function(
     }
     
     # Network starting values:
-    pcors <- as.matrix(qgraph::wi2net(wi))
+    pcors <- as.matrix(qgraph::wi2net(spectralshift(wi)))
     pcors[upper.tri(pcors)] <- 0
     omegaStart[,,g] <- ifelse(pcors!=0,pcors,ifelse(omegaStart[,,g]!=0,0.1,0))
     diag(omegaStart[,,g] ) <- 0
@@ -311,8 +314,8 @@ lnm <- function(
   if (baseline_saturated){
     
     # Form baseline model:
-    model@baseline_saturated$baseline <- varcov(data, 
-                                                sigma = "empty",
+    model@baseline_saturated$baseline <- cholesky(data, 
+                                                lowertri = "empty",
                                                 vars = vars,
                                                 groups = groups,
                                                 covs = covs,
@@ -328,8 +331,8 @@ lnm <- function(
     
     
     ### Saturated model ###
-    model@baseline_saturated$saturated <- varcov(data, 
-                                                 sigma = "full", 
+    model@baseline_saturated$saturated <- cholesky(data, 
+                                                 lowertri = "full", 
                                                  vars = vars,
                                                  groups = groups,
                                                  covs = covs,

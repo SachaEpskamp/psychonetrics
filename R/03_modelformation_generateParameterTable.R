@@ -30,7 +30,7 @@ parRelabel <- function(x){
 }
 
 generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, sampletable, rownames, colnames, rowid, colid, sparse = FALSE, posdef = FALSE, diag0=FALSE, diagonal = FALSE,
-                                   lower = -Inf, upper = Inf, start){
+                                   lower = -Inf, upper = Inf, start, lowertri=FALSE){
   # rowid and colid can be missing:
   if (missing(rowid)){
     rowid <- seq_along(rownames)
@@ -45,7 +45,7 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
     for (i in 1:dim(ind)[3]){
       ind[,,i] <- diag(nrow(ind[,,i])) == 1
     }
-  } else if (symmetrical){
+  } else if (symmetrical || lowertri){
     ind <- array(TRUE,dim=dim(x))
     for (i in 1:dim(ind)[3]){
       ind[,,i] <- lower.tri(ind[,,i],diag=!diag0)
@@ -70,7 +70,7 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
   }
 
   # Est = 0 if matrix != symmetrical, 1 for diagonals if matrix = symmetrical:
-  if (symmetrical){
+  if (symmetrical || lowertri){
     est <- array(diag(nrow(x)),dim(x))[ind]
   } else {
     est <- rep(0,length(x))
@@ -179,7 +179,8 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
       symmetrical = symmetrical,
       sparse = sparse,
       posdef=posdef,
-      diagonal= diagonal
+      diagonal= diagonal,
+      lowertri = lowertri
     )
   #   
   # } else {

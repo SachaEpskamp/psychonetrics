@@ -33,6 +33,8 @@ prune <- function(
       matrices <- c("beta","omega_zeta")
     } else if (x@model == "varcov"){
       matrices <- "sigma"
+    } else if (x@model == "cholesky"){
+      matrices <- "lowertri"
     } else {
       stop("'no default 'matrix' argument implemented yet..")
     }

@@ -1,6 +1,9 @@
 expected_hessian_fiml_Gaussian_group_meanPart <- function(kappa,data,sigma,...){
   n <- nrow(data)
-
+  
+  # Spectral shift kappa (will do nothing if kappa is pos def):
+  kappa <- spectralshift(kappa)
+  
   # Current jacobian:
   curFish <- Matrix(0,nrow=nrow(kappa),ncol=nrow(kappa))
 
@@ -12,18 +15,17 @@ expected_hessian_fiml_Gaussian_group_meanPart <- function(kappa,data,sigma,...){
       L <- Diagonal(n=nrow(kappa))
     } else {
       obs <- unlist(!is.na(data[i,]))
-      if (!any(obs)) next
-      # Handle possible non positive definiteness:
-      sig_p <- as.matrix(sigma)[obs,obs]
-      if (any(eigen(sig_p)$values < 0)){
-        if (all(eigen(sig_p)$values < 0)){
-          next # FIXME: Not sure what to do else about this...
-        }
-        sig_p <- Matrix::nearPD(sig_p)$mat
+      
+      # Skip if nothing to do:
+      if (!any(obs)) {
+        next
       }
+      
+      sig_p <- as.matrix(sigma)[obs,obs]
       kappa_p <- solve(sig_p)
       
-      
+      # Handle possible non positive definiteness:
+      kappa_p <- spectralshift(kappa_p)
       
       # Find the proper elimination matrix:
       inds <- which(obs)
@@ -41,6 +43,9 @@ expected_hessian_fiml_Gaussian_group_meanPart <- function(kappa,data,sigma,...){
 expected_hessian_fiml_Gaussian_group_varPart <- function(kappa,D,data,sigma,...){
   
   n <- nrow(data)
+  
+  # Spectral shift kappa (will do nothing if kappa is pos def):
+  kappa <- spectralshift(kappa)
   
   # DUmmy sigma for indices:
   dumSig <- matrix(1:(ncol(sigma)^2),ncol(sigma),ncol(sigma))
@@ -61,9 +66,19 @@ expected_hessian_fiml_Gaussian_group_varPart <- function(kappa,D,data,sigma,...)
       KkronK_p <- KkronK
     } else {
       obs <- unlist(!is.na(data[i,]))
-      if (!any(obs)) next
-      sigma_p <- as.matrix(sigma)[obs,obs]
-      kappa_p <- solve(sigma_p)
+      
+      # Skip if nothing to do:
+      if (!any(obs)) {
+        next
+      }
+      
+      sig_p <- as.matrix(sigma)[obs,obs]
+      kappa_p <- solve(sig_p)
+      
+      # Handle possible non positive definiteness:
+      kappa_p <- spectralshift(kappa_p)
+      
+      # Kronecker:
       KkronK_p <-  (kappa_p %(x)% kappa_p)
       
       # Find the proper elimination matrix:

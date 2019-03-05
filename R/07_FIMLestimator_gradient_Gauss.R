@@ -1,5 +1,8 @@
 jacobian_fiml_gaussian_group_sigmaVersion_meanPart <- function(sigma,mu,kappa,data,...){
   n <- nrow(data)
+  
+  # Spectral shift kappa (will do nothing if kappa is pos def):
+  kappa <- spectralshift(kappa)
 
   # Current jacobian:
   curJac <- Matrix(0,nrow=1,ncol=length(mu))
@@ -14,17 +17,22 @@ jacobian_fiml_gaussian_group_sigmaVersion_meanPart <- function(sigma,mu,kappa,da
       L <- Diagonal(n=nrow(sigma))
     } else {
       obs <- unlist(!is.na(data[i,]))
-      if (!any(obs)) next
-      # Handle possible non positive definiteness:
-      sig_p <- as.matrix(sigma)[obs,obs]
-      if (any(eigen(sig_p)$values < 0)){
-        if (all(eigen(sig_p)$values < 0)){
-          next # FIXME: Not sure what to do else about this...
-        }
-        sig_p <- Matrix::nearPD(sig_p)$mat
+      
+      # Skip if nothing to do:
+      if (!any(obs)) {
+        next
       }
+      
+      sig_p <- as.matrix(sigma)[obs,obs]
       kappa_p <- solve(sig_p)
+      
+      # Handle possible non positive definiteness:
+      kappa_p <- spectralshift(kappa_p)
+      
+      # Means:
       mu_p <- mu[obs,]
+      
+      # raw scores:
       y <- unlist(data[i,obs])
       
       # Find the proper elimination matrix:
@@ -63,27 +71,30 @@ jacobian_fiml_gaussian_group_sigmaVersion_sigmaPart <- function(mu,sigma,D,kappa
       KkronK_p <- KkronK
     } else {
       obs <- unlist(!is.na(data[i,]))
-      if (!any(obs)) next
-      mu_p <- mu[obs,]
-      y <- unlist(data[i,obs])
-      # sigma_p <- as.matrix(sigma)[obs,obs]
-      # 
-      # Handle possible non positive definiteness:
-      sig_p <- as.matrix(sigma)[obs,obs]
-      if (any(eigen(sig_p)$values < 0)){
-        if (all(eigen(sig_p)$values < 0)){
-          next # FIXME: Not sure what to do else about this...
-        }
-        sig_p <- Matrix::nearPD(sig_p)$mat
+      
+      # Skip if nothing to do:
+      if (!any(obs)) {
+        next
       }
+      
+      sig_p <- as.matrix(sigma)[obs,obs]
       kappa_p <- solve(sig_p)
       
+      # Handle possible non positive definiteness:
+      kappa_p <- spectralshift(kappa_p)
+      
+      # Means:
+      mu_p <- mu[obs,]
+      
+      # raw scores:
+      y <- unlist(data[i,obs])
       
       KkronK_p <-  (kappa_p %(x)% kappa_p)
       
       # Find the proper elimination matrix:
       inds <- c(dumSig[obs,obs])
       L <- sparseMatrix(i=seq_along(inds),j=inds,dims=c(length(inds),ncol(sigma)^2))
+
     }
     # Update Jacobian:
     curJac <- curJac + t(Vec((y - mu_p) %*% t(y - mu_p) - sig_p)) %*% (KkronK_p) %*% L %*% D

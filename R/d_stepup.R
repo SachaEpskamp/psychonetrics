@@ -20,6 +20,8 @@ stepup <- function(
         matrices <- c("beta","omega_zeta")
       }else if (x@model == "gvar"){
         matrices <- "sigma"
+      } else if (x@model == "cholesky"){
+        matrices <- "lowertri"
       } else stop("No default argument for 'matrices' for current model.")
     }
   

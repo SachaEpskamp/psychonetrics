@@ -21,7 +21,7 @@ gvar <- function(
   optimizer = "nlminb", #ucminf",
   rawts = FALSE
 ){
-
+  
   # FIXME: Not sure why needed...
   if (missing(vars)) vars2 <- NULL else vars2 <- vars
   if (missing(idvar)) idvar <- NULL
@@ -61,12 +61,12 @@ gvar <- function(
                              missing  = ifelse(estimator == "FIML","pairwise",missing),
                              rawts = rawts,
                              fulldata = estimator == "FIML")
-
+  
   # Check if number of variables is an even number:
   if (!rawts && nrow(sampleStats@variables)%%2!=0){
     stop("Number of variables is not an even number: variance-covariance matrix cannot be a Toeplitz matrix. ")
   }
-
+  
   # Check some things:
   if (rawts){
     nNode <- nrow(sampleStats@variables) 
@@ -105,12 +105,12 @@ gvar <- function(
   
   # Fix beta matrix:
   beta <- fixMatrix(beta,nGroup,nNode,nNode,"beta" %in% equal)
- 
+  
   # Exogenous varcov:
   if (!rawts){
     exoVarCov <- fixAdj("full",nGroup,nNode)    
   }
-
+  
   
   # Generate starting values:
   omegaStart <- omega_zeta
@@ -129,8 +129,8 @@ gvar <- function(
     if (missing(groups) || is.null(groups)){
       lavOut <- lavCor(as.data.frame(tempdata), missing = "fiml", output="lavaan")
       lavOut <- lavaan::lavInspect(lavOut, what = "sample")
-      means <- list(lavOut$mean)
-      covs <- list(lavOut$cov)
+      curmeans <- list(lavOut$mean)
+      curcovs <- list(lavOut$cov)
     } else {
       lavOut <- lavCor(as.data.frame(tempdata), missing = "fiml", output="lavaan", group = group)
       lavOut <- lavaan::lavInspect(lavOut, what = "sample")
@@ -142,30 +142,33 @@ gvar <- function(
     curmeans <- sampleStats@means
     curcovs <- sampleStats@covs
   }
-
+  
   for (g in 1:nGroup){
     
     # If rawts, make some dummy means and varcovs:
-    
-      curSstar <-  as.matrix(curcovs[[g]][1:nNode,1:nNode])
-      curMeans <-  curmeans[[g]]
-      curS0 <- curcovs[[g]][nNode + (1:nNode),nNode + (1:nNode)]
-      curS1 <- curcovs[[g]][nNode + (1:nNode),1:nNode]
+    curcovs[[g]] <- as.matrix(spectralshift(curcovs[[g]]))
+    curSstar <-  curcovs[[g]][1:nNode,1:nNode]
+    curMeans <-  curmeans[[g]]
+    curS0 <- curcovs[[g]][nNode + (1:nNode),nNode + (1:nNode)]
+    curS1 <- curcovs[[g]][nNode + (1:nNode),1:nNode]
     
     
     # Means with sample means:
-      if (rawts){
-        muStart[,g] <- curMeans[nNode + (1:nNode)]
-      } else {
-        muStart[,g] <- curMeans    
-      }
+    if (rawts){
+      muStart[,g] <- curMeans[nNode + (1:nNode)]
+    } else {
+      muStart[,g] <- curMeans    
+    }
     
     
     # Let's get three blocks:
     if (!rawts){
-      exoStart[,,g] <- curSstar      
+      # exoStart[,,g] <- curSstar  
+      # Cholesky decomposition
+      Lest <- t(as.matrix(chol(curSstar)))
+      exoStart[,,g] <- Lest    
     }
-
+    
     S1 <- curS1
     S0 <- curS0
     S0inv <- corpcor::pseudoinverse(S0)
@@ -175,28 +178,29 @@ gvar <- function(
     
     # A prior guess for the contemporaneous covariances is (Schur complement):
     contCov <- as.matrix(curSstar - t(S1) %*% S0inv %*% S1)
-
+    
     # Make posdef if not posdev:
     if (any(eigen(contCov)$values < 0)){
       contCov <- as.matrix(Matrix::nearPD(contCov)$mat)
     }
-        
+    
     # Let's use this as starting estimate:
     zeroes <- which(omega_zeta[,,g]==0 & t(omega_zeta[,,g])==0 & diag(nNode) != 1,arr.ind=TRUE)
-
-
+    
+    
     
     if (nrow(zeroes) == 0){
-     
       wi <- glasso(contCov, rho = 0.1)$wi
     } else {
       glas <- glasso(contCov,
                      rho = 0.1, zero = zeroes)
       wi <- glas$wi
     }
+    wi <- 0.5*(wi + t(wi))
+    wi <- spectralshift(wi)
     
     # Network starting values:
-    pcors <- as.matrix(qgraph::wi2net(wi))
+    pcors <- as.matrix(qgraph::wi2net(as.matrix(wi)))
     pcors[upper.tri(pcors)] <- 0
     omegaStart[,,g] <- ifelse(pcors!=0,pcors,ifelse(omegaStart[,,g]!=0,0.1,0))
     # omegaStart[,,g] <- 1*(omegaStart[,,g]!=0) * 0.05
@@ -206,17 +210,17 @@ gvar <- function(
     deltaStart[,,g] <- diag(sqrt(diag(wi)))
     
     # If we are in the FIML world, all this stuff is dangerous, and I use conservative starting values instead:
-    if (estimator == "FIML"){
-      deltaStart[,,g] <- ifelse(deltaStart[,,g]!=0,1,0)
-      omegaStart[,,g] <- 1*(omegaStart[,,g]!=0) * ifelse(omegaStart[,,g]>0,0.01,-0.01)
-      betaStart[,,g] <- 1*(betaStart[,,g]!=0) * ifelse(betaStart[,,g]>0,0.01,-0.01)
-      
-      if (!rawts){
-        exoStart[,,g] <- 1*(exoStart[,,g]!=0) * ifelse(exoStart[,,g]>0,0.01,-0.01)
-        diag(exoStart[,,g]) <- 1
-      }
-      
-    }
+    # if (estimator == "FIML"){
+    #   deltaStart[,,g] <- ifelse(deltaStart[,,g]!=0,1,0)
+    #   omegaStart[,,g] <- 1*(omegaStart[,,g]!=0) * ifelse(omegaStart[,,g]>0,0.01,-0.01)
+    #   betaStart[,,g] <- 1*(betaStart[,,g]!=0) * ifelse(betaStart[,,g]>0,0.01,-0.01)
+    #   
+    #   if (!rawts){
+    #     exoStart[,,g] <- 1*(exoStart[,,g]!=0) * ifelse(exoStart[,,g]>0,0.01,-0.01)
+    #     diag(exoStart[,,g]) <- 1
+    #   }
+    #   
+    # }
   }
   
   # Full parameter table:
@@ -231,10 +235,10 @@ gvar <- function(
                       start = muStart)
   
   if (!rawts){
-    matList$exoVarCov <-  list(exoVarCov,
-                               mat =  "exogenous_sigma",
-                               op =  "~~",
-                               symmetrical= TRUE, 
+    matList$exo_cholesky <-  list(exoVarCov,
+                               mat =  "exo_cholesky",
+                               op =  "~chol~",
+                               lowertri = TRUE, 
                                sampletable=sampleStats,
                                rownames = sampleStats@variables$label[1:nNode],
                                colnames = sampleStats@variables$label[1:nNode],
@@ -245,19 +249,19 @@ gvar <- function(
                         mat =  "beta",
                         op =  "<-",
                         sampletable=sampleStats,
-                        rownames = sampleStats@variables$label[(!rawts*nNode) + (1:nNode)],
+                        rownames = sampleStats@variables$label[((!rawts)*nNode) + (1:nNode)],
                         colnames = sampleStats@variables$label[1:nNode],
                         sparse = TRUE,
                         start = betaStart
   )
-
+  
   matList$omega_zeta <- list(omega_zeta,
                              mat =  "omega_zeta",
                              op =  "--",
                              symmetrical= TRUE, 
                              sampletable=sampleStats,
-                             rownames = sampleStats@variables$label[(!rawts*nNode) + (1:nNode)],
-                             colnames = sampleStats@variables$label[(!rawts*nNode) + (1:nNode)],
+                             rownames = sampleStats@variables$label[((!rawts)*nNode) + (1:nNode)],
+                             colnames = sampleStats@variables$label[((!rawts)*nNode) + (1:nNode)],
                              sparse = TRUE,
                              posdef = TRUE,
                              diag0=TRUE,
@@ -267,22 +271,22 @@ gvar <- function(
   )
   
   matList$delta_zeta <-  list(delta_zeta,
-                                 mat =  "delta_zeta",
-                                 op =  "~/~",
-                                 symmetrical= TRUE, 
-                                 sampletable=sampleStats,
-                                 rownames = sampleStats@variables$label[(!rawts*nNode) + (1:nNode)],
-                                 colnames = sampleStats@variables$label[(!rawts*nNode) + (1:nNode)],
-                                 sparse = TRUE,
-                                 posdef = TRUE,
-                                 diagonal = TRUE,
-                                 lower = 0.01,
-                                 start = deltaStart
+                              mat =  "delta_zeta",
+                              op =  "~/~",
+                              symmetrical= TRUE, 
+                              sampletable=sampleStats,
+                              rownames = sampleStats@variables$label[((!rawts)*nNode) + (1:nNode)],
+                              colnames = sampleStats@variables$label[((!rawts)*nNode) + (1:nNode)],
+                              sparse = TRUE,
+                              posdef = TRUE,
+                              diagonal = TRUE,
+                              lower = 0.01,
+                              start = deltaStart
   )
-
+  
   # Generate the full parameter table:
   pars <- do.call(generateAllParameterTables, matList)
- 
+  
   
   # Store in model:
   model@parameters <- pars$partable
@@ -294,7 +298,8 @@ gvar <- function(
     Dstar = psychonetrics::duplicationMatrix(nNode,diag = FALSE), # Strict duplicaton matrix
     In = Diagonal(nNode), # Identity of dim n
     In2 = Diagonal(nNode), # Identity of dim n^2
-    A = psychonetrics::diagonalizationMatrix(nNode)
+    A = psychonetrics::diagonalizationMatrix(nNode),
+    C = as(lavaan::lav_matrix_commutation(nNode,nNode),"sparseMatrix")
     # P=P # Permutation matrix
   )
   
@@ -313,7 +318,7 @@ gvar <- function(
     # P <- bdiag(Diagonal(nNode*2),sparseMatrix(j=seq_along(inds),i=inds))
     model@extramatrices$P <- bdiag(Diagonal(nNode*2),sparseMatrix(j=seq_along(inds),i=order(inds)))
   }
-
+  
   
   
   
@@ -357,7 +362,7 @@ gvar <- function(
     #   for (i in 1:n) allSigmas[,,,i] <- strip[,,(n+1-i):(2*n-i)]
     #   allSigmas <- matrix(aperm(allSigmas, c(1,3,2,4)), n*k)
     allSigmas <- blockToeplitz(U)
-
+    
     
     for (g in 1:nGroup){
       missings <- sampleStats@missingness[[g]]
@@ -383,21 +388,21 @@ gvar <- function(
       Drawts[[g]] <- sparseMatrix(
         i = distVecrawts, j = distVec, dims = c(nTotal, max(U[[nrow(missings)]]))
       )
-
+      
     }
     
     
     # Add these to the model:
     model@Drawts = Drawts
   }
-    
+  
   # Form the model matrices
   model@modelmatrices <- formModelMatrices(model)
   
   
   ### Baseline model ###
   if (baseline_saturated){
-
+    
     
     # Normally via ggm:
     if (!rawts){
@@ -405,32 +410,32 @@ gvar <- function(
       basGGM <- diag(nNode*2)
       basGGM[1:nNode,1:nNode] <- 1
       
-      model@baseline_saturated$baseline <- varcov(data = data,
-                                               sigma = basGGM,
-                                               vars = vars,
-                                               groups = groups,
-                                               covs = covs,
-                                               means = means,
-                                               nobs = nobs,
-                                               missing = missing,
-                                               equal = equal,
-                                               estimator = estimator,
-                                               baseline_saturated = FALSE)
+      model@baseline_saturated$baseline <- cholesky(data = data,
+                                                    lowertri = basGGM,
+                                                    vars = vars,
+                                                    groups = groups,
+                                                    covs = covs,
+                                                    means = means,
+                                                    nobs = nobs,
+                                                    missing = missing,
+                                                    equal = equal,
+                                                    estimator = estimator,
+                                                    baseline_saturated = FALSE)
       
       # Add model:
       # model@baseline_saturated$baseline@fitfunctions$extramatrices$M <- Mmatrix(model@baseline_saturated$baseline@parameters)
       ### Saturated model ###
-      model@baseline_saturated$saturated <- varcov(data = data, 
-                                                   sigma = "full", 
-                                                   vars = vars,
-                                                   groups = groups,
-                                                   covs = covs,
-                                                   means = means,
-                                                   nobs = nobs,
-                                                   missing = missing,
-                                                   equal = equal,
-                                                   estimator = estimator,
-                                                   baseline_saturated = FALSE)
+      model@baseline_saturated$saturated <- cholesky(data = data, 
+                                                     lowertri = "full", 
+                                                     vars = vars,
+                                                     groups = groups,
+                                                     covs = covs,
+                                                     means = means,
+                                                     nobs = nobs,
+                                                     missing = missing,
+                                                     equal = equal,
+                                                     estimator = estimator,
+                                                     baseline_saturated = FALSE)
       
       # if not FIML, Treat as computed:
       if (estimator != "FIML"){
@@ -443,16 +448,16 @@ gvar <- function(
       
       # Via gvar:
       model@baseline_saturated$baseline <- gvar(data,omega_zeta = "empty", beta = "empty",
-                                               vars = vars,
-                                               groups = groups,
-                                               missing = missing,
-                                               equal = equal,
-                                               baseline_saturated = FALSE, rawts = TRUE)
+                                                vars = vars,
+                                                groups = groups,
+                                                missing = missing,
+                                                equal = equal,
+                                                baseline_saturated = FALSE, rawts = TRUE)
       
       # Add model:
       # model@baseline_saturated$baseline@fitfunctions$extramatrices$M <- Mmatrix(model@baseline_saturated$baseline@parameters)
       
-
+      
       ### Saturated model ###
       model@baseline_saturated$saturated <- gvar(data,omega_zeta = "full", beta = "full",
                                                  vars = vars,
@@ -469,10 +474,10 @@ gvar <- function(
       model@baseline_saturated$saturated@objective <- psychonetrics_fitfunction(parVector(model@baseline_saturated$saturated),model@baseline_saturated$saturated)
       
     }
-   
+    
   }
   
- 
+  
   # Return model:
   return(model)
 }

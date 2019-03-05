@@ -22,6 +22,8 @@ formModelMatrices <- function(x){
       if (mats$diagonal[i]){
         mat <- as(mat, "diagonalMatrix")
         
+      } else if (mats$lowertri[i]){
+        mat <- as(mat, "Matrix")
       } else if (mats$sparse[i]){
         if (mats$symmetrical[i]){
           mat <- as(mat, "dsCMatrix")

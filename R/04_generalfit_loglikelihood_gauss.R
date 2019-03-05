@@ -10,13 +10,14 @@ logLikelihood_gaussian_group <- function(data,...){
 logLikelihood_gaussian_group_fiml <-  function(mu,sigma,data,kappa,...){
   n <- nrow(data)
 
+  # Spectral shift kappa (will do nothing if kappa is pos def):
+  kappa <- spectralshift(kappa)
+  
+  # Current fit:
   curF <- 0
 
-  # near pd:
-  if (any(eigen(kappa)$values < 0)){
-    kappa <- Matrix::nearPD(kappa)$mat
-  }
-  logdetK <- max(0,log(det(kappa)))
+  # usual log determinant:
+  logdetK <- log(det(kappa))
   
   # For every subject:
   for (i in seq_len(n)){
@@ -27,24 +28,25 @@ logLikelihood_gaussian_group_fiml <-  function(mu,sigma,data,kappa,...){
       logdetK_p <- logdetK
     } else {
       obs <- unlist(!is.na(data[i,]))
-      if (!any(obs)) next
       
-      # Handle possible non positive definiteness:
-      # Handle possible non positive definiteness:
-      sig_p <- as.matrix(sigma)[obs,obs]
-      if (any(eigen(sig_p)$values < 0)){
-        logdetK_p <- 0
-        if (all(eigen(sig_p)$values < 0)){
-          next # FIXME: Not sure what to do else about this...
-        }
-        sig_p <- Matrix::nearPD(sig_p)$mat
-        kappa_p <- solve(sig_p)
-      } else {
-        kappa_p <- solve(sig_p)
-        logdetK_p <- max(log(det(kappa_p)),0)
+      # Skip if nothing to do:
+      if (!any(obs)) {
+        next
       }
       
+      sig_p <- as.matrix(sigma)[obs,obs]
+      kappa_p <- solve(sig_p)
+      
+      # Handle possible non positive definiteness:
+      kappa_p <- spectralshift(kappa_p)
+      
+      # Log determinant:
+      logdetK_p <- max(log(det(kappa_p)),0)
+      
+      # Means:
       mu_p <- mu[obs,]
+      
+      # raw scores:
       y <- unlist(data[i,obs])
     }
     curF <- curF +  (

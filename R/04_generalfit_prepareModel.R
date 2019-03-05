@@ -8,7 +8,8 @@ prepareModel <- function(x, model){
         "ggm" = prepare_ggm,
         "rnm" = prepare_rnm,
         "gvar" = prepare_gvar,
-        "varcov" = prepare_varcov)
+        "varcov" = prepare_varcov,
+        "cholesky" = prepare_cholesky)
 # prepare:
   prep <- prepFun(x, model)
     
