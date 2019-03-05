@@ -8,7 +8,7 @@ implied_cholesky <- function(x){
     sigma <- x[[g]]$lowertri %*% t(x[[g]]$lowertri)
     
     # Implied precision:
-    kappa <- solve(sigma)
+    kappa <- corpcor::pseudoinverse(sigma)
 
     # Implied means
     # mu <- x[[g]]$mu

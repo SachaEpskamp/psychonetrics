@@ -25,8 +25,8 @@ fimlEstimator_Gauss_group <- function(mu,sigma,data,kappa,...){
         next
       }
       
-      sig_p <- as.matrix(sigma)[obs,obs]
-      kappa_p <- solve(sig_p)
+      sig_p <- as.matrix(sigma)[obs,obs,drop=FALSE]
+      kappa_p <- corpcor::pseudoinverse(sig_p)
 
       # Handle possible non positive definiteness:
       kappa_p <- spectralshift(kappa_p)

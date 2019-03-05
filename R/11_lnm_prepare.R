@@ -17,7 +17,7 @@ prepare_lnm <- function(x, model){
   
   # Add a few that will be useful:
   for (g in 1:nGroup){
-    mats[[g]]$IminOinv <- solve(Diagonal(nrow(mats[[g]]$omega_eta)) - mats[[g]]$omega_eta)
+    mats[[g]]$IminOinv <- corpcor::pseudoinverse(Diagonal(nrow(mats[[g]]$omega_eta)) - mats[[g]]$omega_eta)
     mats[[g]]$sigma_eta <- mats[[g]]$delta %*% mats[[g]]$IminOinv %*% mats[[g]]$delta
   }
 

@@ -34,14 +34,14 @@ logLikelihood_gaussian_group_fiml <-  function(mu,sigma,data,kappa,...){
         next
       }
       
-      sig_p <- as.matrix(sigma)[obs,obs]
-      kappa_p <- solve(sig_p)
+      sig_p <- as.matrix(sigma)[obs,obs,drop=FALSE]
+      kappa_p <- corpcor::pseudoinverse(sig_p)
       
       # Handle possible non positive definiteness:
       kappa_p <- spectralshift(kappa_p)
       
       # Log determinant:
-      logdetK_p <- max(log(det(kappa_p)),0)
+      logdetK_p <- log(det(kappa_p))
       
       # Means:
       mu_p <- mu[obs,]
@@ -61,16 +61,18 @@ logLikelihood_gaussian_group_fiml <-  function(mu,sigma,data,kappa,...){
 
 # Fit function per group:
 logLikelihood_gaussian_group_sumstat <- function(S,kappa,means,mu,sigma,...){
-  if (any(eigen(kappa)$values < 0)) {
-    kappa <- Matrix::nearPD(kappa)$mat
-    if (!all(S==0)){
-      SK <- Matrix::nearPD(S %*% kappa)$mat  
-    } else {
-      SK <- S %*% kappa
-    }
-  } else {
-    SK <- S %*% kappa
-  }
+  # if (any(eigen(kappa)$values < 0)) {
+  #   kappa <- Matrix::nearPD(kappa)$mat
+  #   if (!all(S==0)){
+  #     SK <- Matrix::nearPD(S %*% kappa)$mat  
+  #   } else {
+  #     SK <- S %*% kappa
+  #   }
+  # } else {
+  #   SK <- S %*% kappa
+  # }
+  kappa <- spectralshift(kappa)
+  SK <- S %*% kappa
   nvar <- ncol(kappa)
   res <-  log(det(kappa)) - nvar * log((2*pi)) - sum(diag(SK)) - t(means - mu) %*% kappa %*% (means - mu)
   as.numeric(res)

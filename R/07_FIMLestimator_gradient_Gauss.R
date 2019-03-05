@@ -23,8 +23,8 @@ jacobian_fiml_gaussian_group_sigmaVersion_meanPart <- function(sigma,mu,kappa,da
         next
       }
       
-      sig_p <- as.matrix(sigma)[obs,obs]
-      kappa_p <- solve(sig_p)
+      sig_p <- as.matrix(sigma)[obs,obs,drop=FALSE]
+      kappa_p <- corpcor::pseudoinverse(sig_p)
       
       # Handle possible non positive definiteness:
       kappa_p <- spectralshift(kappa_p)
@@ -77,8 +77,8 @@ jacobian_fiml_gaussian_group_sigmaVersion_sigmaPart <- function(mu,sigma,D,kappa
         next
       }
       
-      sig_p <- as.matrix(sigma)[obs,obs]
-      kappa_p <- solve(sig_p)
+      sig_p <- as.matrix(sigma)[obs,obs,drop=FALSE]
+      kappa_p <- corpcor::pseudoinverse(sig_p)
       
       # Handle possible non positive definiteness:
       kappa_p <- spectralshift(kappa_p)
@@ -92,7 +92,7 @@ jacobian_fiml_gaussian_group_sigmaVersion_sigmaPart <- function(mu,sigma,D,kappa
       KkronK_p <-  (kappa_p %(x)% kappa_p)
       
       # Find the proper elimination matrix:
-      inds <- c(dumSig[obs,obs])
+      inds <- c(dumSig[obs,obs,drop=FALSE])
       L <- sparseMatrix(i=seq_along(inds),j=inds,dims=c(length(inds),ncol(sigma)^2))
 
     }

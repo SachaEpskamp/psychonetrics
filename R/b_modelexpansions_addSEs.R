@@ -49,13 +49,13 @@ addSEs <-  function(x
   # } 
  
   # Obtain SEs
-  # SEs <-  sqrt(abs(diag(solve(-n/2*H))))
-  # Hinv <- solve(x@fitfunctions$information(x))
+  # SEs <-  sqrt(abs(diag(corpcor::pseudoinverse(-n/2*H))))
+  # Hinv <- corpcor::pseudoinverse(x@fitfunctions$information(x))
   SEs <-  sqrt(abs(diag(Hinv)))
   
   # 
   # 
-  # x <- sqrt(abs(diag(solve(H))))
+  # x <- sqrt(abs(diag(corpcor::pseudoinverse(H))))
   # sqrt(2/n) * x -
   # SEs
   N <- sum(x@sample@groups$nobs)

@@ -7,7 +7,7 @@ implied_ggm <- function(x){
     
     # Implied precision:
     sigma <- x[[g]]$delta %*% x[[g]]$IminOinv %*% x[[g]]$delta
-    kappa <- solve(sigma)
+    kappa <- corpcor::pseudoinverse(sigma)
 
     # Implied means
     # mu <- x[[g]]$mu

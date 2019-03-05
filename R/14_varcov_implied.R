@@ -6,7 +6,7 @@ implied_varcov <- function(x){
   Result <- lapply(seq_len(nGroup), function(g){
     
     # Implied precision:
-    kappa <- solve(x[[g]]$sigma)
+    kappa <- corpcor::pseudoinverse(x[[g]]$sigma)
 
     # Implied means
     # mu <- x[[g]]$mu

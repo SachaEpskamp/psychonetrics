@@ -17,7 +17,7 @@ fit <- function(x){
   
   df <- data.frame(
     Measure = names(x@fitmeasures),
-    Value = goodNum(unlist(x@fitmeasures))
+    Value = goodNum2(unlist(x@fitmeasures))
   )
   print.data.frame(df,row.names=FALSE)
 }

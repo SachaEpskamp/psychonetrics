@@ -7,11 +7,11 @@ implied_lnm <- function(x){
     
     # Implied precision:
     sigma <- x[[g]]$lambda %*% x[[g]]$sigma_eta %*% t(x[[g]]$lambda ) + x[[g]]$sigma_epsilon
-    kappa <- solve(sigma)
+    kappa <- corpcor::pseudoinverse(sigma)
     # Implied variance--covariance:
-    # sigma <- as(solve(kappa),"dpoMatrix")
-    # sigma <- as(solve(kappa),"dpoMatrix")
-    # sigma <- solve(kappa)
+    # sigma <- as(corpcor::pseudoinverse(kappa),"dpoMatrix")
+    # sigma <- as(corpcor::pseudoinverse(kappa),"dpoMatrix")
+    # sigma <- corpcor::pseudoinverse(kappa)
     
     # Implied means
     mu <- x[[g]]$tau +  x[[g]]$lambda %*%  x[[g]]$mu_eta

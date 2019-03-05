@@ -25,14 +25,14 @@ implied_gvar_norawts <- function(x){
     sigma <- 0.5*(sigma + t(sigma))
     
     # Precision:
-    kappa <- solve(sigma)
+    kappa <- corpcor::pseudoinverse(sigma)
     
     # FIXME: forcing symmetric, but not sure why this is needed...
     kappa <- 0.5*(kappa + t(kappa))
     # Implied variance--covariance:
-    # sigma <- as(solve(kappa),"dpoMatrix")
-    # sigma <- as(solve(kappa),"dpoMatrix")
-    # sigma <- solve(kappa)
+    # sigma <- as(corpcor::pseudoinverse(kappa),"dpoMatrix")
+    # sigma <- as(corpcor::pseudoinverse(kappa),"dpoMatrix")
+    # sigma <- corpcor::pseudoinverse(kappa)
 
     
     return(list(

@@ -40,12 +40,12 @@ implied_gvar_rawts <- function(x){
     # if (nrow(zeroes) > 0){
     #   kappa <- as(glasso::glasso(as.matrix(sigFull), rho = 0, zero = zeroes)$wi, "sparseMatrix")  
     # } else {
-    #   kappa <- as(solve(sigFull),"sparseMatrix")
+    #   kappa <- as(corpcor::pseudoinverse(sigFull),"sparseMatrix")
     # }
     
 
     # Let's make kappa artificially sparse:
-    kappa <- as(solve(sigFull),"sparseMatrix")
+    kappa <- as(corpcor::pseudoinverse(sigFull),"sparseMatrix")
     kappa[abs(kappa) < 1e-5 & diag(nrow(kappa))!=1] <- 0
     
     

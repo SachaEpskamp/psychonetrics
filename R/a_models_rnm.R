@@ -179,9 +179,9 @@ rnm <- function(
     }
 
     # Set delta to it's inversed square root:
-    # delta_epsilon_start[,,g] <- (1*delta_epsilon_start[,,g]!=0) * sqrt(solve(Theta))
+    # delta_epsilon_start[,,g] <- (1*delta_epsilon_start[,,g]!=0) * sqrt(corpcor::pseudoinverse(Theta))
 
-    delta_epsilon_start[,,g] <- (1*delta_epsilon_start[,,g]!=0) * solve(sqrt(solve(Theta)))
+    delta_epsilon_start[,,g] <- (1*delta_epsilon_start[,,g]!=0) * corpcor::pseudoinverse(sqrt(corpcor::pseudoinverse(Theta)))
     
     # This means that the factor-part is expected to be:
     factorPart <- curcov - Theta

@@ -18,8 +18,8 @@ prepare_rnm <- function(x, model){
   
   # Add a few that will be useful:
   for (g in 1:nGroup){
-    mats[[g]]$OmegaStar <- solve(Diagonal(nrow(mats[[g]]$omega_epsilon)) - mats[[g]]$omega_epsilon)
-    mats[[g]]$BetaStar <- solve(Diagonal(nrow(mats[[g]]$beta)) - mats[[g]]$beta)
+    mats[[g]]$OmegaStar <- corpcor::pseudoinverse(Diagonal(nrow(mats[[g]]$omega_epsilon)) - mats[[g]]$omega_epsilon)
+    mats[[g]]$BetaStar <- corpcor::pseudoinverse(Diagonal(nrow(mats[[g]]$beta)) - mats[[g]]$beta)
     mats[[g]]$Lambda_BetaStar <- mats[[g]]$lambda %*%  mats[[g]]$BetaStar 
     mats[[g]]$Betasta_sigmaZeta <- mats[[g]]$BetaStar %*% mats[[g]]$sigma_zeta
     mats[[g]]$sigma_epsilon <- mats[[g]]$delta_epsilon %*% mats[[g]]$OmegaStar %*% mats[[g]]$delta_epsilon 

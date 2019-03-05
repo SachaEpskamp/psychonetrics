@@ -17,7 +17,7 @@ prepare_ggm <- function(x, model){
   
   # Add a few that will be useful:
   for (g in 1:nGroup){
-    mats[[g]]$IminOinv <- solve(Diagonal(nrow(mats[[g]]$omega)) - mats[[g]]$omega)
+    mats[[g]]$IminOinv <- corpcor::pseudoinverse(Diagonal(nrow(mats[[g]]$omega)) - mats[[g]]$omega)
   }
 
   # Compute implied matrices:
@@ -63,7 +63,7 @@ prepare_ggm <- function(x, model){
       # Overwrite:
       groupModels[[g]]$mu <- muFull
       groupModels[[g]]$sigma <- sigFull
-      groupModels[[g]]$kappa <- solve(sigFull)
+      groupModels[[g]]$kappa <- corpcor::pseudoinverse(sigFull)
       # groupModels[[g]]$missings <- missings
       # groupModels[[g]]$rawts <- TRUE
       # groupModels[[g]]$blockdiagonal <- TRUE

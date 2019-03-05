@@ -42,6 +42,9 @@ stepup <- function(
         x@parameters$par[best] <- max(x@parameters$par) + 1
         x@parameters$fixed[best] <- FALSE
         
+        # Perturb estimate a bit:
+        x@parameters$est[best] <- 0.01
+        
         # Update the model:
         x@extramatrices$M <- Mmatrix(x@parameters) # FIXME: Make nice function for this
         
@@ -56,6 +59,9 @@ stepup <- function(
         best <- which(x@parameters$mi_equal == max(x@parameters$mi_equal[x@parameters$matrix %in% matrices & x@parameters$fixed]))
         x@parameters$par[best] <- max(x@parameters$par) + 1
         x@parameters$fixed[best] <- FALSE
+        
+        # Perturb estimate a bit:
+        x@parameters$est[best] <- 0.01
         
         # Update the model:
         x@extramatrices$M <- Mmatrix(x@parameters)
