@@ -1,5 +1,5 @@
 # This function takes a bootnet object, and extracts the data and network:
-frombootnet <- function(x, model){
+frombootnet <- function(x, model, ...){
   # Extract network:
   if (is(x,"bootnet")){
     x <- x$sample
@@ -28,7 +28,7 @@ frombootnet <- function(x, model){
   
   # Make model:
   if (model == "ggm"){
-    mod <- ggm(x$data, omega = 1*(x$graph!=0),vars = x$labels)
+    mod <- ggm(x$data, omega = 1*(x$graph!=0),vars = x$labels, ...)
   }
   
   # Add log:

@@ -1,8 +1,9 @@
 labtoind <- function(x,row,col,Mat,symmetrical=FALSE){
   symmetrical <- x@matrices$symmetrical[x@matrices$name == Mat]
+
   # Obtain all labels in rows:
   if (symmetrical){
-    vars <- cbind(
+    vars <- rbind(
       x@parameters %>% filter_(~matrix == Mat) %>% select_(ind = ~row, var = ~var1),
       x@parameters %>% filter_(~matrix == Mat) %>% select_(ind = ~col, var = ~var2)
     )

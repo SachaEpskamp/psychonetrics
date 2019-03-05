@@ -120,7 +120,7 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal")){
   # } else {
   #   H <- numDeriv::hessian(x@fitfunctions$fitfunction,parVector(modCopy), model=modCopy) 
   # }
-  H <- psychonetrics_FisherInformation(modCopy)
+  H <- as(psychonetrics_FisherInformation(modCopy), "sparseMatrix")
   
   # For every new parameter:
   curMax <- max(x@parameters$par)

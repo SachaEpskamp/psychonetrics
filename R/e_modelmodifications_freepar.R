@@ -51,7 +51,7 @@ freepar <- function(
 
   # which to free:
   whichFree <- which(x@parameters$matrix == matrix & x@parameters$row %in% row & x@parameters$col %in% col & x@parameters$fixed & x@parameters$group_id %in% group)
-  
+
   # Length0?
   if (length(whichFree) == 0){
     if (verbose) message("No parameters need to be freed")

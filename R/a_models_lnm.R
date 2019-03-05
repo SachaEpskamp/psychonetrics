@@ -164,9 +164,9 @@ lnm <- function(
                      rho = 1e-10, zero = zeroes)
       wi <- glas$wi
     }
-    
+
     # Network starting values:
-    pcors <- as.matrix(qgraph::wi2net(spectralshift(wi)))
+    pcors <- as.matrix(qgraph::wi2net(as.matrix(spectralshift(wi))))
     pcors[upper.tri(pcors)] <- 0
     omegaStart[,,g] <- ifelse(pcors!=0,pcors,ifelse(omegaStart[,,g]!=0,0.1,0))
     diag(omegaStart[,,g] ) <- 0
