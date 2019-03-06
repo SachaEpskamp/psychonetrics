@@ -94,20 +94,20 @@ runmodel <- function(
   # Form optimizer arguments:
 
   if (optimizer == "nlminb"){
-    control.nlminb <- list(eval.max=20000L,
-                           iter.max=10000L,
-                           trace=0L,
-                           #abs.tol=1e-20, ### important!! fx never negative
-                           abs.tol=(.Machine$double.eps * 10),
-                           # rel.tol=1e-10,
-                           rel.tol=1e-5,
-                           #step.min=2.2e-14, # in =< 0.5-12
-                           step.min=1.0, # 1.0 in < 0.5-21
-                           step.max=1.0,
-                           x.tol=1.5e-8,
-                           xf.tol=2.2e-14)
+    # control.nlminb <- list(eval.max=20000L,
+    #                        iter.max=10000L,
+    #                        trace=0L,
+    #                        #abs.tol=1e-20, ### important!! fx never negative
+    #                        abs.tol=(.Machine$double.eps * 10),
+    #                        # rel.tol=1e-10,
+    #                        rel.tol=1e-5,
+    #                        #step.min=2.2e-14, # in =< 0.5-12
+    #                        step.min=1.0, # 1.0 in < 0.5-21
+    #                        step.max=1.0,
+    #                        x.tol=1.5e-8,
+    #                        xf.tol=2.2e-14)
     
-    optim.control$control <- control.nlminb
+    # optim.control$control <- control.nlminb
     optim.control$start <- start
     optim.control$objective <- psychonetrics_fitfunction
     optim.control$lower <- lower
