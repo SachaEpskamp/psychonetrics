@@ -325,9 +325,6 @@ data.frame(
 )
 ```
 
-             timestamp
-
-1 2019-03-06 09:30:41 2 2019-03-06 10:02:51 3 2019-03-06 10:02:51 4 2019-03-06 10:05:11 5 2019-03-06 10:05:11 6 2019-03-06 10:05:45 7 2019-03-06 10:05:45 8 2019-03-06 10:06:10 9 2019-03-06 10:06:10 10 2019-03-06 10:06:11 11 2019-03-06 10:06:37 12 2019-03-06 10:13:27 event 1 Model created 2 Evaluated model 3 Fixed element(s) of omega: 1 parameters! 4 Evaluated model 5 Pruned all parameters in matrices omega at alpha = 0.01 6 Evaluated model 7 Pruned all parameters in matrices omega at alpha = 0.01 8 Evaluated model 9 Pruned all parameters in matrices omega at alpha = 0.01 (none were removed) 10 Freed element(s) of omega: 1 parameters! 11 Evaluated model 12 Performed step-up model search
 
 Obtaining a network from bootnet
 --------------------------------
