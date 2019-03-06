@@ -938,7 +938,7 @@ Graphical vector-autoregression
 In graphical vector-autoregression (Epskamp, Waldorp, et al. 2018), we use model a time-series dataset as a GGM after conditioning on the previous measurement occasion. The model becomes:
 
 -   **μ** = **μ**
--   $\\mathrm{vec}\\left(\\pmb{\\Sigma}\_0\\right) =\\left(\\pmb{I} - \\pmb{B} \\otimes \\pmb{B} \\right)^{-1} \\mathrm{vec}\\left(\\pmb{\\Sigma}\_{\\pmb{\\zeta}}\\right$
+-   *v**e**c*(**Σ**<sub>0</sub>) = (**I**−**B**⊗**B**)<sup>−1</sup>*v**e**c*(**Σ**<sub>**ζ**</sub>)
 -   **Σ**<sub>1</sub> = **B****Σ**
 -   **Σ**<sub>*ζ*</sub> = **Δ**<sub>**ζ**</sub>(**I**−**Ω**<sub>**ζ**</sub>)<sup>−1</sup>**Δ**<sub>**ζ**</sub>
 
