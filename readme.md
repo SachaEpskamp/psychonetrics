@@ -1,4 +1,4 @@
-Psychonetrics
+![img](logo.png)
 ================
 Sacha Epskamp
 
