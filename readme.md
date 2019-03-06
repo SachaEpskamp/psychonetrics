@@ -122,7 +122,7 @@ model
     ## 
     ## General: 
     ##  - psychonetrics version: 0.1.2 
-    ##  - Model last edited at: 2019-03-05 21:46:17
+    ##  - Model last edited at: 2019-03-06 10:02:51
     ## 
     ## Sample: 
     ##  - Number of cases: 1562 
@@ -157,18 +157,23 @@ model %>% parameters
 
     ## 
     ##  Parameters for group 1
-          
-          (...)
-          
+  
+  			(...)
+  			
     ## 
     ##  -  omega (symmetric) 
     ##  var1 op var2      est    se        p row col par
     ##    A2 --   A1    -0.23 0.024 < 0.0001   2   1  26
-
-          (...)
-
+    ##    A3 --   A1    -0.16 0.025 < 0.0001   3   1  27
+  
+    			(...)
+  
+    ##    N4 --   A5   -0.015 0.025     0.56  19   5 129
+    ##    N5 --   A5    0.055 0.025    0.029  20   5 130
     ##    O1 --   A5 -0.00093 0.025     0.97  21   5 131
+    ##    O2 --   A5    0.015 0.025     0.54  22   5 132
 
+  			(...)
 
 The edge *O1 -- A5* is estimated to be near zero, so let's try removing this edge:
 
@@ -196,7 +201,7 @@ compare(model, model2)
 
     ##    model DF       AIC       BIC    Chisq Chisq_diff DF_diff p_value
     ##  Model 1  0 125975.19 127848.99 < 0.0001                           
-    ##  Model 2  1 125973.20 127841.64   0.0033     0.0033       1    0.95
+    ##  Model 2  1 125973.19 127841.64   0.0013     0.0013       1    0.97
     ## 
     ## Note: Chi-square difference test assumes models are nested.
 
@@ -224,11 +229,11 @@ compare(saturated = model, nearsaturated = model2, pruned = prunedmodel)
 
     ##          model  DF       AIC       BIC    Chisq Chisq_diff DF_diff
     ##      saturated   0 125975.19 127848.99 < 0.0001                   
-    ##  nearsaturated   1 125973.20 127841.64   0.0033     0.0033       1
-    ##         pruned 206 126082.77 126853.71   519.58     519.57     205
+    ##  nearsaturated   1 125973.19 127841.64   0.0013     0.0013       1
+    ##         pruned 206 126082.68 126853.61   519.49     519.48     205
     ##   p_value
     ##          
-    ##      0.95
+    ##      0.97
     ##  < 0.0001
     ## 
     ## Note: Chi-square difference test assumes models are nested.
@@ -243,16 +248,16 @@ prunedmodel %>% MIs
     ## Top 10 modification indices:
     ## 
     ##  var1 op var2 est    mi      pmi epc matrix row col group
-    ##    C1 --   A1   0 19.53 < 0.0001      omega   6   1     1
-    ##    C2 --   A1   0 14.80  0.00012      omega   7   1     1
-    ##    E5 --   C2   0 14.54  0.00014      omega  15   7     1
-    ##    N5 --   A4   0 13.62  0.00022      omega  20   4     1
-    ##    O5 --   N5   0 11.79  0.00060      omega  25  20     1
-    ##    O4 --   N4   0 11.67  0.00064      omega  24  19     1
-    ##    E5 --   C5   0 11.56  0.00067      omega  15  10     1
-    ##    C5 --   A1   0 11.25  0.00079      omega  10   1     1
-    ##    O5 --   N1   0 10.82   0.0010      omega  25  16     1
-    ##    O5 --   E2   0 10.73   0.0011      omega  25  12     1
+    ##    C1 --   A1   0 19.72 < 0.0001      omega   6   1     1
+    ##    C2 --   A1   0 14.94  0.00011      omega   7   1     1
+    ##    E5 --   C2   0 14.59  0.00013      omega  15   7     1
+    ##    N5 --   A4   0 13.64  0.00022      omega  20   4     1
+    ##    O4 --   N4   0 11.97  0.00054      omega  24  19     1
+    ##    O5 --   N5   0 11.70  0.00062      omega  25  20     1
+    ##    E5 --   C5   0 11.59  0.00066      omega  15  10     1
+    ##    C5 --   A1   0 11.44  0.00072      omega  10   1     1
+    ##    O5 --   N1   0 10.84  0.00099      omega  25  16     1
+    ##    O5 --   E2   0 10.57   0.0011      omega  25  12     1
 
 By default, only the top 10 modification indices are shown, but this can be changed with `MIs(all = TRUE)`. We can try to add one edge to the model:
 
@@ -261,7 +266,7 @@ By default, only the top 10 modification indices are shown, but this can be chan
 model3 <- prunedmodel %>% freepar("omega","A1","C1") %>% runmodel
 ```
 
-    ## No parameters need to be freed
+    ## Freed 1 parameters!
 
     ## Estimating model...
 
@@ -273,14 +278,14 @@ compare(saturated = model, nearsaturated = model2,
         pruned = prunedmodel, lastmodel = model3)
 ```
 
-    ##          model  DF       AIC       BIC    Chisq Chisq_diff  DF_diff
-    ##      saturated   0 125975.19 127848.99 < 0.0001                    
-    ##  nearsaturated   1 125973.20 127841.64   0.0033     0.0033        1
-    ##         pruned 206 126082.77 126853.71   519.58     519.57      205
-    ##      lastmodel 206 126082.69 126853.63   519.50      0.076 < 0.0001
+    ##          model  DF       AIC       BIC    Chisq Chisq_diff DF_diff
+    ##      saturated   0 125975.19 127848.99 < 0.0001                   
+    ##  nearsaturated   1 125973.19 127841.64   0.0013     0.0013       1
+    ##      lastmodel 205 126064.95 126841.24   499.76     499.76     204
+    ##         pruned 206 126082.68 126853.61   519.49      19.73       1
     ##   p_value
     ##          
-    ##      0.95
+    ##      0.97
     ##  < 0.0001
     ##  < 0.0001
     ## 
@@ -296,15 +301,15 @@ model_stepup <- model3 %>% stepup
 compare(saturated = model, nearsaturated = model2, pruned = prunedmodel, oneMIadded = model3, stepup = model_stepup)
 ```
 
-    ##          model  DF       AIC       BIC    Chisq Chisq_diff  DF_diff
-    ##      saturated   0 125975.19 127848.99 < 0.0001                    
-    ##  nearsaturated   1 125973.20 127841.64   0.0033     0.0033        1
-    ##         stepup 192 125954.23 126800.11   363.03     363.03      191
-    ##         pruned 206 126082.77 126853.71   519.58     156.54       14
-    ##     oneMIadded 206 126082.69 126853.63   519.50      0.076 < 0.0001
+    ##          model  DF       AIC       BIC    Chisq Chisq_diff DF_diff
+    ##      saturated   0 125975.19 127848.99 < 0.0001                   
+    ##  nearsaturated   1 125973.19 127841.64   0.0013     0.0013       1
+    ##         stepup 192 125954.11 126800.00   362.92     362.92     191
+    ##     oneMIadded 205 126064.95 126841.24   499.76     136.84      13
+    ##         pruned 206 126082.68 126853.61   519.49      19.73       1
     ##   p_value
     ##          
-    ##      0.95
+    ##      0.97
     ##  < 0.0001
     ##  < 0.0001
     ##  < 0.0001
@@ -322,7 +327,7 @@ data.frame(
 
              timestamp
 
-1 2019-03-05 14:25:49 2 2019-03-05 21:46:17 3 2019-03-05 21:46:17 4 2019-03-05 21:47:22 5 2019-03-05 21:47:22 6 2019-03-05 21:47:36 7 2019-03-05 21:47:36 8 2019-03-05 21:47:46 9 2019-03-05 21:47:46 10 2019-03-05 21:47:54 11 2019-03-05 21:50:43 event 1 Model created 2 Evaluated model 3 Fixed element(s) of omega: 1 parameters! 4 Evaluated model 5 Pruned all parameters in matrices omega at alpha = 0.01 6 Evaluated model 7 Pruned all parameters in matrices omega at alpha = 0.01 8 Evaluated model 9 Pruned all parameters in matrices omega at alpha = 0.01 (none were removed) 10 Evaluated model 11 Performed step-up model search
+1 2019-03-06 09:30:41 2 2019-03-06 10:02:51 3 2019-03-06 10:02:51 4 2019-03-06 10:05:11 5 2019-03-06 10:05:11 6 2019-03-06 10:05:45 7 2019-03-06 10:05:45 8 2019-03-06 10:06:10 9 2019-03-06 10:06:10 10 2019-03-06 10:06:11 11 2019-03-06 10:06:37 12 2019-03-06 10:13:27 event 1 Model created 2 Evaluated model 3 Fixed element(s) of omega: 1 parameters! 4 Evaluated model 5 Pruned all parameters in matrices omega at alpha = 0.01 6 Evaluated model 7 Pruned all parameters in matrices omega at alpha = 0.01 8 Evaluated model 9 Pruned all parameters in matrices omega at alpha = 0.01 (none were removed) 10 Freed element(s) of omega: 1 parameters! 11 Evaluated model 12 Performed step-up model search
 
 Obtaining a network from bootnet
 --------------------------------
@@ -354,7 +359,7 @@ compare(ggmModSelect = model_frombootnet, psychonetrics = model_stepup)
 
     ##          model  DF       AIC       BIC  Chisq Chisq_diff DF_diff  p_value
     ##   ggmModSelect 173 125905.33 126852.94 276.14                            
-    ##  psychonetrics 192 125954.23 126800.11 363.03      86.90      19 < 0.0001
+    ##  psychonetrics 192 125954.11 126800.00 362.92      86.78      19 < 0.0001
     ## 
     ## Note: Chi-square difference test assumes models are nested.
 
@@ -377,7 +382,7 @@ qgraph(bootnet_net, labels = vars, theme = "colorblind",
        title = "ggmModSelect estimation", layout = L)
 ```
 
-![](readme_files/figure-markdown_github/unnamed-chunk-19-1.png)
+![](README_figs/README-unnamed-chunk-19-1.png)
 
 Confirmatory fit
 ----------------
@@ -507,7 +512,7 @@ compare(configural = groupmodel, metric = groupmodel_2)
 
     ##       model  DF       AIC       BIC  Chisq Chisq_diff DF_diff  p_value
     ##  configural 384 125777.90 127469.68 659.50                            
-    ##      metric 492 125737.42 126851.00 835.02     175.52     108 < 0.0001
+    ##      metric 492 125737.35 126850.92 834.95     175.44     108 < 0.0001
     ## 
     ## Note: Chi-square difference test assumes models are nested.
 
@@ -521,16 +526,16 @@ groupmodel_2 %>% MIs(type = "free")
     ## Top 10 equality-free modification indices:
     ## 
     ##  var1 op var2        est mi_free pmi_free epc_free matrix row col group
-    ##    E5 --   E4 0.00000000   25.04 < 0.0001           omega  15  14     2
-    ##    E5 --   A4 0.00000000   12.93  0.00032           omega  15   4     1
-    ##    E2 --   C5 0.08490288   12.74  0.00036           omega  12  10     2
-    ##    C4 --   A3 0.00000000   12.36  0.00044           omega   9   3     2
-    ##    N4 --   A3 0.00000000   10.86  0.00098           omega  19   3     2
-    ##    E4 --   E3 0.12535518   10.81   0.0010           omega  14  13     2
-    ##    C5 --   A3 0.00000000   10.63   0.0011           omega  10   3     2
-    ##    E3 --   E1 0.00000000   10.23   0.0014           omega  13  11     2
-    ##    E1 --   C5 0.00000000    9.98   0.0016           omega  11  10     1
-    ##    O3 --   A4 0.00000000    8.77   0.0031           omega  23   4     1
+    ##    E5 --   E4 0.00000000   25.58 < 0.0001           omega  15  14     2
+    ##    E2 --   C5 0.08470832   12.92  0.00032           omega  12  10     2
+    ##    E5 --   A4 0.00000000   12.61  0.00038           omega  15   4     1
+    ##    C4 --   A3 0.00000000   12.17  0.00049           omega   9   3     2
+    ##    E4 --   E3 0.12475596   11.28  0.00078           omega  14  13     2
+    ##    N4 --   A3 0.00000000   10.62   0.0011           omega  19   3     2
+    ##    C5 --   A3 0.00000000   10.39   0.0013           omega  10   3     2
+    ##    E3 --   E1 0.00000000   10.27   0.0014           omega  13  11     2
+    ##    E1 --   C5 0.00000000    9.86   0.0017           omega  11  10     1
+    ##    E5 --   E3 0.13680946    9.00   0.0027           omega  15  13     2
 
 And see that there are several edges that are included in the model but could improve fit when freed. Let's only look at the first two:
 
@@ -553,8 +558,8 @@ compare(configural = groupmodel, metric = groupmodel_2, metric_adjusted = groupm
 
     ##            model  DF       AIC       BIC  Chisq Chisq_diff DF_diff p_value
     ##       configural 384 125777.90 127469.68 659.50                           
-    ##  metric_adjusted 491 125729.41 126848.34 825.01     165.50     107 0.00025
-    ##           metric 492 125737.42 126851.00 835.02      10.02       1  0.0016
+    ##  metric_adjusted 491 125729.27 126848.20 824.87     165.37     107 0.00025
+    ##           metric 492 125737.35 126850.92 834.95      10.08       1  0.0015
     ## 
     ## Note: Chi-square difference test assumes models are nested.
 
@@ -599,8 +604,8 @@ compare(
 
     ##            model  DF      AIC      BIC  Chisq Chisq_diff DF_diff p_value
     ##       configural 384 70490.25 71998.54 713.95                           
-    ##  metric_adjusted 491 70428.66 71426.24 866.37     152.42     107  0.0026
-    ##           metric 492 70431.37 71424.17 871.08       4.71       1   0.030
+    ##  metric_adjusted 491 70428.63 71426.21 866.34     152.39     107  0.0026
+    ##           metric 492 70431.27 71424.07 870.98       4.64       1   0.031
     ## 
     ## Note: Chi-square difference test assumes models are nested.
 
@@ -681,7 +686,7 @@ lnmMod
     ## 
     ## General: 
     ##  - psychonetrics version: 0.1.2 
-    ##  - Model last edited at: 2019-03-05 22:08:18
+    ##  - Model last edited at: 2019-03-06 10:26:42
     ## 
     ## Sample: 
     ##  - Number of cases: 301 
@@ -819,7 +824,7 @@ rnmMod
     ## 
     ## General: 
     ##  - psychonetrics version: 0.1.2 
-    ##  - Model last edited at: 2019-03-06 07:49:20
+    ##  - Model last edited at: 2019-03-06 10:26:58
     ## 
     ## Sample: 
     ##  - Number of cases: 75 
@@ -836,9 +841,9 @@ rnmMod
     ##  - Message: relative convergence (4)
     ## 
     ## Fit: 
-    ##  - Model Fit Test Statistic: 74.82 
+    ##  - Model Fit Test Statistic: 74.62 
     ##  - Degrees of freedom: 44 
-    ##  - p-value (Chi-square): 0.0026
+    ##  - p-value (Chi-square): 0.0027
     ## 
     ## Tips: 
     ##  - Use 'psychonetrics::compare' to compare psychonetrics models 
@@ -886,13 +891,13 @@ rnmMod_resid@modelmatrices$`1`$omega_epsilon
     ##  [2,] . . . . .         . .         . .         . .        
     ##  [3,] . . . . .         . .         . .         . .        
     ##  [4,] . . . . .         . .         . .         . .        
-    ##  [5,] . . . . .         . 0.3639626 . 0.3874870 . .        
+    ##  [5,] . . . . .         . 0.3639576 . 0.3874871 . .        
     ##  [6,] . . . . .         . .         . .         . .        
-    ##  [7,] . . . . 0.3639626 . .         . .         . .        
+    ##  [7,] . . . . 0.3639576 . .         . .         . .        
     ##  [8,] . . . . .         . .         . .         . .        
-    ##  [9,] . . . . 0.3874870 . .         . .         . 0.4095963
+    ##  [9,] . . . . 0.3874871 . .         . .         . 0.4095972
     ## [10,] . . . . .         . .         . .         . .        
-    ## [11,] . . . . .         . .         . 0.4095963 . .
+    ## [11,] . . . . .         . .         . 0.4095972 . .
 
 which has three unique elements. Note that the implied *marginal* covariances are more:
 
@@ -904,29 +909,29 @@ delta %*% solve(diag(11) - omega) %*% delta
 
     ## 11 x 11 sparse Matrix of class "dgCMatrix"
     ##                                                                          
-    ##  [1,] 0.08049843 .         .         .        .        .        .        
-    ##  [2,] .          0.1239368 .         .        .        .        .        
-    ##  [3,] .          .         0.4663332 .        .        .        .        
-    ##  [4,] .          .         .         1.629821 .        .        .        
-    ##  [5,] .          .         .         .        8.479963 .        2.2556198
-    ##  [6,] .          .         .         .        .        4.679763 .        
-    ##  [7,] .          .         .         .        2.255620 .        3.7120926
+    ##  [1,] 0.08049846 .         .         .        .        .        .        
+    ##  [2,] .          0.1239359 .         .        .        .        .        
+    ##  [3,] .          .         0.4663338 .        .        .        .        
+    ##  [4,] .          .         .         1.629812 .        .        .        
+    ##  [5,] .          .         .         .        8.479909 .        2.2555751
+    ##  [6,] .          .         .         .        .        4.679754 .        
+    ##  [7,] .          .         .         .        2.255575 .        3.7120701
     ##  [8,] .          .         .         .        .        .        .        
-    ##  [9,] .          .         .         .        3.172186 .        0.8437827
+    ##  [9,] .          .         .         .        3.172173 .        0.8437677
     ## [10,] .          .         .         .        .        .        .        
-    ## [11,] .          .         .         .        1.160374 .        0.3086526
+    ## [11,] .          .         .         .        1.160370 .        0.3086475
     ##                                            
     ##  [1,] .        .         .        .        
     ##  [2,] .        .         .        .        
     ##  [3,] .        .         .        .        
     ##  [4,] .        .         .        .        
-    ##  [5,] .        3.1721863 .        1.1603739
+    ##  [5,] .        3.1721728 .        1.1603704
     ##  [6,] .        .         .        .        
-    ##  [7,] .        0.8437827 .        0.3086526
-    ##  [8,] 2.032235 .         .        .        
-    ##  [9,] .        5.7060835 .        2.0872640
-    ## [10,] .        .         3.614546 .        
-    ## [11,] .        2.0872640 .        3.7633262
+    ##  [7,] .        0.8437677 .        0.3086475
+    ##  [8,] 2.032229 .         .        .        
+    ##  [9,] .        5.7060878 .        2.0872682
+    ## [10,] .        .         3.614543 .        
+    ## [11,] .        2.0872682 .        3.7633248
 
 thus, with only three parameters, *six* residual covariances are added to the model.
 
@@ -989,7 +994,7 @@ mod
     ## 
     ## General: 
     ##  - psychonetrics version: 0.1.2 
-    ##  - Model last edited at: 2019-03-06 08:50:29
+    ##  - Model last edited at: 2019-03-06 10:36:59
     ## 
     ## Sample: 
     ##  - Number of cases: 65 
@@ -1033,7 +1038,7 @@ qgraph(contemporaneous, labels = Vars, theme = "colorblind",
        vsize = 10)
 ```
 
-![](readme_files/figure-markdown_github/unnamed-chunk-38-1.png)
+![](README_figs/README-unnamed-chunk-38-1.png)
 
 References
 ==========
