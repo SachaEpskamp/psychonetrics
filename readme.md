@@ -2,6 +2,22 @@ Psychonetrics
 ================
 Sacha Epskamp
 
+### Table of contents
+
+-   [Introduction](#introduction)
+-   [Installation](#installation)
+-   [Gaussian graphical model](#gaussian-graphical-model)
+    -   [Obtaining a network from bootnet](#obtaining-a-network-from-bootnet)
+    -   [Plotting the network](#plotting-the-network)
+    -   [Confirmatory fit](#confirmatory-fit)
+    -   [Multi-group analysis](#multi-group%20analysis)
+-   [Latent network modeling (CFA)](#latent-network-modeling-cfa)
+-   [Residual network modeling (SEM)](#residual-network-modeling-sem)
+-   [Graphical vector-autoregression](#graphical-vector-autoregression)
+
+Introduction
+============
+
 The R package `psychonetrics` is designed to be a package for confirmatory multi-group network analysis. The goal of the package is to provide relatively fast maximum likelihood estimators for the following modeling frameworks:
 
 -   Gaussian graphical model - `ggm()`
@@ -141,364 +157,18 @@ model %>% parameters
 
     ## 
     ##  Parameters for group 1
-    ##  -  mu  
-    ##  var1 op var2  est    se        p row col par
-    ##    A1 ~1      2.46 0.036 < 0.0001   1   1   1
-    ##    A2 ~1      4.75 0.031 < 0.0001   2   1   2
-    ##    A3 ~1      4.57 0.033 < 0.0001   3   1   3
-    ##    A4 ~1      4.68 0.038 < 0.0001   4   1   4
-    ##    A5 ~1      4.54 0.033 < 0.0001   5   1   5
-    ##    C1 ~1      4.56 0.031 < 0.0001   6   1   6
-    ##    C2 ~1      4.39 0.034 < 0.0001   7   1   7
-    ##    C3 ~1      4.28 0.033 < 0.0001   8   1   8
-    ##    C4 ~1      2.56 0.035 < 0.0001   9   1   9
-    ##    C5 ~1      3.33 0.041 < 0.0001  10   1  10
-    ##    E1 ~1      3.04 0.041 < 0.0001  11   1  11
-    ##    E2 ~1      3.21 0.041 < 0.0001  12   1  12
-    ##    E3 ~1      3.95 0.035 < 0.0001  13   1  13
-    ##    E4 ~1      4.35 0.038 < 0.0001  14   1  14
-    ##    E5 ~1      4.37 0.034 < 0.0001  15   1  15
-    ##    N1 ~1      2.89 0.040 < 0.0001  16   1  16
-    ##    N2 ~1      3.44 0.039 < 0.0001  17   1  17
-    ##    N3 ~1      3.21 0.040 < 0.0001  18   1  18
-    ##    N4 ~1      3.21 0.040 < 0.0001  19   1  19
-    ##    N5 ~1      2.98 0.041 < 0.0001  20   1  20
-    ##    O1 ~1      4.85 0.028 < 0.0001  21   1  21
-    ##    O2 ~1      2.64 0.038 < 0.0001  22   1  22
-    ##    O3 ~1      4.45 0.030 < 0.0001  23   1  23
-    ##    O4 ~1      4.93 0.030 < 0.0001  24   1  24
-    ##    O5 ~1      2.46 0.033 < 0.0001  25   1  25
+          
+          (...)
+          
     ## 
     ##  -  omega (symmetric) 
     ##  var1 op var2      est    se        p row col par
     ##    A2 --   A1    -0.23 0.024 < 0.0001   2   1  26
-    ##    A3 --   A1    -0.16 0.025 < 0.0001   3   1  27
-    ##    A4 --   A1   -0.017 0.025     0.51   4   1  28
-    ##    A5 --   A1   -0.019 0.025     0.46   5   1  29
-    ##    C1 --   A1    0.044 0.025    0.081   6   1  30
-    ##    C2 --   A1    0.052 0.025    0.038   7   1  31
-    ##    C3 --   A1    0.023 0.025     0.37   8   1  32
-    ##    C4 --   A1    0.097 0.025  0.00011   9   1  33
-    ##    C5 --   A1   -0.021 0.025     0.40  10   1  34
-    ##    E1 --   A1    0.067 0.025   0.0074  11   1  35
-    ##    E2 --   A1    0.032 0.025     0.21  12   1  36
-    ##    E3 --   A1    0.042 0.025    0.093  13   1  37
-    ##    E4 --   A1    0.091 0.025  0.00028  14   1  38
-    ##    E5 --   A1    0.020 0.025     0.43  15   1  39
-    ##    N1 --   A1    0.071 0.025   0.0047  16   1  40
-    ##    N2 --   A1    0.032 0.025     0.20  17   1  41
-    ##    N3 --   A1    0.042 0.025    0.098  18   1  42
-    ##    N4 --   A1   -0.057 0.025    0.023  19   1  43
-    ##    N5 --   A1   -0.042 0.025    0.098  20   1  44
-    ##    O1 --   A1    0.050 0.025    0.046  21   1  45
-    ##    O2 --   A1    0.037 0.025     0.15  22   1  46
-    ##    O3 --   A1  -0.0092 0.025     0.72  23   1  47
-    ##    O4 --   A1   -0.088 0.025  0.00049  24   1  48
-    ##    O5 --   A1    0.017 0.025     0.50  25   1  49
-    ##    A3 --   A2     0.26 0.024 < 0.0001   3   2  50
-    ##    A4 --   A2     0.19 0.024 < 0.0001   4   2  51
-    ##    A5 --   A2     0.13 0.025 < 0.0001   5   2  52
-    ##    C1 --   A2   -0.040 0.025     0.12   6   2  53
-    ##    C2 --   A2   0.0078 0.025     0.76   7   2  54
-    ##    C3 --   A2    0.095 0.025  0.00016   8   2  55
-    ##    C4 --   A2   -0.029 0.025     0.25   9   2  56
-    ##    C5 --   A2    0.052 0.025    0.041  10   2  57
-    ##    E1 --   A2   -0.044 0.025    0.083  11   2  58
-    ##    E2 --   A2   -0.035 0.025     0.17  12   2  59
-    ##    E3 --   A2   -0.067 0.025   0.0075  13   2  60
-    ##    E4 --   A2   0.0099 0.025     0.70  14   2  61
-    ##    E5 --   A2     0.19 0.024 < 0.0001  15   2  62
-    ##    N1 --   A2   -0.072 0.025   0.0044  16   2  63
-    ##    N2 --   A2    0.067 0.025   0.0076  17   2  64
-    ##    N3 --   A2   -0.017 0.025     0.50  18   2  65
-    ##    N4 --   A2    0.052 0.025    0.040  19   2  66
-    ##    N5 --   A2    0.038 0.025     0.13  20   2  67
-    ##    O1 --   A2    0.011 0.025     0.66  21   2  68
-    ##    O2 --   A2    0.042 0.025    0.095  22   2  69
-    ##    O3 --   A2   -0.018 0.025     0.48  23   2  70
-    ##    O4 --   A2    0.065 0.025    0.010  24   2  71
-    ##    O5 --   A2   -0.033 0.025     0.20  25   2  72
-    ##    A4 --   A3     0.15 0.025 < 0.0001   4   3  73
-    ##    A5 --   A3     0.27 0.023 < 0.0001   5   3  74
-    ##    C1 --   A3  -0.0012 0.025     0.96   6   3  75
-    ##    C2 --   A3    0.021 0.025     0.41   7   3  76
-    ##    C3 --   A3  -0.0057 0.025     0.82   8   3  77
-    ##    C4 --   A3    0.023 0.025     0.37   9   3  78
-    ##    C5 --   A3   -0.010 0.025     0.69  10   3  79
-    ##    E1 --   A3    0.031 0.025     0.22  11   3  80
-    ##    E2 --   A3   -0.017 0.025     0.50  12   3  81
-    ##    E3 --   A3     0.16 0.025 < 0.0001  13   3  82
-    ##    E4 --   A3    0.090 0.025  0.00033  14   3  83
-    ##    E5 --   A3   -0.037 0.025     0.14  15   3  84
-    ##    N1 --   A3    0.029 0.025     0.25  16   3  85
-    ##    N2 --   A3   0.0083 0.025     0.74  17   3  86
-    ##    N3 --   A3    0.012 0.025     0.63  18   3  87
-    ##    N4 --   A3  -0.0030 0.025     0.91  19   3  88
-    ##    N5 --   A3   -0.030 0.025     0.24  20   3  89
-    ##    O1 --   A3    0.026 0.025     0.30  21   3  90
-    ##    O2 --   A3    0.021 0.025     0.41  22   3  91
-    ##    O3 --   A3    0.071 0.025   0.0049  23   3  92
-    ##    O4 --   A3   -0.030 0.025     0.24  24   3  93
-    ##    O5 --   A3    0.016 0.025     0.53  25   3  94
-    ##    A5 --   A4    0.044 0.025    0.079   5   4  95
-    ##    C1 --   A4   -0.043 0.025    0.086   6   4  96
-    ##    C2 --   A4     0.13 0.025 < 0.0001   7   4  97
-    ##    C3 --   A4   -0.026 0.025     0.31   8   4  98
-    ##    C4 --   A4   -0.037 0.025     0.14   9   4  99
-    ##    C5 --   A4    -0.12 0.025 < 0.0001  10   4 100
-    ##    E1 --   A4    0.021 0.025     0.40  11   4 101
-    ##    E2 --   A4    0.021 0.025     0.41  12   4 102
-    ##    E3 --   A4   0.0071 0.025     0.78  13   4 103
-    ##    E4 --   A4     0.12 0.025 < 0.0001  14   4 104
-    ##    E5 --   A4   -0.049 0.025    0.053  15   4 105
-    ##    N1 --   A4    0.045 0.025    0.075  16   4 106
-    ##    N2 --   A4    -0.10 0.025 < 0.0001  17   4 107
-    ##    N3 --   A4    0.042 0.025     0.10  18   4 108
-    ##    N4 --   A4   -0.035 0.025     0.17  19   4 109
-    ##    N5 --   A4    0.031 0.025     0.22  20   4 110
-    ##    O1 --   A4  -0.0083 0.025     0.74  21   4 111
-    ##    O2 --   A4  -0.0081 0.025     0.75  22   4 112
-    ##    O3 --   A4   -0.018 0.025     0.48  23   4 113
-    ##    O4 --   A4   -0.024 0.025     0.34  24   4 114
-    ##    O5 --   A4    0.032 0.025     0.21  25   4 115
-    ##    C1 --   A5    0.028 0.025     0.27   6   5 116
-    ##    C2 --   A5   -0.066 0.025   0.0091   7   5 117
-    ##    C3 --   A5    0.041 0.025     0.11   8   5 118
-    ##    C4 --   A5  -0.0014 0.025     0.96   9   5 119
-    ##    C5 --   A5    0.025 0.025     0.32  10   5 120
-    ##    E1 --   A5  -0.0087 0.025     0.73  11   5 121
-    ##    E2 --   A5   -0.014 0.025     0.57  12   5 122
-    ##    E3 --   A5     0.16 0.025 < 0.0001  13   5 123
-    ##    E4 --   A5     0.20 0.024 < 0.0001  14   5 124
-    ##    E5 --   A5   0.0042 0.025     0.87  15   5 125
-    ##    N1 --   A5   -0.045 0.025    0.078  16   5 126
-    ##    N2 --   A5   -0.075 0.025   0.0028  17   5 127
-    ##    N3 --   A5   0.0018 0.025     0.94  18   5 128
-    ##    N4 --   A5   -0.015 0.025     0.56  19   5 129
-    ##    N5 --   A5    0.055 0.025    0.029  20   5 130
+
+          (...)
+
     ##    O1 --   A5 -0.00093 0.025     0.97  21   5 131
-    ##    O2 --   A5    0.015 0.025     0.54  22   5 132
-    ##    O3 --   A5    0.035 0.025     0.16  23   5 133
-    ##    O4 --   A5    0.019 0.025     0.46  24   5 134
-    ##    O5 --   A5   -0.014 0.025     0.57  25   5 135
-    ##    C2 --   C1     0.28 0.023 < 0.0001   7   6 136
-    ##    C3 --   C1     0.12 0.025 < 0.0001   8   6 137
-    ##    C4 --   C1    -0.15 0.025 < 0.0001   9   6 138
-    ##    C5 --   C1   -0.037 0.025     0.15  10   6 139
-    ##    E1 --   C1    0.054 0.025    0.034  11   6 140
-    ##    E2 --   C1    0.054 0.025    0.033  12   6 141
-    ##    E3 --   C1  -0.0014 0.025     0.95  13   6 142
-    ##    E4 --   C1    0.081 0.025   0.0012  14   6 143
-    ##    E5 --   C1     0.13 0.025 < 0.0001  15   6 144
-    ##    N1 --   C1   -0.039 0.025     0.13  16   6 145
-    ##    N2 --   C1   -0.015 0.025     0.56  17   6 146
-    ##    N3 --   C1    0.056 0.025    0.027  18   6 147
-    ##    N4 --   C1   -0.030 0.025     0.23  19   6 148
-    ##    N5 --   C1    0.018 0.025     0.47  20   6 149
-    ##    O1 --   C1    0.029 0.025     0.25  21   6 150
-    ##    O2 --   C1   -0.056 0.025    0.025  22   6 151
-    ##    O3 --   C1    0.034 0.025     0.17  23   6 152
-    ##    O4 --   C1    0.070 0.025   0.0053  24   6 153
-    ##    O5 --   C1   -0.035 0.025     0.17  25   6 154
-    ##    C3 --   C2     0.13 0.025 < 0.0001   8   7 155
-    ##    C4 --   C2    -0.22 0.024 < 0.0001   9   7 156
-    ##    C5 --   C2   -0.082 0.025   0.0012  10   7 157
-    ##    E1 --   C2    0.087 0.025  0.00057  11   7 158
-    ##    E2 --   C2    0.025 0.025     0.32  12   7 159
-    ##    E3 --   C2    0.036 0.025     0.15  13   7 160
-    ##    E4 --   C2    0.013 0.025     0.61  14   7 161
-    ##    E5 --   C2    0.060 0.025    0.017  15   7 162
-    ##    N1 --   C2   0.0049 0.025     0.85  16   7 163
-    ##    N2 --   C2  -0.0047 0.025     0.85  17   7 164
-    ##    N3 --   C2    0.027 0.025     0.28  18   7 165
-    ##    N4 --   C2    0.058 0.025    0.021  19   7 166
-    ##    N5 --   C2    0.092 0.025  0.00025  20   7 167
-    ##    O1 --   C2    0.033 0.025     0.20  21   7 168
-    ##    O2 --   C2    0.065 0.025    0.010  22   7 169
-    ##    O3 --   C2     0.12 0.025 < 0.0001  23   7 170
-    ##    O4 --   C2   0.0099 0.025     0.70  24   7 171
-    ##    O5 --   C2    0.022 0.025     0.39  25   7 172
-    ##    C4 --   C3    -0.17 0.025 < 0.0001   9   8 173
-    ##    C5 --   C3    -0.18 0.025 < 0.0001  10   8 174
-    ##    E1 --   C3    0.025 0.025     0.33  11   8 175
-    ##    E2 --   C3    0.042 0.025     0.10  12   8 176
-    ##    E3 --   C3   -0.023 0.025     0.36  13   8 177
-    ##    E4 --   C3   -0.011 0.025     0.65  14   8 178
-    ##    E5 --   C3    0.050 0.025    0.050  15   8 179
-    ##    N1 --   C3   -0.011 0.025     0.67  16   8 180
-    ##    N2 --   C3    0.021 0.025     0.41  17   8 181
-    ##    N3 --   C3  -0.0031 0.025     0.90  18   8 182
-    ##    N4 --   C3  -0.0062 0.025     0.81  19   8 183
-    ##    N5 --   C3   0.0049 0.025     0.85  20   8 184
-    ##    O1 --   C3    0.024 0.025     0.35  21   8 185
-    ##    O2 --   C3    0.040 0.025     0.11  22   8 186
-    ##    O3 --   C3   -0.033 0.025     0.19  23   8 187
-    ##    O4 --   C3    0.047 0.025    0.065  24   8 188
-    ##    O5 --   C3    0.071 0.025   0.0047  25   8 189
-    ##    C5 --   C4     0.28 0.023 < 0.0001  10   9 190
-    ##    E1 --   C4    0.058 0.025    0.020  11   9 191
-    ##    E2 --   C4    0.066 0.025   0.0092  12   9 192
-    ##    E3 --   C4    0.030 0.025     0.24  13   9 193
-    ##    E4 --   C4    0.061 0.025    0.016  14   9 194
-    ##    E5 --   C4  -0.0048 0.025     0.85  15   9 195
-    ##    N1 --   C4    0.046 0.025    0.069  16   9 196
-    ##    N2 --   C4   -0.057 0.025    0.023  17   9 197
-    ##    N3 --   C4    0.046 0.025    0.069  18   9 198
-    ##    N4 --   C4    0.055 0.025    0.029  19   9 199
-    ##    N5 --   C4    0.065 0.025   0.0099  20   9 200
-    ##    O1 --   C4    0.045 0.025    0.072  21   9 201
-    ##    O2 --   C4    0.098 0.025 < 0.0001  22   9 202
-    ##    O3 --   C4    0.089 0.025  0.00038  23   9 203
-    ##    O4 --   C4    0.022 0.025     0.39  24   9 204
-    ##    O5 --   C4     0.12 0.025 < 0.0001  25   9 205
-    ##    E1 --   C5   -0.076 0.025   0.0026  11  10 206
-    ##    E2 --   C5    0.086 0.025  0.00066  12  10 207
-    ##    E3 --   C5   -0.033 0.025     0.20  13  10 208
-    ##    E4 --   C5   -0.039 0.025     0.12  14  10 209
-    ##    E5 --   C5   -0.054 0.025    0.032  15  10 210
-    ##    N1 --   C5   -0.039 0.025     0.12  16  10 211
-    ##    N2 --   C5     0.10 0.025 < 0.0001  17  10 212
-    ##    N3 --   C5    0.019 0.025     0.45  18  10 213
-    ##    N4 --   C5     0.17 0.025 < 0.0001  19  10 214
-    ##    N5 --   C5   -0.025 0.025     0.32  20  10 215
-    ##    O1 --   C5   -0.020 0.025     0.43  21  10 216
-    ##    O2 --   C5    0.099 0.025 < 0.0001  22  10 217
-    ##    O3 --   C5    0.034 0.025     0.18  23  10 218
-    ##    O4 --   C5     0.10 0.025 < 0.0001  24  10 219
-    ##    O5 --   C5   -0.027 0.025     0.28  25  10 220
-    ##    E2 --   E1     0.22 0.024 < 0.0001  12  11 221
-    ##    E3 --   E1   -0.074 0.025   0.0032  13  11 222
-    ##    E4 --   E1    -0.18 0.024 < 0.0001  14  11 223
-    ##    E5 --   E1    -0.10 0.025 < 0.0001  15  11 224
-    ##    N1 --   E1   -0.031 0.025     0.22  16  11 225
-    ##    N2 --   E1   -0.012 0.025     0.63  17  11 226
-    ##    N3 --   E1   -0.022 0.025     0.38  18  11 227
-    ##    N4 --   E1    0.095 0.025  0.00015  19  11 228
-    ##    N5 --   E1   -0.084 0.025  0.00085  20  11 229
-    ##    O1 --   E1   -0.026 0.025     0.31  21  11 230
-    ##    O2 --   E1   -0.013 0.025     0.60  22  11 231
-    ##    O3 --   E1   -0.075 0.025   0.0028  23  11 232
-    ##    O4 --   E1    0.061 0.025    0.015  24  11 233
-    ##    O5 --   E1    0.053 0.025    0.036  25  11 234
-    ##    E3 --   E2    -0.10 0.025 < 0.0001  13  12 235
-    ##    E4 --   E2    -0.31 0.023 < 0.0001  14  12 236
-    ##    E5 --   E2    -0.12 0.025 < 0.0001  15  12 237
-    ##    N1 --   E2   -0.031 0.025     0.22  16  12 238
-    ##    N2 --   E2    0.050 0.025    0.048  17  12 239
-    ##    N3 --   E2   -0.012 0.025     0.62  18  12 240
-    ##    N4 --   E2    0.067 0.025   0.0080  19  12 241
-    ##    N5 --   E2     0.14 0.025 < 0.0001  20  12 242
-    ##    O1 --   E2  -0.0083 0.025     0.74  21  12 243
-    ##    O2 --   E2    0.016 0.025     0.53  22  12 244
-    ##    O3 --   E2   -0.021 0.025     0.41  23  12 245
-    ##    O4 --   E2     0.13 0.025 < 0.0001  24  12 246
-    ##    O5 --   E2    0.041 0.025     0.10  25  12 247
-    ##    E4 --   E3     0.11 0.025 < 0.0001  14  13 248
-    ##    E5 --   E3     0.14 0.025 < 0.0001  15  13 249
-    ##    N1 --   E3   -0.013 0.025     0.60  16  13 250
-    ##    N2 --   E3  -0.0011 0.025     0.97  17  13 251
-    ##    N3 --   E3    0.085 0.025  0.00069  18  13 252
-    ##    N4 --   E3   -0.012 0.025     0.64  19  13 253
-    ##    N5 --   E3   -0.018 0.025     0.48  20  13 254
-    ##    O1 --   E3     0.17 0.025 < 0.0001  21  13 255
-    ##    O2 --   E3   0.0056 0.025     0.82  22  13 256
-    ##    O3 --   E3     0.16 0.025 < 0.0001  23  13 257
-    ##    O4 --   E3    0.033 0.025     0.20  24  13 258
-    ##    O5 --   E3   0.0039 0.025     0.88  25  13 259
-    ##    E5 --   E4    0.033 0.025     0.19  15  14 260
-    ##    N1 --   E4   -0.032 0.025     0.20  16  14 261
-    ##    N2 --   E4  -0.0052 0.025     0.84  17  14 262
-    ##    N3 --   E4    0.017 0.025     0.51  18  14 263
-    ##    N4 --   E4   -0.097 0.025  0.00010  19  14 264
-    ##    N5 --   E4    0.043 0.025    0.086  20  14 265
-    ##    O1 --   E4   -0.031 0.025     0.22  21  14 266
-    ##    O2 --   E4     0.10 0.025 < 0.0001  22  14 267
-    ##    O3 --   E4    0.064 0.025    0.011  23  14 268
-    ##    O4 --   E4   0.0087 0.025     0.73  24  14 269
-    ##    O5 --   E4     0.13 0.025 < 0.0001  25  14 270
-    ##    N1 --   E5    0.098 0.025 < 0.0001  16  15 271
-    ##    N2 --   E5    0.091 0.025  0.00027  17  15 272
-    ##    N3 --   E5   -0.057 0.025    0.024  18  15 273
-    ##    N4 --   E5   -0.063 0.025    0.013  19  15 274
-    ##    N5 --   E5   -0.091 0.025  0.00029  20  15 275
-    ##    O1 --   E5     0.12 0.025 < 0.0001  21  15 276
-    ##    O2 --   E5    0.023 0.025     0.36  22  15 277
-    ##    O3 --   E5    0.088 0.025  0.00046  23  15 278
-    ##    O4 --   E5  -0.0073 0.025     0.77  24  15 279
-    ##    O5 --   E5   0.0044 0.025     0.86  25  15 280
-    ##    N2 --   N1     0.55 0.018 < 0.0001  17  16 281
-    ##    N3 --   N1     0.23 0.024 < 0.0001  18  16 282
-    ##    N4 --   N1     0.11 0.025 < 0.0001  19  16 283
-    ##    N5 --   N1     0.11 0.025 < 0.0001  20  16 284
-    ##    O1 --   N1    0.021 0.025     0.41  21  16 285
-    ##    O2 --   N1    0.012 0.025     0.62  22  16 286
-    ##    O3 --   N1    0.011 0.025     0.68  23  16 287
-    ##    O4 --   N1   -0.040 0.025     0.11  24  16 288
-    ##    O5 --   N1    0.056 0.025    0.028  25  16 289
-    ##    N3 --   N2     0.17 0.025 < 0.0001  18  17 290
-    ##    N4 --   N2    0.030 0.025     0.23  19  17 291
-    ##    N5 --   N2    0.045 0.025    0.078  20  17 292
-    ##    O1 --   N2   -0.021 0.025     0.41  21  17 293
-    ##    O2 --   N2    0.034 0.025     0.18  22  17 294
-    ##    O3 --   N2    0.017 0.025     0.51  23  17 295
-    ##    O4 --   N2    0.034 0.025     0.18  24  17 296
-    ##    O5 --   N2   -0.042 0.025    0.094  25  17 297
-    ##    N4 --   N3     0.27 0.023 < 0.0001  19  18 298
-    ##    N5 --   N3     0.17 0.025 < 0.0001  20  18 299
-    ##    O1 --   N3  -0.0021 0.025     0.93  21  18 300
-    ##    O2 --   N3   0.0029 0.025     0.91  22  18 301
-    ##    O3 --   N3   -0.039 0.025     0.12  23  18 302
-    ##    O4 --   N3    0.074 0.025   0.0032  24  18 303
-    ##    O5 --   N3  -0.0034 0.025     0.89  25  18 304
-    ##    N5 --   N4     0.14 0.025 < 0.0001  20  19 305
-    ##    O1 --   N4    0.043 0.025    0.088  21  19 306
-    ##    O2 --   N4   -0.047 0.025    0.063  22  19 307
-    ##    O3 --   N4    0.042 0.025     0.10  23  19 308
-    ##    O4 --   N4    0.059 0.025    0.019  24  19 309
-    ##    O5 --   N4    0.016 0.025     0.54  25  19 310
-    ##    O1 --   N5   -0.055 0.025    0.029  21  20 311
-    ##    O2 --   N5    0.096 0.025  0.00013  22  20 312
-    ##    O3 --   N5  -0.0096 0.025     0.71  23  20 313
-    ##    O4 --   N5    0.012 0.025     0.63  24  20 314
-    ##    O5 --   N5    0.045 0.025    0.076  25  20 315
-    ##    O2 --   O1    -0.13 0.025 < 0.0001  22  21 316
-    ##    O3 --   O1     0.16 0.025 < 0.0001  23  21 317
-    ##    O4 --   O1     0.12 0.025 < 0.0001  24  21 318
-    ##    O5 --   O1   -0.087 0.025  0.00050  25  21 319
-    ##    O3 --   O2    -0.18 0.024 < 0.0001  23  22 320
-    ##    O4 --   O2   -0.011 0.025     0.67  24  22 321
-    ##    O5 --   O2     0.20 0.024 < 0.0001  25  22 322
-    ##    O4 --   O3    0.084 0.025  0.00087  24  23 323
-    ##    O5 --   O3    -0.17 0.025 < 0.0001  25  23 324
-    ##    O5 --   O4    -0.12 0.025 < 0.0001  25  24 325
-    ## 
-    ##  -  delta (diagonal) 
-    ##  var1  op var2  est    se        p row col par
-    ##    A1 ~/~   A1 1.27 0.023 < 0.0001   1   1 326
-    ##    A2 ~/~   A2 0.93 0.017 < 0.0001   2   2 327
-    ##    A3 ~/~   A3 0.96 0.017 < 0.0001   3   3 328
-    ##    A4 ~/~   A4 1.26 0.023 < 0.0001   4   4 329
-    ##    A5 ~/~   A5 0.96 0.017 < 0.0001   5   5 330
-    ##    C1 ~/~   C1 1.02 0.018 < 0.0001   6   6 331
-    ##    C2 ~/~   C2 1.07 0.019 < 0.0001   7   7 332
-    ##    C3 ~/~   C3 1.14 0.020 < 0.0001   8   8 333
-    ##    C4 ~/~   C4 1.06 0.019 < 0.0001   9   9 334
-    ##    C5 ~/~   C5 1.26 0.023 < 0.0001  10  10 335
-    ##    E1 ~/~   E1 1.34 0.024 < 0.0001  11  11 336
-    ##    E2 ~/~   E2 1.18 0.021 < 0.0001  12  12 337
-    ##    E3 ~/~   E3 1.04 0.019 < 0.0001  13  13 338
-    ##    E4 ~/~   E4 1.06 0.019 < 0.0001  14  14 339
-    ##    E5 ~/~   E5 1.09 0.019 < 0.0001  15  15 340
-    ##    N1 ~/~   N1  1.0 0.018 < 0.0001  16  16 341
-    ##    N2 ~/~   N2 1.00 0.018 < 0.0001  17  17 342
-    ##    N3 ~/~   N3 1.15 0.021 < 0.0001  18  18 343
-    ##    N4 ~/~   N4 1.17 0.021 < 0.0001  19  19 344
-    ##    N5 ~/~   N5 1.36 0.024 < 0.0001  20  20 345
-    ##    O1 ~/~   O1 0.94 0.017 < 0.0001  21  21 346
-    ##    O2 ~/~   O2 1.31 0.023 < 0.0001  22  22 347
-    ##    O3 ~/~   O3 0.97 0.017 < 0.0001  23  23 348
-    ##    O4 ~/~   O4 1.08 0.019 < 0.0001  24  24 349
-    ##    O5 ~/~   O5 1.16 0.021 < 0.0001  25  25 350
+
 
 The edge *O1 -- A5* is estimated to be near zero, so let's try removing this edge:
 
@@ -1124,7 +794,7 @@ latents <- c("ind60","dem60","dem65")
 
 # form RNM model:
 rnmMod <- rnm(PoliticalDemocracy, vars = vars, latents = latents, lambda = Lambda, beta = beta)
-rnmMod <- rnmMod %>% setoptimizer("ucminf")  %>% runmodel
+rnmMod <- rnmMod %>% runmodel
 ```
 
     ## Estimating baseline model...
@@ -1149,7 +819,7 @@ rnmMod
     ## 
     ## General: 
     ##  - psychonetrics version: 0.1.2 
-    ##  - Model last edited at: 2019-03-05 23:09:32
+    ##  - Model last edited at: 2019-03-06 07:49:20
     ## 
     ## Sample: 
     ##  - Number of cases: 75 
@@ -1161,22 +831,20 @@ rnmMod
     ##  - Number of parameters: 33
     ## 
     ## Estimation: 
-    ##  - Optimizer used: ucminf 
+    ##  - Optimizer used: nlminb 
     ##  - Estimator used: Maximum likelihood estimation (ML) 
-    ##  - Message: Stopped by small gradient (grtol).
+    ##  - Message: relative convergence (4)
     ## 
     ## Fit: 
-    ##  - Model Fit Test Statistic: 74.62 
+    ##  - Model Fit Test Statistic: 74.82 
     ##  - Degrees of freedom: 44 
-    ##  - p-value (Chi-square): 0.0027
+    ##  - p-value (Chi-square): 0.0026
     ## 
     ## Tips: 
     ##  - Use 'psychonetrics::compare' to compare psychonetrics models 
     ##  - Use 'psychonetrics::fit' to inspect model fit 
     ##  - Use 'psychonetrics::parameters' to inspect model parameters 
     ##  - Use 'psychonetrics::MIs' to inspect modification indices
-
-I made use of the `ucminf` optimizer as it returns the exact same output here as lavaan does (I am not entirely sure why `nlminb` returns a slightly different although comparable *χ*<sup>2</sup> value).
 
 Next, we can find a residual network:
 
@@ -1262,11 +930,120 @@ delta %*% solve(diag(11) - omega) %*% delta
 
 thus, with only three parameters, *six* residual covariances are added to the model.
 
+Graphical vector-autoregression
+===============================
+
+In graphical vector-autoregression (Epskamp, Waldorp, et al. 2018), we use model a time-series dataset as a GGM after conditioning on the previous measurement occasion. The model becomes:
+
+-   **μ** = **μ**
+-   $\\mathrm{vec}\\left(\\pmb{\\Sigma}\_0\\right) =\\left(\\pmb{I} - \\pmb{B} \\otimes \\pmb{B} \\right)^{-1} \\mathrm{vec}\\left(\\pmb{\\Sigma}\_{\\pmb{\\zeta}}\\right$
+-   **Σ**<sub>1</sub> = **B****Σ**
+-   **Σ**<sub>*ζ*</sub> = **Δ**<sub>**ζ**</sub>(**I**−**Ω**<sub>**ζ**</sub>)<sup>−1</sup>**Δ**<sub>**ζ**</sub>
+
+In which **Σ**<sub>0</sub> represents the stationary distribution, **Σ**<sub>1</sub> the lag-1 covariances, **B** a matrix which can be transposed to obtain a *temporal network*, **Ω**<sub>**ζ**</sub> a matrix encoding the *contemporaneous network*, and **Δ**<sub>**ζ**</sub> the contemporaneous scaling matrix. By default, *psychonetrics* will estimate the model based on the Toeplitz covariance matrix of lagged and current responses:
+
+-   $\\begin{bmatrix} \\pmb{S}\_{-1} & \\pmb{S}\_1^{\\top} \\\\ \\pmb{S}\_1 & \\pmb{S}\_0 \\end{bmatrix}$
+
+While this approach is not true maximum likelihood estimation (which is implemented very experimentally using `rawts = TRUE` but only somewhat functional for *very* small datasets), it is close and obtains quite accurate estimates. Different than in other approaches using typical SEM software, *psychonetrics* will not use the estimated variance-covariance structure of the \*exogenous) lagged predictiors in the model for the current variables. Rather, the expressions above are used for **S**<sub>1</sub> and **S**<sub>0</sub>, and a cholesky decomposition is used for **S**<sub>−1</sub> which is ignored further.
+
+We can download the [data](https://osf.io/g6ya4/) used by Epskamp, Borkulo, et al. (2018) and estimate a graphical VAR model using step-up model search. I will use full information maximum likelihood (FIML) to handle missingness, although note that this is quite slow at the moment:
+
+``` r
+# Read data:
+Data <- read.csv("Supplementary2_data.csv")
+
+# Variables to use:
+Vars <- c("relaxed", "sad", "nervous",
+          "concentration", "tired",
+          "rumination", "bodily.discomfort")
+
+# Encode time variable in a way R understands:
+Data$time <- as.POSIXct(Data$time, tz = "Europe/Amsterdam")
+
+# Extract days:
+Data$Day <- as.Date(Data$time, tz = "Europe/Amsterdam")
+
+# Model, using FIML for missing data:
+mod <- gvar(Data, vars = Vars, dayvar = "Day", beta = "full", 
+            omega_zeta = "full", estimator = "FIML")
+
+# Run and stepup:
+mod <- mod %>% runmodel %>% prune %>% stepup(criterion = "none")
+```
+
+I did not use BIC criterion as to somewhat improve sensitivity, at a potential cost of some specificity (this method will be much more conservative than graphicalVAR however). You might notice a few warnings along the optimization process that need to be cleaned up, but the final model behaves well and fits:
+
+``` r
+mod
+```
+
+    ##                         _                      _        _          
+    ##                        | |                    | |      (_)         
+    ##    _ __  ___ _   _  ___| |__   ___  _ __   ___| |_ _ __ _  ___ ___ 
+    ##   |  _ \/ __| | | |/ __|  _ \ / _ \|  _ \ / _ \ __|  __| |/ __/ __|
+    ##   | |_) \__ \ |_| | (__| | | | (_) | | | |  __/ |_| |  | | (__\__ \
+    ##   | .__/|___/\__, |\___|_| |_|\___/|_| |_|\___|\__|_|  |_|\___|___/
+    ##   | |         __/ |                                                
+    ##   |_|        |___/                                                 
+    ##  
+    ## 
+    ## General: 
+    ##  - psychonetrics version: 0.1.2 
+    ##  - Model last edited at: 2019-03-06 08:50:29
+    ## 
+    ## Sample: 
+    ##  - Number of cases: 65 
+    ##  - Number of groups: 1 
+    ##  - Number of observed summary statistics: 119
+    ## 
+    ## Model: 
+    ##  - model used: Graphical vector-autoregression (GVAR) 
+    ##  - Number of parameters: 63
+    ## 
+    ## Estimation: 
+    ##  - Optimizer used: nlminb 
+    ##  - Estimator used: Full information maximum likelihood (FIML) 
+    ##  - Message: relative convergence (4)
+    ## 
+    ## Fit: 
+    ##  - Model Fit Test Statistic: 70.39 
+    ##  - Degrees of freedom: 56 
+    ##  - p-value (Chi-square): 0.093
+    ## 
+    ## Tips: 
+    ##  - Use 'psychonetrics::compare' to compare psychonetrics models 
+    ##  - Use 'psychonetrics::fit' to inspect model fit 
+    ##  - Use 'psychonetrics::parameters' to inspect model parameters 
+    ##  - Use 'psychonetrics::MIs' to inspect modification indices
+
+We can plot the result as follows (plot methods will be added soon):
+
+``` r
+layout(t(1:2))
+temporal <- t(as.matrix(mod@modelmatrices$`1`$beta))
+contemporaneous <- as.matrix(mod@modelmatrices$`1`$omega_zeta)
+Layout <- averageLayout(temporal, contemporaneous)
+
+layout(t(1:2))
+qgraph(temporal, labels = Vars, theme = "colorblind", 
+       title = "Temporal network", layout = Layout,
+       vsize = 10, asize = 6)
+qgraph(contemporaneous, labels = Vars, theme = "colorblind", 
+       title = "Contemporaneous network", layout = Layout, 
+       vsize = 10)
+```
+
+![](readme_files/figure-markdown_github/unnamed-chunk-38-1.png)
+
 References
 ==========
 
 Chen, Yunxiao, Xiaoou Li, Jingchen Liu, and Zhiliang Ying. 2018. “Robust Measurement via a Fused Latent and Graphical Item Response Theory Model.” *Psychometrika* 83 (3). Springer: 538–62.
 
+Epskamp, Sacha, Claudia D. van Borkulo, Date C. van der Veen, Michelle N. Servaas, Adela-Maria Isvoranu, Harriëtte Riese, and Angélique O. J. Cramer. 2018. “Personalized Network Modeling in Psychopathology: The Importance of Contemporaneous and Temporal Connections.” *Clinical Psychological Science* 6 (3). SAGE PublicationsSage CA: Los Angeles, CA: 416–27. doi:[10.1177/2167702617744325](https://doi.org/10.1177/2167702617744325).
+
 Epskamp, Sacha, M.T. Rhemtulla, and Denny Borsboom. 2017. “Generalized Network Psychometrics: Combining Network and Latent Variable Models.” *Psychometrika* 82 (4): 904–27. doi:[10.1007/s11336-017-9557-x](https://doi.org/10.1007/s11336-017-9557-x).
+
+Epskamp, Sacha, Lourens J. Waldorp, René Mõttus, and Denny Borsboom. 2018. “The Gaussian Graphical Model in Cross-Sectional and Time-Series Data.” *Multivariate Behavioral Research* 53 (4): 453–80. doi:[10.1080/00273171.2018.1454823](https://doi.org/10.1080/00273171.2018.1454823).
 
 Kan, Kees-Jan, Han LJ van der Maas, and Stephen Z Levine. 2019. “Extending Psychometric Network Analysis: Empirical Evidence Against G in Favor of Mutualism?” *Intelligence* 73. Elsevier: 52–62.
