@@ -13,7 +13,7 @@ ggm <- function(
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   estimator = "ML",
-  optimizer = "nlminb", #"ucminf",
+  optimizer = "default", #"ucminf",
   rawts = FALSE # Set to TRUE to do rawts estimation instead...
 ){
   if (rawts){

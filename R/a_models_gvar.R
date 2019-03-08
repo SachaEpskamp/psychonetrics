@@ -18,7 +18,7 @@ gvar <- function(
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   # fitfunctions, # Leave empty
   estimator = "ML",
-  optimizer = "nlminb", #ucminf",
+  optimizer = "default", #ucminf",
   rawts = FALSE
 ){
   
