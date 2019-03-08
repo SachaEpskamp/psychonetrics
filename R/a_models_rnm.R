@@ -21,7 +21,7 @@ rnm <- function(
   identify = TRUE,
   identification = c("loadings","variance"),
   estimator = "ML",
-  optimizer = "nlminb"
+  optimizer = "default"
 ){
   identification <- match.arg(identification)
   

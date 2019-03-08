@@ -20,7 +20,7 @@ lnm <- function(
   identify = TRUE,
   identification = c("loadings","scaling"),
   estimator = "ML",
-  optimizer = "ucminf"
+  optimizer = "default"
 ){
   identification <- match.arg(identification)
   

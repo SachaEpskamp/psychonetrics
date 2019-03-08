@@ -14,6 +14,12 @@ runmodel <- function(
   # inverseHessian = TRUE
 ){
   optimizer <- x@optimizer
+  # Default:
+  if (optimizer == "default"){
+    optimizer <- "ucminf"
+  }
+  
+  
   # optimizer <- match.arg(optimizer)
   level <- match.arg(level)
   if (!is(x,"psychonetrics")){
@@ -93,91 +99,124 @@ runmodel <- function(
   if (verbose) message("Estimating model...")
   # Form optimizer arguments:
 
-  if (optimizer == "nlminb"){
-    # control.nlminb <- list(eval.max=20000L,
-    #                        iter.max=10000L,
-    #                        trace=0L,
-    #                        #abs.tol=1e-20, ### important!! fx never negative
-    #                        abs.tol=(.Machine$double.eps * 10),
-    #                        # rel.tol=1e-10,
-    #                        rel.tol=1e-5,
-    #                        #step.min=2.2e-14, # in =< 0.5-12
-    #                        step.min=1.0, # 1.0 in < 0.5-21
-    #                        step.max=1.0,
-    #                        x.tol=1.5e-8,
-    #                        xf.tol=2.2e-14)
-    
-    # optim.control$control <- control.nlminb
-    optim.control$start <- start
-    optim.control$objective <- psychonetrics_fitfunction
+  # if (optimizer == "nlminb"){
+  #   control.nlminb <- list(eval.max=20000L,
+  #                          iter.max=10000L,
+  #                          trace=0L,
+  #                          #abs.tol=1e-20, ### important!! fx never negative
+  #                          abs.tol=(.Machine$double.eps * 10),
+  #                          # rel.tol=1e-10,
+  #                          rel.tol=1e-5,
+  #                          #step.min=2.2e-14, # in =< 0.5-12
+  #                          step.min=1.0, # 1.0 in < 0.5-21
+  #                          step.max=1.0,
+  #                          x.tol=1.5e-8,
+  #                          xf.tol=2.2e-14)
+  # 
+  #   optim.control$control <- control.nlminb
+  #   optim.control$start <- start
+  #   optim.control$objective <- psychonetrics_fitfunction
+  #   optim.control$lower <- lower
+  #   optim.control$upper <- upper
+  #   optim.control$model <- x
+  #   if (level != "fitfunction"){
+  #     # optim.control$gradient <- x@fitfunctions$gradient
+  #     optim.control$gradient <- psychonetrics_gradient
+  #   }
+  #   # if (level == "hessian"){
+  #   #   x@fitfunctions$hessian <- x@fitfunctions$hessian
+  #   # }
+  #   
+  #   # Run model:
+  #   optim.out <- do.call(nlminb,optim.control)
+  #     
+  #   # Update model:
+  #   x <- updateModel(optim.out$par,x)
+  #   
+  #   # Make list:
+  #   optimresults <- list(
+  #     par = optim.out$par,
+  #     value = optim.out$objective,
+  #     # iterations = optim.out$iterations,
+  #     message = optim.out$message,
+  #     optimizer = optimizer
+  #   )
+  #   
+  #   # # Compute inverse Hessian if needed:
+  #   # if (inverseHessian){
+  #   #   if (level == "hessian"){
+  #   #     H <- x@fitfunctions$hessian(optim.out$par, x)
+  #   #   } else if (level == "gradient"){
+  #   #     H <- numDeriv::jacobian(x@fitfunctions$gradient, optim.out$par, model = x)
+  #   #   } else {
+  #   #     H <- numDeriv::hessian(x@fitfunctions$fitfunction, optim.out$par, model = x)        
+  #   #   }
+  #   #   Hinv <- corpcor::pseudoinverse(H)
+  #   #   optimresults$inverseHessian <- Hinv
+  #   # }
+  # } else if (optimizer == "ucminf"){
+  #   optim.control$par <- start
+  #   optim.control$fn <- psychonetrics_fitfunction
+  #   optim.control$model <- x
+  #   if (level != "fitfunction"){
+  #     optim.control$gr <- psychonetrics_gradient
+  #   }
+  #   # if (inverseHessian){
+  #   #   optim.control$hessian <- 2
+  #   # }
+  #   
+  #   # Run model:
+  #   optim.out <- do.call(ucminf,optim.control)
+  #   
+  #   # Update model:
+  #   x <- updateModel(optim.out$par,x)
+  #   
+  #   # Make list:
+  #   optimresults <- list(
+  #     par = optim.out$par,
+  #     value = optim.out$value,
+  #     message = optim.out$message,
+  #     optimizer = optimizer
+  #   )
+  #   
+  #   # if (inverseHessian){
+  #   #   optimresults$inverseHessian <- optim.out$invhessian
+  #   # }
+  # }
+
+
+  optim.control$par <- start
+  optim.control$fn <- psychonetrics_fitfunction
+  optim.control$model <- x
+  if (level != "fitfunction"){
+    optim.control$gr <- psychonetrics_gradient
+  }
+  
+  # Add method:
+  optim.control$method <- optimizer
+  
+  # Add bounds:
+  if (optimizer %in% c("nlmimb","L-BFGS-B","lbfgs")){
     optim.control$lower <- lower
     optim.control$upper <- upper
-    optim.control$model <- x
-    if (level != "fitfunction"){
-      # optim.control$gradient <- x@fitfunctions$gradient
-      optim.control$gradient <- psychonetrics_gradient
-    }
-    # if (level == "hessian"){
-    #   x@fitfunctions$hessian <- x@fitfunctions$hessian
-    # }
-    
-    # Run model:
-    optim.out <- do.call(nlminb,optim.control)
-      
-    # Update model:
-    x <- updateModel(optim.out$par,x)
-    
-    # Make list:
-    optimresults <- list(
-      par = optim.out$par,
-      value = optim.out$objective,
-      # iterations = optim.out$iterations,
-      message = optim.out$message,
-      optimizer = optimizer
-    )
-    
-    # # Compute inverse Hessian if needed:
-    # if (inverseHessian){
-    #   if (level == "hessian"){
-    #     H <- x@fitfunctions$hessian(optim.out$par, x)
-    #   } else if (level == "gradient"){
-    #     H <- numDeriv::jacobian(x@fitfunctions$gradient, optim.out$par, model = x)
-    #   } else {
-    #     H <- numDeriv::hessian(x@fitfunctions$fitfunction, optim.out$par, model = x)        
-    #   }
-    #   Hinv <- corpcor::pseudoinverse(H)
-    #   optimresults$inverseHessian <- Hinv
-    # }
-  } else if (optimizer == "ucminf"){
-    optim.control$par <- start
-    optim.control$fn <- psychonetrics_fitfunction
-    optim.control$model <- x
-    if (level != "fitfunction"){
-      optim.control$gr <- psychonetrics_gradient
-    }
-    # if (inverseHessian){
-    #   optim.control$hessian <- 2
-    # }
-    
-    # Run model:
-    optim.out <- do.call(ucminf,optim.control)
-    
-    # Update model:
-    x <- updateModel(optim.out$par,x)
-    
-    # Make list:
-    optimresults <- list(
-      par = optim.out$par,
-      value = optim.out$value,
-      message = optim.out$message,
-      optimizer = optimizer
-    )
-    
-    # if (inverseHessian){
-    #   optimresults$inverseHessian <- optim.out$invhessian
-    # }
   }
-
+  
+  # Run model:
+  optim.out <- do.call(optimr,optim.control)
+  
+  # Update model:
+  x <- updateModel(optim.out$par,x)
+  
+  # Make list:
+  # optimresults <- list(
+  #   par = optim.out$par,
+  #   value = optim.out$value,
+  #   message = optim.out$message,
+  #   optimizer = optimizer
+  # )
+  optimresults <- optim.out
+  optimresults$optimizer <- optimizer
+  
 # 
 #   ### START OPTIMIZATION ###
 #   if (level == "fitfunction"){

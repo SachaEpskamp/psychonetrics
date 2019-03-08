@@ -12,7 +12,7 @@ varcov <- function(
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   estimator = "ML",
-  optimizer = "ucminf"
+  optimizer = "default"
 ){
   rawts = FALSE
   if (rawts){
