@@ -18,3 +18,4 @@ importFrom("graphics", "abline", "par")
   importFrom("utils", "sessionInfo")
 
 importFrom("mgcv","uniquecombs")
+importFrom("optimx","optimr")
