@@ -71,7 +71,11 @@ samplestats_norawts <- function(
       ))
       cov <- 0.5*(cov + t(cov))
       covs <- list(as(cov,"dsyMatrix"))
-      cors <- list(new("corMatrix", cov2cor(cov), sd = diag(cov)))
+      if (!any(is.na(cov))){
+        cors <- new("corMatrix", cov2cor(cov), sd = diag(cov))          
+      } else {
+      }
+      # cors <- list(new("corMatrix", cov2cor(cov), sd = diag(cov)))
       means <- list(colMeans(data[,c(vars)], na.rm = TRUE))
       groupNames <- unique(data[[groups]])
       
@@ -89,7 +93,13 @@ samplestats_norawts <- function(
         ))
         cov <- 0.5*(cov + t(cov))
         covs[[g]] <- as(cov,"dsyMatrix")
-        cors[[g]] <- new("corMatrix", cov2cor(cov), sd = diag(cov))
+     
+        if (!any(is.na(cov))){
+          cors[[g]] <- new("corMatrix", cov2cor(cov), sd = diag(cov))          
+        } else {
+          cors[[g]] <- NA
+        }
+
         means[[g]] <- colMeans(subData, na.rm = TRUE)
       }
       
