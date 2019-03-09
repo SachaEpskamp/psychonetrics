@@ -26,6 +26,8 @@ samplestats_norawts <- function(
     if (is.matrix(data)){
       data <- as.data.frame(data)
     }
+   
+    
     # If group variable is missing, add (dummy):
     if (missing(groups)|| is.null(groups)){
       groups <- "singlegroup"
@@ -47,6 +49,10 @@ samplestats_norawts <- function(
     
     # Number of variables:
     nVars <- length(vars)
+    
+    
+    # Remove all rows with full missing:
+    data <- data[rowSums(is.na(data[,vars])) < nVars,]
     
     # Estimate covariances:
     # lavOut <- lavaan::lavCor(data[,c(vars,groups)], missing = missing,output = "lavaan", group = groups, 
