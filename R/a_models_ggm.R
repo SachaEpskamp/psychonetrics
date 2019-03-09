@@ -29,7 +29,7 @@ ggm <- function(
                              nobs = nobs, 
                              missing = ifelse(estimator == "FIML","pairwise",missing),
                              rawts = rawts,
-                             fulldata = estimator == "FIML")
+                             fimldata = estimator == "FIML")
 
   # Check some things:
   nNode <- nrow(sampleStats@variables)

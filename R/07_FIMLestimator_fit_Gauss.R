@@ -1,52 +1,78 @@
-# Fit function per group:
-fimlEstimator_Gauss_group <- function(mu,sigma,data,kappa,...){
-  curF <- 0 
+fimlEstimator_Gauss_subgroup <- function(dat,sigma,kappa,mu,...){
+  obs <- !as.vector(dat$pattern)
   
-  n <- nrow(data)
-
-  # Spectral shift kappa (will do nothing if kappa is pos def):
-  kappa <- spectralshift(kappa)
+  sig_p <- as.matrix(sigma)[obs,obs,drop=FALSE]
+  kappa_p <- corpcor::pseudoinverse(sig_p)
   
-  # Compute log determinant of kappa:
-  logdetK <- log(det(kappa))
+  # Handle possible non positive definiteness:
+  kappa_p <- spectralshift(kappa_p)
   
-  # For every subject:
-  for (i in seq_len(n)){
-    if (!any(is.na(data[i,]))){
-      kappa_p <- kappa
-      mu_p <- mu
-      y <- unlist(data[i,])
-      logdetK_p <- logdetK
-    } else {
-      obs <- unlist(!is.na(data[i,]))
-      
-      # Skip if nothing to do:
-      if (!any(obs)) {
-        next
-      }
-      
-      sig_p <- as.matrix(sigma)[obs,obs,drop=FALSE]
-      kappa_p <- corpcor::pseudoinverse(sig_p)
-
-      # Handle possible non positive definiteness:
-      kappa_p <- spectralshift(kappa_p)
-      
-      # Log determinant:
-      logdetK_p <- log(det(kappa_p))
-      
-      # Means:
-      mu_p <- mu[obs,]
-      
-      # raw scores:
-      y <- unlist(data[i,obs])
-    }
-    
-    # Add to fit:
-    curF <- curF + 1/n * (sum(diag(kappa_p %*% (y - mu_p) %*% t(y - mu_p)))  - logdetK_p)
-  }
+  # Log determinant:
+  # logdetK_p <- log(det(kappa_p))
   
-  as.numeric(curF)
+  # Means:
+  mu_p <- mu[obs,]
+  dat$n *  maxLikEstimator_Gauss_group(S = dat$S,kappa = kappa_p, mu = mu_p, means = dat$means,sigma = sig_p)
 }
+
+# Fit function per group:
+fimlEstimator_Gauss_group <- function(fimldata,fulln,sigma,kappa,mu,...){
+  
+  # Subgroup models:
+  1/fulln * Reduce("+", lapply(fimldata,fimlEstimator_Gauss_subgroup,sigma=sigma,kappa=kappa,mu=mu))
+  
+}
+
+
+
+# fimlEstimator_Gauss_group <- function(mu,sigma,data,kappa,...){
+#   curF <- 0 
+#   
+#   n <- nrow(data)
+# 
+#   # Spectral shift kappa (will do nothing if kappa is pos def):
+#   kappa <- spectralshift(kappa)
+#   
+#   # Compute log determinant of kappa:
+#   logdetK <- log(det(kappa))
+#   
+#   # For every subject:
+#   for (i in seq_len(n)){
+#     if (!any(is.na(data[i,]))){
+#       kappa_p <- kappa
+#       mu_p <- mu
+#       y <- unlist(data[i,])
+#       logdetK_p <- logdetK
+#     } else {
+#       obs <- unlist(!is.na(data[i,]))
+#       
+#       # Skip if nothing to do:
+#       if (!any(obs)) {
+#         next
+#       }
+#       
+#       sig_p <- as.matrix(sigma)[obs,obs,drop=FALSE]
+#       kappa_p <- corpcor::pseudoinverse(sig_p)
+# 
+#       # Handle possible non positive definiteness:
+#       kappa_p <- spectralshift(kappa_p)
+#       
+#       # Log determinant:
+#       logdetK_p <- log(det(kappa_p))
+#       
+#       # Means:
+#       mu_p <- mu[obs,]
+#       
+#       # raw scores:
+#       y <- unlist(data[i,obs])
+#     }
+#     
+#     # Add to fit:
+#     curF <- curF + 1/n * (sum(diag(kappa_p %*% (y - mu_p) %*% t(y - mu_p)))  - logdetK_p)
+#   }
+#   
+#   as.numeric(curF)
+# }
 
 # Fit function for Gauss ML: -2n* log likelihood
 fimlEstimator_Gauss <- function(x, model){

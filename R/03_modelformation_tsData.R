@@ -123,8 +123,8 @@ tsData <- function(data,
   data_l <- data_l[!isNA,]
   
   # Combine them:
-  fullData <- as.data.frame(cbind(data_l,data_c))
-  return(fullData)
+  fulldata <- as.data.frame(cbind(data_l,data_c))
+  return(fulldata)
   
   # data_l <- augData %>% dplyr::group_by_(idvar,dayvar) %>% dplyr::slice(-n())
 # 

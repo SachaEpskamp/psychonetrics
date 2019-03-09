@@ -7,7 +7,7 @@ samplestats_norawts <- function(
   means, # alternative means (matrix nvar * ngroup)
   nobs, # Alternative if data is missing (length ngroup)
   missing = c("listwise","pairwise"),
-  fulldata = FALSE){
+  fimldata = FALSE){
   missing <- match.arg(missing)
   
   # Check data:
@@ -54,7 +54,7 @@ samplestats_norawts <- function(
     # sampleStats <- lavaan::lavInspect(lavOut, what = "sample")
     
     # If missing is listwise, just cut out all NA rows:
-    if (missing == "listwise" && !fulldata){
+    if (missing == "listwise" && !fimldata){
       data <- data[rowSums(is.na(data[,c(vars)])) == 0,]
     }
     
@@ -214,9 +214,9 @@ samplestats_norawts <- function(
   )
   
   # add datA:
-  if (fulldata){
-    object@data <- lapply(seq_along(groupNames),function(x){
-      data[data[[groups]] == x,vars]
+  if (fimldata){
+    object@fimldata <- lapply(seq_along(groupNames),function(x){
+      missingpatterns(data[data[[groups]] == x,vars])
     })
   }
     
