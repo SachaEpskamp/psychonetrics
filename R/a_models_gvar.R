@@ -60,7 +60,7 @@ gvar <- function(
                              nobs = nobs, 
                              missing  = ifelse(estimator == "FIML","pairwise",missing),
                              rawts = rawts,
-                             fulldata = estimator == "FIML")
+                             fimldata = estimator == "FIML")
   
   # Check if number of variables is an even number:
   if (!rawts && nrow(sampleStats@variables)%%2!=0){

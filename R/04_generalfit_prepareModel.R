@@ -17,7 +17,8 @@ prepareModel <- function(x, model){
   if (model@estimator == "FIML"){
     # Add the raw data to each group:
     for (g in seq_along(prep$groupModels)){
-      prep$groupModels[[g]]$data <- model@sample@data[[g]]
+      prep$groupModels[[g]]$fimldata <- model@sample@fimldata[[g]]
+      prep$groupModels[[g]]$fulln <- model@sample@groups$nobs[[g]]
     }
   }
   

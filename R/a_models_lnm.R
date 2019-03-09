@@ -32,7 +32,7 @@ lnm <- function(
                              means = means, 
                              nobs = nobs, 
                              missing = ifelse(estimator == "FIML","pairwise",missing),
-                             fulldata = estimator == "FIML")
+                             fimldata = estimator == "FIML")
   
   # Check some things:
   nNode <- nrow(sampleStats@variables)

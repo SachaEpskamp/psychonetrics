@@ -16,3 +16,5 @@ importFrom("graphics", "abline", "par")
   importFrom("stats", "nlminb", "pchisq", "pnorm", "qchisq", "runif",
              "uniroot")
   importFrom("utils", "sessionInfo")
+
+importFrom("mgcv","uniquecombs")
