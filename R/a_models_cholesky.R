@@ -61,18 +61,23 @@ cholesky <- function(
   for (g in 1:nGroup){
     covest <- sampleStats@covs[[g]]
     # Spectral shift if needed:
-    if (any(Re(eigen(covest)$values) < 0)){
+  
+    if (!any(is.na(covest)) && any(Re(eigen(covest)$values) < 0)){
       covest <- spectralshift(covest)
     }
     
     meanest <-  as.matrix(sampleStats@means[[g]])
 
       # Means with sample means:
-      muStart[,g] <- 1*(mu[,g]!=0) * meanest
+      muStart[,g] <- 1*(mu[,g]!=0) * ifelse(!is.na(meanest),meanest,0)
 
-      Lest <- t(as.matrix(chol(covest)))
-      # Chol with sample cholesky:
-      lowertriStart[,,g] <-  1*(lowertriStart[,,g]!=0) * Lest
+      if (!any(is.na(covest))){
+        Lest <- t(as.matrix(chol(covest)))
+        # Chol with sample cholesky:
+        lowertriStart[,,g] <-  1*(lowertriStart[,,g]!=0) * Lest
+      } else {
+        lowertriStart[,,g] <-  1*(lowertriStart[,,g]!=0) * 0.05
+      }
       
       # # If the estimator is fiml, be more conservative:
       # if (estimator == "FIML"){

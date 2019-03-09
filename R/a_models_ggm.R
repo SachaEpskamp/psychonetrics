@@ -90,7 +90,7 @@ ggm <- function(
     }
       
       # Means with sample means:
-      muStart[,g] <- meanest
+      muStart[,g] <- ifelse(is.na(meanest),0,meanest)
       
       # If the estimator is fiml, let's not bother with the sample var cov matrix and instead start with some general starting values:
       # if (estimator == "fiml"){
