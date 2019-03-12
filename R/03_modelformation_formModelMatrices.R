@@ -44,5 +44,29 @@ formModelMatrices <- function(x){
     groupMod
   })
   names(Matrices) <- allGroups
+  
+  # Some additional matrices need to be formed:
+  if (x@model == "varcov"){
+    # Variance covariance matrices:
+    for (g in seq_len(nGroup)){
+      if (x@types$y == "chol"){
+        Matrices[[g]]$sigma <- as(Matrices[[g]]$lowertri %*% t(Matrices[[g]]$lowertri), "dsyMatrix")
+        # Matrices[[g]]$rho <- cov2cor(Matrices[[g]]$sigma)
+        Matrices[[g]]$kappa <- as(corpcor::pseudoinverse(Matrices[[g]]$sigma), "sparseMatrix")
+        Matrices[[g]]$omega <- as(qgraph::wi2net(as.matrix(Matrices[[g]]$kappa)),"sparseMatrix")
+      } else if (x@types$y == "cov"){
+        # Matrices[[g]]$rho <- cov2cor(Matrices[[g]]$sigma)
+        Matrices[[g]]$kappa <- as(corpcor::pseudoinverse(Matrices[[g]]$sigma), "sparseMatrix")
+        Matrices[[g]]$omega <- as(qgraph::wi2net(as.matrix(Matrices[[g]]$kappa)),"sparseMatrix")
+      } else if (x@types$y == "ggm"){
+        Matrices[[g]]$sigma <- Matrices[[g]]$delta %*% corpcor::pseudoinverse(spectralshift(Diagonal(ncol(Matrices[[g]]$omega)) - Matrices[[g]]$omega)) %*% Matrices[[g]]$delta
+        Matrices[[g]]$kappa <- corpcor::pseudoinverse(Matrices[[g]]$sigma)
+      } else if (x@types$y == "prec"){
+        Matrices[[g]]$sigma <- corpcor::pseudoinverse(spectralshift(Matrices[[g]]$kappa))
+        Matrices[[g]]$omega <- as(qgraph::wi2net(as.matrix(Matrices[[g]]$kappa)),"sparseMatrix")
+      }
+    }
+  }
+
   return(Matrices)
 }

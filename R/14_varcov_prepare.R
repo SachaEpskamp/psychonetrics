@@ -15,8 +15,15 @@ prepare_varcov <- function(x, model){
   # Form the model matrices:
   mats <- formModelMatrices(newMod)
   
+  # Add a few that will be useful:
+  if (model@types$y == "ggm"){
+    for (g in 1:nGroup){
+      mats[[g]]$IminOinv <- corpcor::pseudoinverse(Diagonal(nrow(mats[[g]]$omega)) - mats[[g]]$omega)
+    }
+  }
+
   # Compute implied matrices:
-  imp <- implied_varcov(mats)
+  # imp <- implied_varcov(mats)
 
   # Sample stats:
   S <- model@sample@covs
@@ -27,10 +34,11 @@ prepare_varcov <- function(x, model){
   mMat <- list(
     M = Mmatrix(model@parameters)
   )
-   # Fill per group:
+  
+ # Fill per group:
   groupModels <- list()
   for (g in 1:nGroup){
-    groupModels[[g]] <- c(mats[[g]],imp[[g]], mMat, model@extramatrices) # FIXME: This will lead to extra matrices to be stored?
+    groupModels[[g]] <- c(mats[[g]], mMat, model@extramatrices, model@types) # FIXME: This will lead to extra matrices to be stored?
     groupModels[[g]]$S <- S[[g]]
     groupModels[[g]]$means <- means[[g]]
   }

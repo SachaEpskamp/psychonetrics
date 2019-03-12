@@ -9,20 +9,22 @@ stepup <- function(
 ){
   mi <- match.arg(mi)
   if (missing(matrices)){
-    if (x@model == "ggm"){
-      matrices <- "omega"
-    } else if (x@model == "precision"){
-      matrices <- "kappa"
-    }  else if (x@model == "lnm"){
+    if (x@model == "varcov"){
+      if (x@submodel == "ggm"){
+        matrices <- "omega"
+      } else if (x@submodel == "prec"){
+        matrices <- "kappa"
+      } else if (x@submodel == "chol"){
+        matrices <- "lowertri"
+      } else if (x@submodel == "cov"){
+        matrices <- "sigma"
+      } 
+    } else if (x@model == "lnm"){
       matrices <- "omega_eta"
     } else if (x@model == "rnm"){
       matrices <- "omega_epsilon"
     }  else if (x@model == "gvar"){
       matrices <- c("beta","omega_zeta")
-    }else if (x@model == "gvar"){
-      matrices <- "sigma"
-    } else if (x@model == "cholesky"){
-      matrices <- "lowertri"
     } else stop("No default argument for 'matrices' for current model.")
   }
   
@@ -54,41 +56,41 @@ stepup <- function(
     } else {
       break
     }
-  # } 
-  # else {
-  #   if (any(x@parameters[[mi]]_equal[x@parameters$matrix %in% matrices & x@parameters$fixed] > qchisq(alpha,1,lower.tail=FALSE))){
-  #     # FIXME: Make nice free parameter function
-  #     best <- which(x@parameters[[mi]]_equal == max(x@parameters[[mi]]_equal[x@parameters$matrix %in% matrices & x@parameters$fixed]))
-  #     x@parameters$par[best] <- max(x@parameters$par) + 1
-  #     x@parameters$fixed[best] <- FALSE
-  #     
-  #     # Perturb estimate a bit:
-  #     x@parameters$est[best] <- 0.01
-  #     
-  #     # Update the model:
-  #     x@extramatrices$M <- Mmatrix(x@parameters)
-  #     
-  #     # Run:
-  #     x <- x %>% runmodel(...,log=FALSE)
-  #   } else {
-  #     break
-  #   }
-  # }
-  # 
-  # Check criterion:
-  if (criterion != "none"){
-    oldCrit <- oldMod@fitmeasures[[criterion]]
-    newCrit <- x@fitmeasures[[criterion]]
-    if (oldCrit < newCrit){
-      x <- oldMod
-      break
+    # } 
+    # else {
+    #   if (any(x@parameters[[mi]]_equal[x@parameters$matrix %in% matrices & x@parameters$fixed] > qchisq(alpha,1,lower.tail=FALSE))){
+    #     # FIXME: Make nice free parameter function
+    #     best <- which(x@parameters[[mi]]_equal == max(x@parameters[[mi]]_equal[x@parameters$matrix %in% matrices & x@parameters$fixed]))
+    #     x@parameters$par[best] <- max(x@parameters$par) + 1
+    #     x@parameters$fixed[best] <- FALSE
+    #     
+    #     # Perturb estimate a bit:
+    #     x@parameters$est[best] <- 0.01
+    #     
+    #     # Update the model:
+    #     x@extramatrices$M <- Mmatrix(x@parameters)
+    #     
+    #     # Run:
+    #     x <- x %>% runmodel(...,log=FALSE)
+    #   } else {
+    #     break
+    #   }
+    # }
+    # 
+    # Check criterion:
+    if (criterion != "none"){
+      oldCrit <- oldMod@fitmeasures[[criterion]]
+      newCrit <- x@fitmeasures[[criterion]]
+      if (oldCrit < newCrit){
+        x <- oldMod
+        break
+      }
     }
   }
-}
-
-# Add log:
-x <- addLog(x, "Performed step-up model search")
-
-return(x)
-
+  
+  # Add log:
+  x <- addLog(x, "Performed step-up model search")
+  
+  return(x)
+  
 }

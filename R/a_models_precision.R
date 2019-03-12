@@ -1,8 +1,8 @@
 # Latent network model creator
-ggm <- function(
+precision <- prec <- function(
   ...
 ){
- model <- varcov(...,type = "ggm")
+ model <- varcov(...,type = "prec")
   
   # Return model:
   return(model)

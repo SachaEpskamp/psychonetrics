@@ -20,24 +20,43 @@ prune <- function(
     stop("recursive = TRUE requires runmodel = TRUE")
   }
   # Select the matrices:
+  # if (missing(matrices)){
+  #   if (x@model == "ggm"){
+  #     matrices <- "omega"
+  #   } else if (x@model == "precision"){
+  #     matrices <- "kappa"
+  #   } else if (x@model == "lnm"){
+  #     matrices <- "omega_eta"
+  #   } else if (x@model == "rnm"){
+  #     matrices <- "omega_epsilon"
+  #   } else if (x@model == "gvar"){
+  #     matrices <- c("beta","omega_zeta")
+  #   } else if (x@model == "varcov"){
+  #     matrices <- "sigma"
+  #   } else if (x@model == "cholesky"){
+  #     matrices <- "lowertri"
+  #   } else {
+  #     stop("'no default 'matrix' argument implemented yet..")
+  #   }
+  # }
   if (missing(matrices)){
-    if (x@model == "ggm"){
-      matrices <- "omega"
-    } else if (x@model == "precision"){
-      matrices <- "kappa"
+    if (x@model == "varcov"){
+      if (x@submodel == "ggm"){
+        matrices <- "omega"
+      } else if (x@submodel == "prec"){
+        matrices <- "kappa"
+      } else if (x@submodel == "chol"){
+        matrices <- "lowertri"
+      } else if (x@submodel == "cov"){
+        matrices <- "sigma"
+      } 
     } else if (x@model == "lnm"){
       matrices <- "omega_eta"
     } else if (x@model == "rnm"){
       matrices <- "omega_epsilon"
-    } else if (x@model == "gvar"){
+    }  else if (x@model == "gvar"){
       matrices <- c("beta","omega_zeta")
-    } else if (x@model == "varcov"){
-      matrices <- "sigma"
-    } else if (x@model == "cholesky"){
-      matrices <- "lowertri"
-    } else {
-      stop("'no default 'matrix' argument implemented yet..")
-    }
+    } else stop("No default argument for 'matrices' for current model.")
   }
   
   # Which parameters to test:
