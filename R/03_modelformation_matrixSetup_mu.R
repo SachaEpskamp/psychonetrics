@@ -8,7 +8,7 @@ matrixsetup_mu <- function(
   sampletable
 ){
   # Fix mu
-  mu <- fixMu(mu,nGroup,nNode,"mu" %in% equal)
+  mu <- fixMu(mu,nGroup,nNode,equal)
 
   # For each group, form starting values:
   muStart <- mu

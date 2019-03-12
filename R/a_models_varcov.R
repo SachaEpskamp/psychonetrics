@@ -1,7 +1,7 @@
 # Latent network model creator
 varcov <- function(
   data, # Dataset
-  type = c("cov","chol","cor","prec","pcor"),
+  type = c("cov","chol","prec","ggm"), # Maybe add cor at some point, but not now
   sigma = "full", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
   kappa = "full", # Precision
   rho = "full", # Correlations
@@ -46,7 +46,8 @@ varcov <- function(
   model <- generate_psychonetrics(model = "varcov",sample = sampleStats,computed = FALSE, 
                                   equal = equal,
                                   optimizer = optimizer, estimator = estimator, distribution = "Gaussian",
-                                  rawts = rawts)
+                                  rawts = rawts, types = list(y = type),
+                                  submodel = type)
   
   # Number of groups:
   nGroup <- nrow(model@sample@groups)
@@ -66,12 +67,48 @@ varcov <- function(
   # fixMu(mu,nGroup,nNode,"mu" %in% equal)
   
   # Fix sigma
-  modMatrices$sigma <- matrixsetup_sigma(sigma, 
-                                  expcov=model@sample@covs,
-                nNode = nNode, 
-                nGroup = nGroup, 
-                labels = sampleStats@variables$label,
-                equal = "sigma" %in% equal, sampletable = sampleStats)
+  if (type == "cov"){
+    modMatrices$sigma <- matrixsetup_sigma(sigma, 
+                                           expcov=model@sample@covs,
+                                           nNode = nNode, 
+                                           nGroup = nGroup, 
+                                           labels = sampleStats@variables$label,
+                                           equal = "sigma" %in% equal, sampletable = sampleStats)    
+  } else if (type == "chol"){
+    modMatrices$lowertri <- matrixsetup_lowertri(lowertri, 
+                                           expcov=model@sample@covs,
+                                           nNode = nNode, 
+                                           nGroup = nGroup, 
+                                           labels = sampleStats@variables$label,
+                                           equal = "lowertri" %in% equal, sampletable = sampleStats)
+  } else if (type == "ggm"){
+    # Add omega matrix:
+    modMatrices$omega <- matrixsetup_omega(omega, 
+                                           expcov=model@sample@covs,
+                                           nNode = nNode, 
+                                           nGroup = nGroup, 
+                                           labels = sampleStats@variables$label,
+                                           equal = "omega" %in% equal, sampletable = sampleStats)
+    
+    # Add delta matrix:
+    modMatrices$delta <- matrixsetup_delta(delta, 
+                                           expcov=model@sample@covs,
+                                           nNode = nNode, 
+                                           nGroup = nGroup, 
+                                           labels = sampleStats@variables$label,
+                                           equal = "delta" %in% equal, sampletable = sampleStats) 
+  } else if (type == "prec"){
+    
+    # Add omega matrix:
+    modMatrices$kappa <- matrixsetup_kappa(kappa, 
+                                           expcov=model@sample@covs,
+                                           nNode = nNode, 
+                                           nGroup = nGroup, 
+                                           labels = sampleStats@variables$label,
+                                           equal = "kappa" %in% equal, sampletable = sampleStats)
+  }
+  
+
   
   
   
@@ -82,12 +119,31 @@ varcov <- function(
   # Store in model:
   model@parameters <- pars$partable
   model@matrices <- pars$mattable
-  model@extramatrices <- list(
+  
+  if (type == "cov" || type == "prec"){
+    model@extramatrices <- list(
+      D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
+      L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
+      In = Diagonal(nNode) # Identity of dim n
+    )
+  } else if (type == "chol"){
+    model@extramatrices <- list(
     D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
     L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
-    In = Diagonal(nNode) # Identity of dim n
-  )
-    
+    In = Diagonal(nNode), # Identity of dim n
+    C = as(lavaan::lav_matrix_commutation(nNode,nNode),"sparseMatrix")
+    )
+  } else if (type == "ggm"){
+    model@extramatrices <- list(
+      D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
+      L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
+      Dstar = psychonetrics::duplicationMatrix(nNode,diag = FALSE), # Strict duplicaton matrix
+      In = Diagonal(nNode), # Identity of dim n
+      A = psychonetrics::diagonalizationMatrix(nNode)
+    )
+  }
+
+  
   # Form the model matrices
   model@modelmatrices <- formModelMatrices(model)
   
@@ -96,8 +152,8 @@ varcov <- function(
   if (baseline_saturated){
    
     # Form baseline model:
-    model@baseline_saturated$baseline <- cholesky(data, 
-                                             lowertri = "empty",
+    model@baseline_saturated$baseline <- varcov(data,
+                                                type = "chol",
                                              vars = vars,
                                              groups = groups,
                                              covs = covs,
@@ -113,7 +169,8 @@ varcov <- function(
     
     
     ### Saturated model ###
-    model@baseline_saturated$saturated <- cholesky(data, 
+    model@baseline_saturated$saturated <- varcov(data,
+           type = "chol", 
            lowertri = "full", 
            vars = vars,
            groups = groups,

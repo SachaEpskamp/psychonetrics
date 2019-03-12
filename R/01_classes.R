@@ -49,6 +49,7 @@ createLogList <- function(){
 # Psychonetrics model:
 generate_psychonetrics <- setClass("psychonetrics", slots = c(
   model = "character", # Model framework
+  submodel = "character",
   parameters = "data.frame", # Parameter table data.frame(from,  edge, to,  est,  std,  se,  matrix,  row,  col,  par)
   matrices = "data.frame",
   computed = "logical", # Logical, is the model computed yet?
@@ -68,7 +69,8 @@ generate_psychonetrics <- setClass("psychonetrics", slots = c(
   distribution = "character",
   extramatrices = "list", # Contains extra matrices
   rawts = "logical",
-  Drawts = "list"
+  Drawts = "list",
+  types = "list"
 ),
 prototype = list(
   model = "dummy",
