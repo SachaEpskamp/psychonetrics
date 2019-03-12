@@ -72,7 +72,7 @@ samplestats_norawts <- function(
       cov <- 0.5*(cov + t(cov))
       covs <- list(as(cov,"dsyMatrix"))
       if (!any(is.na(cov))){
-        cors <- new("corMatrix", cov2cor(cov), sd = diag(cov))          
+        cors <- list(new("corMatrix", cov2cor(cov), sd = diag(cov)))         
       } else {
       }
       # cors <- list(new("corMatrix", cov2cor(cov), sd = diag(cov)))
