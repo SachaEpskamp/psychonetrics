@@ -1,7 +1,13 @@
 # Latent network model creator
 varcov <- function(
   data, # Dataset
+  type = c("cov","chol","cor","prec","pcor"),
   sigma = "full", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
+  kappa = "full", # Precision
+  rho = "full", # Correlations
+  omega = "full", # Partial correlations
+  lowertri = "full", # Cholesky
+  delta = "full", # Used for both ggm and pcor
   mu,
   vars, # character indicating the variables Extracted if missing from data - group variable
   groups, # ignored if missing. Can be character indicating groupvar, or vector with names of groups
@@ -18,6 +24,9 @@ varcov <- function(
   if (rawts){
     warning("'rawts' is only included for testing purposes. Please do not use!")
   }
+  
+  # Type:
+  type <- match.arg(type)
 
   # Obtain sample stats:
   sampleStats <- samplestats(data = data, 
@@ -47,60 +56,28 @@ varcov <- function(
     nNode * (nNode+1) / 2 * nGroup + # Covariances per group
     nNode * nGroup # Means per group
   
+  # Model matrices:
+  modMatrices <- list()
+  
   # Fix mu
-  mu <- fixMu(mu,nGroup,nNode,"mu" %in% equal)
+  modMatrices$mu <- matrixsetup_mu(mu,nNode = nNode,nGroup = nGroup,labels = sampleStats@variables$label,equal = "mu" %in% equal,
+                       expmeans = model@sample@means, sampletable = sampleStats)
+  
+  # fixMu(mu,nGroup,nNode,"mu" %in% equal)
   
   # Fix sigma
-  sigma <- fixAdj(sigma,nGroup,nNode,"sigma" %in% equal)
+  modMatrices$sigma <- matrixsetup_sigma(sigma, 
+                                  expcov=model@sample@covs,
+                nNode = nNode, 
+                nGroup = nGroup, 
+                labels = sampleStats@variables$label,
+                equal = "sigma" %in% equal, sampletable = sampleStats)
   
-  # Generate starting values:
-  sigmaStart <- sigma
-  muStart <- mu
   
   
-  for (g in 1:nGroup){
-    covest <- as.matrix(spectralshift(sampleStats@covs[[g]]))
-    meanest <-  as.matrix(sampleStats@means[[g]])
-
-      # Means with sample means:
-      muStart[,g] <- 1*(mu[,g]!=0) * meanest
-      
-      # Covs with sample covs:
-      sigmaStart[,,g] <-  1*(sigmaStart[,,g]!=0) * covest
-      
-      # # If the estimator is fiml, be more conservative:
-      # if (estimator == "FIML"){
-      #   sigmaStart[,,g] <- 1*(sigmaStart[,,g]!=0) * ifelse(sigmaStart[,,g] > 0, 0.05, -0.05)
-      #   diag(sigmaStart[,,g]) <- 1
-      # }
-  }
-
   # Generate the full parameter table:
-  pars <- generateAllParameterTables(
-    # Mu:
-    list(mu,
-         mat =  "mu",
-         op =  "~1",
-         symmetrical= FALSE, 
-         sampletable=sampleStats,
-         rownames = sampleStats@variables$label,
-         colnames = "1",
-         start = muStart),
-    
- 
-    # Sigma:
-    list(sigma,
-         mat =  "sigma",
-         op =  "~~",
-         symmetrical= TRUE, 
-         sampletable=sampleStats,
-         rownames = sampleStats@variables$label,
-         colnames = sampleStats@variables$label,
-         sparse = TRUE,
-         posdef = TRUE,
-         start = sigmaStart
-    )
-  )
+  pars <- do.call(generateAllParameterTables, modMatrices)
+
   
   # Store in model:
   model@parameters <- pars$partable
