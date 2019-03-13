@@ -152,7 +152,7 @@ gvar <- function(
     curS0 <- curcovs[[g]][nNode + (1:nNode),nNode + (1:nNode)]
     curS1 <- curcovs[[g]][nNode + (1:nNode),1:nNode]
     
-    
+
     # Means with sample means:
     if (rawts){
       muStart[,g] <- curMeans[nNode + (1:nNode)]
