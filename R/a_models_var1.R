@@ -108,8 +108,10 @@ var1 <- function(
   modMatrices$mu <- matrixsetup_mu(mu,nNode = nVar, nGroup = nGroup, labels = sampleStats@variables$label,equal = "mu" %in% equal,
                                    expmeans = model@sample@means, sampletable = sampleStats, name = "mu")
   
+  shiftCovs <- lapply(sampleStats@covs,spectralshift)
+  
   # Exogenous block covariances:
-  exoCovs <- lapply(sampleStats@covs,function(x)spectralshift(x[1:nNode,1:nNode]))
+  exoCovs <- lapply(shiftCovs,function(x)spectralshift(x[1:nNode,1:nNode]))
   
   # Fix exo cholesky:
   modMatrices$exo_cholesky <- matrixsetup_lowertri("full", 
@@ -122,8 +124,8 @@ var1 <- function(
   
   
   # S1 and S0 estimates:
-  S0est <- lapply(sampleStats@covs,function(x)spectralshift(x[nNode + (1:nNode),nNode + (1:nNode)]))
-  S1est <- lapply(sampleStats@covs,function(x)spectralshift(x[nNode + (1:nNode),1:nNode]))
+  S0est <- lapply(shiftCovs,function(x)spectralshift(x[nNode + (1:nNode),nNode + (1:nNode)]))
+  S1est <- lapply(shiftCovs,function(x)x[nNode + (1:nNode),1:nNode])
   S0inv <- lapply(S0est,corpcor::pseudoinverse)
   
   # Prior estimate for beta:
