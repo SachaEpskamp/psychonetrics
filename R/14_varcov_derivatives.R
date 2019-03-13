@@ -1,6 +1,5 @@
 # Cholesky derivative:
 d_sigma_cholesky <- function(lowertri,L,C,In,...){
-
  L %*% (
     ( In %(x)% lowertri) %*% C %*% t(L) + 
       (lowertri %(x)% In) %*% t(L)

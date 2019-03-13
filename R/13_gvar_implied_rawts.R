@@ -1,5 +1,5 @@
 # Implied model for precision. Requires appropriate model matrices:
-implied_gvar_rawts <- function(x){
+implied_gvar_rawts <- function(x,...){
 
 
   # For each group:

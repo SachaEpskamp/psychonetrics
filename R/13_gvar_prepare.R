@@ -14,37 +14,38 @@ prepare_gvar <- function(x, model){
   nPerGroup <- model@sample@groups$nobs
 
   # Form the model matrices:
-  mats <- formModelMatrices(newMod)
+  # mats <- formModelMatrices(newMod)
   
   # Add a few that will be useful:
-  for (g in 1:nGroup){
-    IminO <- Diagonal(nrow(mats[[g]]$omega_zeta)) - mats[[g]]$omega_zeta
-
-    if (any(eigen(IminO)$values < 0)){
-      warning("I - Omega_zeta is not positive definite, gradient may not be correct.")
-      mats[[g]]$OmegaStar <- corpcor::pseudoinverse(spectralshift(IminO))
-    }  else {
-      mats[[g]]$OmegaStar <- corpcor::pseudoinverse(IminO)
-    }
-    mats[[g]]$DeltaOmegaStar <- mats[[g]]$delta_zeta %*% mats[[g]]$OmegaStar 
-    mats[[g]]$BetaStar <- corpcor::pseudoinverse(Diagonal(nrow(mats[[g]]$beta)^2) - (mats[[g]]$beta %(x)% mats[[g]]$beta))
-    mats[[g]]$L_betaStar <- model@extramatrices$L %*%  mats[[g]]$BetaStar 
-    mats[[g]]$IkronBeta <- model@extramatrices$In %(x)% mats[[g]]$beta
-    mats[[g]]$E <- Emat(nrow(mats[[g]]$beta),mats[[g]]$beta)
-    mats[[g]]$SigmaZeta <- as.matrix(mats[[g]]$delta_zeta %*% mats[[g]]$OmegaStar %*% mats[[g]]$delta_zeta)
-    mats[[g]]$sigmaZetaVec <- as.vector(mats[[g]]$SigmaZeta)
-    if (model@rawts){
-      mats[[g]]$mis <-  model@sample@missingness[[g]]  
-    }
-    
-  }
+  # for (g in 1:nGroup){
+  #   IminO <- Diagonal(nrow(mats[[g]]$omega_zeta)) - mats[[g]]$omega_zeta
+  # 
+  #   if (any(eigen(IminO)$values < 0)){
+  #     warning("I - Omega_zeta is not positive definite, gradient may not be correct.")
+  #     mats[[g]]$OmegaStar <- corpcor::pseudoinverse(spectralshift(IminO))
+  #   }  else {
+  #     mats[[g]]$OmegaStar <- corpcor::pseudoinverse(IminO)
+  #   }
+  #   mats[[g]]$DeltaOmegaStar <- mats[[g]]$delta_zeta %*% mats[[g]]$OmegaStar 
+  #   mats[[g]]$BetaStar <- corpcor::pseudoinverse(Diagonal(nrow(mats[[g]]$beta)^2) - (mats[[g]]$beta %(x)% mats[[g]]$beta))
+  #   mats[[g]]$L_betaStar <- model@extramatrices$L %*%  mats[[g]]$BetaStar 
+  #   mats[[g]]$IkronBeta <- model@extramatrices$In %(x)% mats[[g]]$beta
+  #   mats[[g]]$E <- Emat(nrow(mats[[g]]$beta),mats[[g]]$beta)
+  #   mats[[g]]$SigmaZeta <- as.matrix(mats[[g]]$delta_zeta %*% mats[[g]]$OmegaStar %*% mats[[g]]$delta_zeta)
+  #   mats[[g]]$sigmaZetaVec <- as.vector(mats[[g]]$SigmaZeta)
+  #   if (model@rawts){
+  #     mats[[g]]$mis <-  model@sample@missingness[[g]]  
+  #   }
+  #   
+  # }
   
   # Raw ts?
   if (!model@rawts){
-    imp <- implied_gvar_norawts(mats)
+    imp <- implied_gvar_norawts(newMod)
   } else {
+    stop("rawts is not supported")
     # Compute implied matrices:
-    imp <- implied_gvar_rawts(mats)
+    imp <- implied_gvar_rawts(newMod)
   }
   
   # Sample stats:
@@ -72,10 +73,10 @@ prepare_gvar <- function(x, model){
   # Fill per group:
   groupModels <- list()
   for (g in 1:nGroup){
-    if (model@rawts){
-      mats[[g]] <- mats[[g]][names(mats[[g]]) != "mu"]
-    }
-    groupModels[[g]] <- c( mats[[g]],imp[[g]], mMat, model@extramatrices) # FIXME: This will lead to extra matrices to be stored?
+    # if (model@rawts){
+      # mats[[g]] <- mats[[g]][names(mats[[g]]) != "mu"]
+    # }
+    groupModels[[g]] <- c( imp[[g]], mMat, model@extramatrices) # FIXME: This will lead to extra matrices to be stored?
     groupModels[[g]]$S <- S[[g]]
     groupModels[[g]]$means <- means[[g]]
     if (model@rawts){
