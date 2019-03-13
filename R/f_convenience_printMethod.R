@@ -34,7 +34,8 @@ definition = function(object){
     "gvar" = "Graphical vector-autoregression (GVAR)",
     "varcov" = "Variance-covariance matrix (varcov)",
     # "cholesky" = "Cholesky decomposition (cholesky)",
-    "lvm" = "Latent variable model (LVM)"
+    "lvm" = "Latent variable model (LVM)",
+    "var1" = "Lag-1 vector-autoregression (VAR1)"
   )
   
   submod <- switch(
@@ -46,7 +47,9 @@ definition = function(object){
     "gvar" = "Graphical vector-autoregression (GVAR)",
     "cholesky" = "Cholesky decomposition (cholesky)",
     "sem" = "Structural equation model (SEM)",
-    "lrnm" = "Latent & residual network model (LRNM)"
+    "lrnm" = "Latent & residual network model (LRNM)",
+    "gvar" = "Graphical vector-autoregression (GVAR)",
+    "var" = "Vector-autoregression (VAR)"
   )
   
   cat("\n\nModel:",

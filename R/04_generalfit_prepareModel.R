@@ -9,7 +9,8 @@ prepareModel <- function(x, model){
         # "rnm" = prepare_rnm,
         "gvar" = prepare_gvar,
         "varcov" = prepare_varcov,
-        "lvm" = prepare_lvm
+        "lvm" = prepare_lvm,
+        "var1" = prepare_var1
         # "cholesky" = prepare_cholesky
         )
 # prepare:
