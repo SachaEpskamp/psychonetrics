@@ -37,7 +37,7 @@ implied_var1 <- function(model,all = FALSE){
       }
     } else if (model@types$zeta == "prec"){
       # Precision matrix
-      x[[g]]$sigma_zeta <- corpcor::pseudoinverse(spectralshift(x[[g]]$kappa_zeta))
+      x[[g]]$sigma_zeta <- as(corpcor::pseudoinverse(spectralshift(x[[g]]$kappa_zeta)),"sparseMatrix")
       
       if (all) {
         x[[g]]$omega_zeta <- as(qgraph::wi2net(as.matrix(x[[g]]$kappa_zeta)),"sparseMatrix")
@@ -45,8 +45,8 @@ implied_var1 <- function(model,all = FALSE){
     }
 
     # Some stuff needed now:
-    BetaStar <- corpcor::pseudoinverse(Diagonal(nrow(x[[g]]$beta)^2) - (x[[g]]$beta %(x)% x[[g]]$beta))
-    sigmaZetaVec <- as.vector(x[[g]]$sigma_zeta)
+    BetaStar <- as(corpcor::pseudoinverse(Diagonal(nrow(x[[g]]$beta)^2) - (x[[g]]$beta %(x)% x[[g]]$beta)),"sparseMatrix")
+    sigmaZetaVec <- Vec(x[[g]]$sigma_zeta)
     
     # Implied exogenous covariances:
     exoCov <- x[[g]]$exo_cholesky %*% t( x[[g]]$exo_cholesky)
@@ -68,7 +68,7 @@ implied_var1 <- function(model,all = FALSE){
     x[[g]]$sigma <- 0.5*(x[[g]]$sigma + t(x[[g]]$sigma))
     
     # Precision:
-    x[[g]]$kappa <- corpcor::pseudoinverse(x[[g]]$sigma)
+    x[[g]]$kappa <- as(corpcor::pseudoinverse(x[[g]]$sigma), "Matrix")
     
     # FIXME: forcing symmetric, but not sure why this is needed...
     x[[g]]$kappa <- 0.5*(x[[g]]$kappa + t(x[[g]]$kappa))

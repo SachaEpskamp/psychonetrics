@@ -16,7 +16,12 @@ runmodel <- function(
   optimizer <- x@optimizer
   # Default:
   if (optimizer == "default"){
-    optimizer <- "ucminf"
+    if (any(grepl("omega",x@parameters$matrix))){
+      optimizer <- "nlminb"      
+    } else {
+      optimizer <- "ucminf"
+    }
+
   }
   
   

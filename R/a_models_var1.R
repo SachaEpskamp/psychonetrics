@@ -141,7 +141,8 @@ var1 <- function(
   
   # A prior guess for the contemporaneous covariances is (Schur complement):
   # contCovEst <- lapply(1:nGroup, function(g) spectralshift(S0est[[g]] - t(S1est[[g]]) %*% S0inv[[g]] %*% S1est[[g]]))
-  contCovEst <- lapply(1:nGroup, function(g) spectralshift(exoCovs[[g]] - t(S1est[[g]]) %*% S0inv[[g]] %*% S1est[[g]]))
+  contCovEst <- lapply(1:nGroup, function(g) spectralshift(S0est[[g]] - S1est[[g]] %*% S0inv[[g]] %*% t(S1est[[g]])))
+  # contCovEst <- lapply(1:nGroup, function(g) spectralshift(exoCovs[[g]] - t(S1est[[g]]) %*% S0inv[[g]] %*% S1est[[g]]))
   
   # Fill in:
   if (contemporaneous == "cov"){
