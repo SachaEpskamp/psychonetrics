@@ -220,7 +220,7 @@ lvm <- function(
   } else if (latent == "prec"){
     
     # Add omega matrix:
-    modMatrices$kappa_epsilon <- matrixsetup_kappa(kappa_zeta, 
+    modMatrices$kappa_zeta <- matrixsetup_kappa(kappa_zeta, 
                                                    name = "kappa_zeta",
                                                 expcov=expLatSigma,
                                                 nNode = nLatent, 
