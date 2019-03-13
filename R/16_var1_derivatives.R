@@ -1,0 +1,145 @@
+# Derivative of tau with respect to mu:
+d_mu_mu_var1 <- function(beta,...){
+  Diagonal(nrow(beta))
+}
+
+# Derivative of exogenous variances part
+d_sigmastar_exo_cholesky_var1 <- function(In, L, C, exo_cholesky, ...){
+  L %*% (
+    ( In %(x)% exo_cholesky) %*% C %*% t(L) + 
+      (exo_cholesky %(x)% In) %*% t(L)
+  )
+}
+
+# derivative of sigma0 with respect to beta:
+d_sigma0_beta_var1 <- function(L_betaStar,E,In,sigmaZetaVec,BetaStar,...){
+  ((t(sigmaZetaVec) %*% t(BetaStar)) %(x)% L_betaStar) %*% (E %(x)% In + In %(x)% E)
+}
+
+# derivative of sigma0 with respect to sigma_zeta:
+d_sigma0_sigma_zeta_var1 <- function(L,BetaStar,D2,...){
+  L %*% BetaStar %*% D2
+}
+
+# Derivative of sigma_zeta to cholesky:
+d_sigma_zeta_cholesky_var1 <- function(lowertri_zeta,L,C,In,...){
+  d_sigma_cholesky(lowertri=lowertri_zeta,L=L,C=C,In=In)
+}
+
+# Derivative of sigma_zeta to precision:
+d_sigma_zeta_kappa_var1 <- function(L,D2, sigma_zeta,...){
+  d_sigma_kappa(L = L, D = D2, sigma = sigma_zeta)
+}
+
+# Derivative of sigma_zeta to ggm:
+d_sigma_zeta_ggm_var1 <- function(L,IminOinv_zeta,A,delta_zeta,Dstar,In,...){
+  cbind(
+    d_sigma_omega(L = L, IminOinv = IminOinv_zeta, A = A, delta = delta_zeta, Dstar = Dstar),
+    d_sigma_delta(L = L,  IminOinv = IminOinv_zeta,In=In,delta=delta_zeta,A=A)
+  )
+}
+
+## LAg 1
+# Derivative of sigma1 with respect to beta:
+d_sigma1_beta_var1 <- function(IkronBeta,D2,Jb,sigma,beta,In,...){
+  n <- nrow(beta)
+  sigma0 <- sigma[n + (1:n), n + (1:n)]
+  as( IkronBeta %*% D2 %*% Jb + (sigma0 %(x)% In), "sparseMatrix")
+}
+
+
+# Derivative of sigma1 with respect to omega:
+d_sigma1_sigma_zeta_var1 <- function(IkronBeta,D2,Js,...){
+  as(IkronBeta %*% D2 %*% Js, "sparseMatrix")
+}
+
+
+# Full jacobian of phi (distribution parameters) with respect to theta (model parameters) for a group
+d_phi_theta_var1_group <- function(beta,P,zeta,...){
+  # Number of variables:
+  nvar <- nrow(beta) * 2
+  
+  # Number of nodes:
+  nNode <- nvar / 2
+  
+  # Number of observations:
+  nobs <- nvar + # Means
+    (nvar * (nvar+1))/2 # Variances
+  
+  # total number of elements:
+  nelement <- nvar + # Means
+    nNode*(nNode+1)/2 + # Exogenous variances
+    nNode^2 + # Beta
+    nNode * (nNode+1) / 2 # Contemporaneous network and var-cov
+  
+  # Empty Jacobian:
+  Jac <- Matrix(0, nrow = nobs, ncol=nelement)
+  
+  # Indices:
+  meanInds <- 1:nvar
+  sigmaStarInds <- nvar + seq_len(nNode*(nNode+1)/2)
+  sigma0Inds <- max(sigmaStarInds) + seq_len(nNode*(nNode+1)/2)
+  sigma1Inds <- max(sigma0Inds) + seq_len(nNode^2)
+  
+  # Indices model:
+  interceptInds <- 1:nvar
+  exovarInds <-  nvar + seq_len(nNode*(nNode+1)/2)
+  betaInds <- max(exovarInds) + seq_len(nNode^2)
+  sigmazetaInds <-  max(betaInds) + seq_len(nNode*(nNode+1)/2)
+  
+
+  # fill intercept part:
+  Jac[meanInds,interceptInds] <- bdiag(d_mu_mu_var1(beta=beta,...),d_mu_mu_var1(beta=beta,...))
+  
+  # Fill the exo var part:
+  Jac[sigmaStarInds,exovarInds] <- d_sigmastar_exo_cholesky_var1(...)
+  
+  # Fill sigma0 to beta part:
+  Jac[sigma0Inds,betaInds] <- Jb <- d_sigma0_beta_var1(...)
+
+  # Fill sigma0 to sigma_zeta part:
+  Jac[sigma0Inds,sigmazetaInds] <- d_sigma0_sigma_zeta_var1(...)
+  
+  
+  # Augment:
+  if (zeta == "chol"){
+    Jac[sigma0Inds,sigmazetaInds] <- Jac[sigma0Inds,sigmazetaInds] %*% d_sigma_zeta_cholesky_var1(...)
+  } else if (zeta == "prec"){
+    Jac[sigma0Inds,sigmazetaInds] <- Jac[sigma0Inds,sigmazetaInds] %*% d_sigma_zeta_kappa_var1(...)
+  } else if (zeta == "ggm"){
+    Jac[sigma0Inds,sigmazetaInds] <- Jac[sigma0Inds,sigmazetaInds] %*% d_sigma_zeta_ggm_var1(...)
+  }
+  
+  # Store:
+  Js <- Jac[sigma0Inds,sigmazetaInds]
+  
+##
+  # Fill sigma1 to beta part:
+  Jac[sigma1Inds,betaInds] <- d_sigma1_beta_var1(beta=beta,Jb=Jb,...)
+  
+  # Fill sigma1 to sigma_zeta part:
+  Jac[sigma1Inds,sigmazetaInds] <- d_sigma1_sigma_zeta_var1(Js=Js,...)
+  
+  # Permute the matrix:
+  Jac <- P %*% Jac
+
+
+  # Return jacobian:
+  return(Jac)
+}
+
+# Now for the full group:
+d_phi_theta_var1 <- function(prep){
+  # model is already prepared!
+  
+  # d_phi_theta per group:
+  d_per_group <- lapply(prep$groupModels,do.call,what=d_phi_theta_var1_group)
+  
+  # FIXME: Computationall it is nicer to make the whole object first then fill it
+  # Bind by colum and return: 
+  Reduce("bdiag",d_per_group)
+}
+
+
+
+

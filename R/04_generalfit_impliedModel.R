@@ -6,7 +6,9 @@ impliedModel <- function(model, types, all = FALSE){
   impFun <- switch(framework,
         "lvm" = implied_lvm,
         "varcov" = implied_varcov,
-        "gvar" = implied_gvar_norawts)
+        "gvar" = implied_gvar_norawts,
+        "var1" = implied_var1
+        )
   
 # implied:
   # mats <- formModelMatrices(model)

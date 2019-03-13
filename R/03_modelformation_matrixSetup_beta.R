@@ -5,13 +5,22 @@ matrixsetup_beta <- function(
   labels,
   equal = FALSE,
   sampletable,
-  name = "beta"
+  name = "beta",
+  start
 ){
   # Fix beta:
   beta <- fixMatrix(beta,nGroup = nGroup,nrows = nNode,ncols = nNode,equal = equal,diag0=TRUE)
   
   # For each group, form starting values:
-  betaStart <- 0.1*(beta!=0)
+  if (missing(start)){
+    betaStart <- 0.1*(beta!=0)  
+  } else {
+    betaStart <- beta
+    for (g in seq_along(start)){
+      betaStart[,,g] <- (beta[,,g]!=0) * start[[g]]
+    }
+  }
+  
   
   # Form the model matrix part:
   list(beta,

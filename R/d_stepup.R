@@ -42,7 +42,15 @@ stepup <- function(
       matrices <- "omega_epsilon"
     }  else if (x@model == "gvar"){
       matrices <- c("beta","omega_zeta")
-    } else stop("No default argument for 'matrices' for current model.")
+    }  else if (x@model == "var1"){
+      matrices <- c("beta")
+      if (x@types$zeta == "prec"){
+        matrices <- c(matrices,"sigma_zeta")
+      } else if (x@types$zeta == "ggm"){
+        matrices <- c(matrices,"omega_zeta")
+      }
+      
+    }else stop("No default argument for 'matrices' for current model.")
   }
   
   # Check if MIs are added:
