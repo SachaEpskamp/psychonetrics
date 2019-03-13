@@ -1,16 +1,17 @@
-lnm <- function(...){
-  lvm(...,latent = "ggm", residual = "cov")
+sem <- function(...){
+  lvm(...,latent = "cov", residual = "cov")
 }
 
 # # Latent network model creator
-# lnm <- function(
+# rnm <- function(
 #   data, # Dataset
 #   lambda, # only required non-missing matrix
-#   omega_eta = "full", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
-#   delta_eta = "full", # If missing, just full for both groups or equal
-#   sigma_epsilon = "diag", # Residuals, will default to a diagonal matrix
+#   sigma_zeta = "auto", # full for exogenous, diagonal for endogenous
+#   omega_epsilon = "empty", # Residuals, will default to a diagonal matrix
+#   delta_epsilon = "full",
+#   beta = "empty",
 #   tau,
-#   mu_eta,
+#   tau_eta,
 #   vars, # character indicating the variables Extracted if missing from data - group variable
 #   latents, # Name of latent varianles
 #   groups, # ignored if missing. Can be character indicating groupvar, or vector with names of groups
@@ -22,7 +23,7 @@ lnm <- function(...){
 #   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
 #   # fitfunctions, # Leave empty
 #   identify = TRUE,
-#   identification = c("loadings","scaling"),
+#   identification = c("loadings","variance"),
 #   estimator = "ML",
 #   optimizer = "default"
 # ){
@@ -35,14 +36,14 @@ lnm <- function(...){
 #                              covs = covs, 
 #                              means = means, 
 #                              nobs = nobs, 
-#                              missing = ifelse(estimator == "FIML","pairwise",missing),
+#                              missing  = ifelse(estimator == "FIML","pairwise",missing),
 #                              fimldata = estimator == "FIML")
 #   
 #   # Check some things:
 #   nNode <- nrow(sampleStats@variables)
 #   
 #   # Generate model object:
-#   model <- generate_psychonetrics(model = "lnm",sample = sampleStats,computed = FALSE, 
+#   model <- generate_psychonetrics(model = "rnm",sample = sampleStats,computed = FALSE, 
 #                                   equal = equal,identification = identification,
 #                                   optimizer = optimizer, estimator = estimator, distribution = "Gaussian")
 #   
@@ -71,25 +72,61 @@ lnm <- function(...){
 #   # Number of latents:
 #   nLatent <- dim(lambda)[2]
 #   
-#   # Fix mu_eta
-#   mu_eta <- fixMu(mu_eta,nGroup,nLatent,"mu_eta" %in% equal)
+#   # Fix tau_eta
+#   tau_eta <- fixMu(tau_eta,nGroup,nLatent,"tau_eta" %in% equal)
 #   
-#   # Fix the omega_eta matrix:
-#   omega_eta <- fixAdj(omega_eta,nGroup,nLatent,"omega_eta" %in% equal,diag0=TRUE)
-#   
-#   # Fix delta:
-#   delta_eta <- fixAdj(delta_eta,nGroup,nLatent,"delta_eta" %in% equal,diagonal=TRUE)
-#   
-#   # Fix sigma_epsilon
-#   if (is.character(sigma_epsilon) && sigma_epsilon == "empty"){
+#   # Fix the beta matrix:
+#   beta <- fixMatrix(beta,nGroup,nLatent,nLatent,"beta" %in% equal,diag0=TRUE)
+# 
+#   # Fix sigma_zeta:
+#   if (is.character(sigma_zeta) && sigma_zeta == "empty"){
 #     diag0 <- TRUE
 #   } else {
 #     diag0 <- FALSE
 #   }
-#   if (is.character(sigma_epsilon) && sigma_epsilon == "diag"){
-#     sigma_epsilon <- "empty"
+#   if (is.character(sigma_zeta) && sigma_zeta == "auto"){
+#     autoSigma_zeta <- TRUE
+#     sigma_zeta <- "diag"
+#   } else {
+#     autoSigma_zeta <- FALSE
 #   }
-#   sigma_epsilon <- fixAdj(sigma_epsilon,nGroup,nNode,"sigma_epsilon" %in% equal,diag0=diag0)
+#   if (is.character(sigma_zeta) && sigma_zeta == "diag"){
+#     diagonal <- TRUE
+#   } else {
+#     diagonal <- FALSE
+#   }
+#   sigma_zeta <- fixAdj(sigma_zeta,nGroup,nLatent,"sigma_zeta" %in% equal,diag0 = diag0,diagonal = diagonal)
+#   # Auto stuff:
+#   if (autoSigma_zeta){
+#     # for every group:
+#     for (g in 1:nGroup){
+#       # Which are exogenous?
+#       exo <- rowSums(beta[,,g]!=0)==0
+#       sigma_zeta[exo,exo,g] <- ifelse(lower.tri(sigma_zeta[exo,exo,g],diag=TRUE),1,0)
+#     }
+#     
+#     # Reset eqality constrains if needed:
+#     if ("sigma_zeta" %in% equal){
+#       for (i in 1:nrow(sigma_zeta)){
+#         for (j in 1:i){
+#           if (sigma_zeta[i,j,1]!=0){
+#             sigma_zeta[i,j,] <- max(sigma_zeta) + 1
+#           }
+#         }
+#       }
+#     }
+#   }
+#   
+#   # Fix delta_epsilon
+#   if (is.character(delta_epsilon) && delta_epsilon == "empty"){
+#     diag0 <- TRUE
+#   } else {
+#     diag0 <- FALSE
+#   }
+#   delta_epsilon <- fixAdj(delta_epsilon,nGroup,nNode,"delta_epsilon" %in% equal,diagonal=TRUE,diag0=diag0)
+#   
+#   # Fix omega_epsilon:
+#   omega_epsilon <- fixAdj(omega_epsilon,nGroup,nNode,"omega_epsilon" %in% equal,diag0=TRUE)
 #   
 #   # If latents is not provided, make it:
 #   if (missing(latents)){
@@ -102,38 +139,39 @@ lnm <- function(...){
 #   
 #   # Generate starting values:
 #   lambdaStart <- lambda
-#   omegaStart <- omega_eta
-#   deltaStart <- delta_eta
-#   sigma_epsilon_start <- sigma_epsilon
 #   tauStart <- tau
+#   sigma_zeta_start <- sigma_zeta
+#   delta_epsilon_start <- delta_epsilon
+#   betaStart <- 0.1*(beta!=0)
 #   for (g in 1:nGroup){
 #     # Means with sample means:
 #     tauStart[,g] <- sampleStats@means[[g]]
 #     
 #     # Current cov estimate:
-#     covest <- as.matrix(spectralshift(sampleStats@covs[[g]]))
+#     curcov <- as.matrix(spectralshift(sampleStats@covs[[g]]))
 #     
 #     # Factor loadings:
 #     for (f in seq_len(ncol(lambdaStart))){
 #       # First principal component of sub cov:
 #       if (any(lambda[,f,g]!=0)){
-#         ev1 <- eigen(covest[lambda[,f,g]!=0,lambda[,f,g]!=0])$vectors[,1]
+#         ev1 <- eigen(curcov[lambda[,f,g]!=0,lambda[,f,g]!=0])$vectors[,1]
 #         lambdaStart[lambdaStart[,f,g]!=0,f,g] <- ev1 / ev1[1]        
 #       } 
 #     }
 #     
 #     # Residual variances, let's start by putting the vars on 1/4 times the observed variances:
-#     Theta <- diag(diag(covest)/4)
+#     Theta <- diag(diag(curcov)/4)
 #     
 #     # Check if this is positive definite:
-#     ev <- eigen(covest - Theta)$values
+#     ev <- eigen(curcov - Theta)$values
 #     
 #     # Shrink until it is positive definite:
 #     loop <- 0
 #     repeat{
-#       ev <- eigen(covest - Theta)$values
+#       ev <- eigen(curcov - Theta)$values
 #       if (loop == 100){
 #         # give up...
+#  
 #         Theta <- diag(nrow(Theta))
 #         break
 #       }
@@ -143,13 +181,14 @@ lnm <- function(...){
 #       Theta <- Theta * 0.9
 #       loop <- loop + 1
 #     }
-#     
-#     # Set delta to it's square root:
-#     Theta <- (1*sigma_epsilon_start[,,g]!=0) * Theta
-#     sigma_epsilon_start[,,g] <- Theta
+# 
+#     # Set delta to it's inversed square root:
+#     # delta_epsilon_start[,,g] <- (1*delta_epsilon_start[,,g]!=0) * sqrt(corpcor::pseudoinverse(Theta))
+# 
+#     delta_epsilon_start[,,g] <- (1*delta_epsilon_start[,,g]!=0) * corpcor::pseudoinverse(sqrt(corpcor::pseudoinverse(Theta)))
 #     
 #     # This means that the factor-part is expected to be:
-#     factorPart <- covest - Theta
+#     factorPart <- curcov - Theta
 #     
 #     # Let's take a pseudoinverse:
 #     inv <- corpcor::pseudoinverse(kronecker(lambdaStart[,,g],lambdaStart[,,g]))
@@ -157,28 +196,10 @@ lnm <- function(...){
 #     # And obtain psi estimate:
 #     PsiEstimate <- matrix(inv %*% as.vector(factorPart),nLatent,nLatent)
 #     
-#     # Let's use this as starting estimate for Psi:
-#     zeroes <- which(omega_eta[,,g]==0 & t(omega_eta[,,g])==0 & diag(nLatent) != 1,arr.ind=TRUE)
-#     if (nrow(zeroes) == 0){
-#       # glas <- glasso(as.matrix(t(lambdaStart[,,g]) %*% sampleStats@covs[[g]] %*% lambdaStart[,,g]),
-#       #                rho = 1e-10, zero = zeroes)      
-#       wi <- corpcor::pseudoinverse(PsiEstimate)
-#     } else {
-#       glas <- glasso(as.matrix(PsiEstimate),
-#                      rho = 1e-10, zero = zeroes)
-#       wi <- glas$wi
-#     }
-# 
-#     # Network starting values:
-#     pcors <- as.matrix(qgraph::wi2net(as.matrix(spectralshift(wi))))
-#     pcors[upper.tri(pcors)] <- 0
-#     omegaStart[,,g] <- ifelse(pcors!=0,pcors,ifelse(omegaStart[,,g]!=0,0.1,0))
-#     diag(omegaStart[,,g] ) <- 0
-#     
-#     # Delta:
-#     # deltaStart[,,g] <- diag(1/sqrt(diag(wi)))
-#     deltaStart[,,g] <- diag(sqrt(diag(wi)))
+#     # Let's put this as starting value:
+#     sigma_zeta_start[,,g] <- (sigma_zeta[,,g]!=0) * PsiEstimate
 #   }
+# 
 # 
 #   # Generate the full parameter table:
 #   pars <- generateAllParameterTables(
@@ -193,8 +214,8 @@ lnm <- function(...){
 #          start = tauStart),
 #     
 #     # mu_eta:
-#     list(mu_eta,
-#          mat =  "mu_eta",
+#     list(tau_eta,
+#          mat =  "tau_eta",
 #          op =  "~1",
 #          symmetrical= FALSE, 
 #          sampletable=sampleStats,
@@ -212,102 +233,75 @@ lnm <- function(...){
 #          start = lambdaStart
 #     ),
 #     
-#     # Omega:
-#     list(omega_eta,
-#          mat =  "omega_eta",
-#          op =  "--",
-#          symmetrical= TRUE, 
+#     # Beta:
+#     list(beta,
+#          mat =  "beta",
+#          op =  "<-",
 #          sampletable=sampleStats,
 #          rownames = latents,
 #          colnames = latents,
 #          sparse = TRUE,
-#          posdef = TRUE,
-#          diag0=TRUE,
-#          lower = -1,
-#          upper = 1,
-#          start = omegaStart
+#          start = betaStart
 #     ),
 #     
-#     # Delta_eta:
-#     list(delta_eta,
-#          mat =  "delta_eta",
-#          op =  "~/~",
-#          symmetrical= TRUE, 
-#          sampletable=sampleStats,
-#          rownames = latents,
-#          colnames = latents,
-#          sparse = TRUE,
-#          posdef = TRUE,
-#          diagonal = TRUE,
-#          lower = 0,
-#          start = deltaStart
-#     ),
-#     
-#     # Sigma_epsilon:
-#     list(sigma_epsilon,
-#          mat =  "sigma_epsilon",
+#     # Latent covs:
+#     list(sigma_zeta,
+#          mat =  "sigma_zeta",
 #          op =  "~~",
+#          symmetrical= TRUE, 
+#          sampletable=sampleStats,
+#          rownames = latents,
+#          colnames = latents,
+#          sparse = TRUE,
+#          posdef = TRUE,
+#          start = sigma_zeta_start
+#     ),
+#     
+#     # Reisdual network
+#     list(omega_epsilon,
+#          mat =  "omega_epsilon",
+#          op =  "--",
 #          symmetrical= TRUE, 
 #          sampletable=sampleStats,
 #          rownames = sampleStats@variables$label,
 #          colnames = sampleStats@variables$label,
 #          sparse = TRUE,
 #          posdef = TRUE,
-#          lower = 1e-10,
-#          start = sigma_epsilon_start
-#     )
+#          diag0=TRUE
+#     ),
 #     
+#     
+#     # Delta_eta:
+#     list(delta_epsilon,
+#          mat =  "delta_epsilon",
+#          op =  "~/~",
+#          symmetrical= TRUE, 
+#          sampletable=sampleStats,
+#          rownames = sampleStats@variables$label,
+#          colnames = sampleStats@variables$label,
+#          sparse = TRUE,
+#          posdef = TRUE,
+#          diagonal = TRUE,
+#          lower = 0,
+#          start = delta_epsilon_start
+#     )
 #   )
-#   # 
-#   # # Set lambda start:
-#   # pars$partable$est[pars$partable$matrix=="lambda" & !pars$partable$fixed] <- 0.5
-#   # 
-#   # # Set tau start
-#   # for (g in 1:nGroup){
-#   #   pars$partable$est[pars$partable$matrix=="tau" & pars$partable$group_id == g] <- sampleStats@means[[g]]
-#   # }
-#   # 
+# 
 #   # Store in model:
 #   model@parameters <- pars$partable
 #   model@matrices <- pars$mattable
 #   model@extramatrices <- list(
 #     D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
+#     Deta = psychonetrics::duplicationMatrix(nLatent), # non-strict duplciation matrix
 #     L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
-#     Dstar = psychonetrics::duplicationMatrix(nLatent,diag = FALSE), # Strict duplicaton matrix
-#     ITheta = Diagonal(nNode*(nNode+1)/2),
+#     Dstar = psychonetrics::duplicationMatrix(nNode,diag = FALSE), # Strict duplicaton matrix
 #     In = Diagonal(nNode), # Identity of dim n
 #     Inlatent = Diagonal(nLatent),
 #     C = as(lavaan::lav_matrix_commutation(nNode, nLatent),"sparseMatrix"),
-#     A = psychonetrics::diagonalizationMatrix(nLatent)
+#     Cbeta = as(lavaan::lav_matrix_commutation(nLatent, nLatent),"sparseMatrix"),
+#     A = psychonetrics::diagonalizationMatrix(nNode)
 #   )
 #     
-#   # Form the fitfunctions list:
-#   # if (missing(fitfunctions)){
-#   #   model@fitfunctions <- list(
-#   #     fitfunction = fit_lnm,
-#   #     gradient = gradient_lnm,
-#   #     # hessian = hessian_ggm,
-#   #     loglik=loglik_ggm,
-#   #     information = Fisher_lnm,
-#       # extramatrices = list(
-#       #   D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
-#       #   L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
-#       #   Dstar = psychonetrics::duplicationMatrix(nLatent,diag = FALSE), # Strict duplicaton matrix
-#       #   ITheta = Diagonal(nNode*(nNode+1)/2),
-#       #   # A = diagonalizationMatrix(nNode), # Diagonalization matrix
-#       #   # An2 = diagonalizationMatrix(nNode^2), # Larger diagonalization matrix
-#       #   In = Diagonal(nNode), # Identity of dim n
-#       #   Inlatent = Diagonal(nLatent),
-#       #   C = as(lavaan::lav_matrix_commutation(nNode, nLatent),"sparseMatrix"),
-#       #   A = psychonetrics::diagonalizationMatrix(nLatent)
-#       #   # In2 = Diagonal(nNode^2), # Identity of dim n^2
-#       #   # In3 = Diagonal(nNode^3), # Identity of dim n^3
-#       #   # E = basisMatrix(nNode) # Basis matrix
-#       # )
-#   #   )    
-#   # } else {
-#   #   model@fitfunctions <- fitfunctions
-#   # }
 #   
 #   # Form the model matrices
 #   model@modelmatrices <- formModelMatrices(model)
@@ -336,7 +330,7 @@ lnm <- function(...){
 #     
 #     ### Saturated model ###
 #     model@baseline_saturated$saturated <- cholesky(data, 
-#                                                  lowertri = "full", 
+#                                                 lowertri = "full", 
 #                                                  vars = vars,
 #                                                  groups = groups,
 #                                                  covs = covs,
@@ -356,11 +350,11 @@ lnm <- function(...){
 #     }
 #   }
 #   
-#   # Identify model:
+#   # TODO: Identify model:
 #   if (identify){
 #     model <- identify(model)
 #   }
-#   
+#   # 
 #   # Return model:
 #   return(model)
 # }

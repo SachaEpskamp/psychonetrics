@@ -89,7 +89,7 @@ runmodel <- function(
   #   }
   #   
   # }
-
+  
   # if (optimizer%in% c("Nelder-Mead","L-BFGS-B","ucminf") & level == "hessian"){
   # if (optimizer%in% c("ucminf") & level == "hessian"){
   #   warning("Optimizer does not support analytical Hessian. Using numeric Hessian instead.")
@@ -98,7 +98,7 @@ runmodel <- function(
   
   if (verbose) message("Estimating model...")
   # Form optimizer arguments:
-
+  
   # if (optimizer == "nlminb"){
   #   control.nlminb <- list(eval.max=20000L,
   #                          iter.max=10000L,
@@ -183,8 +183,8 @@ runmodel <- function(
   #   #   optimresults$inverseHessian <- optim.out$invhessian
   #   # }
   # }
-
-
+  
+  
   optim.control$par <- start
   optim.control$fn <- psychonetrics_fitfunction
   optim.control$model <- x
@@ -205,7 +205,7 @@ runmodel <- function(
   optim.out <- do.call(optimr,optim.control)
   
   # Update model:
-  x <- updateModel(optim.out$par,x)
+  x <- updateModel(optim.out$par,x,updateMatrices = TRUE)
   
   # Make list:
   # optimresults <- list(
@@ -217,108 +217,108 @@ runmodel <- function(
   optimresults <- optim.out
   optimresults$optimizer <- optimizer
   
-# 
-#   ### START OPTIMIZATION ###
-#   if (level == "fitfunction"){
-#     if (optimizer == "nlminb"){
-#       optim.out <- nlminb(start=start,
-#                           objective=x@fitfunctions$fitfunction,
-#                           gradient=NULL,
-#                           hessian = NULL,
-#                           lower=lower,
-#                           upper=upper,
-#                           model = x,
-#                           control=control
-#       )      
-#     } else if (optimizer == "ucminf"){
-#       out <- ucminf(start, x@fitfunctions$fitfunction, model = x)
-#       optim.out <- list(
-#         par = out$par,
-#         objective = out$value,
-#         convergence = out$convergence,
-#         message = out$message
-#       )
-#     } else {
-#       out <- optim(start,
-#                    fn=x@fitfunctions$fitfunction,
-#                    model=x,
-#                    lower=lower,
-#                    upper = upper,
-#                    # gr = x@fitfunctions$gradient,
-#                    method = optimizer)
-#       optim.out <- list(
-#         par = out$par,
-#         objective = out$value,
-#         convergence = out$convergence,
-#         message = out$message
-#       )
-#     }
-#     
-#     # scale=SCALE, # FIXME: What is this in lavaan?
-#   } else if (level == "gradient"){
-#     if (optimizer == "nlminb"){
-#       optim.out <- nlminb(start=start,
-#                           objective=x@fitfunctions$fitfunction,
-#                           gradient=x@fitfunctions$gradient,
-#                           hessian = NULL,
-#                           lower=lower,
-#                           upper=upper,
-#                           model = x,
-#                           control=control
-#       )
-#     } else if (optimizer == "ucminf"){
-#       out <- ucminf(start, x@fitfunctions$fitfunction,gr = x@fitfunctions$gradient, model = x)
-#       optim.out <- list(
-#         par = out$par,
-#         objective = out$value,
-#         convergence = out$convergence,
-#         message = out$message
-#       )
-#     } else {
-#       out <- optim(start,
-#                    fn=x@fitfunctions$fitfunction,
-#                    model=x,
-#                    lower=lower,
-#                    upper = upper,
-#                    gr = x@fitfunctions$gradient,
-#                    method = optimizer)
-#       optim.out <- list(
-#         par = out$par,
-#         objective = out$value,
-#         convergence = out$convergence,
-#         message = out$message
-#       )
-#     }
-#     
-#   } else {
-#     
-#     optim.out <- nlminb(start=start,
-#                         objective=x@fitfunctions$fitfunction,
-#                         gradient=x@fitfunctions$gradient,
-#                         hessian = x@fitfunctions$hessian,
-#                         lower=lower,
-#                         upper=upper,
-#                         model = x,
-#                         control=control
-#     )
-#     
-#   }
-#   
-
+  # 
+  #   ### START OPTIMIZATION ###
+  #   if (level == "fitfunction"){
+  #     if (optimizer == "nlminb"){
+  #       optim.out <- nlminb(start=start,
+  #                           objective=x@fitfunctions$fitfunction,
+  #                           gradient=NULL,
+  #                           hessian = NULL,
+  #                           lower=lower,
+  #                           upper=upper,
+  #                           model = x,
+  #                           control=control
+  #       )      
+  #     } else if (optimizer == "ucminf"){
+  #       out <- ucminf(start, x@fitfunctions$fitfunction, model = x)
+  #       optim.out <- list(
+  #         par = out$par,
+  #         objective = out$value,
+  #         convergence = out$convergence,
+  #         message = out$message
+  #       )
+  #     } else {
+  #       out <- optim(start,
+  #                    fn=x@fitfunctions$fitfunction,
+  #                    model=x,
+  #                    lower=lower,
+  #                    upper = upper,
+  #                    # gr = x@fitfunctions$gradient,
+  #                    method = optimizer)
+  #       optim.out <- list(
+  #         par = out$par,
+  #         objective = out$value,
+  #         convergence = out$convergence,
+  #         message = out$message
+  #       )
+  #     }
+  #     
+  #     # scale=SCALE, # FIXME: What is this in lavaan?
+  #   } else if (level == "gradient"){
+  #     if (optimizer == "nlminb"){
+  #       optim.out <- nlminb(start=start,
+  #                           objective=x@fitfunctions$fitfunction,
+  #                           gradient=x@fitfunctions$gradient,
+  #                           hessian = NULL,
+  #                           lower=lower,
+  #                           upper=upper,
+  #                           model = x,
+  #                           control=control
+  #       )
+  #     } else if (optimizer == "ucminf"){
+  #       out <- ucminf(start, x@fitfunctions$fitfunction,gr = x@fitfunctions$gradient, model = x)
+  #       optim.out <- list(
+  #         par = out$par,
+  #         objective = out$value,
+  #         convergence = out$convergence,
+  #         message = out$message
+  #       )
+  #     } else {
+  #       out <- optim(start,
+  #                    fn=x@fitfunctions$fitfunction,
+  #                    model=x,
+  #                    lower=lower,
+  #                    upper = upper,
+  #                    gr = x@fitfunctions$gradient,
+  #                    method = optimizer)
+  #       optim.out <- list(
+  #         par = out$par,
+  #         objective = out$value,
+  #         convergence = out$convergence,
+  #         message = out$message
+  #       )
+  #     }
+  #     
+  #   } else {
+  #     
+  #     optim.out <- nlminb(start=start,
+  #                         objective=x@fitfunctions$fitfunction,
+  #                         gradient=x@fitfunctions$gradient,
+  #                         hessian = x@fitfunctions$hessian,
+  #                         lower=lower,
+  #                         upper=upper,
+  #                         model = x,
+  #                         control=control
+  #     )
+  #     
+  #   }
+  #   
+  
   x@optim <- optimresults
   x@computed <- TRUE
   x@objective <- optimresults$value
   
   # Add information:
   # if (!is.null(x@fitfunctions$information)){
-    x@information <- psychonetrics_FisherInformation(x)
-    
-    if (!all(x@information == t(x@information))){
-      x@information <- 0.5 * (x@information + t(x@information))
-    }
-    if (any(Re(eigen(x@information)$values) < 0)){
-      warning("Information matrix is not positive semi-definite. Model might not be identified.")
-    }
+  x@information <- psychonetrics_FisherInformation(x)
+  
+  if (!all(x@information == t(x@information))){
+    x@information <- 0.5 * (x@information + t(x@information))
+  }
+  if (any(Re(eigen(x@information)$values) < 0)){
+    warning("Information matrix is not positive semi-definite. Model might not be identified.")
+  }
   # }
   # Add fit:
   if (addfit){

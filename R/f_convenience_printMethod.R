@@ -28,15 +28,30 @@ definition = function(object){
   # output some model specific stats:
   mod <- switch(
     object@model,
+    # "lnm" = "Latent Network Model (LNM)",
+    # "ggm" = "Gaussian graphical model (GGM)",
+    # "rnm" = "Residual network model (RNM)",
+    "gvar" = "Graphical vector-autoregression (GVAR)",
+    "varcov" = "Variance-covariance matrix (varcov)",
+    # "cholesky" = "Cholesky decomposition (cholesky)",
+    "lvm" = "Latent variable model (LVM)"
+  )
+  
+  submod <- switch(
+    object@submodel,
+    "none" = "none",
     "lnm" = "Latent Network Model (LNM)",
     "ggm" = "Gaussian graphical model (GGM)",
     "rnm" = "Residual network model (RNM)",
     "gvar" = "Graphical vector-autoregression (GVAR)",
-    "varcov" = "Variance-covariance matrix (varcov)",
-    "cholesky" = "Cholesky decomposition (cholesky)"
+    "cholesky" = "Cholesky decomposition (cholesky)",
+    "sem" = "Structural equation model (SEM)",
+    "lrnm" = "Latent & residual network model (LRNM)"
   )
+  
   cat("\n\nModel:",
-      "\n\t- model used:",mod,
+      "\n\t- Model used:",mod,
+      "\n\t- Submodel used:",submod,
       "\n\t- Number of parameters:",max(object@parameters$par))
   
   # Not computeD:

@@ -50,6 +50,23 @@ prune <- function(
       } else if (x@submodel == "cov"){
         matrices <- "sigma"
       } 
+    }  else if (x@model == "lvm"){
+      
+      # Only add GGM structures to search:
+      matrices <- character(0)
+      if (x@types$latent == "ggm"){
+        matrices <- c(matrices,"omega_zeta")
+      } else if (x@types$latent == "prec"){
+        matrices <- c(matrices,"kappa_zeta")
+      }
+      
+      if (x@types$residual == "ggm"){
+        matrices <- c(matrices,"omega_epsilon")
+      } else if (x@types$residual == "prec"){
+        matrices <- c(matrices,"kappa_epsilon")
+      }
+      
+      
     } else if (x@model == "lnm"){
       matrices <- "omega_eta"
     } else if (x@model == "rnm"){
