@@ -5,7 +5,8 @@ matrixsetup_sigma <- function(
   expcov, # Expected covariance matrices (list).
   labels,
   equal = FALSE,
-  sampletable
+  sampletable,
+  name = "sigma"
 ){
   # Fix Sigma:
   sigma <- fixAdj(sigma,nGroup,nNode,equal)
@@ -22,7 +23,7 @@ matrixsetup_sigma <- function(
   
   # Form the model matrix part:
   list(sigma,
-       mat =  "sigma",
+       mat =  name,
        op =  "~~",
        symmetrical= TRUE, 
        rownames = labels,

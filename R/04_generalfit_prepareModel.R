@@ -4,12 +4,14 @@ prepareModel <- function(x, model){
   
   # Get the function:
   prepFun <- switch(framework,
-        "lnm" = prepare_lnm,
-        "ggm" = prepare_ggm,
-        "rnm" = prepare_rnm,
+        # "lnm" = prepare_lnm,
+        # "ggm" = prepare_ggm,
+        # "rnm" = prepare_rnm,
         "gvar" = prepare_gvar,
         "varcov" = prepare_varcov,
-        "cholesky" = prepare_cholesky)
+        "lvm" = prepare_lvm
+        # "cholesky" = prepare_cholesky
+        )
 # prepare:
   prep <- prepFun(x, model)
     

@@ -5,7 +5,8 @@ matrixsetup_delta <- function(
   expcov, # Expected covariance matrices (list).
   labels,
   equal = FALSE,
-  sampletable
+  sampletable,
+  name = "delta"
 ){
   # Fix lower tri:
   delta <- fixAdj(delta,nGroup,nNode,equal,diagonal=TRUE)
@@ -34,7 +35,7 @@ matrixsetup_delta <- function(
   # Form the model matrix part:
 
   list(delta,
-       mat =  "delta",
+       mat =  name,
        op =  "~/~",
        symmetrical= TRUE, 
        sampletable=sampletable,

@@ -5,7 +5,8 @@ matrixsetup_kappa <- function(
   expcov, # Expected covariance matrices (list).
   labels,
   equal = FALSE,
-  sampletable
+  sampletable,
+  name = "kappa"
 ){
   # Fix lower tri:
   kappa <- fixAdj(kappa,nGroup,nNode,equal,diag0=FALSE)
@@ -32,7 +33,7 @@ matrixsetup_kappa <- function(
 
   # Form the model matrix part:
   list(kappa,
-       mat =  "kappa",
+       mat =  name,
        op =  "--",
        symmetrical= TRUE, 
        sampletable=sampletable,

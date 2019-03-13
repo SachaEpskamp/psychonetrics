@@ -5,7 +5,8 @@ matrixsetup_lowertri <- function(
   expcov, # Expected covariance matrices (list).
   labels,
   equal = FALSE,
-  sampletable
+  sampletable,
+  name = "lowertri"
 ){
   # Fix lower tri:
   lowertri <- fixAdj(lowertri,nGroup,nNode,equal)
@@ -29,7 +30,7 @@ matrixsetup_lowertri <- function(
   
   # Form the model matrix part:
   list(lowertri,
-       mat =  "lowertri",
+       mat =  name,
        op =  "~chol~",
        lowertri= TRUE, 
        sampletable=sampletable,
