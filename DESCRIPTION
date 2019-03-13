@@ -1,7 +1,7 @@
 Package: psychonetrics
 Type: Package
 Title: Psychometric Network Models
-Version: 0.1.4
+Version: 0.1.5
 Author: Sacha Epskamp
 Maintainer: Sacha Epskamp <mail@sachaepskamp.com>
 Description: ...

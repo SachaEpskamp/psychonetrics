@@ -5,7 +5,8 @@ matrixsetup_omega <- function(
   expcov, # Expected covariance matrices (list).
   labels,
   equal = FALSE,
-  sampletable
+  sampletable,
+  name = "omega"
 ){
   # Fix lower tri:
   omega <- fixAdj(omega,nGroup,nNode,equal,diag0=TRUE)
@@ -33,7 +34,7 @@ matrixsetup_omega <- function(
   
   # Form the model matrix part:
   list(omega,
-       mat =  "omega",
+       mat =  name,
        op =  "--",
        symmetrical= TRUE, 
        sampletable=sampletable,

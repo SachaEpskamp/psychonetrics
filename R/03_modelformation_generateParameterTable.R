@@ -30,7 +30,9 @@ parRelabel <- function(x){
 }
 
 generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, sampletable, rownames, colnames, rowid, colid, sparse = FALSE, posdef = FALSE, diag0=FALSE, diagonal = FALSE,
-                                   lower = -Inf, upper = Inf, start, lowertri=FALSE){
+                                   lower = -Inf, upper = Inf, start, lowertri=FALSE,
+                                   ... # Ignored dummy arguments
+                                   ){
   # rowid and colid can be missing:
   if (missing(rowid)){
     rowid <- seq_along(rownames)

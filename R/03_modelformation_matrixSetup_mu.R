@@ -5,7 +5,8 @@ matrixsetup_mu <- function(
   expmeans, # Expected covariance matrices (list).
   labels,
   equal = FALSE,
-  sampletable
+  sampletable,
+  name = "mu"
 ){
   # Fix mu
   mu <- fixMu(mu,nGroup,nNode,equal)
@@ -22,7 +23,7 @@ matrixsetup_mu <- function(
 
   # Form the model matrix part:
   list(mu,
-       mat =  "mu",
+       mat =  name,
        op =  "~1",
        symmetrical= FALSE,
        sampletable=sampletable,

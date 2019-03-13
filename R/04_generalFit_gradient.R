@@ -22,11 +22,12 @@ psychonetrics_gradient <- function(x, model){
   modelJacobian <- switch(
     model@model,
     "lnm" = d_phi_theta_lnm,
-    "ggm" = d_phi_theta_ggm,
+    # "ggm" = d_phi_theta_ggm,
     "rnm" = d_phi_theta_rnm,
     "gvar" = ifelse(model@rawts,d_phi_theta_gvar_rawts,d_phi_theta_gvar),
     "varcov" = d_phi_theta_varcov,
-    "cholesky" = d_phi_theta_cholesky
+    "lvm" = d_phi_theta_lvm
+    # "cholesky" = d_phi_theta_cholesky
   )
   modelPart <- modelJacobian(prep)
  
