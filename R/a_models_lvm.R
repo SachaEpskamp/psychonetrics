@@ -315,6 +315,7 @@ lvm <- function(
     # Form baseline model:
     model@baseline_saturated$baseline <- varcov(data,
                                                 type = "chol",
+                                                lowertri = "empty",
                                              vars = vars,
                                              groups = groups,
                                              covs = covs,
