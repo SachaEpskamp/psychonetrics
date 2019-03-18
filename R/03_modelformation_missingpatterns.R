@@ -1,5 +1,9 @@
 # This function will make a dummy multiple group model for all possible missingness patterns
-missingpatterns <- function(dat){
+missingpatterns <- function(dat, verbose = TRUE){
+  if (verbose){
+    message("Computing missingness patterns...")
+  }
+  
   # Remove rows with full missing:
   dat <- dat[rowSums(is.na(dat)) < ncol(dat),]
   
@@ -19,6 +23,10 @@ missingpatterns <- function(dat){
   dumSig <- matrix(0,nvar,nvar)
   dumSig[lower.tri(dumSig,diag=TRUE)] <- nvar + seq_len(sum(lower.tri(dumSig,diag=TRUE)))
   patterns <- vector("list",nrow(unMis))
+  
+  if (verbose){
+    pb <- txtProgressBar(min=0,max=nrow(unMis),style = 3)
+  }
   # for every pattern:
   for (i in 1:nrow(unMis)){
     patterns[[i]]$inds <- which(colSums(t(mis) == unMis[i,]) == ncol(mis))
@@ -48,7 +56,13 @@ missingpatterns <- function(dat){
     # Find the proper elimination matrix:
     # inds <- c(dumSig[obs,obs,drop=FALSE])
     # patterns[[i]]$Lsig <- sparseMatrix(i=seq_along(inds),j=inds,dims=c(length(inds),ncol(dumSig)^2))
-    
+    if (verbose){
+      setTxtProgressBar(pb, i)
+    }
+  }
+  
+  if (verbose){
+    close(pb)
   }
   
   patterns
