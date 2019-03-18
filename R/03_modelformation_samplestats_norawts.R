@@ -7,7 +7,8 @@ samplestats_norawts <- function(
   means, # alternative means (matrix nvar * ngroup)
   nobs, # Alternative if data is missing (length ngroup)
   missing = c("listwise","pairwise"),
-  fimldata = FALSE){
+  fimldata = FALSE,
+  verbose = TRUE){
   missing <- match.arg(missing)
   
   # Check data:
@@ -232,7 +233,7 @@ samplestats_norawts <- function(
   # add datA:
   if (fimldata){
     object@fimldata <- lapply(seq_along(groupNames),function(x){
-      missingpatterns(data[data[[groups]] == x,vars])
+      missingpatterns(data[data[[groups]] == x,vars],verbose=verbose)
     })
   }
     
