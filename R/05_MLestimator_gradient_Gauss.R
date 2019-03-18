@@ -5,10 +5,11 @@ jacobian_gaussian_group_sigmaVersion_meanPart <- function(sigma,mu,means,kappa,.
   grad_mean
 }
 
-jacobian_gaussian_group_sigmaVersion_sigmaPart <- function(S,means,mu,sigma,D,kappa,Drawts,...){
-    if (nrow(Drawts) != ncol(Drawts)){
-      D <- Diagonal(n = nrow(sigma)^2)
-    } 
+jacobian_gaussian_group_sigmaVersion_sigmaPart <- function(S,means,mu,sigma,D,kappa,...){
+    # if (nrow(Drawts) != ncol(Drawts)){
+    #   D <- Diagonal(n = nrow(sigma)^2)
+    # } 
+  
 
     # sigma part:
     grad_sigma <- - t(Vec(S) + Vec((means - mu) %*% t(means - mu)) - Vec(sigma)) %*% (kappa %(x)% kappa) %*% D
@@ -36,7 +37,7 @@ jacobian_gaussian_group_sigma <- function(...,Drawts,mu,sigma){
 # Now for all groups:
 jacobian_gaussian_sigma <- function(prep){
   # model is already prepared!
-  
+
   # d_phi_theta per group:
   g_per_group <- lapply(prep$groupModels,do.call,what=jacobian_gaussian_group_sigma)
   

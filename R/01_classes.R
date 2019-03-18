@@ -73,7 +73,7 @@ generate_psychonetrics <- setClass("psychonetrics", slots = c(
   types = "list"
 ),
 prototype = list(
-  model = "dummy",
+  model = "dummy", submodel = "none",
   parameters = data.frame(
     var1 = character(0),
     var1_id = integer(0),

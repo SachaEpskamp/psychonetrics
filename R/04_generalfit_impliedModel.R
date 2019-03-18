@@ -7,7 +7,8 @@ impliedModel <- function(model, types, all = FALSE){
         "lvm" = implied_lvm,
         "varcov" = implied_varcov,
         "gvar" = implied_gvar_norawts,
-        "var1" = implied_var1
+        "var1" = implied_var1,
+        "panelvar1" = implied_panelvar1
         )
   
 # implied:

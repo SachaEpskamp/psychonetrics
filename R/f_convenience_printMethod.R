@@ -26,6 +26,7 @@ definition = function(object){
       "\n\t- Number of observed summary statistics:",object@sample@nobs)
   
   # output some model specific stats:
+
   mod <- switch(
     object@model,
     # "lnm" = "Latent Network Model (LNM)",
@@ -35,7 +36,8 @@ definition = function(object){
     "varcov" = "Variance-covariance matrix (varcov)",
     # "cholesky" = "Cholesky decomposition (cholesky)",
     "lvm" = "Latent variable model (LVM)",
-    "var1" = "Lag-1 vector-autoregression (VAR1)"
+    "var1" = "Lag-1 vector-autoregression (VAR1)",
+    "panelvar1" = "Lag-1 panel vector auto-regression (panelvar1)"
   )
   
   submod <- switch(

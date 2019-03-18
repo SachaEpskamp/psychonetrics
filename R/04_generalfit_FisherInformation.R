@@ -36,7 +36,8 @@ psychonetrics_FisherInformation <- function(model){
     "gvar" =  ifelse(model@rawts,d_phi_theta_gvar_rawts,d_phi_theta_gvar),
     "varcov" = d_phi_theta_varcov,
     "lvm" = d_phi_theta_lvm,
-    "var1" = d_phi_theta_var1
+    "var1" = d_phi_theta_var1,
+    "panelvar1" = d_phi_theta_panelvar1
     # "cholesky" = d_phi_theta_cholesky
   )
   modelPart <- modelJacobian(prep)

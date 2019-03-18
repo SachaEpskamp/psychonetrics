@@ -50,7 +50,21 @@ stepup <- function(
         matrices <- c(matrices,"omega_zeta")
       }
       
-    }else stop("No default argument for 'matrices' for current model.")
+    }else if (x@model == "panelvar1"){
+      matrices <- c("beta")
+      if (x@types$contemporaneous == "prec"){
+        matrices <- c(matrices,"kappa_zeta")
+      } else if (x@types$contemporaneous == "ggm"){
+        matrices <- c(matrices,"omega_zeta")
+      }
+      
+      if (x@types$between == "prec"){
+        matrices <- c(matrices,"kappa_mu")
+      } else if (x@types$between == "ggm"){
+        matrices <- c(matrices,"omega_mu")
+      }
+      
+    } else stop("No default argument for 'matrices' for current model.")
   }
   
   # Check if MIs are added:
