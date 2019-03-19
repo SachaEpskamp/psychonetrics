@@ -19,3 +19,4 @@ importFrom("graphics", "abline", "par")
 
 importFrom("mgcv","uniquecombs")
 importFrom("optimx","optimr")
+importFrom("mvtnorm","rmvnorm")

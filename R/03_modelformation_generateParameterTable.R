@@ -93,7 +93,6 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
     curMaxPar <- max(par)    
   }
 
-
   # Now loop if needed:
   if (any(x[ind] > 1)){
     for (p in unique(x[ind & x!=0 & x!=1])){
