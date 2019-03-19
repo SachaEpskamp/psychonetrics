@@ -215,10 +215,9 @@ panelvar1 <- function(
                                               labels = varnames,
                                               equal = "kappa_mu" %in% equal, sampletable = sampleStats)
   }
-  
+
   # Generate the full parameter table:
   pars <- do.call(generateAllParameterTables, modMatrices)
-  
   
   # Store in model:
   model@parameters <- pars$partable
