@@ -37,7 +37,8 @@ definition = function(object){
     # "cholesky" = "Cholesky decomposition (cholesky)",
     "lvm" = "Latent variable model (LVM)",
     "var1" = "Lag-1 vector-autoregression (VAR1)",
-    "panelvar1" = "Lag-1 panel vector auto-regression (panelvar1)"
+    "panelvar1" = "Lag-1 panel vector auto-regression (panelvar1)",
+    "dlvm1" = "Lag-1 dynamic latent variable model (dlvm1)"
   )
   
   submod <- switch(

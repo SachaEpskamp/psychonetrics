@@ -201,7 +201,8 @@ runmodel <- function(
   optim.control$method <- optimizer
   
   # Add bounds:
-  if (optimizer %in% c("nlmimb","L-BFGS-B","lbfgs")){
+  if (optimizer %in% c("nlminb","L-BFGS-B","lbfgs")){
+
     optim.control$lower <- lower
     optim.control$upper <- upper
   }

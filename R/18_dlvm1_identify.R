@@ -60,12 +60,11 @@ identify_dlvm1 <- function(x){
       x@parameters <- clearpars(x@parameters, vars)
       
     } else {
-      
       # Within-subject part:
       # Set all first factor loadings equal to 1:
       for (i in unique(x@parameters$col[x@parameters$matrix == "lambda_within"])){
         # firstLoading <- which(!x@parameters$fixed & x@parameters$matrix == "lambda" & x@parameters$col == i)[1]  
-        firstLoading <- which((!x@parameters$fixed | (x@parameters$fixed & x@parameters$est != 0)) & x@parameters$matrix == "lambda" & x@parameters$col == i)[1] 
+        firstLoading <- which((!x@parameters$fixed | (x@parameters$fixed & x@parameters$est != 0)) & x@parameters$matrix == "lambda_within" & x@parameters$col == i)[1] 
         
         x@parameters$est[firstLoading] <- 1
         x@parameters$par[firstLoading] <- 0
@@ -80,7 +79,7 @@ identify_dlvm1 <- function(x){
       # Set all first factor loadings equal to 1:
       for (i in unique(x@parameters$col[x@parameters$matrix == "lambda_between"])){
         # firstLoading <- which(!x@parameters$fixed & x@parameters$matrix == "lambda" & x@parameters$col == i)[1]  
-        firstLoading <- which((!x@parameters$fixed | (x@parameters$fixed & x@parameters$est != 0)) & x@parameters$matrix == "lambda" & x@parameters$col == i)[1] 
+        firstLoading <- which((!x@parameters$fixed | (x@parameters$fixed & x@parameters$est != 0)) & x@parameters$matrix == "lambda_between" & x@parameters$col == i)[1] 
         
         x@parameters$est[firstLoading] <- 1
         x@parameters$par[firstLoading] <- 0

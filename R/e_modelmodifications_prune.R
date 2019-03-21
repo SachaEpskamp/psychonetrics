@@ -95,6 +95,32 @@ prune <- function(
         matrices <- c(matrices,"omega_mu")
       }
       
+    } else if (x@model == "dlvm1"){
+      matrices <- c("beta")
+      if (x@types$within_latent == "prec"){
+        matrices <- c(matrices,"kappa_zeta_within")
+      } else if (x@types$within_latent == "ggm"){
+        matrices <- c(matrices,"omega_zeta_within")
+      }
+      
+      if (x@types$within_residual == "prec"){
+        matrices <- c(matrices,"kappa_epsilon_within")
+      } else if (x@types$within_residual == "ggm"){
+        matrices <- c(matrices,"omega_epsilon_within")
+      }
+      
+      if (x@types$between_latent == "prec"){
+        matrices <- c(matrices,"kappa_zeta_between")
+      } else if (x@types$between_latent == "ggm"){
+        matrices <- c(matrices,"omega_zeta_between")
+      }
+      
+      if (x@types$between_residual == "prec"){
+        matrices <- c(matrices,"kappa_epsilon_between")
+      } else if (x@types$between_residual == "ggm"){
+        matrices <- c(matrices,"omega_epsilon_between")
+      }
+      
     } else stop("No default argument for 'matrices' for current model.")
   }
   
