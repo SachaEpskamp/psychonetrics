@@ -4,7 +4,8 @@ matrixsetup_lambda <- function(
   expcov, # Expected covariance matrices (list).
   observednames, latentnames,
   equal = FALSE,
-  sampletable
+  sampletable,
+  name = "lambda"
 ){
   # Fix lambda:
   lambda <- fixMatrix(lambda,nGroup,equal)
@@ -27,7 +28,7 @@ matrixsetup_lambda <- function(
   
   # Form the model matrix part:
   list(lambda,
-       mat =  "lambda",
+       mat = name,
        op =  "~=",
        rownames = observednames,
        colnames = latentnames,
