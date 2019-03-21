@@ -211,7 +211,9 @@ dlvm1 <- function(
   # Quick and dirty sigma_zeta_within estimate:
   prior_sig_zeta_within <- lapply(seq_along(firstSigma1),function(i){
     # Let's take a pseudoinverse:
-    inv <- corpcor::pseudoinverse(kronecker(modMatrices$lambda_within$start[,,i],modMatrices$lambda_within$start[,,i]))
+    curLam <- Matrix(as.vector(modMatrices$lambda_within$start[,,i,drop=FALSE]),nVar,nLat_within)
+    
+    inv <- corpcor::pseudoinverse(as.matrix(kronecker(curLam,curLam)))
     
     # And obtain psi estimate:
      matrix(inv %*% as.vector(prior_wit_cov[[i]])/2,nLat_within,nLat_within)
@@ -263,7 +265,9 @@ dlvm1 <- function(
   # Quick and dirty sigma_zeta_between estimate:
   prior_sig_zeta_between <- lapply(seq_along(firstSigma1),function(i){
     # Let's take a pseudoinverse:
-    inv <- corpcor::pseudoinverse(kronecker(modMatrices$lambda_between$start[,,i],modMatrices$lambda_between$start[,,i]))
+    curLam <- Matrix(as.vector(modMatrices$lambda_between$start[,,i,drop=FALSE]),nVar,nLat_between)
+    
+    inv <- corpcor::pseudoinverse(as.matrix(kronecker(curLam,curLam)))
     
     # And obtain psi estimate:
     matrix(inv %*% as.vector(prior_bet_cov[[i]])/2,nLat_within,nLat_within)
