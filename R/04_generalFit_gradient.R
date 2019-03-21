@@ -28,7 +28,8 @@ psychonetrics_gradient <- function(x, model){
     "varcov" = d_phi_theta_varcov,
     "lvm" = d_phi_theta_lvm,
     "var1" = d_phi_theta_var1,
-    "panelvar1" = d_phi_theta_panelvar1
+    "panelvar1" = d_phi_theta_panelvar1,
+    "dlvm1" = d_phi_theta_dlvm1
     # "cholesky" = d_phi_theta_cholesky
   )
   
