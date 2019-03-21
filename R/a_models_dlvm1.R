@@ -50,7 +50,7 @@ dlvm1 <- function(
   
   # Identification:
   identify = TRUE,
-  identification = c("loadings","variance"),
+  identification = c("variance","loadings"),
   
   # Latents:
   latents_within,

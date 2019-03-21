@@ -218,7 +218,7 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
   
   # Within residual
   if (within_residual == "chol"){
-    aug_within_residual <-   d_sigma_cholesky(lowertri=dots$lowertri_epsilon_within,L=L_y,C=dots$C_y_y,In=dots$I_within)
+    aug_within_residual <-   d_sigma_cholesky(lowertri=dots$lowertri_epsilon_within,L=L_y,C=dots$C_y_y,In=dots$I_y)
   } else if (within_residual == "prec"){
     aug_within_residual <- d_sigma_kappa(L = L_y, D = dots$D_y, sigma = dots$sigma_epsilon_within)
   } else if (within_residual == "ggm"){

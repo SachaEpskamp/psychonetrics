@@ -66,7 +66,7 @@ implied_dlvm1 <- function(model,all = FALSE){
     x[[g]]$sigma <- 0.5*(x[[g]]$sigma + t(x[[g]]$sigma))
     
     # Precision:
-    x[[g]]$kappa <- as(corpcor::pseudoinverse(x[[g]]$sigma), "Matrix")
+    x[[g]]$kappa <- spectralshift(as(corpcor::pseudoinverse(x[[g]]$sigma), "Matrix"))
     
     # FIXME: forcing symmetric, but not sure why this is needed...
     x[[g]]$kappa <- 0.5*(x[[g]]$kappa + t(x[[g]]$kappa))
