@@ -5,11 +5,12 @@ stepup <- function(
   criterion = "bic", # Stop when criterion is no longer improved. Can also be none to ignore
   matrices, # Matrices to search
   mi = c("mi","mi_free","mi_equal"),
-  greedyadjust = "fdr",
+  greedyadjust = c("fdr", "none", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY"),
   greedy = FALSE, # If TRUE, will start by adding all significant effects followed by pruning
   verbose = TRUE,
   ... # Fit arguments
 ){
+  greedyadjust <- match.arg(greedyadjust)
   mi <- match.arg(mi)
   if (missing(matrices)){
     if (x@model == "varcov"){

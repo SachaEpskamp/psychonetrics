@@ -124,75 +124,138 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal")){
   
   # For every new parameter:
   curMax <- max(x@parameters$par)
+
+  ### NEW
+  curInds <- seq_len(curMax)
+  newInds <- curMax + seq_len(max(modCopy@parameters$par) - curMax)
+  V <-  H[newInds,newInds] - H[newInds,curInds,drop=FALSE] %*% corpcor::pseudoinverse(H[curInds,curInds]) %*% H[curInds,newInds,drop=FALSE]
+  V.diag <- diag(V)
+  idx <- which(V.diag < sqrt(.Machine$double.eps))
+  if(length(idx) > 0L) {
+    V.diag[idx] <- as.numeric(NA)
+  }
+  # How many in total?
+  nTotalPars <- length(c(curInds,newInds))
   
 
-  # for (i in sort(unique(modCopy@parameters$par[modCopy@parameters$par>1 & x@parameters$par == 0]))){
-  # for (i in sort(unique(modCopy@parameters$par[modCopy@parameters$par>1 & (x@parameters$par == 0 | duplicated(x@parameters$par)|rev(duplicated(rev(x@parameters$par))))]))){
-  for (i in sort(unique(modCopy@parameters$par[modCopy@parameters$par != 0]))){
-    ind <- i
-    curInds <- seq_len(curMax)
-    curInds <- curInds[curInds != i]
-    numerator <- as.numeric(H[ind,ind] - H[ind,curInds,drop=FALSE] %*% corpcor::pseudoinverse(H[curInds,curInds]) %*% H[curInds,ind,drop=FALSE])
-    
-    # Effective n:
-    groups <- unique(modCopy@parameters$group_id[modCopy@parameters$par == i])
-    Neff <- sum(modCopy@sample@groups$nobs[modCopy@sample@groups$id %in% groups])
-    
-    
-    if (abs(numerator) < 1e-10){
-      mi <- NA
-      p <- NA
-      epc <- NA
-    } else {
-      # mi <- (n/Neff) * n * (0.5 * g[i]^2)/numerator
-      # mi <- (n/Neff) * ((-n*g[i])^2)/numerator
-      mi <- ((-n*g[i])^2)/numerator
-      # (n/Neff) * n * (0.5 * (-(n/2)*g[i])^2)/numerator
-      
-      mi <- as.numeric(mi)
-      p <- pchisq(mi,df = 1,lower.tail = FALSE)     
-      
-      # Compute epc:
-      d <- (-1 * Neff) * g[ind]
-      # needed? probably not; just in case
-      d[which(abs(d) < 1e-15)] <- 1.0
-      epc <-  2 * mi / d # FIXME: Not correct?
-    }
-    
-    
-    
-    
-    if (type == "normal"){
-      x@parameters$mi[modCopy@parameters$par == i] <- round(mi,10) # round(mi, 3)
-      x@parameters$pmi[modCopy@parameters$par == i] <- round(p,10)
-      x@parameters$epc[modCopy@parameters$par == i] <- round(epc,10)
-    } else if (type == "free"){
-      x@parameters$mi_free[modCopy@parameters$par == i] <- round(mi,10) # round(mi, 3)
-      x@parameters$pmi_free[modCopy@parameters$par == i] <- round(p,10)
-      x@parameters$epc[modCopy@parameters$par == i] <- round(epc,10)
-    } else {
-      x@parameters$mi_equal[modCopy@parameters$par == i] <- round(mi,10) # round(mi,3)
-      x@parameters$pmi_equal[modCopy@parameters$par == i] <- round(p, 10)
-      x@parameters$epc[modCopy@parameters$par == i] <- round(epc,10)
-    }
-    
-  }
-  
-  # Make the rest nicer:
-  if (type == "normal"){
-    x@parameters$mi[is.na(x@parameters$mi)] <- 0
-    x@parameters$pmi[is.na(x@parameters$mi)] <- 1
-    # x@parameters$epc[is.na(x@parameters$mi)] <- 0
-  } else if (type == "free"){
-    x@parameters$mi_free[is.na(x@parameters$mi_free)] <- 0
-    x@parameters$pmi_free[is.na(x@parameters$mi_free)] <- 1
-    # x@parameters$epc_free[is.na(x@parameters$mi_free)] <- 0
+  # Effective N:
+  if (nrow(x@sample@groups) > 1){
+    par <- modCopy@parameters
+    par$id <- seq_len(nrow(par))
+    par <- par %>% left_join(modCopy@sample@groups, by = c("group_id" = "id")) %>% 
+      group_by(id) %>% summarize(Neff = sum(nobs))
+    Neff <- par$Neff  
   } else {
-    x@parameters$mi_equal[is.na(x@parameters$mi_equal)] <- 0
-    x@parameters$pmi_equal[is.na(x@parameters$mi_equal)] <- 1
-    # x@parameters$epc_equal[is.na(x@parameters$mi_equal)] <- 0
+    Neff <- rep(x@sample@groups$nobs[1],nTotalPars)
+  }
+
+  
+  # MIs:
+  # All MIs:
+  mi <- numeric(nTotalPars)
+  
+  mi[newInds] <- ifelse(abs(V.diag) < 1e-10,0,((-Neff[newInds]*g[newInds])^2)/V.diag)
+  if (length(curInds) > 0){
+    mi[curInds] <- ((-Neff[curInds]*g[curInds])^2)/diag(H[curInds,curInds,drop=FALSE])
+  }
+  p <- pchisq(mi,df = 1,lower.tail = FALSE)     
+  
+  # Compute epc:
+  d <- 0.5 * (-1 * Neff) * g
+  # needed? probably not; just in case
+  d[which(abs(d) < 1e-15)] <- 1.0
+  
+  # Expected parameter change:
+  epc <-   mi / d 
+  
+  # Which to fill:
+  fillInds <- match(c(curInds,newInds),modCopy@parameters$par)
+  if (type == "normal"){
+    x@parameters$mi[fillInds] <- round(mi,10) # round(mi, 3)
+    x@parameters$pmi[fillInds] <- round(p,10)
+    x@parameters$epc[fillInds] <- round(epc,10)
+  } else if (type == "free"){
+    x@parameters$mi_free[fillInds] <- round(mi,10) # round(mi, 3)
+    x@parameters$pmi_free[fillInds] <- round(p,10)
+    x@parameters$epc[fillInds] <- round(epc,10)
+  } else {
+    x@parameters$mi_equal[fillInds] <- round(mi,10) # round(mi,3)
+    x@parameters$pmi_equal[fillInds] <- round(p, 10)
+    x@parameters$epc[fillInds] <- round(epc,10)
   }
   
-  
+  return(x)
+  # 
+  # 
+  # #### OLD 
+  # 
+  # # for (i in sort(unique(modCopy@parameters$par[modCopy@parameters$par>1 & x@parameters$par == 0]))){
+  # # for (i in sort(unique(modCopy@parameters$par[modCopy@parameters$par>1 & (x@parameters$par == 0 | duplicated(x@parameters$par)|rev(duplicated(rev(x@parameters$par))))]))){
+  # for (i in sort(unique(modCopy@parameters$par[modCopy@parameters$par != 0]))){
+  #   ind <- i
+  #   curInds <- seq_len(curMax)
+  #   curInds <- curInds[curInds != i]
+  #   numerator <- as.numeric(H[ind,ind] - H[ind,curInds,drop=FALSE] %*% corpcor::pseudoinverse(H[curInds,curInds]) %*% H[curInds,ind,drop=FALSE])
+  #   
+  #   # Effective n:
+  #   groups <- unique(modCopy@parameters$group_id[modCopy@parameters$par == i])
+  #   Neff <- sum(modCopy@sample@groups$nobs[modCopy@sample@groups$id %in% groups])
+  #   
+  #   
+  #   if (abs(numerator) < 1e-10){
+  #     mi <- NA
+  #     p <- NA
+  #     epc <- NA
+  #   } else {
+  #     # mi <- (n/Neff) * n * (0.5 * g[i]^2)/numerator
+  #     # mi <- (n/Neff) * ((-n*g[i])^2)/numerator
+  #     mi <- ((-n*g[i])^2)/numerator
+  #     # (n/Neff) * n * (0.5 * (-(n/2)*g[i])^2)/numerator
+  #     
+  #     mi <- as.numeric(mi)
+  #     p <- pchisq(mi,df = 1,lower.tail = FALSE)     
+  #     
+  #     # Compute epc:
+  #     d <- (-1 * Neff) * g[ind]
+  #     # needed? probably not; just in case
+  #     d[which(abs(d) < 1e-15)] <- 1.0
+  #     epc <-  2 * mi / d # FIXME: Not correct?
+  #   }
+  #   
+  #   
+  #   
+  #   
+  #   if (type == "normal"){
+  #     x@parameters$mi[modCopy@parameters$par == i] <- round(mi,10) # round(mi, 3)
+  #     x@parameters$pmi[modCopy@parameters$par == i] <- round(p,10)
+  #     x@parameters$epc[modCopy@parameters$par == i] <- round(epc,10)
+  #   } else if (type == "free"){
+  #     x@parameters$mi_free[modCopy@parameters$par == i] <- round(mi,10) # round(mi, 3)
+  #     x@parameters$pmi_free[modCopy@parameters$par == i] <- round(p,10)
+  #     x@parameters$epc[modCopy@parameters$par == i] <- round(epc,10)
+  #   } else {
+  #     x@parameters$mi_equal[modCopy@parameters$par == i] <- round(mi,10) # round(mi,3)
+  #     x@parameters$pmi_equal[modCopy@parameters$par == i] <- round(p, 10)
+  #     x@parameters$epc[modCopy@parameters$par == i] <- round(epc,10)
+  #   }
+  #   
+  # }
+  # 
+  # # Make the rest nicer:
+  # if (type == "normal"){
+  #   x@parameters$mi[is.na(x@parameters$mi)] <- 0
+  #   x@parameters$pmi[is.na(x@parameters$mi)] <- 1
+  #   # x@parameters$epc[is.na(x@parameters$mi)] <- 0
+  # } else if (type == "free"){
+  #   x@parameters$mi_free[is.na(x@parameters$mi_free)] <- 0
+  #   x@parameters$pmi_free[is.na(x@parameters$mi_free)] <- 1
+  #   # x@parameters$epc_free[is.na(x@parameters$mi_free)] <- 0
+  # } else {
+  #   x@parameters$mi_equal[is.na(x@parameters$mi_equal)] <- 0
+  #   x@parameters$pmi_equal[is.na(x@parameters$mi_equal)] <- 1
+  #   # x@parameters$epc_equal[is.na(x@parameters$mi_equal)] <- 0
+  # }
+  # 
+  # 
   return(x)
 }
