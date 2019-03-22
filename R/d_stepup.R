@@ -118,7 +118,7 @@ stepup <- function(
         # # Perturb estimate a bit:
         # x@parameters$est[best] <- 0.01
         # Set estimate to EPC:
-        x@parameters$est[best] <- x@parameters$est[best] + x@parameters$epc[best]/3
+        x@parameters$est[best] <- x@parameters$est[best] + sign(x@parameters$epc[best]) * 0.01
         
         # Update the model:
         x@extramatrices$M <- Mmatrix(x@parameters) # FIXME: Make nice function for this
@@ -143,7 +143,7 @@ stepup <- function(
         # Perturb estimate a bit:
         # x@parameters$est[best] <- 0.001
         # Set estimate to EPC:
-        x@parameters$est[best] <- x@parameters$est[best] + x@parameters$epc[best]/3
+        x@parameters$est[best] <- x@parameters$est[best] + sign(x@parameters$epc[best]) * 0.01
         
         # Update the model:
         x@extramatrices$M <- Mmatrix(x@parameters) # FIXME: Make nice function for this

@@ -222,7 +222,7 @@ dlvm1 <- function(
 
   # Setup latent varcov:
   modMatrices <- c(modMatrices,
-  matrixsetup_flexcov(sigma_zeta_within,lowertri_zeta_within,omega_zeta_within,delta_zeta_within,kappa_zeta_within,
+  matrixsetup_flexcov(sigma = sigma_zeta_within,lowertri = lowertri_zeta_within,omega = omega_zeta_within,delta = delta_zeta_within,kappa = kappa_zeta_within,
     type = within_latent,
     name= "zeta_within",
     sampleStats= sampleStats,
