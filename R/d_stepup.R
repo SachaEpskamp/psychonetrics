@@ -5,6 +5,8 @@ stepup <- function(
   criterion = "bic", # Stop when criterion is no longer improved. Can also be none to ignore
   matrices, # Matrices to search
   mi = c("mi","mi_free","mi_equal"),
+  greedyadjust = "fdr",
+  greedy = FALSE, # If TRUE, will start by adding all significant effects followed by pruning
   ... # Fit arguments
 ){
   mi <- match.arg(mi)
@@ -106,18 +108,41 @@ stepup <- function(
     if (any(x@parameters[[mi]][x@parameters$matrix %in% matrices & x@parameters$fixed] > qchisq(alpha,1,lower.tail=FALSE))){
       
       # FIXME: Make nice free parameter function
-      best <- which(x@parameters[[mi]] == max(x@parameters[[mi]][x@parameters$matrix %in% matrices & x@parameters$fixed]))
-      x@parameters$par[best] <- max(x@parameters$par) + 1
-      x@parameters$fixed[best] <- FALSE
-      
-      # Perturb estimate a bit:
-      x@parameters$est[best] <- 0.01
-      
-      # Update the model:
-      x@extramatrices$M <- Mmatrix(x@parameters) # FIXME: Make nice function for this
-      
-      # Run:
-      x <- x %>% runmodel(...,log=FALSE)
+      if (!greedy){
+        best <- which(x@parameters[[mi]] == max(x@parameters[[mi]][x@parameters$matrix %in% matrices & x@parameters$fixed]))
+        x@parameters$par[best] <- max(x@parameters$par) + 1
+        x@parameters$fixed[best] <- FALSE
+        
+        # Perturb estimate a bit:
+        x@parameters$est[best] <- 0.01
+        
+        # Update the model:
+        x@extramatrices$M <- Mmatrix(x@parameters) # FIXME: Make nice function for this
+        
+        # Run:
+        x <- x %>% runmodel(...,log=FALSE)
+      } else {
+        # Add al significant effects:
+        # nTest <- sum(x@parameters$matrix %in% matrices & x@parameters$fixed)
+        # best <- which(x@parameters[[mi]] > qchisq(alpha,1,lower.tail=FALSE) & x@parameters$matrix %in% matrices & x@parameters$fixed)
+        
+        parsToTest <- which(x@parameters$matrix %in% matrices & x@parameters$fixed)
+        best <- parsToTest[p.adjust(pchisq(x@parameters[[mi]][parsToTest],1,lower.tail=FALSE), method = greedyadjust) < alpha]
+        
+        x@parameters$par[best] <- max(x@parameters$par) + seq_along(best)
+        x@parameters$fixed[best] <- FALSE
+        
+        # Perturb estimate a bit:
+        x@parameters$est[best] <- 0.001
+        
+        # Update the model:
+        x@extramatrices$M <- Mmatrix(x@parameters) # FIXME: Make nice function for this
+        
+        # Run:
+        x <- x %>% runmodel(...,log=FALSE) %>% prune(alpha = alpha, adjust = greedyadjust)
+        greedy <- FALSE
+      }
+
     } else {
       break
     }

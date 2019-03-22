@@ -2,7 +2,8 @@
 prune <- function(
   x, # Model
   alpha = 0.01, # Significance
-  bonferroni = FALSE,
+  # bonferroni = FALSE,
+  adjust = c( "none", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr"),
   matrices, # Automatically chosen
   runmodel = TRUE,
   recursive = TRUE,
@@ -10,6 +11,7 @@ prune <- function(
   log = TRUE,
   identify = TRUE,
   ...){
+  adjust <- match.arg(adjust)
   # If not computed, nothing to do:
   if (!x@computed){
     stop("Model must have been computed first.")
@@ -136,14 +138,14 @@ prune <- function(
   }
   
   # Adjust alpha:
-  if (bonferroni){
-    alpha_adjust <- alpha / nTest    
-  } else {
-    alpha_adjust <- alpha
-  }
-  
+  # if (bonferroni){
+  #   alpha_adjust <- alpha / nTest    
+  # } else {
+  #   alpha_adjust <- alpha
+  # }
   # Test for significance:
-  nonsig <- x@parameters$p > alpha_adjust & (seq_len(nrow(x@parameters)) %in% whichTest)
+  # nonsig <- x@parameters$p > alpha_adjust & (seq_len(nrow(x@parameters)) %in% whichTest)
+  nonsig <- p.adjust(x@parameters$p,method = adjust) > alpha & (seq_len(nrow(x@parameters)) %in% whichTest)
   
   # If any non-sig, adjust:
   if (all(is.na(nonsig)) || !any(nonsig[!is.na(nonsig)])){
@@ -187,7 +189,8 @@ prune <- function(
   
   if (log){
     # Add log:
-    x <- addLog(x, paste("Pruned all parameters in matrices ",paste0(matrices,collapse=", ")," at alpha = ",alpha_adjust)) 
+    # x <- addLog(x, paste("Pruned all parameters in matrices ",paste0(matrices,collapse=", ")," at alpha = ",alpha_adjust))
+    x <- addLog(x, paste("Pruned all parameters in matrices ",paste0(matrices,collapse=", ")," at alpha = ",alpha,ifelse(adjust=="none","",paste0(" (adjusted: ",adjust,")"))) )
   }
 
   # Rerun if needed:
