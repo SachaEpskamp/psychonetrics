@@ -4,7 +4,7 @@
 
 # Computes fit measures
 addfit <- function(
- x, ebicTuning = 0.25
+ x #, ebicTuning = 0.25
 ){
   # If not computed, stop:
   if (!x@computed){
@@ -228,8 +228,11 @@ addfit <- function(
   fitMeasures$bic2 <- BIC2
 
   # Add extended bic:
-  fitMeasures$ebic <-  -2*LL + fitMeasures$npar * log(sampleSize) + 4 *  fitMeasures$npar * ebicTuning * log(nVar)
-  fitMeasures$ebicTuning <- ebicTuning
+  fitMeasures$ebic.25 <-  -2*LL + fitMeasures$npar * log(sampleSize) + 4 *  fitMeasures$npar * 0.25 * log(nVar)
+  fitMeasures$ebic.5 <-  -2*LL + fitMeasures$npar * log(sampleSize) + 4 *  fitMeasures$npar * 0.5 * log(nVar)
+  fitMeasures$ebic.75 <-  -2*LL + fitMeasures$npar * log(sampleSize) + 4 *  fitMeasures$npar * 0.7 * log(nVar)
+  fitMeasures$ebic1 <-  -2*LL + fitMeasures$npar * log(sampleSize) + 4 *  fitMeasures$npar * 1 * log(nVar)
+  # fitMeasures$ebicTuning <- ebicTuning
 
   # Put in objet:
   x@fitmeasures <- fitMeasures
