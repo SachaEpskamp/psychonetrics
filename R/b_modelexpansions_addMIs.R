@@ -136,32 +136,38 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal")){
   }
   # How many in total?
   nTotalPars <- length(c(curInds,newInds))
-  
-
-  # Effective N:
-  if (nrow(x@sample@groups) > 1){
-    par <- modCopy@parameters
-    par$id <- seq_len(nrow(par))
-    par <- par %>% left_join(modCopy@sample@groups, by = c("group_id" = "id")) %>% 
-      group_by(id) %>% summarize(Neff = sum(nobs))
-    Neff <- par$Neff  
-  } else {
-    Neff <- rep(x@sample@groups$nobs[1],nTotalPars)
-  }
+  # Total sample size:
+  nTotal <- sum(x@sample@groups$nobs)
+  # 
+  # 
+  # # Effective N:
+  # if (nrow(x@sample@groups) > 1){
+  #   par <- modCopy@parameters
+  #   # par$id[!modCopy@parameters$identified] <- seq_len(sum(!modCopy@parameters$identified))
+  #   par <- par %>% left_join(modCopy@sample@groups, by = c("group_id" = "id")) %>%
+  #     group_by(par) %>% summarize(Neff = sum(nobs))
+  #   Neff <- numeric(max(par$par))
+  #   Neff[par$par[par$par!=0]] <- par$Neff[par$par!=0]
+  # } else {
+  #   Neff <- rep(x@sample@groups$nobs[1],nTotalPars)
+  # }
 
   
   # MIs:
   # All MIs:
   mi <- numeric(nTotalPars)
-  
-  mi[newInds] <- ifelse(abs(V.diag) < 1e-10,0,((-Neff[newInds]*g[newInds])^2)/V.diag)
+
+  # mi[newInds] <- ifelse(abs(V.diag) < 1e-10,0,((-Neff[newInds]*g[newInds])^2)/V.diag)
+  mi[newInds] <- ifelse(abs(V.diag) < 1e-10,0,((-nTotal*g[newInds])^2)/V.diag)
   if (length(curInds) > 0){
-    mi[curInds] <- ((-Neff[curInds]*g[curInds])^2)/diag(H[curInds,curInds,drop=FALSE])
+    # mi[curInds] <- ((-Neff[curInds]*g[curInds])^2)/diag(H[curInds,curInds,drop=FALSE])
+    mi[curInds] <- ((-nTotal*g[curInds])^2)/diag(H[curInds,curInds,drop=FALSE])
   }
   p <- pchisq(mi,df = 1,lower.tail = FALSE)     
   
   # Compute epc:
-  d <- 0.5 * (-1 * Neff) * g
+  # d <- 0.5 * (-1 * Neff) * g
+  d <- 0.5 * (-1 * nTotal) * g
   # needed? probably not; just in case
   d[which(abs(d) < 1e-15)] <- 1.0
   
@@ -171,17 +177,17 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal")){
   # Which to fill:
   fillInds <- match(c(curInds,newInds),modCopy@parameters$par)
   if (type == "normal"){
-    x@parameters$mi[fillInds] <- round(mi,10) # round(mi, 3)
-    x@parameters$pmi[fillInds] <- round(p,10)
-    x@parameters$epc[fillInds] <- round(epc,10)
+    x@parameters$mi[fillInds[!is.na(fillInds)]] <- round(mi[!is.na(fillInds)],10) # round(mi, 3)
+    x@parameters$pmi[fillInds[!is.na(fillInds)]] <- round(p[!is.na(fillInds)],10)
+    x@parameters$epc[fillInds[!is.na(fillInds)]] <- round(epc[!is.na(fillInds)],10)
   } else if (type == "free"){
-    x@parameters$mi_free[fillInds] <- round(mi,10) # round(mi, 3)
-    x@parameters$pmi_free[fillInds] <- round(p,10)
-    x@parameters$epc[fillInds] <- round(epc,10)
+    x@parameters$mi_free[fillInds[!is.na(fillInds)]] <- round(mi[!is.na(fillInds)],10) # round(mi, 3)
+    x@parameters$pmi_free[fillInds[!is.na(fillInds)]] <- round(p[!is.na(fillInds)],10)
+    x@parameters$epc[fillInds[!is.na(fillInds)]] <- round(epc[!is.na(fillInds)],10)
   } else {
-    x@parameters$mi_equal[fillInds] <- round(mi,10) # round(mi,3)
-    x@parameters$pmi_equal[fillInds] <- round(p, 10)
-    x@parameters$epc[fillInds] <- round(epc,10)
+    x@parameters$mi_equal[fillInds[!is.na(fillInds)]] <- round(mi[!is.na(fillInds)],10) # round(mi,3)
+    x@parameters$pmi_equal[fillInds[!is.na(fillInds)]] <- round(p[!is.na(fillInds)], 10)
+    x@parameters$epc[fillInds[!is.na(fillInds)]] <- round(epc[!is.na(fillInds)],10)
   }
   
   return(x)

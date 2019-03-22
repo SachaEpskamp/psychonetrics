@@ -183,8 +183,12 @@ stepup <- function(
     # 
     # Check criterion:
     if (criterion != "none"){
+      if (!criterion %in% names(oldMod@fitmeasures)){
+        stop(paste0("Criterion '",criterion,"' is not supported."))
+      }
       oldCrit <- oldMod@fitmeasures[[criterion]]
       newCrit <- x@fitmeasures[[criterion]]
+
       if (oldCrit < newCrit){
         if (verbose){
           message(paste("Model did not improve criterion, returning previous model."))
