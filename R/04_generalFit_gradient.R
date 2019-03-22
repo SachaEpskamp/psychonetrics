@@ -16,6 +16,7 @@ psychonetrics_gradient <- function(x, model){
     "FIML" = switch(model@distribution,
                    "Gaussian" = jacobian_fiml_gaussian_sigma)
   )
+
   estimatorPart <- estimatorJacobian(prep)
   
   # model part:
@@ -38,7 +39,7 @@ psychonetrics_gradient <- function(x, model){
  
   # Manual part:
   manualPart <- Mmatrix(model@parameters)
-  
+ 
   # Full Jacobian:
   Jac <- estimatorPart %*% modelPart %*% manualPart
 

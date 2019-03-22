@@ -142,6 +142,7 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal")){
     if (abs(numerator) < 1e-10){
       mi <- NA
       p <- NA
+      epc <- NA
     } else {
       # mi <- (n/Neff) * n * (0.5 * g[i]^2)/numerator
       # mi <- (n/Neff) * ((-n*g[i])^2)/numerator
@@ -150,7 +151,12 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal")){
       
       mi <- as.numeric(mi)
       p <- pchisq(mi,df = 1,lower.tail = FALSE)     
-      # epc <- g[i]
+      
+      # Compute epc:
+      d <- (-1 * Neff) * g[ind]
+      # needed? probably not; just in case
+      d[which(abs(d) < 1e-15)] <- 1.0
+      epc <-  2 * mi / d # FIXME: Not correct?
     }
     
     
@@ -159,13 +165,15 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal")){
     if (type == "normal"){
       x@parameters$mi[modCopy@parameters$par == i] <- round(mi,10) # round(mi, 3)
       x@parameters$pmi[modCopy@parameters$par == i] <- round(p,10)
-      # x@parameters$epc[modCopy@parameters$par == i] <- round(epc,10)
+      x@parameters$epc[modCopy@parameters$par == i] <- round(epc,10)
     } else if (type == "free"){
       x@parameters$mi_free[modCopy@parameters$par == i] <- round(mi,10) # round(mi, 3)
       x@parameters$pmi_free[modCopy@parameters$par == i] <- round(p,10)
+      x@parameters$epc[modCopy@parameters$par == i] <- round(epc,10)
     } else {
       x@parameters$mi_equal[modCopy@parameters$par == i] <- round(mi,10) # round(mi,3)
       x@parameters$pmi_equal[modCopy@parameters$par == i] <- round(p, 10)
+      x@parameters$epc[modCopy@parameters$par == i] <- round(epc,10)
     }
     
   }
