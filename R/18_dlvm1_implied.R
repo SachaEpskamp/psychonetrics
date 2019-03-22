@@ -65,8 +65,11 @@ implied_dlvm1 <- function(model,all = FALSE){
     # FIXME: forcing symmetric, but not sure why this is needed...
     x[[g]]$sigma <- 0.5*(x[[g]]$sigma + t(x[[g]]$sigma))
     
+    # if (any(is.na( x[[g]]$sigma))){
+    #   browser()
+    # }
     # Precision:
-    x[[g]]$kappa <- spectralshift(as(corpcor::pseudoinverse(x[[g]]$sigma), "Matrix"))
+    x[[g]]$kappa <- spectralshift(as(solve(spectralshift(x[[g]]$sigma)), "Matrix"))
     
     # FIXME: forcing symmetric, but not sure why this is needed...
     x[[g]]$kappa <- 0.5*(x[[g]]$kappa + t(x[[g]]$kappa))
@@ -75,9 +78,9 @@ implied_dlvm1 <- function(model,all = FALSE){
     x[[g]]$kappa <- as(round(x[[g]]$kappa,14),"Matrix")
     
     # Implied variance--covariance:
-    # sigma <- as(corpcor::pseudoinverse(kappa),"dpoMatrix")
-    # sigma <- as(corpcor::pseudoinverse(kappa),"dpoMatrix")
-    # sigma <- corpcor::pseudoinverse(kappa)
+    # sigma <- as(solve(kappa),"dpoMatrix")
+    # sigma <- as(solve(kappa),"dpoMatrix")
+    # sigma <- solve(kappa)
 
     # Extra matrices needed in optimization:
     if (!all){

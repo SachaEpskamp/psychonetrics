@@ -270,7 +270,7 @@ dlvm1 <- function(
     inv <- corpcor::pseudoinverse(as.matrix(kronecker(curLam,curLam)))
     
     # And obtain psi estimate:
-    matrix(inv %*% as.vector(prior_bet_cov[[i]])/2,nLat_within,nLat_within)
+    matrix(inv %*% as.vector(prior_bet_cov[[i]])/2,nLat_between,nLat_between)
   })
   
   
