@@ -9,8 +9,12 @@ d_mu_lambda_between_dlvm1 <- function(mu_eta,I_y,...){
 d_sigmak_lambda_within_dlvm1 <- function(lambda_within, k = 0,  allSigmas_within, C_y_within, I_y, L_y, ...){
   res <- (
     (I_y %(x)% (lambda_within %*% allSigmas_within[[k]])) %*% C_y_within + 
-    ( (lambda_within %*% allSigmas_within[[k]]) %(x)%  I_y)  
+    ( (lambda_within %*% t(allSigmas_within[[k]])) %(x)%  I_y)  
   )
+  # browser()
+  
+  
+  # res2 <- ((I_y %(x)% I_y) + C_y_within) %*% ((lambda_within %*% allSigmas_within[[k]]) %(x)%  I_y) 
   
   if (k == 1){
     return(L_y %*% res)
@@ -30,9 +34,24 @@ d_sigma0_beta_dlvm1 <- function(lamWkronlamW,sigma_zeta_within,BetaStar,E,I_with
   # lamWkronlamW %*% (t(Vec(sigma_zeta_within)) %(x)% (I_within %(x)% I_within)) %*% (t(BetaStar) %(x)% BetaStar) %*% (
   #   E %(x)% I_within + I_within %(x)% E
   # )
-  (t(Vec(sigma_zeta_within)) %(x)% (I_within %(x)% I_within)) %*% (t(BetaStar) %(x)% BetaStar) %*% (
-    E %(x)% I_within + I_within %(x)% E
-  )
+  # Number of columns in betastar:
+  nc <- ncol(BetaStar)
+  
+  # If the number is not *too* big, do normal:
+  if (nc < 12){
+    res <- (t(Vec(sigma_zeta_within)) %(x)% (I_within %(x)% I_within)) %*% (t(BetaStar) %(x)% BetaStar) %*% (
+      E %(x)% I_within + I_within %(x)% E
+    )
+    return(res)
+  } else {
+    # Fancy method:
+    smat <- (
+      E %(x)% I_within + I_within %(x)% E
+    )
+    postmat <- do.call(cbind,lapply(1:nc,function(i)Vec(BetaStar%*%Matrix(smat[,i],nc,nc)%*%BetaStar)))
+    res <- (t(Vec(sigma_zeta_within)) %(x)% (I_within %(x)% I_within)) %*% postmat
+    return(res)
+  }
 }
 
 d_sigmak_beta_dlvm1 <- function(J_sigma_beta,IkronBeta,k,  allSigmas_within,I_within,...){
@@ -243,7 +262,7 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
   } else if (between_residual == "cov"){
     aug_between_residual <- Diagonal(nVar*(nVar+1)/2)
   }
-  
+
   # fill intercept part:
   Jac[meanInds,tau_inds] <- Diagonal(nVar)
   

@@ -7,6 +7,7 @@ stepup <- function(
   mi = c("mi","mi_free","mi_equal"),
   greedyadjust = "fdr",
   greedy = FALSE, # If TRUE, will start by adding all significant effects followed by pruning
+  verbose = TRUE,
   ... # Fit arguments
 ){
   mi <- match.arg(mi)
@@ -113,11 +114,17 @@ stepup <- function(
         x@parameters$par[best] <- max(x@parameters$par) + 1
         x@parameters$fixed[best] <- FALSE
         
-        # Perturb estimate a bit:
-        x@parameters$est[best] <- 0.01
+        # # Perturb estimate a bit:
+        # x@parameters$est[best] <- 0.01
+        # Set estimate to EPC:
+        x@parameters$est[best] <- x@parameters$est[best] + x@parameters$epc[best]
         
         # Update the model:
         x@extramatrices$M <- Mmatrix(x@parameters) # FIXME: Make nice function for this
+        
+        if (verbose){
+          message(paste("Adding 1 parameter."))
+        }
         
         # Run:
         x <- x %>% runmodel(...,log=FALSE)
@@ -133,11 +140,17 @@ stepup <- function(
         x@parameters$fixed[best] <- FALSE
         
         # Perturb estimate a bit:
-        x@parameters$est[best] <- 0.001
+        # x@parameters$est[best] <- 0.001
+        # Set estimate to EPC:
+        x@parameters$est[best] <- x@parameters$est[best] + x@parameters$epc[best]
         
         # Update the model:
         x@extramatrices$M <- Mmatrix(x@parameters) # FIXME: Make nice function for this
         
+        
+        if (verbose){
+          message(paste("Adding",length(best),"parameters in greedy search start."))
+        }
         # Run:
         x <- x %>% runmodel(...,log=FALSE) %>% prune(alpha = alpha, adjust = greedyadjust)
         greedy <- FALSE
@@ -172,6 +185,9 @@ stepup <- function(
       oldCrit <- oldMod@fitmeasures[[criterion]]
       newCrit <- x@fitmeasures[[criterion]]
       if (oldCrit < newCrit){
+        if (verbose){
+          message(paste("Model did not improve criterion, returning previous model."))
+        }
         x <- oldMod
         break
       }
