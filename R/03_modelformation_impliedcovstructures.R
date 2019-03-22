@@ -30,8 +30,10 @@ impliedcovstructures <- function(
       
       # Only need to do things if all = TRUE:
       if (all){
-        x[[g]][[kappa]] <- as(corpcor::pseudoinverse(x[[g]][[sigma]]), "Matrix")
-        x[[g]][[omega]]  <- as(qgraph::wi2net(as.matrix(x[[g]][[kappa]])),"sparseMatrix")
+        if (!all(x[[g]][[sigma]] == 0)){
+          x[[g]][[kappa]] <- as(solve(spectralshift(x[[g]][[sigma]])), "Matrix")
+          x[[g]][[omega]]  <- as(qgraph::wi2net(as.matrix(x[[g]][[kappa]])),"sparseMatrix")          
+        }
       }
     } else if(type == "chol"){
       # form cov matrix:
@@ -39,24 +41,30 @@ impliedcovstructures <- function(
       
       # Return precision and network if all = TRUE:
       if (all){
-        x[[g]][[kappa]] <- as(corpcor::pseudoinverse(x[[g]][[sigma]]), "Matrix")
-        x[[g]][[omega]]  <- as(qgraph::wi2net(as.matrix(x[[g]][[kappa]])),"sparseMatrix")
+        if (!all(x[[g]][[sigma]] == 0)){
+          x[[g]][[kappa]] <- as(solve(spectralshift(x[[g]][[sigma]])), "Matrix")
+          x[[g]][[omega]]  <- as(qgraph::wi2net(as.matrix(x[[g]][[kappa]])),"sparseMatrix")
+        }
+
       }
     } else if (type == "ggm"){
-      x[[g]][[sigma]] <- x[[g]][[delta]] %*% corpcor::pseudoinverse(spectralshift(Diagonal(ncol(x[[g]][[omega]])) - x[[g]][[omega]])) %*% x[[g]][[delta]]
+      x[[g]][[sigma]] <- x[[g]][[delta]] %*% solve(spectralshift(Diagonal(ncol(x[[g]][[omega]])) - x[[g]][[omega]])) %*% x[[g]][[delta]]
       
       # Stuff needed if all = TRUE:
       if (all){
-        x[[g]][[kappa]] <- corpcor::pseudoinverse(x[[g]][[sigma]]) 
+        if (!all(x[[g]][[sigma]] == 0)){
+          x[[g]][[kappa]] <- solve(spectralshift(x[[g]][[sigma]]))
+        }
+        
       }
       
       # Extra matrix needed:
       if (!all){
-        x[[g]][[IminOinv]] <- as(corpcor::pseudoinverse(spectralshift(Diagonal(ncol(x[[g]][[omega]])) - x[[g]][[omega]])), "Matrix")
+        x[[g]][[IminOinv]] <- as(solve(spectralshift(Diagonal(ncol(x[[g]][[omega]])) - x[[g]][[omega]])), "Matrix")
       }
     } else if (type == "prec"){
       # Precision matrix
-      x[[g]][[sigma]] <- as(corpcor::pseudoinverse(spectralshift(x[[g]][[kappa]])),"sparseMatrix")
+      x[[g]][[sigma]] <- as(solve(spectralshift(x[[g]][[kappa]])),"sparseMatrix")
       
       if (all) {
         x[[g]][[omega]] <- as(qgraph::wi2net(as.matrix(x[[g]][[kappa]])),"sparseMatrix")

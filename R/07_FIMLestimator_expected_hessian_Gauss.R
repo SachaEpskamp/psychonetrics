@@ -99,6 +99,7 @@ expected_hessian_fiml_Gaussian_subgroup <- function(dat,sigma,kappa,mu,...){
   obs <- !as.vector(dat$pattern)
   
   sig_p <- as.matrix(sigma)[obs,obs,drop=FALSE]
+
   kappa_p <- corpcor::pseudoinverse(sig_p)
   
   # Handle possible non positive definiteness:
