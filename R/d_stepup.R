@@ -214,10 +214,12 @@ stepup <- function(
     if (checkinformation){
       if (any(eigen(x@information)$values < 0)){
         if (verbose){
-          message(paste("Model may not be identified, returning previous model."))
+          message(paste("Model may not be identified, continuing with previous model."))
         }
         x <- oldMod
-        break
+        x@parameters$identified[best] <- TRUE
+        x@parameters[[mi]][best] <- 0
+        
       }
     }
     
