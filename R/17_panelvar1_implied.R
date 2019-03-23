@@ -93,7 +93,7 @@ implied_panelvar1 <- function(model,all = FALSE){
     
     # Beta star:
     # BetaStar <- as(corpcor::pseudoinverse(I %(x)% I - (x[[g]]$beta %(x)% x[[g]]$beta)),"Matrix")
-    BetaStar <- as(solve(I %(x)% I - (x[[g]]$beta %(x)% x[[g]]$beta)),"Matrix")
+    BetaStar <- as(trysolve(I %(x)% I - (x[[g]]$beta %(x)% x[[g]]$beta)),"Matrix")
     
         
     # Vector w:
