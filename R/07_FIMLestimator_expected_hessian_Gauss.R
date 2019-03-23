@@ -54,7 +54,7 @@
 #   curFish <- Matrix(0,nrow=nrow(sigma) * (nrow(sigma)+1) / 2,ncol=nrow(sigma) * (nrow(sigma)+1) / 2)
 #   
 #   # Kappa kronecker kappa for full cases:
-#   KkronK <- (kappa %(x)% kappa)
+#   KkronK <- (kappa %x% kappa)
 #   
 #   # For every subject:
 #   for (i in seq_len(n)){
@@ -79,7 +79,7 @@
 #       kappa_p <- spectralshift(kappa_p)
 #       
 #       # Kronecker:
-#       KkronK_p <-  (kappa_p %(x)% kappa_p)
+#       KkronK_p <-  (kappa_p %x% kappa_p)
 #       
 #       # Find the proper elimination matrix:
 #       inds <- c(dumSig[obs,obs,drop=FALSE])

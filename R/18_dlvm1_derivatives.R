@@ -3,18 +3,18 @@ d_mu_mu_eta_dlvm1 <- function(lambda_between,...){
 }
 
 d_mu_lambda_between_dlvm1 <- function(mu_eta,I_y,...){
-  t(mu_eta) %(x)% I_y
+  t(mu_eta) %x% I_y
 }
 
 d_sigmak_lambda_within_dlvm1 <- function(lambda_within, k = 0,  allSigmas_within, C_y_within, I_y, L_y, ...){
   res <- (
-    (I_y %(x)% (lambda_within %*% allSigmas_within[[k]])) %*% C_y_within + 
-    ( (lambda_within %*% t(allSigmas_within[[k]])) %(x)%  I_y)  
+    (I_y %x% (lambda_within %*% allSigmas_within[[k]])) %*% C_y_within + 
+    ( (lambda_within %*% t(allSigmas_within[[k]])) %x%  I_y)  
   )
   # browser()
   
   
-  # res2 <- ((I_y %(x)% I_y) + C_y_within) %*% ((lambda_within %*% allSigmas_within[[k]]) %(x)%  I_y) 
+  # res2 <- ((I_y %x% I_y) + C_y_within) %*% ((lambda_within %*% allSigmas_within[[k]]) %x%  I_y) 
   
   if (k == 1){
     return(L_y %*% res)
@@ -31,53 +31,60 @@ d_sigma0_sigma_zeta_within_dlvm1 <- function(lamWkronlamW, BetaStar, D_within, .
 
 # Without elimination matrix:
 d_sigma0_beta_dlvm1 <- function(lamWkronlamW,sigma_zeta_within,BetaStar,E,I_within,...){
-  # lamWkronlamW %*% (t(Vec(sigma_zeta_within)) %(x)% (I_within %(x)% I_within)) %*% (t(BetaStar) %(x)% BetaStar) %*% (
-  #   E %(x)% I_within + I_within %(x)% E
+  # lamWkronlamW %*% (t(Vec(sigma_zeta_within)) %x% (I_within %x% I_within)) %*% (t(BetaStar) %x% BetaStar) %*% (
+  #   E %x% I_within + I_within %x% E
   # )
   # Number of columns in betastar:
-  nc <- ncol(BetaStar)
   
-  # If the number is not *too* big, do normal:
-  if (nc < 12){
-    res <- (t(Vec(sigma_zeta_within)) %(x)% (I_within %(x)% I_within)) %*% (t(BetaStar) %(x)% BetaStar) %*% (
-      E %(x)% I_within + I_within %(x)% E
-    )
-    return(res)
-  } else {
-    # Fancy method:
-    smat <- (
-      E %(x)% I_within + I_within %(x)% E
-    )
-    postmat <- do.call(cbind,lapply(1:nc,function(i)Vec(BetaStar%*%Matrix(smat[,i],nc,nc)%*%BetaStar)))
-    res <- (t(Vec(sigma_zeta_within)) %(x)% (I_within %(x)% I_within)) %*% postmat
-    return(res)
-  }
+  cp <- tcrossprod(t(Vec(sigma_zeta_within)), BetaStar)
+  res <- (cp %x% BetaStar)  %*% (
+    E %x% I_within + I_within %x% E
+  )
+  return(res)
+  # # Old experimental stuff:
+  # nc <- ncol(BetaStar)
+  # # If the number is not *too* big, do normal:
+  # if (nc < 12){
+  #   res <- (t(Vec(sigma_zeta_within)) %x% (I_within %x% I_within)) %*% (t(BetaStar) %x% BetaStar) %*% (
+  #     E %x% I_within + I_within %x% E
+  #   )
+  #   
+  #   return(res)
+  # } else {
+  #   # Fancy method:
+  #   smat <- (
+  #     E %x% I_within + I_within %x% E
+  #   )
+  #   postmat <- do.call(cbind,lapply(1:nc,function(i)Vec(BetaStar%*%Matrix(smat[,i],nc,nc)%*%BetaStar)))
+  #   res <- (t(Vec(sigma_zeta_within)) %x% (I_within %x% I_within)) %*% postmat
+  #   return(res)
+  # }
 }
 
 d_sigmak_beta_dlvm1 <- function(J_sigma_beta,IkronBeta,k,  allSigmas_within,I_within,...){
   
-  IkronBeta %*% J_sigma_beta + (t(allSigmas_within[[k-1]]) %(x)% I_within)
+  IkronBeta %*% J_sigma_beta + (t(allSigmas_within[[k-1]]) %x% I_within)
   
 }
 
 
 d_sigmak_lambda_between_dlvm1 <- function(lambda_between, sigma_zeta_between, C_y_between, I_y, ...){
-    (I_y %(x)% (lambda_between %*% sigma_zeta_between)) %*% C_y_between + 
-      ( (lambda_between %*% sigma_zeta_between) %(x)%  I_y)  
+    (I_y %x% (lambda_between %*% sigma_zeta_between)) %*% C_y_between + 
+      ( (lambda_between %*% sigma_zeta_between) %x%  I_y)  
 }
 
 d_sigmak_sigma_zeta_between_dlvm1 <- function(lambda_between,D_between,...){
-  (lambda_between %(x)% lambda_between) %*% D_between
+  (lambda_between %x% lambda_between) %*% D_between
 }
 
 # 
 #  # derivative of sigma0 (full vec) with respect to beta:
 # d_sigma0_beta_dlvm1 <- function(BetaStar,E,In,w,B_Sigma_mu,C,...){
-#   (t(w) %(x)% (In %(x)% In)) %*% 
-#     (t(BetaStar) %(x)% BetaStar) %*% 
-#     (E %(x)% In + In %(x)% E) - 
+#   (t(w) %x% (In %x% In)) %*% 
+#     (t(BetaStar) %x% BetaStar) %*% 
+#     (E %x% In + In %x% E) - 
 #     BetaStar %*% (
-#       (In %(x)% B_Sigma_mu) %*% C + (B_Sigma_mu %(x)% In)
+#       (In %x% B_Sigma_mu) %*% C + (B_Sigma_mu %x% In)
 #     )
 # }
 # # 
@@ -88,7 +95,7 @@ d_sigmak_sigma_zeta_between_dlvm1 <- function(lambda_between,D_between,...){
 # 
 # ## Lag k derivatives:
 # d_sigmak_beta_dlvm1 <- function(k,IkronBeta,Jb,allSigmas,Sigma_mu_kron_I,In,...){
-#   IkronBeta %*% Jb + (t(allSigmas[[k-1]]) %(x)% In) - Sigma_mu_kron_I
+#   IkronBeta %*% Jb + (t(allSigmas[[k-1]]) %x% In) - Sigma_mu_kron_I
 # }
 # 
 # d_sigmak_sigma_zeta_dlvm1 <- function(IkronBeta,Jsigz,...){
@@ -112,10 +119,10 @@ d_sigmak_sigma_zeta_between_dlvm1 <- function(lambda_between,D_between,...){
 # }
 # 
 # # Derivative of sigma_zeta to ggm:
-# d_sigma_zeta_ggm_dlvm1 <- function(L,IminOinv_zeta,A,delta_zeta,Dstar,In,...){
+# d_sigma_zeta_ggm_dlvm1 <- function(L,delta_IminOinv_zeta,A,delta_zeta,Dstar,In,...){
 #   cbind(
-#     d_sigma_omega(L = L, IminOinv = IminOinv_zeta, A = A, delta = delta_zeta, Dstar = Dstar),
-#     d_sigma_delta(L = L,  IminOinv = IminOinv_zeta,In=In,delta=delta_zeta,A=A)
+#     d_sigma_omega(L = L, delta_IminOinv = delta_IminOinv_zeta, A = A, delta = delta_zeta, Dstar = Dstar),
+#     d_sigma_delta(L = L,  delta_IminOinv = delta_IminOinv_zeta,In=In,delta=delta_zeta,A=A)
 #   )
 # }
 # 
@@ -130,10 +137,10 @@ d_sigmak_sigma_zeta_between_dlvm1 <- function(lambda_between,D_between,...){
 # }
 # 
 # # Derivative of sigma_mu to ggm:
-# d_sigma_mu_ggm_dlvm1 <- function(L,IminOinv_mu,A,delta_mu,Dstar,In,...){
+# d_sigma_mu_ggm_dlvm1 <- function(L,delta_IminOinv_mu,A,delta_mu,Dstar,In,...){
 #   cbind(
-#     d_sigma_omega(L = L, IminOinv = IminOinv_mu, A = A, delta = delta_mu, Dstar = Dstar),
-#     d_sigma_delta(L = L,  IminOinv = IminOinv_mu,In=In,delta=delta_mu,A=A)
+#     d_sigma_omega(L = L, delta_IminOinv = delta_IminOinv_mu, A = A, delta = delta_mu, Dstar = Dstar),
+#     d_sigma_delta(L = L,  delta_IminOinv = delta_IminOinv_mu,In=In,delta=delta_mu,A=A)
 #   )
 # }
 
@@ -213,8 +220,8 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
     aug_within_latent <- d_sigma_kappa(L = L_within, D = dots$D_within, sigma = dots$sigma_zeta_within)
   } else if (within_latent == "ggm"){
     aug_within_latent <- cbind(
-           d_sigma_omega(L = L_within, IminOinv = dots$IminOinv_zeta_within, A = dots$A_within, delta = dots$delta_zeta_within, Dstar = dots$Dstar_within),
-           d_sigma_delta(L = L_within,  IminOinv = dots$IminOinv_zeta_within,In=dots$I_within,delta=dots$delta_zeta_within,A=dots$A_within)
+           d_sigma_omega(L = L_within, delta_IminOinv = dots$delta_IminOinv_zeta_within, A = dots$A_within, delta = dots$delta_zeta_within, Dstar = dots$Dstar_within),
+           d_sigma_delta(L = L_within,  delta_IminOinv = dots$delta_IminOinv_zeta_within,In=dots$I_within,delta=dots$delta_zeta_within,A=dots$A_within)
      )
   } else if (within_latent == "cov"){
     aug_within_latent <- Diagonal(nLat_wit*(nLat_wit+1)/2)
@@ -227,8 +234,8 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
     aug_between_latent <- d_sigma_kappa(L = L_between, D = dots$D_between, sigma = dots$sigma_zeta_between)
   } else if (between_latent == "ggm"){
     aug_between_latent <- cbind(
-      d_sigma_omega(L = L_between, IminOinv = dots$IminOinv_zeta_between, A = dots$A_between, delta = dots$delta_zeta_between, Dstar = dots$Dstar_between),
-      d_sigma_delta(L = L_between,  IminOinv = dots$IminOinv_zeta_between,In=dots$I_between,delta=dots$delta_zeta_between,A=dots$A_between)
+      d_sigma_omega(L = L_between, delta_IminOinv = dots$delta_IminOinv_zeta_between, A = dots$A_between, delta = dots$delta_zeta_between, Dstar = dots$Dstar_between),
+      d_sigma_delta(L = L_between,  delta_IminOinv = dots$delta_IminOinv_zeta_between,In=dots$I_between,delta=dots$delta_zeta_between,A=dots$A_between)
     )
   } else if (between_latent == "cov"){
     aug_between_latent <- Diagonal(nLat_bet*(nLat_bet+1)/2)
@@ -241,8 +248,8 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
     aug_within_residual <- d_sigma_kappa(L = L_y, D = dots$D_y, sigma = dots$sigma_epsilon_within)
   } else if (within_residual == "ggm"){
     aug_within_residual <- cbind(
-      d_sigma_omega(L = L_y, IminOinv = dots$IminOinv_epsilon_within, A = dots$A_y, delta = dots$delta_epsilon_within, Dstar = dots$Dstar_y),
-      d_sigma_delta(L = L_y,  IminOinv = dots$IminOinv_epsilon_within,In=dots$I_y,delta=dots$delta_epsilon_within,A=dots$A_y)
+      d_sigma_omega(L = L_y, delta_IminOinv = dots$delta_IminOinv_epsilon_within, A = dots$A_y, delta = dots$delta_epsilon_within, Dstar = dots$Dstar_y),
+      d_sigma_delta(L = L_y,  delta_IminOinv = dots$delta_IminOinv_epsilon_within,In=dots$I_y,delta=dots$delta_epsilon_within,A=dots$A_y)
     )
   } else if (within_residual == "cov"){
     aug_within_residual <- Diagonal(nVar*(nVar+1)/2)
@@ -255,13 +262,13 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
     aug_between_residual <- d_sigma_kappa(L = L_y, D = dots$D_y, sigma = dots$sigma_epsilon_between)
   } else if (between_residual == "ggm"){
     aug_between_residual <- cbind(
-      d_sigma_omega(L = L_y, IminOinv = dots$IminOinv_epsilon_between, A = dots$A_y, delta = dots$delta_epsilon_between, Dstar = dots$Dstar_y),
-      d_sigma_delta(L = L_y,  IminOinv = dots$IminOinv_epsilon_between,In=dots$I_y,delta=dots$delta_epsilon_between,A=dots$A_y)
+      d_sigma_omega(L = L_y, delta_IminOinv = dots$delta_IminOinv_epsilon_between, A = dots$A_y, delta = dots$delta_epsilon_between, Dstar = dots$Dstar_y),
+      d_sigma_delta(L = L_y,  delta_IminOinv = dots$delta_IminOinv_epsilon_between,In=dots$I_y,delta=dots$delta_epsilon_between,A=dots$A_y)
     )
   } else if (between_residual == "cov"){
     aug_between_residual <- Diagonal(nVar*(nVar+1)/2)
   }
- 
+
 
   # fill intercept part:
   Jac[meanInds,tau_inds] <- Diagonal(nVar)

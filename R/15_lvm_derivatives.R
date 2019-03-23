@@ -10,34 +10,34 @@ d_mu_tau_eta_lvm <- function(Lambda_BetaStar,...){
 
 # Derivative of factor loadings to means:
 d_mu_lambda_lvm <- function(tau_eta,BetaStar,In,...){
-  (t(tau_eta) %*% t(BetaStar)) %(x)% In
+  (t(tau_eta) %*% t(BetaStar)) %x% In
 }
 
 # Derivative of beta to means:
 d_mu_beta_lvm <- function(tau_eta,lambda,tBetakronBeta,...){
-  (t(tau_eta) %(x)% lambda) %*% tBetakronBeta
+  (t(tau_eta) %x% lambda) %*% tBetakronBeta
 }
 
 
 # Derivative of factor loadings to vars:
 d_sigma_lambda_lvm <- function(L,Lambda_BetaStar,Betasta_sigmaZeta,In,C,...){
   L %*% (
-    ((Lambda_BetaStar %*% t(Betasta_sigmaZeta)) %(x)% In) + 
-      (In %(x)% (Lambda_BetaStar %*% t(Betasta_sigmaZeta)))%*%C
+    ((Lambda_BetaStar %*% t(Betasta_sigmaZeta)) %x% In) + 
+      (In %x% (Lambda_BetaStar %*% t(Betasta_sigmaZeta)))%*%C
   )
 }
 
 # Derivative of beta to vars:
 d_sigma_beta_lvm <- function(L, lambda, Betasta_sigmaZeta, Cbeta,Inlatent,tBetakronBeta, ... ){
-  L %*% (lambda %(x)% lambda) %*% (
-    (Betasta_sigmaZeta %(x)% Inlatent) + 
-      (Inlatent %(x)% Betasta_sigmaZeta) %*% Cbeta
+  L %*% (lambda %x% lambda) %*% (
+    (Betasta_sigmaZeta %x% Inlatent) + 
+      (Inlatent %x% Betasta_sigmaZeta) %*% Cbeta
   ) %*% tBetakronBeta
 }
 
 # Derivative of latent variance-covariance matrix:
 d_sigma_sigma_zeta_lvm <- function(L,Lambda_BetaStar,Deta,...){
-  L %*% (Lambda_BetaStar %(x)% Lambda_BetaStar) %*% Deta
+  L %*% (Lambda_BetaStar %x% Lambda_BetaStar) %*% Deta
 }
 
 # Derivative of sigma_zeta to cholesky:
@@ -51,10 +51,10 @@ d_sigma_zeta_kappa_lvm <- function(L_eta,Deta,sigma_zeta,...){
 }
 
 # Derivative of sigma_zeta to ggm:
-d_sigma_zeta_ggm_lvm <- function(L_eta,IminOinv_zeta,Aeta,delta_zeta,Dstar_eta,Inlatent,...){
+d_sigma_zeta_ggm_lvm <- function(L_eta,delta_IminOinv_zeta,Aeta,delta_zeta,Dstar_eta,Inlatent,...){
   cbind(
-    d_sigma_omega(L = L_eta, IminOinv = IminOinv_zeta, A = Aeta, delta = delta_zeta, Dstar = Dstar_eta),
-    d_sigma_delta(L = L_eta,  IminOinv = IminOinv_zeta,In=Inlatent,delta=delta_zeta,A=Aeta)
+    d_sigma_omega(L = L_eta, delta_IminOinv = delta_IminOinv_zeta, A = Aeta, delta = delta_zeta, Dstar = Dstar_eta),
+    d_sigma_delta(L = L_eta,  delta_IminOinv = delta_IminOinv_zeta,In=Inlatent,delta=delta_zeta,A=Aeta)
   )
 }
 
@@ -72,10 +72,10 @@ d_sigma_epsilon_kappa_lvm <- function(L,D,sigma_epsilon,...){
 }
 
 # Derivative of sigma_epsilon to ggm:
-d_sigma_epsilon_ggm_lvm <- function(L,IminOinv_epsilon,A,delta_epsilon,Dstar,In,...){
+d_sigma_epsilon_ggm_lvm <- function(L,delta_IminOinv_epsilon,A,delta_epsilon,Dstar,In,...){
   cbind(
-    d_sigma_omega(L = L, IminOinv = IminOinv_epsilon, A = A, delta = delta_epsilon, Dstar = Dstar),
-    d_sigma_delta(L = L,  IminOinv = IminOinv_epsilon,In=In,delta=delta_epsilon,A=A)
+    d_sigma_omega(L = L, delta_IminOinv = delta_IminOinv_epsilon, A = A, delta = delta_epsilon, Dstar = Dstar),
+    d_sigma_delta(L = L,  delta_IminOinv = delta_IminOinv_epsilon,In=In,delta=delta_epsilon,A=A)
   )
 }
 
@@ -85,14 +85,14 @@ d_sigma_epsilon_ggm_lvm <- function(L,IminOinv_epsilon,A,delta_epsilon,Dstar,In,
 # 
 # # Derivative of residual network matrix:
 # d_sigma_omega_epsilon_lvm <- function(L,delta_epsilon,OmegaStar,Dstar,...){
-#   L %*% (delta_epsilon %(x)% delta_epsilon) %*% (OmegaStar %(x)% OmegaStar) %*% Dstar
+#   L %*% (delta_epsilon %x% delta_epsilon) %*% (OmegaStar %x% OmegaStar) %*% Dstar
 # }
 # 
 # # Derivative residual scalign:
 # d_sigma_delta_epsilon_lvm <- function(L,delta_epsilon,OmegaStar,In,A,...){
 #   DO <- delta_epsilon %*% OmegaStar
 #   L %*% (
-#     (DO %(x)% In) + (In %(x)% DO)
+#     (DO %x% In) + (In %x% DO)
 #   ) %*% A
 # }
 

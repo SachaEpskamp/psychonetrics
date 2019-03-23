@@ -114,7 +114,7 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
 #       # (prep$nPerGroup[g] / prep$nTotal) *
 #       ( prep$nTotal / prep$nPerGroup[g]) *
 #       2*t(d_phi_theta[meanPart,groupPart]) %*% kappa %*% d_phi_theta[meanPart,groupPart] +
-#       t(d_phi_theta[varPart,groupPart]) %*% t(D) %*% (kappa %(x)% kappa) %*% D %*% d_phi_theta[varPart,groupPart]
+#       t(d_phi_theta[varPart,groupPart]) %*% t(D) %*% (kappa %x% kappa) %*% D %*% d_phi_theta[varPart,groupPart]
 # 
 # # 
 # #     

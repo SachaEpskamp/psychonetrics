@@ -14,6 +14,7 @@ impliedcovstructures <- function(
     kappa = paste0("kappa","_",name)
     lowertri = paste0("lowertri","_",name)
     IminOinv = paste0("IminOinv","_",name)
+    delta_IminOinv = paste0("delta_IminOinv","_",name)
   } else {
     sigma = "sigma"
     omega = "omega"
@@ -21,6 +22,7 @@ impliedcovstructures <- function(
     kappa = "kappa"
     lowertri = "lowertri"
     IminOinv = "IminOinv"
+    delta_IminOinv = "delta_IminOinv"
   }
   
   for (g in seq_len(nGroup)){
@@ -31,7 +33,7 @@ impliedcovstructures <- function(
       # Only need to do things if all = TRUE:
       if (all){
         if (!all(x[[g]][[sigma]] == 0)){
-          x[[g]][[kappa]] <- as(trysolve(spectralshift(x[[g]][[sigma]])), "Matrix")
+          x[[g]][[kappa]] <- as(trysolve(x[[g]][[sigma]]), "Matrix")
           x[[g]][[omega]]  <- as(qgraph::wi2net(as.matrix(x[[g]][[kappa]])),"sparseMatrix")          
         }
       }
@@ -42,29 +44,30 @@ impliedcovstructures <- function(
       # Return precision and network if all = TRUE:
       if (all){
         if (!all(x[[g]][[sigma]] == 0)){
-          x[[g]][[kappa]] <- as(trysolve(spectralshift(x[[g]][[sigma]])), "Matrix")
+          x[[g]][[kappa]] <- as(trysolve(x[[g]][[sigma]]), "Matrix")
           x[[g]][[omega]]  <- as(qgraph::wi2net(as.matrix(x[[g]][[kappa]])),"sparseMatrix")
         }
 
       }
     } else if (type == "ggm"){
-      x[[g]][[sigma]] <- x[[g]][[delta]] %*% trysolve(spectralshift(Diagonal(ncol(x[[g]][[omega]])) - x[[g]][[omega]])) %*% x[[g]][[delta]]
+      x[[g]][[sigma]] <- x[[g]][[delta]] %*% trysolve(Diagonal(ncol(x[[g]][[omega]])) - x[[g]][[omega]]) %*% x[[g]][[delta]]
       
       # Stuff needed if all = TRUE:
       if (all){
         if (!all(x[[g]][[sigma]] == 0)){
-          x[[g]][[kappa]] <- trysolve(spectralshift(x[[g]][[sigma]]))
+          x[[g]][[kappa]] <- trysolve(x[[g]][[sigma]])
         }
         
       }
       
       # Extra matrix needed:
       if (!all){
-        x[[g]][[IminOinv]] <- as(trysolve(spectralshift(Diagonal(ncol(x[[g]][[omega]])) - x[[g]][[omega]])), "Matrix")
+        x[[g]][[IminOinv]] <- as(trysolve(Diagonal(ncol(x[[g]][[omega]])) - x[[g]][[omega]]), "Matrix")
+        x[[g]][[delta_IminOinv]] <- x[[g]][[delta]] %*% x[[g]][[IminOinv]]
       }
     } else if (type == "prec"){
       # Precision matrix
-      x[[g]][[sigma]] <- as(trysolve(spectralshift(x[[g]][[kappa]])),"sparseMatrix")
+      x[[g]][[sigma]] <- as(trysolve(x[[g]][[kappa]]),"sparseMatrix")
       
       if (all) {
         x[[g]][[omega]] <- as(qgraph::wi2net(as.matrix(x[[g]][[kappa]])),"sparseMatrix")
