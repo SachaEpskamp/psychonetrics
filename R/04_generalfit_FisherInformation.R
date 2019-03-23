@@ -1,5 +1,15 @@
+numeric_FisherInformation <- function(model){
+  2 * sum(model@sample@groups$nobs) * numDeriv::jacobian(psychonetrics_gradient,parVector(model),model=model)
+}
+
+
 # General Fisher information former:
-psychonetrics_FisherInformation <- function(model){
+psychonetrics_FisherInformation <- function(model, analytic = TRUE){
+  # Maybe do numeric?
+  if (!analytic){
+    return(numeric_FisherInformation(model))
+  }
+  
   # Prepare (FIXME: x not needed but I am laxy...)
   prep <- prepareModel(parVector(model), model)
   

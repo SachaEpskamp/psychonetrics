@@ -12,7 +12,8 @@ runmodel <- function(
   verbose = TRUE,
   # optimizer = c("default","ucminf","nlminb"),
   optim.control = list(),
-  maxtry = 5
+  maxtry = 5,
+  analyticFisher = TRUE
   # inverseHessian = TRUE
 ){
   optimizer <- x@optimizer
@@ -345,7 +346,7 @@ runmodel <- function(
   # Add information:
   # if (!is.null(x@fitfunctions$information)){
   if (addInformation){
-    x@information <- psychonetrics_FisherInformation(x)
+    x@information <- psychonetrics_FisherInformation(x, analyticFisher)
     
     if (!all(x@information == t(x@information))){
       x@information <- 0.5 * (x@information + t(x@information))
@@ -362,7 +363,7 @@ runmodel <- function(
   }
   # Add MIs:
   if (addMIs){
-    x <- addMIs(x) 
+    x <- addMIs(x,analyticFisher=analyticFisher) 
   }
   # Add SEs:
   if (addSEs){

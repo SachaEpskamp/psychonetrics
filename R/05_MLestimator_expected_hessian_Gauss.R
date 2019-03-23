@@ -6,6 +6,9 @@ expected_hessian_Gaussian_group_varPart <- function(kappa,D,Drawts,...){
   if (nrow(Drawts) != ncol(Drawts)){
     D <- Diagonal(n = nrow(kappa)^2)
   } 
+  # Make kappa sparse:
+  kappa[abs(kappa) < sqrt(.Machine$double.eps)] <- 0
+  kappa <- as(kappa, "sparseMatrix")
   
   t(D) %*% (kappa %(x)% kappa) %*% D
 }
