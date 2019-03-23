@@ -26,3 +26,20 @@ upperBound <- function(x){
   }
   upper
 }
+
+rowMat <- function(x){
+  # Obtain the starting values:
+  row <- numeric(max(x@parameters$par))
+  for (i in seq_along(row)){
+    row[i] <- x@parameters$row[which(x@parameters$par==i)[1]]
+  }
+  row
+}
+colMat <- function(x){
+  # Obtain the starting values:
+  col <- numeric(max(x@parameters$par))
+  for (i in seq_along(col)){
+    col[i] <- x@parameters$col[which(x@parameters$par==i)[1]]
+  }
+  col
+}
