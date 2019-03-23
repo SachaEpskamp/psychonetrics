@@ -107,8 +107,10 @@
 jacobian_fiml_gaussian_subgroup_sigma <- function(dat,sigma,kappa,mu,...){
   obs <- !as.vector(dat$pattern)
   
-  sig_p <- as.matrix(sigma)[obs,obs,drop=FALSE]
-  kappa_p <- corpcor::pseudoinverse(sig_p)
+  sig_p <- sigma[obs,obs,drop=FALSE]
+  # sig_p <- as.matrix(sigma)[obs,obs,drop=FALSE]
+  # kappa_p <- corpcor::pseudoinverse(sig_p)
+  kappa_p <- trysolve(sig_p)
   
   # Handle possible non positive definiteness:
   kappa_p <- spectralshift(kappa_p)

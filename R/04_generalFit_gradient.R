@@ -1,7 +1,7 @@
 # General gradient function:
 psychonetrics_gradient <- function(x, model){
   # I need an estimator part, a model part and a manual part
- 
+
   # Prepare
   prep <- prepareModel(x, model)
 

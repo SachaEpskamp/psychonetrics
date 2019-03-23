@@ -9,11 +9,14 @@ jacobian_gaussian_group_sigmaVersion_sigmaPart <- function(S,means,mu,sigma,D,ka
     # if (nrow(Drawts) != ncol(Drawts)){
     #   D <- Diagonal(n = nrow(sigma)^2)
     # } 
-  
-
     # sigma part:
-    grad_sigma <- - t(Vec(S) + Vec((means - mu) %*% t(means - mu)) - Vec(sigma)) %*% (kappa %(x)% kappa) %*% D
-
+    # grad_sigma <- - t(Vec(S) + Vec((means - mu) %*% t(means - mu)) - Vec(sigma)) %*% (kappa %(x)% kappa) %*% D
+  
+  # Try fancier method to avoid memory problems...
+  n <- ncol(S)
+  # mat <- Matrix(as.vector(Vec(S) + Vec((means - mu) %*% t(means - mu)) - Vec(sigma)),n,n)
+  mat <- S + (means - mu) %*% t(means - mu) - sigma
+  grad_sigma <- t(-t(D) %*% Vec(kappa %*% mat %*% kappa))
 
   grad_sigma
 }

@@ -139,7 +139,6 @@ d_sigmak_sigma_zeta_between_dlvm1 <- function(lambda_between,D_between,...){
 
 # Full jacobian of phi (distribution parameters) with respect to theta (model parameters) for a group
 d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent,between_residual,...){
-
   # Extract from dots things I need:
   dots <- list(...)
   design <- dots$design
@@ -262,6 +261,7 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
   } else if (between_residual == "cov"){
     aug_between_residual <- Diagonal(nVar*(nVar+1)/2)
   }
+ 
 
   # fill intercept part:
   Jac[meanInds,tau_inds] <- Diagonal(nVar)
