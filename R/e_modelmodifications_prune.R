@@ -201,12 +201,14 @@ prune <- function(
   # Recurse if needed:
   if (recursive){
     x <- x %>% prune(
-      alpha = alpha,
-      bonferroni = bonferroni,
+      alpha = 0.01, # Significance
+      adjust = adjust,
       matrices = matrices, # Automatically chosen
       runmodel = TRUE,
       recursive = TRUE,
       verbose = verbose,
+      log = log,
+      identify = identify,
       ...
     )
   }

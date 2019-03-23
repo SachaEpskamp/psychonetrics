@@ -34,6 +34,7 @@ compare <- function(...){
     DF = sapply(fits,"[[","df"),
     AIC = sapply(fits,"[[","aic.ll"),
     BIC = sapply(fits,"[[","bic"),
+    RMSEA = sapply(fits,"[[","rmsea"),
     Chisq = sapply(fits,"[[","chisq"),
     Chisq_diff = NA,
     DF_diff = NA,
