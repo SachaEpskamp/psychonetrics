@@ -10,7 +10,8 @@ runmodel <- function(
   log = TRUE,
   verbose = TRUE,
   # optimizer = c("default","ucminf","nlminb"),
-  optim.control = list()
+  optim.control = list(),
+  maxtry = 5
   # inverseHessian = TRUE
 ){
   optimizer <- x@optimizer
@@ -208,6 +209,32 @@ runmodel <- function(
   }
   
   # Run model:
+  curtry <- 1
+  repeat{
+    tryres <- try({
+      optim.out <- do.call(optimr,optim.control)
+    }, silent = TRUE)    
+    
+    if (!is(tryres,"try-error")){
+      break
+    } else {
+      curtry <- curtry + 1
+      if (curtry > maxtry){
+        if (verbose){
+          message("Model estimation failed and 'maxtry' reached. Returning error.")
+          print(tryres)
+        }        
+        return(tryres)
+      } else {
+        if (verbose){
+          message("Model estimation failed. Perturbing start values.")
+        }        
+        optim.control$par <- optim.control$par  + runif(length(optim.control$par),0, 0.1)
+        optim.control$par[rowMat(x) != colMat(x)] <- optim.control$par[rowMat(x) != colMat(x)]/2
+      }
+    }
+  }
+
   optim.out <- do.call(optimr,optim.control)
   
   # Update model:

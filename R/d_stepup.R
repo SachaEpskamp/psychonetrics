@@ -8,6 +8,7 @@ stepup <- function(
   greedyadjust = c("fdr", "none", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY"),
   greedy = FALSE, # If TRUE, will start by adding all significant effects followed by pruning
   verbose = TRUE,
+  checkinformation = TRUE,
   ... # Fit arguments
 ){
   greedyadjust <- match.arg(greedyadjust)
@@ -155,6 +156,32 @@ stepup <- function(
         # Run:
         x <- x %>% runmodel(...,log=FALSE) %>% prune(alpha = alpha, adjust = greedyadjust)
         greedy <- FALSE
+        
+        if (checkinformation){
+          if (any(eigen(x@information)$values < 0)){
+            if (verbose){
+              message(paste("Model may not be identified, continuing with previous model."))
+            }
+            x <- oldMod
+          }
+        }
+        
+        # Check criterion:
+        if (criterion != "none"){
+          if (!criterion %in% names(oldMod@fitmeasures)){
+            stop(paste0("Criterion '",criterion,"' is not supported."))
+          }
+          oldCrit <- oldMod@fitmeasures[[criterion]]
+          newCrit <- x@fitmeasures[[criterion]]
+          
+          if (oldCrit < newCrit){
+            if (verbose){
+              message(paste("Model did not improve criterion, continuing with previous model."))
+            }
+            x <- oldMod
+          }
+        }
+        
       }
 
     } else {
@@ -181,6 +208,17 @@ stepup <- function(
     #   }
     # }
     # 
+    # Check information:
+    if (checkinformation){
+      if (any(eigen(x@information)$values < 0)){
+        if (verbose){
+          message(paste("Model may not be identified, returning previous model."))
+        }
+        x <- oldMod
+        break
+      }
+    }
+    
     # Check criterion:
     if (criterion != "none"){
       if (!criterion %in% names(oldMod@fitmeasures)){
