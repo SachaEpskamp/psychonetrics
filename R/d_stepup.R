@@ -112,6 +112,7 @@ stepup <- function(
       
       # FIXME: Make nice free parameter function
       if (!greedy){
+        x@parameters[[mi]] <- ifelse(is.na(x@parameters[[mi]]),0,x@parameters[[mi]])
         best <- which(x@parameters[[mi]] == max(x@parameters[[mi]][x@parameters$matrix %in% matrices & x@parameters$fixed]))
         x@parameters$par[best] <- max(x@parameters$par) + 1
         x@parameters$fixed[best] <- FALSE
@@ -136,6 +137,7 @@ stepup <- function(
         # best <- which(x@parameters[[mi]] > qchisq(alpha,1,lower.tail=FALSE) & x@parameters$matrix %in% matrices & x@parameters$fixed)
         
         parsToTest <- which(x@parameters$matrix %in% matrices & x@parameters$fixed)
+        x@parameters[[mi]] <- ifelse(is.na(x@parameters[[mi]]),0,x@parameters[[mi]])
         best <- parsToTest[p.adjust(pchisq(x@parameters[[mi]][parsToTest],1,lower.tail=FALSE), method = greedyadjust) < alpha]
         
         x@parameters$par[best] <- max(x@parameters$par) + seq_along(best)
