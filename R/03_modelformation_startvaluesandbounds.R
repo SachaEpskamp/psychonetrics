@@ -43,3 +43,11 @@ colMat <- function(x){
   }
   col
 }
+parMat <- function(x){
+  # Obtain the starting values:
+  mat <- numeric(max(x@parameters$par))
+  for (i in seq_along(mat)){
+    mat[i] <- x@parameters$matrix[which(x@parameters$par==i)[1]]
+  }
+  mat
+}

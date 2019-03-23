@@ -230,7 +230,7 @@ runmodel <- function(
           message("Model estimation failed. Perturbing start values.")
         }        
         optim.control$par <- optim.control$par  + runif(length(optim.control$par),0, 0.1)
-        optim.control$par[rowMat(x) != colMat(x)] <- optim.control$par[rowMat(x) != colMat(x)]/2
+        optim.control$par[parMat == "beta" | (rowMat(x) != colMat(x))] <- optim.control$par[parMat == "beta" | (rowMat(x) != colMat(x))]/2
       }
     }
   }
