@@ -126,7 +126,7 @@ stepup <- function(
         x@extramatrices$M <- Mmatrix(x@parameters) # FIXME: Make nice function for this
         
         if (verbose){
-          message(paste("Adding 1 parameter."))
+          message(paste("Adding parameter",x@parameters$var1[best],x@parameters$op[best],x@parameters$var2[best]))
         }
         
         # Run:
