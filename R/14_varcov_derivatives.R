@@ -1,27 +1,43 @@
 # Cholesky derivative:
 d_sigma_cholesky <- function(lowertri,L,C,In,...){
- L %*% (
-    ( In %(x)% lowertri) %*% C %*% t(L) + 
-      (lowertri %(x)% In) %*% t(L)
-  )
+
+  # library(microbenchmark)
+  # microbenchmark(
+  #   L %*% (
+  #     ( In %x% lowertri) %*% C %*% t(L) + 
+  #       (lowertri %x% In) %*% t(L)
+  #   ),
+  #   L %*% ((In %x% In) + C) %*% ((lowertri %x% In) %*% t(L))
+  # )
+ # a <- L %*% (
+ #    ( In %x% lowertri) %*% C %*% t(L) + 
+ #      (lowertri %x% In) %*% t(L)
+ #  )
+ 
+L %*% ((In %x% In) + C) %*% ((lowertri %x% In) %*% t(L))
 }
 
 # Derivative of scaling matrix:
-d_sigma_delta <- function(L,IminOinv,In,A,delta,...){
+d_sigma_delta <- function(L,delta_IminOinv,In,A,delta,...){
   L %*% (
-    ((delta %*% IminOinv) %(x)% In) + 
-      (In %(x)% (delta %*% IminOinv))
+    (delta_IminOinv%x% In) + 
+      (In %x% delta_IminOinv)
   ) %*% A
 }
 
 # Derivative of network matrix:
-d_sigma_omega <- function(L,IminOinv,A,delta,Dstar,...){
-  L %*% (delta %(x)% delta) %*% (IminOinv %(x)% IminOinv) %*% Dstar
+d_sigma_omega <- function(L,delta_IminOinv,A,delta,Dstar,...){
+  # L %*% (delta %x% delta) %*% (IminOinv %x% IminOinv) %*% Dstar
+  
+  # delta_IminOinv <- delta %*% IminOinv
+  L %*% (delta_IminOinv %x% delta_IminOinv) %*% Dstar
+  
+  # all(a == b)
 }
 
 # Derivative of precision matrix:
 d_sigma_kappa <- function(L,D,sigma,...){
-  - L %*% (sigma %(x)% sigma) %*% D
+  - L %*% (sigma %x% sigma) %*% D
 }
 
 

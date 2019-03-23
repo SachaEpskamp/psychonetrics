@@ -92,8 +92,8 @@ implied_panelvar1 <- function(model,all = FALSE){
     I <- model@extramatrices$In
     
     # Beta star:
-    # BetaStar <- as(corpcor::pseudoinverse(I %(x)% I - (x[[g]]$beta %(x)% x[[g]]$beta)),"Matrix")
-    BetaStar <- as(trysolve(I %(x)% I - (x[[g]]$beta %(x)% x[[g]]$beta)),"Matrix")
+    # BetaStar <- as(corpcor::pseudoinverse(I %x% I - (x[[g]]$beta %x% x[[g]]$beta)),"Matrix")
+    BetaStar <- as(trysolve(I %x% I - (x[[g]]$beta %x% x[[g]]$beta)),"Matrix")
     
         
     # Vector w:
@@ -149,8 +149,8 @@ implied_panelvar1 <- function(model,all = FALSE){
       x[[g]]$w <- w
       x[[g]]$allSigmas <- allSigmas
       x[[g]]$B_Sigma_mu <- x[[g]]$beta %*% x[[g]]$sigma_mu
-      x[[g]]$IkronBeta <- model@extramatrices$In %(x)% x[[g]]$beta
-      x[[g]]$Sigma_mu_kron_I <- x[[g]]$sigma_mu %(x)% model@extramatrices$In
+      x[[g]]$IkronBeta <- model@extramatrices$In %x% x[[g]]$beta
+      x[[g]]$Sigma_mu_kron_I <- x[[g]]$sigma_mu %x% model@extramatrices$In
     }
     
   }

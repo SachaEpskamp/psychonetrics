@@ -1,11 +1,11 @@
 
  # derivative of sigma0 (full vec) with respect to beta:
 d_sigma0_beta_panelvar1 <- function(BetaStar,E,In,w,B_Sigma_mu,C,...){
-  (t(w) %(x)% (In %(x)% In)) %*% 
-    (t(BetaStar) %(x)% BetaStar) %*% 
-    (E %(x)% In + In %(x)% E) - 
+  (t(w) %x% (In %x% In)) %*% 
+    (t(BetaStar) %x% BetaStar) %*% 
+    (E %x% In + In %x% E) - 
     BetaStar %*% (
-      (In %(x)% B_Sigma_mu) %*% C + (B_Sigma_mu %(x)% In)
+      (In %x% B_Sigma_mu) %*% C + (B_Sigma_mu %x% In)
     )
 }
 # 
@@ -16,7 +16,7 @@ d_sigma0_sigma_zeta_panelvar1 <- function(BetaStar,D2,...){
 
 ## Lag k derivatives:
 d_sigmak_beta_panelvar1 <- function(k,IkronBeta,Jb,allSigmas,Sigma_mu_kron_I,In,...){
-  IkronBeta %*% Jb + (t(allSigmas[[k-1]]) %(x)% In) - Sigma_mu_kron_I
+  IkronBeta %*% Jb + (t(allSigmas[[k-1]]) %x% In) - Sigma_mu_kron_I
 }
 
 d_sigmak_sigma_zeta_panelvar1 <- function(IkronBeta,Jsigz,...){

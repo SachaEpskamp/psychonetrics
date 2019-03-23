@@ -6,14 +6,14 @@ d_mu_mu_var1 <- function(beta,...){
 # Derivative of exogenous variances part
 d_sigmastar_exo_cholesky_var1 <- function(In, L, C, exo_cholesky, ...){
   L %*% (
-    ( In %(x)% exo_cholesky) %*% C %*% t(L) + 
-      (exo_cholesky %(x)% In) %*% t(L)
+    ( In %x% exo_cholesky) %*% C %*% t(L) + 
+      (exo_cholesky %x% In) %*% t(L)
   )
 }
 
 # derivative of sigma0 with respect to beta:
 d_sigma0_beta_var1 <- function(L_betaStar,E,In,sigmaZetaVec,BetaStar,...){
-  ((t(sigmaZetaVec) %*% t(BetaStar)) %(x)% L_betaStar) %*% (E %(x)% In + In %(x)% E)
+  ((t(sigmaZetaVec) %*% t(BetaStar)) %x% L_betaStar) %*% (E %x% In + In %x% E)
 }
 
 # derivative of sigma0 with respect to sigma_zeta:
@@ -32,10 +32,10 @@ d_sigma_zeta_kappa_var1 <- function(L,D2, sigma_zeta,...){
 }
 
 # Derivative of sigma_zeta to ggm:
-d_sigma_zeta_ggm_var1 <- function(L,IminOinv_zeta,A,delta_zeta,Dstar,In,...){
+d_sigma_zeta_ggm_var1 <- function(L,delta_IminOinv_zeta,A,delta_zeta,Dstar,In,...){
   cbind(
-    d_sigma_omega(L = L, IminOinv = IminOinv_zeta, A = A, delta = delta_zeta, Dstar = Dstar),
-    d_sigma_delta(L = L,  IminOinv = IminOinv_zeta,In=In,delta=delta_zeta,A=A)
+    d_sigma_omega(L = L, delta_IminOinv = delta_IminOinv_zeta, A = A, delta = delta_zeta, Dstar = Dstar),
+    d_sigma_delta(L = L,  delta_IminOinv = delta_IminOinv_zeta,In=In,delta=delta_zeta,A=A)
   )
 }
 
@@ -44,7 +44,7 @@ d_sigma_zeta_ggm_var1 <- function(L,IminOinv_zeta,A,delta_zeta,Dstar,In,...){
 d_sigma1_beta_var1 <- function(IkronBeta,D2,Jb,sigma,beta,In,...){
   n <- nrow(beta)
   sigma0 <- sigma[n + (1:n), n + (1:n)]
-  as( IkronBeta %*% D2 %*% Jb + (sigma0 %(x)% In), "sparseMatrix")
+  as( IkronBeta %*% D2 %*% Jb + (sigma0 %x% In), "sparseMatrix")
 }
 
 

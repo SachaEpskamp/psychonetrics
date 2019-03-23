@@ -10,7 +10,7 @@ expected_hessian_Gaussian_group_varPart <- function(kappa,D,Drawts,...){
   kappa[abs(kappa) < sqrt(.Machine$double.eps)] <- 0
   kappa <- as(kappa, "sparseMatrix")
   
-  t(D) %*% (kappa %(x)% kappa) %*% D
+  t(D) %*% (kappa %x% kappa) %*% D
 }
 
 # Per group:

@@ -27,9 +27,9 @@ prepare_var1 <- function(x, model){
   #     mats[[g]]$OmegaStar <- corpcor::pseudoinverse(IminO)
   #   }
   #   mats[[g]]$DeltaOmegaStar <- mats[[g]]$delta_zeta %*% mats[[g]]$OmegaStar 
-  #   mats[[g]]$BetaStar <- corpcor::pseudoinverse(Diagonal(nrow(mats[[g]]$beta)^2) - (mats[[g]]$beta %(x)% mats[[g]]$beta))
+  #   mats[[g]]$BetaStar <- corpcor::pseudoinverse(Diagonal(nrow(mats[[g]]$beta)^2) - (mats[[g]]$beta %x% mats[[g]]$beta))
   #   mats[[g]]$L_betaStar <- model@extramatrices$L %*%  mats[[g]]$BetaStar 
-  #   mats[[g]]$IkronBeta <- model@extramatrices$In %(x)% mats[[g]]$beta
+  #   mats[[g]]$IkronBeta <- model@extramatrices$In %x% mats[[g]]$beta
   #   mats[[g]]$E <- Emat(nrow(mats[[g]]$beta),mats[[g]]$beta)
   #   mats[[g]]$SigmaZeta <- as.matrix(mats[[g]]$delta_zeta %*% mats[[g]]$OmegaStar %*% mats[[g]]$delta_zeta)
   #   mats[[g]]$sigmaZetaVec <- as.vector(mats[[g]]$SigmaZeta)

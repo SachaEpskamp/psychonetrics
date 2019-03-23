@@ -8,7 +8,7 @@ addMIs <- function(x, matrices = "all", type =  c("normal","free","equal"),verbo
   
   if ("normal" %in% type){
 
-    x <-  x %>% addMIs_inner_full(type = "normal")     
+    x <-  x %>% addMIs_inner_full(type = "normal",analyticFisher=analyticFisher)     
   }
   
   if (nrow(x@sample@groups) > 1){
@@ -33,7 +33,7 @@ addMIs <- function(x, matrices = "all", type =  c("normal","free","equal"),verbo
 
 
 # Add the modification indices (FULL VERSION):
-addMIs_inner_full <- function(x, type =  c("normal","free","equal")){
+addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFisher=TRUE){
   type <- match.arg(type)
   
   # If no constrained parameters, nothing to do!
