@@ -1,7 +1,7 @@
 # Implied model for precision. Requires appropriate model matrices:
 implied_dlvm1 <- function(model,all = FALSE){
   x <- formModelMatrices(model)
-  
+
   # Implied covariance structures:
   x <- impliedcovstructures(x, "zeta_within", type = model@types$within_latent, all = all)
   x <- impliedcovstructures(x, "epsilon_within", type = model@types$within_residual, all = all)
@@ -22,7 +22,7 @@ implied_dlvm1 <- function(model,all = FALSE){
   
   for (g in 1:nGroup){
     # Beta star:
-    BetaStar <- as(solve(I_within %(x)% I_within - (x[[g]]$beta %(x)% x[[g]]$beta)),"Matrix")
+    BetaStar <- as(trysolve(I_within %(x)% I_within - (x[[g]]$beta %(x)% x[[g]]$beta)),"Matrix")
   
     # Implied mean vector:
     impMu <- x[[g]]$tau + x[[g]]$lambda_between %*% x[[g]]$mu_eta
@@ -69,7 +69,7 @@ implied_dlvm1 <- function(model,all = FALSE){
     #   browser()
     # }
     # Precision:
-    x[[g]]$kappa <- spectralshift(as(solve(spectralshift(x[[g]]$sigma)), "Matrix"))
+    x[[g]]$kappa <- spectralshift(as(trysolve(spectralshift(x[[g]]$sigma)), "Matrix"))
     
     # FIXME: forcing symmetric, but not sure why this is needed...
     x[[g]]$kappa <- 0.5*(x[[g]]$kappa + t(x[[g]]$kappa))
@@ -78,9 +78,9 @@ implied_dlvm1 <- function(model,all = FALSE){
     x[[g]]$kappa <- as(round(x[[g]]$kappa,14),"Matrix")
     
     # Implied variance--covariance:
-    # sigma <- as(solve(kappa),"dpoMatrix")
-    # sigma <- as(solve(kappa),"dpoMatrix")
-    # sigma <- solve(kappa)
+    # sigma <- as(trysolve(kappa),"dpoMatrix")
+    # sigma <- as(trysolve(kappa),"dpoMatrix")
+    # sigma <- trysolve(kappa)
 
     # Extra matrices needed in optimization:
     if (!all){

@@ -207,7 +207,6 @@ runmodel <- function(
     optim.control$lower <- lower
     optim.control$upper <- upper
   }
-  
   # Run model:
   curtry <- 1
   repeat{
@@ -215,7 +214,7 @@ runmodel <- function(
       optim.out <- do.call(optimr,optim.control)
     }, silent = TRUE)    
     
-    if (!is(tryres,"try-error")){
+    if (!is(tryres,"try-error") && !any(is.na(optim.out$par))){
       break
     } else {
       curtry <- curtry + 1
@@ -230,7 +229,7 @@ runmodel <- function(
           message("Model estimation failed. Perturbing start values.")
         }        
         optim.control$par <- optim.control$par  + runif(length(optim.control$par),0, 0.1)
-        optim.control$par[parMat == "beta" | (rowMat(x) != colMat(x))] <- optim.control$par[parMat == "beta" | (rowMat(x) != colMat(x))]/2
+        optim.control$par[parMat(x) == "beta" | (rowMat(x) != colMat(x))] <- optim.control$par[parMat(x) == "beta" | (rowMat(x) != colMat(x))]/2
       }
     }
   }
