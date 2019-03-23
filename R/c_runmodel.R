@@ -7,6 +7,7 @@ runmodel <- function(
   addfit = TRUE,
   addMIs = TRUE,
   addSEs=TRUE,
+  addInformation = TRUE,
   log = TRUE,
   verbose = TRUE,
   # optimizer = c("default","ucminf","nlminb"),
@@ -343,14 +344,17 @@ runmodel <- function(
   
   # Add information:
   # if (!is.null(x@fitfunctions$information)){
-  x@information <- psychonetrics_FisherInformation(x)
-  
-  if (!all(x@information == t(x@information))){
-    x@information <- 0.5 * (x@information + t(x@information))
+  if (addInformation){
+    x@information <- psychonetrics_FisherInformation(x)
+    
+    if (!all(x@information == t(x@information))){
+      x@information <- 0.5 * (x@information + t(x@information))
+    }
+    if (any(Re(eigen(x@information)$values) < 0)){
+      warning("Information matrix is not positive semi-definite. Model might not be identified.")
+    }    
   }
-  if (any(Re(eigen(x@information)$values) < 0)){
-    warning("Information matrix is not positive semi-definite. Model might not be identified.")
-  }
+
   # }
   # Add fit:
   if (addfit){
