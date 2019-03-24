@@ -30,16 +30,25 @@ d_sigma0_sigma_zeta_within_dlvm1 <- function(lamWkronlamW, BetaStar, D_within, .
 }
 
 # Without elimination matrix:
-d_sigma0_beta_dlvm1 <- function(lamWkronlamW,sigma_zeta_within,BetaStar,E,I_within,...){
+d_sigma0_beta_dlvm1 <- function(BetaStar,I_within,allSigmas_within,C_within_within,...){
   # lamWkronlamW %*% (t(Vec(sigma_zeta_within)) %x% (I_within %x% I_within)) %*% (t(BetaStar) %x% BetaStar) %*% (
   #   E %x% I_within + I_within %x% E
   # )
   # Number of columns in betastar:
+  # 
+  # cp <- tcrossprod(t(Vec(sigma_zeta_within)), BetaStar)
+  # res <- (cp %x% BetaStar)  %*% (
+  #   E %x% I_within + I_within %x% E
+  # )
+  # 
+  # res2 <- BetaStar %*% (allSigmas_within[[2]] %x% I_within) +
+  #   BetaStar %*% (I_within %x% allSigmas_within[[2]]) %*% C_within_within
+  # 
   
-  cp <- tcrossprod(t(Vec(sigma_zeta_within)), BetaStar)
-  res <- (cp %x% BetaStar)  %*% (
-    E %x% I_within + I_within %x% E
-  )
+  res <- ((I_within%x%I_within) + C_within_within) %*% BetaStar %*% (allSigmas_within[[2]] %x% I_within) 
+
+    
+  
   return(res)
   # # Old experimental stuff:
   # nc <- ncol(BetaStar)

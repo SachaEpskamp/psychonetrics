@@ -346,6 +346,9 @@ runmodel <- function(
   # Add information:
   # if (!is.null(x@fitfunctions$information)){
   if (addInformation){
+    if (verbose){
+      message("Computing Fisher information...")
+    }
     x@information <- psychonetrics_FisherInformation(x, analyticFisher)
     
     if (!all(x@information == t(x@information))){
