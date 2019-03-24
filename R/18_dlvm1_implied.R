@@ -85,7 +85,7 @@ implied_dlvm1 <- function(model,all = FALSE){
     # Extra matrices needed in optimization:
     if (!all){
       x[[g]]$BetaStar <- BetaStar
-      x[[g]]$E <- Emat(nrow(x[[g]]$beta),x[[g]]$beta)
+      # x[[g]]$E <- Emat(nrow(x[[g]]$beta),x[[g]]$beta)
       x[[g]]$allSigmas_within <- allSigmas_within
       x[[g]]$IkronBeta <- model@extramatrices$I_within %x% x[[g]]$beta
       x[[g]]$lamWkronlamW <- x[[g]]$lambda_within %x% x[[g]]$lambda_within

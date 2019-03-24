@@ -108,7 +108,7 @@ stepup <- function(
     oldMod <- x
     # Stepwise up?
     # if (!any(matrices %in% x@equal)){ # FIXME: this will add equality constraints for all matrices...
-    if (any(x@parameters[[mi]][x@parameters$matrix %in% matrices & x@parameters$fixed] > qchisq(alpha,1,lower.tail=FALSE))){
+    if (any(x@parameters[[mi]][x@parameters$matrix %in% matrices & x@parameters$fixed & !is.na(x@parameters[[mi]])] > qchisq(alpha,1,lower.tail=FALSE))){
       
       # FIXME: Make nice free parameter function
       if (!greedy){
