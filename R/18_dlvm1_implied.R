@@ -85,6 +85,10 @@ implied_dlvm1 <- function(model,all = FALSE){
       x[[g]]$allSigmas_within <- allSigmas_within
       x[[g]]$IkronBeta <- model@extramatrices$I_within %x% x[[g]]$beta
       x[[g]]$lamWkronlamW <- x[[g]]$lambda_within %x% x[[g]]$lambda_within
+    } else {
+      x[[g]]$sigma_within <- x[[g]]$lambda_within %*% allSigmas_within[[1]] %*% t(x[[g]]$lambda_within) + x[[g]]$sigma_epsilon_between
+      x[[g]]$sigma_between <- x[[g]]$lambda_between %*% x[[g]]$sigma_zeta_between %*% t(x[[g]]$lambda_between) + x[[g]]$sigma_epsilon_between
+      x[[g]]$sigma_within_full <- fullSigma_within
     }
     
   }
