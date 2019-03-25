@@ -40,7 +40,7 @@ runmodel <- function(
     if (verbose) message("Estimating baseline model...")
     # Run:
     
-    x@baseline_saturated$baseline <- runmodel(x@baseline_saturated$baseline, addfit = FALSE, addMIs = FALSE, verbose = FALSE,addSEs=FALSE)
+    x@baseline_saturated$baseline <- runmodel(x@baseline_saturated$baseline, addfit = FALSE, addMIs = FALSE, verbose = FALSE,addSEs=FALSE, addInformation = FALSE, analyticFisher = FALSE)
   }
   
   # Evaluate saturated model:
@@ -48,7 +48,7 @@ runmodel <- function(
   if (!is.null(x@baseline_saturated$saturated) && !x@baseline_saturated$saturated@computed){
     if (verbose) message("Estimating saturated model...")
     # Run:
-    x@baseline_saturated$saturated <- runmodel(x@baseline_saturated$saturated, addfit = FALSE, addMIs = FALSE, verbose = FALSE,addSEs=FALSE)
+    x@baseline_saturated$saturated <- runmodel(x@baseline_saturated$saturated, addfit = FALSE, addMIs = FALSE, verbose = FALSE,addSEs=FALSE, addInformation = FALSE, analyticFisher = FALSE)
   }
   
   
@@ -351,9 +351,16 @@ runmodel <- function(
     }
     x@information <- psychonetrics_FisherInformation(x, analyticFisher)
     
+    # if (verbose){
+    #   message("Transpose...")
+    # }
     if (!all(x@information == t(x@information))){
       x@information <- 0.5 * (x@information + t(x@information))
     }
+    
+    # if (verbose){
+    #   message("Eigenvalues...")
+    # }
     if (any(Re(eigen(x@information)$values) < 0)){
       warning("Information matrix is not positive semi-definite. Model might not be identified.")
     }    

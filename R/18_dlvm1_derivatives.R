@@ -278,7 +278,6 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
     aug_between_residual <- Diagonal(nVar*(nVar+1)/2)
   }
 
-
   # fill intercept part:
   Jac[meanInds,tau_inds] <- Diagonal(nVar)
   
