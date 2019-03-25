@@ -12,8 +12,14 @@ d_sigmastar_exo_cholesky_var1 <- function(In, L, C, exo_cholesky, ...){
 }
 
 # derivative of sigma0 with respect to beta:
-d_sigma0_beta_var1 <- function(L_betaStar,E,In,sigmaZetaVec,BetaStar,...){
-  ((t(sigmaZetaVec) %*% t(BetaStar)) %x% L_betaStar) %*% (E %x% In + In %x% E)
+d_sigma0_beta_var1 <- function(BetaStar,In, sigma,C, L,...){
+
+  n <- nrow(In)
+  sigma1 <- sigma[n + (1:n), (1:n)]
+  res <- L %*% ((In%x%In) + C) %*% BetaStar %*% (sigma1 %x% In) 
+  return(res)
+  
+  # ((t(sigmaZetaVec) %*% t(BetaStar)) %x% L_betaStar) %*% (E %x% In + In %x% E)
 }
 
 # derivative of sigma0 with respect to sigma_zeta:

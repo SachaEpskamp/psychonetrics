@@ -126,7 +126,7 @@ var1 <- function(
   # S1 and S0 estimates:
   S0est <- lapply(shiftCovs,function(x)spectralshift(x[nNode + (1:nNode),nNode + (1:nNode)]))
   S1est <- lapply(shiftCovs,function(x)x[nNode + (1:nNode),1:nNode])
-  S0inv <- lapply(S0est,corpcor::pseudoinverse)
+  S0inv <- lapply(S0est,solve_symmetric)
   
   # Prior estimate for beta:
   betaEst <- lapply(1:nGroup, function(g) as.matrix(S1est[[g]] %*% S0inv[[g]]))

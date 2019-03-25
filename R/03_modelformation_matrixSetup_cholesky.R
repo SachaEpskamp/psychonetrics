@@ -16,7 +16,7 @@ matrixsetup_lowertri <- function(
   lowertriStart <- lowertri
   for (g in 1:nGroup){
     # Current estimate:
-    covest <- as.matrix(spectralshift(expcov[[g]]))
+    covest <- as.matrix(expcov[[g]])
     
     # Start values:
     if (!any(is.na(covest))){

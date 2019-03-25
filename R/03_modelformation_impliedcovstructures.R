@@ -33,7 +33,7 @@ impliedcovstructures <- function(
       # Only need to do things if all = TRUE:
       if (all){
         if (!all(x[[g]][[sigma]] == 0)){
-          x[[g]][[kappa]] <- as(trysolve(x[[g]][[sigma]]), "Matrix")
+          x[[g]][[kappa]] <- as(solve_symmetric(x[[g]][[sigma]]), "Matrix")
           x[[g]][[omega]]  <- as(qgraph::wi2net(as.matrix(x[[g]][[kappa]])),"sparseMatrix")          
         }
       }
@@ -44,30 +44,30 @@ impliedcovstructures <- function(
       # Return precision and network if all = TRUE:
       if (all){
         if (!all(x[[g]][[sigma]] == 0)){
-          x[[g]][[kappa]] <- as(trysolve(x[[g]][[sigma]]), "Matrix")
+          x[[g]][[kappa]] <- as(solve_symmetric(x[[g]][[sigma]]), "Matrix")
           x[[g]][[omega]]  <- as(qgraph::wi2net(as.matrix(x[[g]][[kappa]])),"sparseMatrix")
         }
 
       }
     } else if (type == "ggm"){
-      x[[g]][[sigma]] <- x[[g]][[delta]] %*% trysolve(Diagonal(ncol(x[[g]][[omega]])) - x[[g]][[omega]]) %*% x[[g]][[delta]]
+      x[[g]][[sigma]] <- x[[g]][[delta]] %*% solve_symmetric(Diagonal(ncol(x[[g]][[omega]])) - x[[g]][[omega]]) %*% x[[g]][[delta]]
       
       # Stuff needed if all = TRUE:
       if (all){
         if (!all(x[[g]][[sigma]] == 0)){
-          x[[g]][[kappa]] <- trysolve(x[[g]][[sigma]])
+          x[[g]][[kappa]] <- solve_symmetric(x[[g]][[sigma]])
         }
         
       }
       
       # Extra matrix needed:
       if (!all){
-        x[[g]][[IminOinv]] <- as(trysolve(Diagonal(ncol(x[[g]][[omega]])) - x[[g]][[omega]]), "Matrix")
+        x[[g]][[IminOinv]] <- as(solve_symmetric(Diagonal(ncol(x[[g]][[omega]])) - x[[g]][[omega]]), "Matrix")
         x[[g]][[delta_IminOinv]] <- x[[g]][[delta]] %*% x[[g]][[IminOinv]]
       }
     } else if (type == "prec"){
       # Precision matrix
-      x[[g]][[sigma]] <- as(trysolve(x[[g]][[kappa]]),"sparseMatrix")
+      x[[g]][[sigma]] <- as(solve_symmetric(x[[g]][[kappa]]),"sparseMatrix")
       
       if (all) {
         x[[g]][[omega]] <- as(qgraph::wi2net(as.matrix(x[[g]][[kappa]])),"sparseMatrix")
