@@ -3,30 +3,30 @@ expected_hessian_Gaussian_group_meanPart <- function(kappa,...){
 }
 
 expected_hessian_Gaussian_group_varPart <- function(kappa,D,Drawts,...){
-  if (nrow(Drawts) != ncol(Drawts)){
-    D <- Diagonal(n = nrow(kappa)^2)
-  } 
+  # if (nrow(Drawts) != ncol(Drawts)){
+  #   D <- Diagonal(n = nrow(kappa)^2)
+  # } 
   # Make kappa sparse:
   kappa[abs(kappa) < sqrt(.Machine$double.eps)] <- 0
-  kappa <- as(kappa, "sparseMatrix")
+  kappa <- as(kappa, "Matrix")
   
   t(D) %*% (kappa %x% kappa) %*% D
 }
 
 # Per group:
-expected_hessian_Gaussian_group <- function(...,Drawts,mu,sigma){
-  if (missing(Drawts)){
-    Drawts <- Diagonal(NROW(mu) +  nrow(sigma) * ( nrow(sigma)+1) / 2)
-  }
+expected_hessian_Gaussian_group <- function(...,mu,sigma){
+  # if (missing(Drawts)){
+  #   Drawts <- Diagonal(NROW(mu) +  nrow(sigma) * ( nrow(sigma)+1) / 2)
+  # }
   
   # Mean part:
   meanPart <- expected_hessian_Gaussian_group_meanPart(...)
  
   # Variance part:
-  varPart <- expected_hessian_Gaussian_group_varPart(...,Drawts=Drawts)
+  varPart <- expected_hessian_Gaussian_group_varPart(...)
   
   # Return as block matrix:
-  foo <- t(Drawts) %*% bdiag(meanPart, varPart) %*% Drawts
+  bdiag(meanPart, varPart) 
 }
 
 # Total:
