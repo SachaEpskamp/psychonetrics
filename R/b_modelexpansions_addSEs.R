@@ -23,12 +23,12 @@ addSEs <-  function(x
   
   # Compute a hessian if requested or needed:
   if (!is.null(x@information)){
-    Hinv <- corpcor::pseudoinverse(x@information)
+    Hinv <- solve_symmetric(x@information)
   } else {
-    Hinv <- corpcor::pseudoinverse(psychonetrics_FisherInformation(x))
+    Hinv <- solve_symmetric(psychonetrics_FisherInformation(x))
   } 
   # if (!is.null(x@information)){
-  #   Hinv <- corpcor::pseudoinverse(x@information)
+  #   Hinv <- solve_symmetric(x@information)
   # } else if (!is.null(x@optim$inverseHessian)){
   #   Hinv <- x@optim$inverseHessian
   # } else {
@@ -45,17 +45,17 @@ addSEs <-  function(x
   #   }
   #   
   #   # Invert:
-  #   Hinv <- corpcor::pseudoinverse(H)
+  #   Hinv <- solve_symmetric(H)
   # } 
  
   # Obtain SEs
-  # SEs <-  sqrt(abs(diag(corpcor::pseudoinverse(-n/2*H))))
-  # Hinv <- corpcor::pseudoinverse(x@fitfunctions$information(x))
+  # SEs <-  sqrt(abs(diag(solve_symmetric(-n/2*H))))
+  # Hinv <- solve_symmetric(x@fitfunctions$information(x))
   SEs <-  sqrt(abs(diag(Hinv)))
   
   # 
   # 
-  # x <- sqrt(abs(diag(corpcor::pseudoinverse(H))))
+  # x <- sqrt(abs(diag(solve_symmetric(H))))
   # sqrt(2/n) * x -
   # SEs
   N <- sum(x@sample@groups$nobs)

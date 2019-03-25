@@ -1,4 +1,5 @@
 spectralshift <- function(x){
+# warning("'spectralshift' should be removed!")
   # # Make matrix:
   # if (!is.matrix(x)){
   #   x <- as.matrix(x)

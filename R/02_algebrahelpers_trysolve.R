@@ -1,4 +1,5 @@
 trysolve <- function(x){
+warning("'trysolve' should be removed!")
   tryres <- try({
     y <- solve(x)
   }, silent = TRUE)

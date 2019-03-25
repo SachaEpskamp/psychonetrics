@@ -141,7 +141,7 @@ lvm <- function(
   # For each group:
   for (g in 1:nGroup){
     # Current cov estimate:
-    curcov <- as.matrix(spectralshift(sampleStats@covs[[g]]))
+    curcov <- as.matrix(sampleStats@covs[[g]])
  
     # Cur loadings:
     curLambda <- modMatrices$lambda$start[,,g]

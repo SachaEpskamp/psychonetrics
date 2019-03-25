@@ -16,11 +16,11 @@ matrixsetup_kappa <- function(
   kappaStart <- kappa
   for (g in 1:nGroup){
     # Current estimate:
-    covest <- as.matrix(spectralshift(expcov[[g]]))
+    covest <- as.matrix(expcov[[g]])
     
     zeroes <- which(kappaStart[,,g]==0 & t(kappaStart[,,g])==0 & diag(nNode) != 1,arr.ind=TRUE)
     if (nrow(zeroes) == 0){
-      wi <- corpcor::pseudoinverse(covest)
+      wi <- solve_symmetric(covest)
     } else {
       glas <- glasso(as.matrix(covest),
                      rho = 1e-10, zero = zeroes)

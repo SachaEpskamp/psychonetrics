@@ -1,10 +1,10 @@
 Package: psychonetrics
 Type: Package
 Title: Psychometric Network Models
-Version: 0.1.5
+Version: 0.1.6
 Author: Sacha Epskamp
 Maintainer: Sacha Epskamp <mail@sachaepskamp.com>
 Description: ...
 License: GPL-2
-Imports: pbapply, qgraph, numDeriv, dplyr, abind, matrixcalc, Matrix, lavaan, corpcor, ucminf, glasso, mgcv, optimx, mvtnorm
+Imports: pbapply, qgraph, numDeriv, dplyr, abind, matrixcalc, Matrix, lavaan, corpcor, ucminf, glasso, mgcv, optimx, mvtnorm, VCA
 Bytecompile: true

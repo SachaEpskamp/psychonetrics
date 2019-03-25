@@ -22,7 +22,7 @@ implied_dlvm1 <- function(model,all = FALSE){
   
   for (g in 1:nGroup){
     # Beta star:
-    BetaStar <- as(trysolve(I_within %x% I_within - (x[[g]]$beta %x% x[[g]]$beta)),"Matrix")
+    BetaStar <- as(solve(I_within %x% I_within - (x[[g]]$beta %x% x[[g]]$beta)),"Matrix")
   
     # Implied mean vector:
     impMu <- x[[g]]$tau + x[[g]]$lambda_between %*% x[[g]]$mu_eta
@@ -69,18 +69,14 @@ implied_dlvm1 <- function(model,all = FALSE){
     #   browser()
     # }
     # Precision:
-    x[[g]]$kappa <- spectralshift(as(trysolve(spectralshift(x[[g]]$sigma)), "Matrix"))
+    x[[g]]$kappa <- solve_symmetric(x[[g]]$sigma, logdet = TRUE)
     
     # FIXME: forcing symmetric, but not sure why this is needed...
-    x[[g]]$kappa <- 0.5*(x[[g]]$kappa + t(x[[g]]$kappa))
+    # x[[g]]$kappa <- 0.5*(x[[g]]$kappa + t(x[[g]]$kappa))
     
     # Let's round to make sparse if possible:
-    x[[g]]$kappa <- as(round(x[[g]]$kappa,14),"Matrix")
+    # x[[g]]$kappa <- as(round(x[[g]]$kappa,14),"Matrix")
     
-    # Implied variance--covariance:
-    # sigma <- as(trysolve(kappa),"dpoMatrix")
-    # sigma <- as(trysolve(kappa),"dpoMatrix")
-    # sigma <- trysolve(kappa)
 
     # Extra matrices needed in optimization:
     if (!all){

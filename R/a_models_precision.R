@@ -87,14 +87,14 @@ precision <- prec <- function(
 #     # Are we in the rawts world?
 #     if (rawts){
 #       if (missing(groups)){
-#         covest <-as.matrix(spectralshift( lavOut$cov))
+#         covest <-as.matrix( lavOut$cov)
 #         meanest <- lavOut$mean
 #       } else {
-#         covest <- as.matrix(spectralshift(lavOut$cov[[g]]))
+#         covest <- as.matrix(lavOut$cov[[g]])
 #         meanest <- lavOut$mean[[g]]
 #       }
 #     } else {
-#       covest <- as.matrix(spectralshift(sampleStats@covs[[g]]))
+#       covest <- as.matrix(sampleStats@covs[[g]])
 #       meanest <-  sampleStats@means[[g]]
 #     }
 #       
@@ -109,7 +109,7 @@ precision <- prec <- function(
 #         # For the network, compute a rough glasso network:
 #         zeroes <- which(omegaStart[,,g]==0 & t(omegaStart[,,g])==0 & diag(nNode) != 1,arr.ind=TRUE)
 #         if (nrow(zeroes) == 0){
-#           wi <- corpcor::pseudoinverse(covest)
+#           wi <- solve_symmetric(covest)
 #         } else {
 #           glas <- glasso(as.matrix(covest),
 #                          rho = 1e-10, zero = zeroes)
