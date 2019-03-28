@@ -1,20 +1,42 @@
-d_mu_mu_eta_dlvm1 <- function(lambda_between,...){
-  lambda_between
+d_mu_mu_eta_dlvm1 <- function(lambda,...){
+  lambda
 }
 
-d_mu_lambda_between_dlvm1 <- function(mu_eta,I_y,...){
+# d_mu_lambda_dlvm1 <- function(mu_eta,I_y,...){
+#   t(mu_eta) %x% I_y
+# }
+
+d_mu_lambda_dlvm1 <- function(mu_eta,I_y,...){
   t(mu_eta) %x% I_y
 }
 
-d_sigmak_lambda_within_dlvm1 <- function(lambda_within, k = 0,  allSigmas_within, C_y_within, I_y, L_y, ...){
-  res <- (
-    (I_y %x% (lambda_within %*% allSigmas_within[[k]])) %*% C_y_within + 
-    ( (lambda_within %*% t(allSigmas_within[[k]])) %x%  I_y)  
+# d_sigmak_lambda_dlvm1 <- function(lambda, k = 0,  allSigmas_within, C_y_eta, I_y, L_y, ...){
+#   res <- (
+#     (I_y %x% (lambda %*% allSigmas_within[[k]])) %*% C_y_eta + 
+#     ( (lambda %*% t(allSigmas_within[[k]])) %x%  I_y)  
+#   )
+#   # browser()
+#   
+#   
+#   # res2 <- ((I_y %x% I_y) + C_y_eta) %*% ((lambda %*% allSigmas_within[[k]]) %x%  I_y) 
+#   
+#   if (k == 1){
+#     return(L_y %*% res)
+#   } else {
+#     return(res)
+#   }
+# }
+
+d_sigmak_lambda_dlvm1 <- function(lambda, k = 0,  allSigmas_within, C_y_eta, I_y, L_y,sigma_zeta_between, ...){
+  within <- (
+    (I_y %x% (lambda %*% allSigmas_within[[k]])) %*% C_y_eta + 
+      ( (lambda %*% t(allSigmas_within[[k]])) %x%  I_y)  
   )
-  # browser()
   
+  between <- (I_y %x% (lambda %*% sigma_zeta_between)) %*% C_y_eta + 
+    ( (lambda %*% sigma_zeta_between) %x%  I_y)  
   
-  # res2 <- ((I_y %x% I_y) + C_y_within) %*% ((lambda_within %*% allSigmas_within[[k]]) %x%  I_y) 
+  res <- within + between
   
   if (k == 1){
     return(L_y %*% res)
@@ -22,30 +44,35 @@ d_sigmak_lambda_within_dlvm1 <- function(lambda_within, k = 0,  allSigmas_within
     return(res)
   }
 }
+# 
+# d_sigmak_lambda_dlvm1 <- function(lambda, sigma_zeta_between, C_y_between, I_y, ...){
+#   (I_y %x% (lambda %*% sigma_zeta_between)) %*% C_y_between + 
+#     ( (lambda %*% sigma_zeta_between) %x%  I_y)  
+# }
 
 # Without elimination matrix
-d_sigma0_sigma_zeta_within_dlvm1 <- function(lamWkronlamW, BetaStar, D_within, ...){
-  # lamWkronlamW %*% BetaStar %*% D_within
-  BetaStar %*% D_within
+d_sigma0_sigma_zeta_within_dlvm1 <- function(lamWkronlamW, BetaStar, D_eta, ...){
+  # lamWkronlamW %*% BetaStar %*% D_eta
+  BetaStar %*% D_eta
 }
 
 # Without elimination matrix:
-d_sigma0_beta_dlvm1 <- function(BetaStar,I_within,allSigmas_within,C_within_within,...){
-  # lamWkronlamW %*% (t(Vec(sigma_zeta_within)) %x% (I_within %x% I_within)) %*% (t(BetaStar) %x% BetaStar) %*% (
-  #   E %x% I_within + I_within %x% E
+d_sigma0_beta_dlvm1 <- function(BetaStar,I_eta,allSigmas_within,C_eta_eta,...){
+  # lamWkronlamW %*% (t(Vec(sigma_zeta_within)) %x% (I_eta %x% I_eta)) %*% (t(BetaStar) %x% BetaStar) %*% (
+  #   E %x% I_eta + I_eta %x% E
   # )
   # Number of columns in betastar:
   # 
   # cp <- tcrossprod(t(Vec(sigma_zeta_within)), BetaStar)
   # res <- (cp %x% BetaStar)  %*% (
-  #   E %x% I_within + I_within %x% E
+  #   E %x% I_eta + I_eta %x% E
   # )
   # 
-  # res2 <- BetaStar %*% (allSigmas_within[[2]] %x% I_within) +
-  #   BetaStar %*% (I_within %x% allSigmas_within[[2]]) %*% C_within_within
+  # res2 <- BetaStar %*% (allSigmas_within[[2]] %x% I_eta) +
+  #   BetaStar %*% (I_eta %x% allSigmas_within[[2]]) %*% C_eta_eta
   # 
   
-  res <- ((I_within%x%I_within) + C_within_within) %*% BetaStar %*% (allSigmas_within[[2]] %x% I_within) 
+  res <- ((I_eta%x%I_eta) + C_eta_eta) %*% BetaStar %*% (allSigmas_within[[2]] %x% I_eta) 
 
     
   
@@ -54,36 +81,36 @@ d_sigma0_beta_dlvm1 <- function(BetaStar,I_within,allSigmas_within,C_within_with
   # nc <- ncol(BetaStar)
   # # If the number is not *too* big, do normal:
   # if (nc < 12){
-  #   res <- (t(Vec(sigma_zeta_within)) %x% (I_within %x% I_within)) %*% (t(BetaStar) %x% BetaStar) %*% (
-  #     E %x% I_within + I_within %x% E
+  #   res <- (t(Vec(sigma_zeta_within)) %x% (I_eta %x% I_eta)) %*% (t(BetaStar) %x% BetaStar) %*% (
+  #     E %x% I_eta + I_eta %x% E
   #   )
   #   
   #   return(res)
   # } else {
   #   # Fancy method:
   #   smat <- (
-  #     E %x% I_within + I_within %x% E
+  #     E %x% I_eta + I_eta %x% E
   #   )
   #   postmat <- do.call(cbind,lapply(1:nc,function(i)Vec(BetaStar%*%Matrix(smat[,i],nc,nc)%*%BetaStar)))
-  #   res <- (t(Vec(sigma_zeta_within)) %x% (I_within %x% I_within)) %*% postmat
+  #   res <- (t(Vec(sigma_zeta_within)) %x% (I_eta %x% I_eta)) %*% postmat
   #   return(res)
   # }
 }
 
-d_sigmak_beta_dlvm1 <- function(J_sigma_beta,IkronBeta,k,  allSigmas_within,I_within,...){
+d_sigmak_beta_dlvm1 <- function(J_sigma_beta,IkronBeta,k,  allSigmas_within,I_eta,...){
   
-  IkronBeta %*% J_sigma_beta + (t(allSigmas_within[[k-1]]) %x% I_within)
+  IkronBeta %*% J_sigma_beta + (t(allSigmas_within[[k-1]]) %x% I_eta)
   
 }
 
 
-d_sigmak_lambda_between_dlvm1 <- function(lambda_between, sigma_zeta_between, C_y_between, I_y, ...){
-    (I_y %x% (lambda_between %*% sigma_zeta_between)) %*% C_y_between + 
-      ( (lambda_between %*% sigma_zeta_between) %x%  I_y)  
-}
+# d_sigmak_lambda_dlvm1 <- function(lambda, sigma_zeta_between, C_y_eta, I_y, ...){
+#     (I_y %x% (lambda %*% sigma_zeta_between)) %*% C_y_eta + 
+#       ( (lambda %*% sigma_zeta_between) %x%  I_y)  
+# }
 
-d_sigmak_sigma_zeta_between_dlvm1 <- function(lambda_between,D_between,...){
-  (lambda_between %x% lambda_between) %*% D_between
+d_sigmak_sigma_zeta_between_dlvm1 <- function(lambda,D_eta,...){
+  (lambda %x% lambda) %*% D_eta
 }
 
 # 
@@ -118,8 +145,8 @@ d_sigmak_sigma_zeta_between_dlvm1 <- function(lambda_between,D_between,...){
 ### Augmentation parts:
 
 # Derivative of sigma_zeta to cholesky:
-# d_sigma_zeta_within_cholesky_dlvm1 <- function(lowertri_zeta_within,L,C_within_within,I_within,...){
-#   d_sigma_cholesky(lowertri=lowertri_zeta_within,L=L,C=C_within_within,In=I_within)
+# d_sigma_zeta_within_cholesky_dlvm1 <- function(lowertri_zeta_within,L,C_eta_eta,I_eta,...){
+#   d_sigma_cholesky(lowertri=lowertri_zeta_within,L=L,C=C_eta_eta,In=I_eta)
 # }
 # 
 # # Derivative of sigma_zeta to precision:
@@ -159,10 +186,10 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
   dots <- list(...)
   design <- dots$design
   P <- dots$P
-  lambda_within <- dots$lambda_within
-  lambda_between <- dots$lambda_between
-  L_within <- dots$L_within
-  L_between <- dots$L_between
+  lambda <- dots$lambda
+  # lambda <- dots$lambda
+  L_eta <- dots$L_eta
+  # L_eta <- dots$L_eta
   L_y <- dots$L_y
   
   # Number of variables:
@@ -171,11 +198,14 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
   # Number of times points:
   nTime <- ncol(design)
   
+  # Number of latents:
+  nLat <- ncol(lambda)
+  
   # Number of within latents:
-  nLat_wit <- ncol(lambda_within)
+  # nLat <- ncol(lambda)
   
   # Number of between latents:
-  nLat_bet <- ncol(lambda_between)
+  # nLat <- ncol(lambda)
   
   # I need to construct the Jacobian for the following "observations:"
   nobs <- nVar + # Means
@@ -184,13 +214,13 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
   
   # total number of elements:
   nelement <- nVar + # intercepts in tau
-    nLat_bet + # Latent means
-    nVar * nLat_wit + # Within-subject factor loadings
-    nLat_wit * (nLat_wit+1) / 2 + # within factor variances
-    nLat_wit^2 + # temporal effects
+    nLat + # Latent means
+    nVar * nLat + # Factor loadings
+    nLat * (nLat+1) / 2 + # within factor variances
+    nLat^2 + # temporal effects
     nVar * (nVar + 1) / 2 + # Within residuals
-    nVar * nLat_bet + # Between-subject factor loadings
-    nLat_bet * (nLat_bet + 1) / 2 + # Between-subject factor variances
+    # nVar * nLat + # Between-subject factor loadings
+    nLat * (nLat + 1) / 2 + # Between-subject factor variances
     nVar * (nVar + 1) / 2 # between residuals
   
   # Empty Jacobian:
@@ -209,45 +239,45 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
   
   # Indices model:
   tau_inds <- seq_len(nVar)
-  mu_eta_inds <- max(tau_inds) + seq_len(nLat_bet)
+  mu_eta_inds <- max(tau_inds) + seq_len(nLat)
+  lambda_inds <- max(mu_eta_inds) + seq_len(nVar * nLat)
   
-  lambda_within_inds <- max(mu_eta_inds) + seq_len(nVar * nLat_wit)
-  sigma_zeta_within_inds <- max(lambda_within_inds) + seq_len(nLat_wit * (nLat_wit+1) / 2)
-  beta_inds <- max(sigma_zeta_within_inds) + seq_len(nLat_wit^2)
+  # lambda_inds <- max(mu_eta_inds) + seq_len(nVar * nLat)
+  sigma_zeta_within_inds <- max(lambda_inds) + seq_len(nLat * (nLat+1) / 2)
+  beta_inds <- max(sigma_zeta_within_inds) + seq_len(nLat^2)
   sigma_epsilon_within_inds <- max(beta_inds) + seq_len(nVar * (nVar + 1) / 2)
   
-  lambda_between_inds <- max(sigma_epsilon_within_inds) + seq_len(nVar * nLat_bet)
-  sigma_zeta_between_inds <- max(lambda_between_inds) + seq_len(nLat_bet * (nLat_bet + 1) / 2)
+  sigma_zeta_between_inds <- max(sigma_epsilon_within_inds) + seq_len(nLat * (nLat + 1) / 2)
   sigma_epsilon_between_inds <- max(sigma_zeta_between_inds) + seq_len(nVar * (nVar + 1) / 2)
   
   ### Augmentation parts ###
 
   # Within latent
   if (within_latent == "chol"){
-    aug_within_latent <-   d_sigma_cholesky(lowertri=dots$lowertri_zeta_within,L=L_within,C=dots$C_within_within,In=dots$I_within)
+    aug_within_latent <-   d_sigma_cholesky(lowertri=dots$lowertri_zeta_within,L=L_eta,C=dots$C_eta_eta,In=dots$I_eta)
   } else if (within_latent == "prec"){
-    aug_within_latent <- d_sigma_kappa(L = L_within, D = dots$D_within, sigma = dots$sigma_zeta_within)
+    aug_within_latent <- d_sigma_kappa(L = L_eta, D = dots$D_eta, sigma = dots$sigma_zeta_within)
   } else if (within_latent == "ggm"){
     aug_within_latent <- cbind(
-           d_sigma_omega(L = L_within, delta_IminOinv = dots$delta_IminOinv_zeta_within, A = dots$A_within, delta = dots$delta_zeta_within, Dstar = dots$Dstar_within),
-           d_sigma_delta(L = L_within,  delta_IminOinv = dots$delta_IminOinv_zeta_within,In=dots$I_within,delta=dots$delta_zeta_within,A=dots$A_within)
+           d_sigma_omega(L = L_eta, delta_IminOinv = dots$delta_IminOinv_zeta_within, A = dots$A_eta, delta = dots$delta_zeta_within, Dstar = dots$Dstar_eta),
+           d_sigma_delta(L = L_eta,  delta_IminOinv = dots$delta_IminOinv_zeta_within,In=dots$I_eta,delta=dots$delta_zeta_within,A=dots$A_eta)
      )
   } else if (within_latent == "cov"){
-    aug_within_latent <- Diagonal(nLat_wit*(nLat_wit+1)/2)
+    aug_within_latent <- Diagonal(nLat*(nLat+1)/2)
   }
   
   # Between latent
   if (between_latent == "chol"){
-    aug_between_latent <-   d_sigma_cholesky(lowertri=dots$lowertri_zeta_between,L=L_between,C=dots$C_between_between,In=dots$I_between)
+    aug_between_latent <-   d_sigma_cholesky(lowertri=dots$lowertri_zeta_between,L=L_eta,C=dots$C_eta_eta,In=dots$I_eta)
   } else if (between_latent == "prec"){
-    aug_between_latent <- d_sigma_kappa(L = L_between, D = dots$D_between, sigma = dots$sigma_zeta_between)
+    aug_between_latent <- d_sigma_kappa(L = L_eta, D = dots$D_eta, sigma = dots$sigma_zeta_between)
   } else if (between_latent == "ggm"){
     aug_between_latent <- cbind(
-      d_sigma_omega(L = L_between, delta_IminOinv = dots$delta_IminOinv_zeta_between, A = dots$A_between, delta = dots$delta_zeta_between, Dstar = dots$Dstar_between),
-      d_sigma_delta(L = L_between,  delta_IminOinv = dots$delta_IminOinv_zeta_between,In=dots$I_between,delta=dots$delta_zeta_between,A=dots$A_between)
+      d_sigma_omega(L = L_eta, delta_IminOinv = dots$delta_IminOinv_zeta_between, A = dots$A_eta, delta = dots$delta_zeta_between, Dstar = dots$Dstar_eta),
+      d_sigma_delta(L = L_eta,  delta_IminOinv = dots$delta_IminOinv_zeta_between,In=dots$I_eta,delta=dots$delta_zeta_between,A=dots$A_eta)
     )
   } else if (between_latent == "cov"){
-    aug_between_latent <- Diagonal(nLat_bet*(nLat_bet+1)/2)
+    aug_between_latent <- Diagonal(nLat*(nLat+1)/2)
   }
   
   # Within residual
@@ -285,10 +315,15 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
   Jac[meanInds,mu_eta_inds] <- d_mu_mu_eta_dlvm1( ...)
   
   # Fill mean to factor loading part:
-  Jac[meanInds,lambda_between_inds] <- d_mu_lambda_between_dlvm1(...)
+  Jac[meanInds,lambda_inds] <- d_mu_lambda_dlvm1(...)
   
-  # Fill s0 to lambda_within part:
-  Jac[sigInds[[1]],lambda_within_inds] <- d_sigmak_lambda_within_dlvm1(k=1,...)
+  # # Fill s0 to lambda part:
+  # Jac[sigInds[[1]],lambda_inds] <- d_sigmak_lambda_dlvm1(k=1,...)
+  # 
+  # 
+  # Fill s0 to lambda part:
+  Jac[sigInds[[1]],lambda_inds] <- d_sigmak_lambda_dlvm1(k=1,...)
+  
   
   # Fill s0  to sigma_zeta_within part (and store for later use):
   J_sigma_zeta_within <- d_sigma0_sigma_zeta_within_dlvm1(...) %*% aug_within_latent
@@ -303,9 +338,9 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
   Jac[sigInds[[1]],sigma_epsilon_within_inds] <- Diagonal(nVar * (nVar+1) / 2)  %*% aug_within_residual
   
   
-  # Fill s0 to lambda_between part and store for later use
-  J_sigmak_lambda_between <- d_sigmak_lambda_between_dlvm1(...)
-  Jac[sigInds[[1]],lambda_between_inds] <- L_y %*% J_sigmak_lambda_between
+  # Fill s0 to lambda part and store for later use
+  # J_sigmak_lambda <- d_sigmak_lambda_dlvm1(...)
+  # Jac[sigInds[[1]],lambda_inds] <- L_y %*% J_sigmak_lambda
   
   # Fill s0 to sigma_zeta_between, and store for later use:
   J_sigmak_sigma_zeta_between <- d_sigmak_sigma_zeta_between_dlvm1(...)  %*% aug_between_latent
@@ -317,8 +352,8 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
   # For every further lag:
   for (t in 2:nTime){
     
-    # Fill sk to lambda_within part:
-    Jac[sigInds[[t]],lambda_within_inds] <- d_sigmak_lambda_within_dlvm1(k=t,...)
+    # Fill sk to lambda part:
+    Jac[sigInds[[t]],lambda_inds] <- d_sigmak_lambda_dlvm1(k=t,...)
 
     # Fill sk  to sigma_zeta_within part (and store for later use):
     J_sigma_zeta_within <- dots$IkronBeta %*% J_sigma_zeta_within
@@ -332,8 +367,8 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
     # Jac[sigInds[[1]],sigma_epsilon_within_inds] <- Diagonal(nVar * (nVar+1) / 2)
     # 
     
-    # Fill sk to lambda_between part and store for later use
-    Jac[sigInds[[t]],lambda_between_inds] <- J_sigmak_lambda_between
+    # Fill sk to lambda part and store for later use
+    # Jac[sigInds[[t]],lambda_inds] <- J_sigmak_lambda
     
     # Fill s0 to sigma_zeta_between, and store for later use:
     Jac[sigInds[[t]],sigma_zeta_between_inds] <- J_sigmak_sigma_zeta_between

@@ -4,8 +4,9 @@ dlvm1 <- function(
   vars, # Must be a matrix!
   
   # Factor loadings:
-  lambda_within, # May not be missing
-  lambda_between, # May not be missing
+  lambda, # May not be missing
+  # lambda_within, # May not be missing
+  # lambda_between, # May not be missing
   
   # Type:
   within_latent = c("cov","chol","prec","ggm"), 
@@ -53,8 +54,9 @@ dlvm1 <- function(
   identification = c("variance","loadings"),
   
   # Latents:
-  latents_within,
-  latents_between,
+  # latents,
+  # latents,
+  latents,
   
   # The rest:
   groups, # ignored if missing. Can be character indicating groupvar, or vector with names of groups
@@ -69,18 +71,26 @@ dlvm1 <- function(
   optimizer = "default"
 ){
   # Check for missing:
-  if (missing(lambda_within)){
-    stop("'lambda_within' may not be missing")
+  # if (missing(lambda_within)){
+  #   stop("'lambda_within' may not be missing")
+  # }
+  # if (is.character(lambda_within)){
+  #   stop("'lambda_within' may not be a string")
+  # }
+  # if (missing(lambda_between)){
+  #   stop("'lambda_between' may not be missing")
+  # }
+  # if (is.character(lambda_between)){
+  #   stop("'lambda_between' may not be a string")
+  # }
+  # 
+  if (missing(lambda)){
+    stop("'lambda' may not be missing")
   }
-  if (is.character(lambda_within)){
-    stop("'lambda_within' may not be a string")
+  if (is.character(lambda)){
+    stop("'lambda' may not be a string")
   }
-  if (missing(lambda_between)){
-    stop("'lambda_between' may not be missing")
-  }
-  if (is.character(lambda_between)){
-    stop("'lambda_between' may not be a string")
-  }
+  
   
   # Match args:
   within_latent <- match.arg(within_latent)
@@ -123,11 +133,14 @@ dlvm1 <- function(
   # Number of measurements:
   nTime <- ncol(vars)
   
+  # Number of latents:
+  nLat <- ncol(lambda)
+  
   # Number of latents at within level:
-  nLat_within <- ncol(lambda_within)
+  # nLat <- ncol(lambda_within)
   
   # Number of latents at between level:
-  nLat_between <- ncol(lambda_between)
+  # nLat <- ncol(lambda_between)
   
   # row names:
   if (is.null(rownames(vars))){
@@ -142,17 +155,23 @@ dlvm1 <- function(
   timenames <- colnames(vars)
   
   # Latents:
-  if (missing(latents_within)){
-    latents_within <- paste0("Eta_within_",seq_len(nLat_within))
+  # if (missing(latents)){
+  #   latents <- paste0("Eta_within_",seq_len(nLat))
+  # }
+  # if (length(latents) != nLat){
+  #   stop("Length of 'latents' is not equal to number of latent variables in model.")
+  # }
+  # if (missing(latents)){
+  #   latents <- paste0("Eta_between_",seq_len(nLat))
+  # }
+  # if (length(latents) != nLat){
+  #   stop("Length of 'latents' is not equal to number of latent variables in model.")
+  # }
+  if (missing(latents)){
+    latents <- paste0("Eta_",seq_len(nLat))
   }
-  if (length(latents_within) != nLat_within){
-    stop("Length of 'latents_within' is not equal to number of latent variables in model.")
-  }
-  if (missing(latents_between)){
-    latents_between <- paste0("Eta_between_",seq_len(nLat_between))
-  }
-  if (length(latents_between) != nLat_between){
-    stop("Length of 'latents_between' is not equal to number of latent variables in model.")
+  if (length(latents) != nLat){
+    stop("Length of 'latents' is not equal to number of latent variables in model.")
   }
   
   # Generate model object:
@@ -187,8 +206,8 @@ dlvm1 <- function(
                                    expmeans = expMeans, sampletable = sampleStats, name = "tau")
   
   # Fix between-subject means:
-  modMatrices$mu_eta <- matrixsetup_mu(mu_eta,nNode = nLat_between, nGroup = nGroup, labels = latents_between, equal = "mu_eta" %in% equal,
-                                    expmeans = lapply(1:nGroup,function(x)rep(0, nLat_between)), sampletable = sampleStats, name = "mu_eta")
+  modMatrices$mu_eta <- matrixsetup_mu(mu_eta,nNode = nLat, nGroup = nGroup, labels = latents, equal = "mu_eta" %in% equal,
+                                    expmeans = lapply(1:nGroup,function(x)rep(0, nLat)), sampletable = sampleStats, name = "mu_eta")
   
   # FIXME: simple start values for now...
   
@@ -198,25 +217,29 @@ dlvm1 <- function(
   firstSigma0 <- lapply(sampleStats@covs,function(x)spectralshift(x[firstVars,firstVars]))
   firstSigma1 <- lapply(sampleStats@covs,function(x)spectralshift(x)[secondVars,firstVars])
   
+  # Setup lambda:
+  modMatrices$lambda <- matrixsetup_lambda(lambda, expcov=firstSigma0, nGroup = nGroup, observednames = sampleStats@variables$label, latentnames = latents,
+                     sampletable = sampleStats, name = "lambda")
+  
   # If beta = 0, these sort of estimate the within and between subject covs:
   prior_bet_cov <- lapply(firstSigma1,function(x)spectralshift(0.5*(x+t(x))))
   prior_wit_cov <- lapply(seq_along(firstSigma1),function(i)spectralshift(firstSigma0[[i]] - prior_bet_cov[[i]]))
   
   
-  # Setup lambda_within:
-  modMatrices$lambda_within <- matrixsetup_lambda(lambda_within, expcov=prior_wit_cov, nGroup = nGroup, observednames = sampleStats@variables$label, latentnames = latents_within,
-                                           sampletable = sampleStats, name = "lambda_within")
+  # # Setup lambda_within:
+  # modMatrices$lambda_within <- matrixsetup_lambda(lambda_within, expcov=prior_wit_cov, nGroup = nGroup, observednames = sampleStats@variables$label, latentnames = latents,
+  #                                          sampletable = sampleStats, name = "lambda_within")
   
   
   # Quick and dirty sigma_zeta_within estimate:
   prior_sig_zeta_within <- lapply(seq_along(firstSigma1),function(i){
     # Let's take a pseudoinverse:
-    curLam <- Matrix(as.vector(modMatrices$lambda_within$start[,,i,drop=FALSE]),nVar,nLat_within)
+    curLam <- Matrix(as.vector(modMatrices$lambda$start[,,i,drop=FALSE]),nVar,nLat)
     
     inv <- corpcor::pseudoinverse(as.matrix(kronecker(curLam,curLam)))
     
     # And obtain psi estimate:
-     matrix(inv %*% as.vector(prior_wit_cov[[i]])/2,nLat_within,nLat_within)
+     matrix(inv %*% as.vector(prior_wit_cov[[i]])/2,nLat,nLat)
   })
   
 
@@ -227,18 +250,18 @@ dlvm1 <- function(
     name= "zeta_within",
     sampleStats= sampleStats,
     equal = equal,
-    nNode = nLat_within,
+    nNode = nLat,
     expCov = prior_sig_zeta_within,
     nGroup = nGroup,
-    labels = latents_within
+    labels = latents
   ))
  
   # Setup Beta:
   modMatrices$beta <- matrixsetup_beta(beta, 
                                        name = "beta",
-                                       nNode = nLat_within, 
+                                       nNode = nLat, 
                                        nGroup = nGroup, 
-                                       labels = latents_within,
+                                       labels = latents,
                                        equal = "beta" %in% equal, sampletable = sampleStats)
   
   
@@ -257,20 +280,20 @@ dlvm1 <- function(
   
   # Between-case effects:
   # Setup lambda_between:
-  modMatrices$lambda_between <- matrixsetup_lambda(lambda_between, expcov=prior_bet_cov, nGroup = nGroup, observednames = sampleStats@variables$label, latentnames = latents_between,
-                                                  sampletable = sampleStats, name = "lambda_between")
-  
+  # modMatrices$lambda_between <- matrixsetup_lambda(lambda_between, expcov=prior_bet_cov, nGroup = nGroup, observednames = sampleStats@variables$label, latentnames = latents,
+  #                                                 sampletable = sampleStats, name = "lambda_between")
+  # 
   
   
   # Quick and dirty sigma_zeta_between estimate:
   prior_sig_zeta_between <- lapply(seq_along(firstSigma1),function(i){
     # Let's take a pseudoinverse:
-    curLam <- Matrix(as.vector(modMatrices$lambda_between$start[,,i,drop=FALSE]),nVar,nLat_between)
+    curLam <- Matrix(as.vector(modMatrices$lambda$start[,,i,drop=FALSE]),nVar,nLat)
     
     inv <- corpcor::pseudoinverse(as.matrix(kronecker(curLam,curLam)))
     
     # And obtain psi estimate:
-    matrix(inv %*% as.vector(prior_bet_cov[[i]])/2,nLat_between,nLat_between)
+    matrix(inv %*% as.vector(prior_bet_cov[[i]])/2,nLat,nLat)
   })
   
   
@@ -281,10 +304,10 @@ dlvm1 <- function(
                                        name= "zeta_between",
                                        sampleStats= sampleStats,
                                        equal = equal,
-                                       nNode = nLat_between,
+                                       nNode = nLat,
                                        expCov = prior_sig_zeta_between,
                                        nGroup = nGroup,
-                                       labels = latents_between
+                                       labels = latents
                    ))
   
   # Setup latent residual:
@@ -313,35 +336,45 @@ dlvm1 <- function(
     
     # Duplication matrices:
     D_y = psychonetrics::duplicationMatrix(nVar),
-    D_within = psychonetrics::duplicationMatrix(nLat_within),
-    D_between = psychonetrics::duplicationMatrix(nLat_between),
+    D_eta = psychonetrics::duplicationMatrix(nLat),
+    # D_within = psychonetrics::duplicationMatrix(nLat),
+    # D_between = psychonetrics::duplicationMatrix(nLat),
     
     # Strict duplication matrices:
     Dstar_y = psychonetrics::duplicationMatrix(nVar,diag = FALSE),
-    Dstar_within = psychonetrics::duplicationMatrix(nLat_within,diag = FALSE),
-    Dstar_between = psychonetrics::duplicationMatrix(nLat_between,diag = FALSE),  
+    Dstar_eta = psychonetrics::duplicationMatrix(nLat,diag = FALSE),
+    # Dstar_within = psychonetrics::duplicationMatrix(nLat,diag = FALSE),
+    # Dstar_between = psychonetrics::duplicationMatrix(nLat,diag = FALSE),  
     
     # Identity matrices:
     I_y = Diagonal(nVar),
-    I_within = Diagonal(nLat_within),
-    I_between = Diagonal(nLat_between),
+    I_eta = Diagonal(nLat),
+    # I_within = Diagonal(nLat),
+    # I_between = Diagonal(nLat),
     
     # Diagonalization matrices:
     A_y = psychonetrics::diagonalizationMatrix(nVar),
-    A_within = psychonetrics::diagonalizationMatrix(nLat_within),
-    A_between = psychonetrics::diagonalizationMatrix(nLat_between),
+    A_eta = psychonetrics::diagonalizationMatrix(nLat),
+    # A_within = psychonetrics::diagonalizationMatrix(nLat),
+    # A_between = psychonetrics::diagonalizationMatrix(nLat),
     
     # Commutation matrices:
     C_y_y = as(lavaan::lav_matrix_commutation(nVar, nVar),"sparseMatrix"),
-    C_y_within = as(lavaan::lav_matrix_commutation(nVar, nLat_within),"sparseMatrix"),
-    C_within_within = as(lavaan::lav_matrix_commutation(nLat_within, nLat_within),"sparseMatrix"),
-    C_y_between = as(lavaan::lav_matrix_commutation(nVar, nLat_between),"sparseMatrix"),
-    C_between_between = as(lavaan::lav_matrix_commutation(nLat_between, nLat_between),"sparseMatrix"),
-    
+    C_y_eta = as(lavaan::lav_matrix_commutation(nVar, nLat),"sparseMatrix"),
+    C_eta_eta = as(lavaan::lav_matrix_commutation(nLat, nLat),"sparseMatrix"),
+   
+    # 
+    # C_y_within = as(lavaan::lav_matrix_commutation(nVar, nLat),"sparseMatrix"),
+    # C_within_within = as(lavaan::lav_matrix_commutation(nLat, nLat),"sparseMatrix"),
+    # C_y_between = as(lavaan::lav_matrix_commutation(nVar, nLat),"sparseMatrix"),
+    # C_between_between = as(lavaan::lav_matrix_commutation(nLat, nLat),"sparseMatrix"),
+    # 
     # Elimination matrices:
     L_y = psychonetrics::eliminationMatrix(nVar),
-    L_within = psychonetrics::eliminationMatrix(nLat_within),
-    L_between = psychonetrics::eliminationMatrix(nLat_between),
+    L_eta = psychonetrics::eliminationMatrix(nLat),
+
+    # L_within = psychonetrics::eliminationMatrix(nLat),
+    # L_between = psychonetrics::eliminationMatrix(nLat),
     
     design = design
   )
