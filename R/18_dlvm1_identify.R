@@ -20,7 +20,7 @@ identify_dlvm1 <- function(x){
     
     # variance ifentification:
     if (type == "variance"){
-      
+      # 
       # Within-subject model
       mat <- switch(
        x@types$within_latent,
@@ -29,42 +29,42 @@ identify_dlvm1 <- function(x){
        "ggm" = "delta_zeta_within",
        "chol" = "lowertri_zeta_within"
       )
-      
+
       # Set all latent variances to 1:
       vars <- which(x@parameters$matrix == mat & x@parameters$row == x@parameters$col)
       x@parameters$est[vars] <- 1
       x@parameters$par[vars] <- 0
       x@parameters$fixed[vars] <- TRUE
       x@parameters$identified[vars] <- TRUE
-      
+
       # Clear
       x@parameters <- clearpars(x@parameters, vars)
-      
+      # 
       # Between-subject model
-      mat <- switch(
-        x@types$between_latent,
-        "cov" = "sigma_zeta_between",
-        "prec" = "kappa_zeta_between",
-        "ggm" = "delta_zeta_between",
-        "chol" = "lowertri_zeta_between"
-      )
-      
-      # Set all latent variances to 1:
-      vars <- which(x@parameters$matrix == mat & x@parameters$row == x@parameters$col)
-      x@parameters$est[vars] <- 1
-      x@parameters$par[vars] <- 0
-      x@parameters$fixed[vars] <- TRUE
-      x@parameters$identified[vars] <- TRUE
-      
-      # Clear
-      x@parameters <- clearpars(x@parameters, vars)
+      # mat <- switch(
+      #   x@types$between_latent,
+      #   "cov" = "sigma_zeta_between",
+      #   "prec" = "kappa_zeta_between",
+      #   "ggm" = "delta_zeta_between",
+      #   "chol" = "lowertri_zeta_between"
+      # )
+      # 
+      # # Set all latent variances to 1:
+      # vars <- which(x@parameters$matrix == mat & x@parameters$row == x@parameters$col)
+      # x@parameters$est[vars] <- 1
+      # x@parameters$par[vars] <- 0
+      # x@parameters$fixed[vars] <- TRUE
+      # x@parameters$identified[vars] <- TRUE
+      # 
+      # # Clear
+      # x@parameters <- clearpars(x@parameters, vars)
       
     } else {
       # Within-subject part:
       # Set all first factor loadings equal to 1:
-      for (i in unique(x@parameters$col[x@parameters$matrix == "lambda_within"])){
+      for (i in unique(x@parameters$col[x@parameters$matrix == "lambda"])){
         # firstLoading <- which(!x@parameters$fixed & x@parameters$matrix == "lambda" & x@parameters$col == i)[1]  
-        firstLoading <- which((!x@parameters$fixed | (x@parameters$fixed & x@parameters$est != 0)) & x@parameters$matrix == "lambda_within" & x@parameters$col == i)[1] 
+        firstLoading <- which((!x@parameters$fixed | (x@parameters$fixed & x@parameters$est != 0)) & x@parameters$matrix == "lambda" & x@parameters$col == i)[1] 
         
         x@parameters$est[firstLoading] <- 1
         x@parameters$par[firstLoading] <- 0
@@ -74,21 +74,21 @@ identify_dlvm1 <- function(x){
         # Clear
         x@parameters <- clearpars(x@parameters, firstLoading)
       }
-      
-      # Between-subject part:
-      # Set all first factor loadings equal to 1:
-      for (i in unique(x@parameters$col[x@parameters$matrix == "lambda_between"])){
-        # firstLoading <- which(!x@parameters$fixed & x@parameters$matrix == "lambda" & x@parameters$col == i)[1]  
-        firstLoading <- which((!x@parameters$fixed | (x@parameters$fixed & x@parameters$est != 0)) & x@parameters$matrix == "lambda_between" & x@parameters$col == i)[1] 
-        
-        x@parameters$est[firstLoading] <- 1
-        x@parameters$par[firstLoading] <- 0
-        x@parameters$fixed[firstLoading] <- TRUE
-        x@parameters$identified[firstLoading] <- TRUE
-        
-        # Clear
-        x@parameters <- clearpars(x@parameters, firstLoading)
-      }
+      # 
+      # # Between-subject part:
+      # # Set all first factor loadings equal to 1:
+      # for (i in unique(x@parameters$col[x@parameters$matrix == "lambda"])){
+      #   # firstLoading <- which(!x@parameters$fixed & x@parameters$matrix == "lambda" & x@parameters$col == i)[1]  
+      #   firstLoading <- which((!x@parameters$fixed | (x@parameters$fixed & x@parameters$est != 0)) & x@parameters$matrix == "lambda" & x@parameters$col == i)[1] 
+      #   
+      #   x@parameters$est[firstLoading] <- 1
+      #   x@parameters$par[firstLoading] <- 0
+      #   x@parameters$fixed[firstLoading] <- TRUE
+      #   x@parameters$identified[firstLoading] <- TRUE
+      #   
+      #   # Clear
+      #   x@parameters <- clearpars(x@parameters, firstLoading)
+      # }
     }
     
     
@@ -100,13 +100,13 @@ identify_dlvm1 <- function(x){
     cons <- x@parameters %>% group_by_("matrix","row","col") %>% summarize_(eq = ~!(all(fixed))&allTheSame(par))
     consPerMat <- cons %>% group_by_("matrix") %>% summarize_(n = ~sum(eq))
     
-    nLat_bet <- max(cons$col[cons$matrix == "lambda_between"])
-    nLat_wit <- max(cons$col[cons$matrix == "lambda_within"])
-    nMan <- max(cons$row[cons$matrix == "lambda_between"])
+    nLat <- max(cons$col[cons$matrix == "lambda"])
+    # nLat <- max(cons$col[cons$matrix == "lambda"])
+    nMan <- max(cons$row[cons$matrix == "lambda"])
     
     ### LATENT MEANS ###
     # at least n_eta intercepts nead to be equal
-    if (consPerMat$n[consPerMat$matrix == "tau"] >= nLat_bet){
+    if (consPerMat$n[consPerMat$matrix == "tau"] >= nLat){
       means <- which(x@parameters$matrix %in% c("mu_eta") & x@parameters$group_id == 1)
       free <-  which(x@parameters$matrix %in% c("mu_eta") & x@parameters$group_id > 1)
     } else {
@@ -154,37 +154,37 @@ identify_dlvm1 <- function(x){
       ### variance ###
       # At least n_eta factor loadings need to be equal (FIXME: not sure about this...)
       # Between
-      mat <- switch(
-        x@types$between_latent,
-        "cov" = "sigma_zeta_between",
-        "prec" = "kappa_zeta_between",
-        "ggm" = "delta_zeta_between",
-        "chol" = "lowertri_zeta_between"
-      )
-      
-      
-      if (consPerMat$n[consPerMat$matrix == "lambda_between"] >= nLat_bet){
-        variance <- which(x@parameters$matrix == mat & x@parameters$group_id == 1 & x@parameters$row == x@parameters$col)
-        free <- which(x@parameters$matrix == mat & x@parameters$group_id > 1 & x@parameters$row == x@parameters$col)
-      } else {
-        variance <- which(x@parameters$matrix == mat &  x@parameters$row == x@parameters$col)
-        free <- numeric(0)
-      }
-      
-      # Constrain variance:
-      # Set al variance to 1:
-      x@parameters$est[variance] <- 1
-      x@parameters$par[variance] <- 0
-      x@parameters$fixed[variance] <- TRUE
-      x@parameters$identified[variance] <- TRUE
-      x@parameters <- clearpars(x@parameters, free)
-      
-      if (length(free) > 0){
-        x@parameters$par[free] <- max(x@parameters$par) + seq_along(free)
-        x@parameters$fixed[free] <- FALSE
-        x@parameters$identified[free] <- FALSE
-        x@parameters <- clearpars(x@parameters, free)
-      }
+      # mat <- switch(
+      #   x@types$between_latent,
+      #   "cov" = "sigma_zeta_between",
+      #   "prec" = "kappa_zeta_between",
+      #   "ggm" = "delta_zeta_between",
+      #   "chol" = "lowertri_zeta_between"
+      # )
+      # 
+      # 
+      # if (consPerMat$n[consPerMat$matrix == "lambda"] >= nLat){
+      #   variance <- which(x@parameters$matrix == mat & x@parameters$group_id == 1 & x@parameters$row == x@parameters$col)
+      #   free <- which(x@parameters$matrix == mat & x@parameters$group_id > 1 & x@parameters$row == x@parameters$col)
+      # } else {
+      #   variance <- which(x@parameters$matrix == mat &  x@parameters$row == x@parameters$col)
+      #   free <- numeric(0)
+      # }
+      # 
+      # # Constrain variance:
+      # # Set al variance to 1:
+      # x@parameters$est[variance] <- 1
+      # x@parameters$par[variance] <- 0
+      # x@parameters$fixed[variance] <- TRUE
+      # x@parameters$identified[variance] <- TRUE
+      # x@parameters <- clearpars(x@parameters, free)
+      # 
+      # if (length(free) > 0){
+      #   x@parameters$par[free] <- max(x@parameters$par) + seq_along(free)
+      #   x@parameters$fixed[free] <- FALSE
+      #   x@parameters$identified[free] <- FALSE
+      #   x@parameters <- clearpars(x@parameters, free)
+      # }
       
       # Within
       mat <- switch(
@@ -195,7 +195,7 @@ identify_dlvm1 <- function(x){
         "chol" = "lowertri_zeta_within"
       )
       
-      if (consPerMat$n[consPerMat$matrix == "lambda_within"] >= nLat_bet){
+      if (consPerMat$n[consPerMat$matrix == "lambda"] >= nLat){
         variance <- which(x@parameters$matrix == mat & x@parameters$group_id == 1 & x@parameters$row == x@parameters$col)
         free <- which(x@parameters$matrix == mat & x@parameters$group_id > 1 & x@parameters$row == x@parameters$col)
       } else {
@@ -220,23 +220,23 @@ identify_dlvm1 <- function(x){
       
     } else {
       for (g in seq_len(nrow(x@sample@groups))){
+        # # Set all first factor loadings equal to 1:
+        # for (i in unique(x@parameters$col[x@parameters$matrix == "lambda"])){
+        #   
+        #   firstLoading <- which((!x@parameters$fixed | (x@parameters$fixed & x@parameters$est != 0)) & x@parameters$matrix == "lambda" & x@parameters$col == i & x@parameters$group_id == g)[1] 
+        #   x@parameters$est[firstLoading] <- 1
+        #   x@parameters$par[firstLoading] <- 0
+        #   x@parameters$fixed[firstLoading] <- TRUE
+        #   x@parameters$identified[firstLoading] <- TRUE
+        #   
+        #   # Clear
+        #   x@parameters <- clearpars(x@parameters, firstLoading)
+        # }
+        # 
         # Set all first factor loadings equal to 1:
-        for (i in unique(x@parameters$col[x@parameters$matrix == "lambda_within"])){
+        for (i in unique(x@parameters$col[x@parameters$matrix == "lambda"])){
           
-          firstLoading <- which((!x@parameters$fixed | (x@parameters$fixed & x@parameters$est != 0)) & x@parameters$matrix == "lambda_within" & x@parameters$col == i & x@parameters$group_id == g)[1] 
-          x@parameters$est[firstLoading] <- 1
-          x@parameters$par[firstLoading] <- 0
-          x@parameters$fixed[firstLoading] <- TRUE
-          x@parameters$identified[firstLoading] <- TRUE
-          
-          # Clear
-          x@parameters <- clearpars(x@parameters, firstLoading)
-        }
-        
-        # Set all first factor loadings equal to 1:
-        for (i in unique(x@parameters$col[x@parameters$matrix == "lambda_between"])){
-          
-          firstLoading <- which((!x@parameters$fixed | (x@parameters$fixed & x@parameters$est != 0)) & x@parameters$matrix == "lambda_between" & x@parameters$col == i & x@parameters$group_id == g)[1] 
+          firstLoading <- which((!x@parameters$fixed | (x@parameters$fixed & x@parameters$est != 0)) & x@parameters$matrix == "lambda" & x@parameters$col == i & x@parameters$group_id == g)[1] 
           x@parameters$est[firstLoading] <- 1
           x@parameters$par[firstLoading] <- 0
           x@parameters$fixed[firstLoading] <- TRUE
