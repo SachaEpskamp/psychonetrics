@@ -1,6 +1,6 @@
 solve_symmetric <- function(x, logdet = FALSE){
-  # TO S4:
-  x <- as(x, "Matrix")
+  # SYMMETRIC AND TO S4:
+  x <- as((x + t(x))/2.0, "Matrix")
   
   # Eigen-values:
   ev <- eigen(x, symmetric=TRUE, only.values=TRUE)$values
