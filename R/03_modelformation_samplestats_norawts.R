@@ -75,6 +75,7 @@ samplestats_norawts <- function(
       if (!any(is.na(cov))){
         cors <- list(new("corMatrix", cov2cor(cov), sd = diag(cov)))         
       } else {
+        cors <- list()
       }
       # cors <- list(new("corMatrix", cov2cor(cov), sd = diag(cov)))
       means <- list(colMeans(data[,c(vars)], na.rm = TRUE))
