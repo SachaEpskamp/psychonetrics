@@ -54,6 +54,22 @@ runmodel <- function(
   
   
   # # nlminb control pars:
+  # if (optimizer == "nlminb"){
+  #   control.nlminb <- list(eval.max=20000L,
+  #                          iter.max=10000L,
+  #                          trace=0L,
+  #                          #abs.tol=1e-20, ### important!! fx never negative
+  #                          abs.tol=(.Machine$double.eps * 10),
+  #                          # rel.tol=1e-10,
+  #                          rel.tol=1e-5,
+  #                          #step.min=2.2e-14, # in =< 0.5-12
+  #                          step.min=1.0, # 1.0 in < 0.5-21
+  #                          step.max=1.0,
+  #                          x.tol=1.5e-8,
+  #                          xf.tol=2.2e-14)
+  #   
+  #   optim.control <- modifyList(optim.control, control.nlminb)
+  # }
   # control.nlminb <- list(eval.max=20000L,
   #                        iter.max=10000L,
   #                        trace=0L,
@@ -127,6 +143,9 @@ runmodel <- function(
   }
   # Run model:
   curtry <- 1
+  
+  browser()
+  
   repeat{
     tryres <- try({
       optim.out <- do.call(optimr,optim.control)
@@ -152,7 +171,7 @@ runmodel <- function(
     }
   }
 
-  optim.out <- do.call(optimr,optim.control)
+  # optim.out <- do.call(optimr,optim.control)
   
   # Update model:
   x <- updateModel(optim.out$par,x,updateMatrices = TRUE)
