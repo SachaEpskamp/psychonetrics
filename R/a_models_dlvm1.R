@@ -215,7 +215,7 @@ dlvm1 <- function(
   firstVars <- apply(vars,1,function(x)na.omit(x)[1])
   secondVars <- apply(vars,1,function(x)na.omit(x)[2])
   firstSigma0 <- lapply(sampleStats@covs,function(x)spectralshift(x[firstVars,firstVars]))
-  firstSigma1 <- lapply(sampleStats@covs,function(x)spectralshift(x)[secondVars,firstVars])
+  firstSigma1 <- lapply(sampleStats@covs,function(x)spectralshift(x[secondVars,firstVars]))
   
   # Setup lambda:
   modMatrices$lambda <- matrixsetup_lambda(lambda, expcov=firstSigma0, nGroup = nGroup, observednames = sampleStats@variables$label, latentnames = latents,
