@@ -5,7 +5,7 @@ stepup <- function(
   criterion = "bic", # Stop when criterion is no longer improved. Can also be none to ignore
   matrices, # Matrices to search
   mi = c("mi","mi_free","mi_equal"),
-  greedyadjust = c("fdr", "none", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY"),
+  greedyadjust = c("bonferroni", "none", "holm", "hochberg", "hommel", "fdr", "BH", "BY"),
   greedy = FALSE, # If TRUE, will start by adding all significant effects followed by pruning
   verbose = TRUE,
   checkinformation = TRUE,
