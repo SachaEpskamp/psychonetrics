@@ -18,24 +18,24 @@ implied_dlvm1 <- function(model,all = FALSE){
   nTime <- ncol(design)
   
   # Identity matrix for latents:
-  I_within <- model@extramatrices$I_within
+  I_eta <- model@extramatrices$I_eta
   
   for (g in 1:nGroup){
     # Beta star:
-    BetaStar <- as(solve(I_within %x% I_within - (x[[g]]$beta %x% x[[g]]$beta)),"Matrix")
+    BetaStar <- as(solve(I_eta %x% I_eta - (x[[g]]$beta %x% x[[g]]$beta)),"Matrix")
   
     # Implied mean vector:
-    impMu <- x[[g]]$tau + x[[g]]$lambda_between %*% x[[g]]$mu_eta
+    impMu <- x[[g]]$tau + x[[g]]$lambda %*% x[[g]]$mu_eta
     
     fullMu <- as(do.call(rbind,lapply(seq_len(nTime),function(t){
       impMu[design[,t]==1,,drop=FALSE]
     })), "Matrix")
     
     # List of implied varcovs within-subject latents:
-    nLatent_within <- ncol(x[[g]]$lambda_within)
+    nLatent <- ncol(x[[g]]$lambda)
     
     allSigmas_within <- list()
-    allSigmas_within[[1]] <- Matrix(as.vector(BetaStar %*% Vec(x[[g]]$sigma_zeta_within)), nLatent_within, nLatent_within)
+    allSigmas_within[[1]] <- Matrix(as.vector(BetaStar %*% Vec(x[[g]]$sigma_zeta_within)), nLatent, nLatent)
 
     # Fill implied:
     if (nTime > 1){
@@ -48,11 +48,11 @@ implied_dlvm1 <- function(model,all = FALSE){
     fullSigma_within_latent  <- as(blockToeplitz(lapply(allSigmas_within,as.matrix)), "Matrix")
     
     # Full within-subject cov matrix:
-    fullSigma_within <- (Diagonal(nTime) %x% x[[g]]$lambda_within) %*% fullSigma_within_latent %*% (Diagonal(nTime) %x% t(x[[g]]$lambda_within)) + (Diagonal(nTime) %x% x[[g]]$sigma_epsilon_within)
+    fullSigma_within <- (Diagonal(nTime) %x% x[[g]]$lambda) %*% fullSigma_within_latent %*% (Diagonal(nTime) %x% t(x[[g]]$lambda)) + (Diagonal(nTime) %x% x[[g]]$sigma_epsilon_within)
     
     # Full between-subject cov matrix:
     fullSigma_between <- Matrix(1,nTime,nTime) %x%  (
-      x[[g]]$lambda_between %*% x[[g]]$sigma_zeta_between %*% t(x[[g]]$lambda_between) + x[[g]]$sigma_epsilon_between
+      x[[g]]$lambda %*% x[[g]]$sigma_zeta_between %*% t(x[[g]]$lambda) + x[[g]]$sigma_epsilon_between
     )
     
     # Full implied covmat:
@@ -83,11 +83,11 @@ implied_dlvm1 <- function(model,all = FALSE){
       x[[g]]$BetaStar <- BetaStar
       # x[[g]]$E <- Emat(nrow(x[[g]]$beta),x[[g]]$beta)
       x[[g]]$allSigmas_within <- allSigmas_within
-      x[[g]]$IkronBeta <- model@extramatrices$I_within %x% x[[g]]$beta
-      x[[g]]$lamWkronlamW <- x[[g]]$lambda_within %x% x[[g]]$lambda_within
+      x[[g]]$IkronBeta <- model@extramatrices$I_eta %x% x[[g]]$beta
+      x[[g]]$lamWkronlamW <- x[[g]]$lambda %x% x[[g]]$lambda
     } else {
-      x[[g]]$sigma_within <- x[[g]]$lambda_within %*% allSigmas_within[[1]] %*% t(x[[g]]$lambda_within) + x[[g]]$sigma_epsilon_between
-      x[[g]]$sigma_between <- x[[g]]$lambda_between %*% x[[g]]$sigma_zeta_between %*% t(x[[g]]$lambda_between) + x[[g]]$sigma_epsilon_between
+      x[[g]]$sigma_within <- x[[g]]$lambda %*% allSigmas_within[[1]] %*% t(x[[g]]$lambda) + x[[g]]$sigma_epsilon_between
+      x[[g]]$sigma_between <- x[[g]]$lambda %*% x[[g]]$sigma_zeta_between %*% t(x[[g]]$lambda) + x[[g]]$sigma_epsilon_between
       x[[g]]$sigma_within_full <- fullSigma_within
     }
     
