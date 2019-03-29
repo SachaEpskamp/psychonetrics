@@ -86,7 +86,7 @@ d_phi_theta_panelvar1_group <- function(...,design,P,contemporaneous,between,L){
     nNode*(nNode+1)/2 # Between-subject effects
   
   # Empty Jacobian:
-  Jac <- Matrix(0, nrow = nobs, ncol=nelement)
+  Jac <- Matrix(0, nrow = nobs, ncol=nelement, sparse = FALSE)
   
   # Indices:
   meanInds <- 1:nNode
@@ -158,7 +158,8 @@ d_phi_theta_panelvar1_group <- function(...,design,P,contemporaneous,between,L){
   # Permute the matrix:
   Jac <- P %*% Jac
   
-
+  # Make sparse if needed:
+  Jac <- as(Jac, "Matrix")
   # Return jacobian:
   return(Jac)
 }

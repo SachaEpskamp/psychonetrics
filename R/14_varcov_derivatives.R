@@ -57,7 +57,7 @@ d_phi_theta_varcov_group <- function(sigma,y,...){
   varPart <- max(meanPart) + seq_len(nvar*(nvar+1)/2)
   
   # Empty Jacobian:
-  Jac <- Matrix(0, nobs, nobs)
+  Jac <- Matrix(0, nobs, nobs, sparse = FALSE)
 
   # Fill mean part with diagonal:
   Jac[meanPart,meanPart] <- Diagonal(nvar)
@@ -80,6 +80,9 @@ d_phi_theta_varcov_group <- function(sigma,y,...){
   } else  if (y == "prec"){
     Jac[varPart,varPart] <- d_sigma_kappa(sigma=sigma,...)
   }
+  
+  # Make sparse if needed:
+  Jac <- as(Jac, "Matrix")
  
   # Return jacobian:
   return(Jac)
