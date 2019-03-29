@@ -3,6 +3,7 @@ psychonetrics_gradient <- function(x, model){
   # I need an estimator part, a model part and a manual part
 
   # Prepare
+  # message("Prep model...")
   prep <- prepareModel(x, model)
 
   # estimator part:
@@ -17,6 +18,7 @@ psychonetrics_gradient <- function(x, model){
                    "Gaussian" = jacobian_fiml_gaussian_sigma)
   )
 
+  # message("Estimator part...")
   estimatorPart <- estimatorJacobian(prep)
   
   # model part:
@@ -34,7 +36,7 @@ psychonetrics_gradient <- function(x, model){
     # "cholesky" = d_phi_theta_cholesky
   )
   
-
+  # message("Model part...")
   modelPart <- modelJacobian(prep)
  
   # Manual part:
