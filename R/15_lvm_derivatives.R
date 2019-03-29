@@ -117,7 +117,7 @@ d_phi_theta_lvm_group <- function(lambda,latent,residual,...){
     nvar *( nvar + 1)/2 # Residual network and scaling
 
   # Empty Jacobian:
-  Jac <- Matrix(0, nrow = nobs, ncol=nelement)
+  Jac <- Matrix(0, nrow = nobs, ncol=nelement, sparse = FALSE)
   
   # Indices:
   meanInds <- 1:nvar
@@ -175,7 +175,9 @@ d_phi_theta_lvm_group <- function(lambda,latent,residual,...){
   # 
   # # Fill residual scaling part:
   # Jac[sigmaInds,deltainds] <- d_sigma_delta_epsilon_lvm(...)
-
+  # Make sparse if needed:
+  Jac <- as(Jac, "Matrix")
+  
   # Return jacobian:
   return(Jac)
 }

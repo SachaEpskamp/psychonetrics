@@ -79,7 +79,7 @@ d_phi_theta_var1_group <- function(beta,P,zeta,...){
     nNode * (nNode+1) / 2 # Contemporaneous network and var-cov
   
   # Empty Jacobian:
-  Jac <- Matrix(0, nrow = nobs, ncol=nelement)
+  Jac <- Matrix(0, nrow = nobs, ncol=nelement, sparse = FALSE)
   
   # Indices:
   meanInds <- 1:nvar
@@ -129,7 +129,8 @@ d_phi_theta_var1_group <- function(beta,P,zeta,...){
   # Permute the matrix:
   Jac <- P %*% Jac
 
-
+  # Make sparse if needed:
+  Jac <- as(Jac, "Matrix")
   # Return jacobian:
   return(Jac)
 }

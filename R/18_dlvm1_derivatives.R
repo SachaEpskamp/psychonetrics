@@ -224,7 +224,7 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
     nVar * (nVar + 1) / 2 # between residuals
   
   # Empty Jacobian:
-  Jac <- Matrix(0, nrow = nobs, ncol=nelement)
+  Jac <- Matrix(0, nrow = nobs, ncol=nelement, sparse = FALSE)
   
   # Indices:
   meanInds <- 1:nVar
@@ -308,6 +308,7 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
     aug_between_residual <- Diagonal(nVar*(nVar+1)/2)
   }
 
+  # message("Starting...")
   # fill intercept part:
   Jac[meanInds,tau_inds] <- Diagonal(nVar)
   
@@ -351,7 +352,7 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
 
   # For every further lag:
   for (t in 2:nTime){
-    
+    # message(paste0("t = ",t))
     # Fill sk to lambda part:
     Jac[sigInds[[t]],lambda_inds] <- d_sigmak_lambda_dlvm1(k=t,...)
 
@@ -381,7 +382,9 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
   # Permute the matrix:
   Jac <- P %*% Jac
   
-
+  # Make sparse if needed:
+  Jac <- as(Jac, "Matrix")
+  
   # Return jacobian:
   return(Jac)
 }
