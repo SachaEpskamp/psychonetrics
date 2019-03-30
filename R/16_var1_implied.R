@@ -9,7 +9,7 @@ implied_var1 <- function(model,all = FALSE){
   
 
     # Some stuff needed now:
-    BetaStar <- as(solve(Diagonal(nrow(x[[g]]$beta)^2) - (x[[g]]$beta %x% x[[g]]$beta)),"sparseMatrix")
+    BetaStar <- as(solve(Diagonal(nrow(x[[g]]$beta)^2) - (x[[g]]$beta %x% x[[g]]$beta)),"Matrix")
     sigmaZetaVec <- Vec(x[[g]]$sigma_zeta)
     
     # Implied exogenous covariances:

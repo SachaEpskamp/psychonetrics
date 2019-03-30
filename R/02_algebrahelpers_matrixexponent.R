@@ -5,6 +5,6 @@
     res <- Reduce('%*%',rep(list(A),b)) 
     # Tolerance:
     res[abs(res) < tol] <- 0
-    as(res, "sparseMatrix")
+    as(res, "Matrix")
   }
 }

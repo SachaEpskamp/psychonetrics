@@ -34,7 +34,7 @@ impliedcovstructures <- function(
       if (all){
         if (!all(x[[g]][[sigma]] == 0)){
           x[[g]][[kappa]] <- as(solve_symmetric(x[[g]][[sigma]]), "Matrix")
-          x[[g]][[omega]]  <- as(qgraph::wi2net(as.matrix(x[[g]][[kappa]])),"sparseMatrix")          
+          x[[g]][[omega]]  <- as(qgraph::wi2net(as.matrix(x[[g]][[kappa]])),"Matrix")          
         }
       }
     } else if(type == "chol"){
@@ -45,7 +45,7 @@ impliedcovstructures <- function(
       if (all){
         if (!all(x[[g]][[sigma]] == 0)){
           x[[g]][[kappa]] <- as(solve_symmetric(x[[g]][[sigma]]), "Matrix")
-          x[[g]][[omega]]  <- as(qgraph::wi2net(as.matrix(x[[g]][[kappa]])),"sparseMatrix")
+          x[[g]][[omega]]  <- as(qgraph::wi2net(as.matrix(x[[g]][[kappa]])),"Matrix")
         }
 
       }
@@ -67,10 +67,10 @@ impliedcovstructures <- function(
       }
     } else if (type == "prec"){
       # Precision matrix
-      x[[g]][[sigma]] <- as(solve_symmetric(x[[g]][[kappa]]),"sparseMatrix")
+      x[[g]][[sigma]] <- as(solve_symmetric(x[[g]][[kappa]]),"Matrix")
       
       if (all) {
-        x[[g]][[omega]] <- as(qgraph::wi2net(as.matrix(x[[g]][[kappa]])),"sparseMatrix")
+        x[[g]][[omega]] <- as(qgraph::wi2net(as.matrix(x[[g]][[kappa]])),"Matrix")
       }
     }
     

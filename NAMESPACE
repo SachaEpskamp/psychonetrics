@@ -1,3 +1,4 @@
+useDynLib(psychonetrics, .registration = TRUE)
 importFrom(lavaan, lavCor, lavInspect)
 exportPattern("^[[:alpha:]]+")
 import(dplyr)

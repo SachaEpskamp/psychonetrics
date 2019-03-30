@@ -14,7 +14,7 @@ implied_lvm <- function(model, all = FALSE){
 
     
     # Matrices I need in every model framework when estimating:
-      BetaStar <- as(solve(Diagonal(nrow(x[[g]]$beta)) - x[[g]]$beta),"sparseMatrix")
+      BetaStar <- as(solve(Diagonal(nrow(x[[g]]$beta)) - x[[g]]$beta),"Matrix")
       Lambda_BetaStar <- x[[g]]$lambda %*%  BetaStar 
       Betasta_sigmaZeta <- BetaStar %*% x[[g]]$sigma_zeta
       tBetakronBeta <- t(BetaStar) %x% BetaStar      

@@ -13,7 +13,7 @@ Vec <- function(x){
       if (length(x@x) == 0){
         return(Matrix(0, nrow=nrow(x)*ncol(x),ncol=1))
       } else {
-        as(c(as.matrix(x)), "sparseMatrix") # FIXME: This should be better...
+        as(c(as.matrix(x)), "Matrix") # FIXME: This should be better...
       }
     } else {
       return(Matrix(x@x))  

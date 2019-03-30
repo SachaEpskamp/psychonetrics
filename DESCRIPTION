@@ -6,5 +6,6 @@ Author: Sacha Epskamp
 Maintainer: Sacha Epskamp <mail@sachaepskamp.com>
 Description: ...
 License: GPL-2
-Imports: pbapply, qgraph, numDeriv, dplyr, abind, matrixcalc, Matrix, lavaan, corpcor, ucminf, glasso, mgcv, optimx, mvtnorm, VCA
+LinkingTo: Rcpp, RcppArmadillo
+Imports: Rcpp (>= 0.11.3), pbapply, qgraph, numDeriv, dplyr, abind, matrixcalc, Matrix, lavaan, corpcor, ucminf, glasso, mgcv, optimx, mvtnorm, VCA
 Bytecompile: true

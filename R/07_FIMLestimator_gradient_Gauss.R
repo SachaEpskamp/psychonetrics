@@ -18,7 +18,7 @@ jacobian_fiml_gaussian_subgroup_sigma <- function(dat,sigma,kappa,mu,...){
 
 # jacobian function per group
 jacobian_fiml_gaussian_group_sigma <- function(fimldata,fulln,sigma,kappa,mu,...){
-    
+  
     # Subgroup models:
     1/fulln * Reduce("+", lapply(fimldata,jacobian_fiml_gaussian_subgroup_sigma,sigma=sigma,kappa=kappa,mu=mu))
     
