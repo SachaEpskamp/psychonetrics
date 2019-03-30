@@ -36,6 +36,9 @@ missingpatterns <- function(dat, verbose = TRUE){
     patterns[[i]]$means <- colMeans(subDat)
     patterns[[i]]$S <- 1 / patterns[[i]]$n  *  t(subDat) %*% subDat -patterns[[i]]$means %*% t(patterns[[i]]$means)
     
+    # FIXME: Obs vec for RcppArma:
+    patterns[[i]]$obs <- as.vector(!unMis[i,])
+    
     # Means elimination matrix:
     obs <- !patterns[[i]]$pattern
     
