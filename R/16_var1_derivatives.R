@@ -50,13 +50,13 @@ d_sigma_zeta_ggm_var1 <- function(L,delta_IminOinv_zeta,A,delta_zeta,Dstar,In,..
 d_sigma1_beta_var1 <- function(IkronBeta,D2,Jb,sigma,beta,In,...){
   n <- nrow(beta)
   sigma0 <- sigma[n + (1:n), n + (1:n)]
-  as( IkronBeta %*% D2 %*% Jb + (sigma0 %x% In), "sparseMatrix")
+  as( IkronBeta %*% D2 %*% Jb + (sigma0 %x% In), "Matrix")
 }
 
 
 # Derivative of sigma1 with respect to omega:
 d_sigma1_sigma_zeta_var1 <- function(IkronBeta,D2,Js,...){
-  as(IkronBeta %*% D2 %*% Js, "sparseMatrix")
+  as(IkronBeta %*% D2 %*% Js, "Matrix")
 }
 
 

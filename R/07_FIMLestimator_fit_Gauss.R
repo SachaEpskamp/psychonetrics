@@ -12,7 +12,13 @@ fimlEstimator_Gauss_subgroup <- function(dat,sigma,kappa,mu,...){
 
 # Fit function per group:
 fimlEstimator_Gauss_group <- function(fimldata,fulln,sigma,kappa,mu,...){
-  
+  # 
+  # browser()
+  # Sigma <<- sigma
+  # Kappa <<- kappa
+  # Mu <<- mu
+  # Fimldata <<- fimldata
+  # 
   # Subgroup models:
   1/fulln * Reduce("+", lapply(fimldata,fimlEstimator_Gauss_subgroup,sigma=sigma,kappa=kappa,mu=mu))
   

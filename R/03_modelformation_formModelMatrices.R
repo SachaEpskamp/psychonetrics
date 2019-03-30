@@ -19,24 +19,25 @@ formModelMatrices <- function(x){
         mat[upper.tri(mat)] <- t(mat)[upper.tri(mat)]
       } 
       # What kind of matrix?
-      if (mats$diagonal[i]){
-        mat <- as(mat, "diagonalMatrix")
-        
-      } else if (mats$lowertri[i]){
-        mat <- as(mat, "Matrix")
-      } else if (mats$sparse[i]){
-        if (mats$symmetrical[i]){
-          mat <- as(mat, "dsCMatrix")
-        } else {
-          mat <- as(mat, "sparseMatrix")
-        }
-      } else if (mats$posdef[i]){
-       mat <- as(mat, "dpoMatrix")
-      } else if (mats$symmetrical[i]){
-      mat <- as(mat, "dsyMatrix")
-      } else {
-        mat <- as(mat, "dgeMatrix")
-      }
+      # if (mats$diagonal[i]){
+      #   mat <- as(mat, "diagonalMatrix")
+      #   
+      # } else if (mats$lowertri[i]){
+      #   mat <- as(mat, "Matrix")
+      # } else if (mats$sparse[i]){
+      #   if (mats$symmetrical[i]){
+      #     mat <- as(mat, "dsCMatrix")
+      #   } else {
+      #     mat <- as(mat, "sparseMatrix")
+      #   }
+      # } else if (mats$posdef[i]){
+      #  mat <- as(mat, "dpoMatrix")
+      # } else if (mats$symmetrical[i]){
+      # mat <- as(mat, "dsyMatrix")
+      # } else {
+      #   mat <- as(mat, "dgeMatrix")
+      # }
+      mat <- as(mat, "Matrix")
       
       mat
     })
