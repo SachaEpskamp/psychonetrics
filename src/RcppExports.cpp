@@ -6,15 +6,18 @@
 
 using namespace Rcpp;
 
-// fimlEstimator_Gauss_subgroup_cpp
-arma::mat fimlEstimator_Gauss_subgroup_cpp(arma::mat sigma, arma::mat kappa);
-RcppExport SEXP _psychonetrics_fimlEstimator_Gauss_subgroup_cpp(SEXP sigmaSEXP, SEXP kappaSEXP) {
+// fimlEstimator_Gauss_group_cpp
+double fimlEstimator_Gauss_group_cpp(arma::mat sigma, arma::mat kappa, arma::vec mu, Rcpp::List fimldata, int n);
+RcppExport SEXP _psychonetrics_fimlEstimator_Gauss_group_cpp(SEXP sigmaSEXP, SEXP kappaSEXP, SEXP muSEXP, SEXP fimldataSEXP, SEXP nSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type sigma(sigmaSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type kappa(kappaSEXP);
-    rcpp_result_gen = Rcpp::wrap(fimlEstimator_Gauss_subgroup_cpp(sigma, kappa));
+    Rcpp::traits::input_parameter< arma::vec >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type fimldata(fimldataSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(fimlEstimator_Gauss_group_cpp(sigma, kappa, mu, fimldata, n));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -75,7 +78,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_psychonetrics_fimlEstimator_Gauss_subgroup_cpp", (DL_FUNC) &_psychonetrics_fimlEstimator_Gauss_subgroup_cpp, 2},
+    {"_psychonetrics_fimlEstimator_Gauss_group_cpp", (DL_FUNC) &_psychonetrics_fimlEstimator_Gauss_group_cpp, 5},
     {"_psychonetrics_multiply", (DL_FUNC) &_psychonetrics_multiply, 2},
     {"_psychonetrics_rcpparma_hello_world", (DL_FUNC) &_psychonetrics_rcpparma_hello_world, 0},
     {"_psychonetrics_rcpparma_outerproduct", (DL_FUNC) &_psychonetrics_rcpparma_outerproduct, 1},
