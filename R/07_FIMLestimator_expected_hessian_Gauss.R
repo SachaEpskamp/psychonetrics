@@ -21,6 +21,12 @@ expected_hessian_fiml_Gaussian_group <- function(fimldata,fulln,sigma,kappa,mu,.
   1/fulln * Reduce("+", lapply(fimldata,expected_hessian_fiml_Gaussian_subgroup,sigma=sigma,kappa=kappa,mu=mu))
 }
 
+# C++ version
+expected_hessian_fiml_Gaussian_group_cpp_outer <- function(fimldata,fulln,sigma,kappa,mu,...){
+  # Subgroup models:
+  1/fulln * expected_hessian_fiml_Gaussian_group_cpp(fimldata=fimldata,sigma=as.matrix(sigma),kappa=as.matrix(kappa),mu=as.matrix(mu), epsilon = .Machine$double.eps)
+}
+
 # expected_hessian_fiml_Gaussian_group <- function(...){
 # 
 #   # Mean part:
@@ -38,7 +44,12 @@ expected_hessian_fiml_Gaussian <- function(prep){
   # model is already prepared!
   
   # d_phi_theta per group:
-  exph_per_group <- lapply(prep$groupModels,do.call,what=expected_hessian_fiml_Gaussian_group)
+  if (prep$cpp){
+    exph_per_group <- lapply(prep$groupModels,do.call,what=expected_hessian_fiml_Gaussian_group_cpp_outer)
+  } else {
+    exph_per_group <- lapply(prep$groupModels,do.call,what=expected_hessian_fiml_Gaussian_group)    
+  }
+
   
   # Weight:
   for (i in 1:length(prep$groupModels)){

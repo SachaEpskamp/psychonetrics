@@ -27,6 +27,9 @@ prepareModel <- function(x, model){
     }
   }
   
+  # FIXME: Add Cpp to prep model:
+  prep$cpp <- model@cpp
+  
  # Return:
   return(prep)
 }
