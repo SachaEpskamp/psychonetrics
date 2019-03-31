@@ -54,6 +54,12 @@ missingpatterns <- function(dat, verbose = TRUE){
     
     # Duplication matrix: 
     patterns[[i]]$D <- duplicationMatrix(sum(obs))
+    
+    
+    # Stuff that Armadillo understands:
+    patterns[[i]]$L <- as( patterns[[i]]$L , "dgCMatrix")
+    patterns[[i]]$D <- as( patterns[[i]]$D , "dgCMatrix")
+    
     # patterns[[i]]$Lmu <- sparseMatrix(i=seq_along(inds),j=inds,dims=c(length(inds),ncol(dat)))
     
     # Find the proper elimination matrix:

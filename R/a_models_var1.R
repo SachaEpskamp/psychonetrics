@@ -30,7 +30,8 @@ var1 <- function(
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   # fitfunctions, # Leave empty
   estimator = "ML",
-  optimizer = "default"
+  optimizer = "default",
+  sampleStats
 ){
   contemporaneous <- match.arg(contemporaneous)
   
@@ -60,14 +61,17 @@ var1 <- function(
   }
   
   # Obtain sample stats:
-  sampleStats <- samplestats(data = data, 
-                             vars = vars, 
-                             groups = groups,
-                             covs = covs, 
-                             means = means, 
-                             nobs = nobs, 
-                             missing  = ifelse(estimator == "FIML","pairwise",missing),
-                             fimldata = estimator == "FIML")
+  if (missing(sampleStats)){
+    sampleStats <- samplestats(data = data, 
+                               vars = vars, 
+                               groups = groups,
+                               covs = covs, 
+                               means = means, 
+                               nobs = nobs, 
+                               missing  = ifelse(estimator == "FIML","pairwise",missing),
+                               fimldata = estimator == "FIML")    
+  }
+
   
   # Check if number of variables is an even number:
   if ( nrow(sampleStats@variables) %% 2 != 0){
@@ -242,7 +246,8 @@ var1 <- function(
                                                   missing = missing,
                                                   equal = equal,
                                                   estimator = estimator,
-                                                  baseline_saturated = FALSE)
+                                                  baseline_saturated = FALSE,
+                                                  sampleStats = sampleStats)
     
     # Add model:
     # model@baseline_saturated$baseline@fitfunctions$extramatrices$M <- Mmatrix(model@baseline_saturated$baseline@parameters)
@@ -257,7 +262,8 @@ var1 <- function(
                                                    missing = missing,
                                                    equal = equal,
                                                    estimator = estimator,
-                                                   baseline_saturated = FALSE)
+                                                   baseline_saturated = FALSE,
+                                                   sampleStats = sampleStats)
     
     # if not FIML, Treat as computed:
     if (estimator != "FIML"){

@@ -68,7 +68,8 @@ dlvm1 <- function(
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   # fitfunctions, # Leave empty
   estimator = "ML",
-  optimizer = "default"
+  optimizer = "default",
+  sampleStats
 ){
   # Check for missing:
   # if (missing(lambda_within)){
@@ -111,14 +112,17 @@ dlvm1 <- function(
   allVars <- na.omit(as.vector(vars))
   
   # Obtain sample stats:
-  sampleStats <- samplestats(data = data, 
-                             vars = allVars, 
-                             groups = groups,
-                             covs = covs, 
-                             means = means, 
-                             nobs = nobs, 
-                             missing  = ifelse(estimator == "FIML","pairwise",missing),
-                             fimldata = estimator == "FIML")
+  if (missing(sampleStats)){
+    sampleStats <- samplestats(data = data, 
+                               vars = allVars, 
+                               groups = groups,
+                               covs = covs, 
+                               means = means, 
+                               nobs = nobs, 
+                               missing  = ifelse(estimator == "FIML","pairwise",missing),
+                               fimldata = estimator == "FIML")
+  }
+
   
   # Design matrix:
   design <- as(1*(!is.na(vars)),"sparseMatrix")
@@ -437,7 +441,8 @@ dlvm1 <- function(
                                                 missing = missing,
                                                 equal = equal,
                                                 estimator = estimator,
-                                                baseline_saturated = FALSE)
+                                                baseline_saturated = FALSE,
+                                                sampleStats = sampleStats)
     
     # Add model:
     # model@baseline_saturated$baseline@fitfunctions$extramatrices$M <- Mmatrix(model@baseline_saturated$baseline@parameters)
@@ -455,7 +460,8 @@ dlvm1 <- function(
                                                  missing = missing,
                                                  equal = equal,
                                                  estimator = estimator,
-                                                 baseline_saturated = FALSE)
+                                                 baseline_saturated = FALSE,
+                                                 sampleStats = sampleStats)
     
     # if not FIML, Treat as computed:
     if (estimator != "FIML"){

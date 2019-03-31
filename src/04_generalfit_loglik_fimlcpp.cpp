@@ -2,6 +2,8 @@
 
 // we only include RcppArmadillo.h which pulls Rcpp.h in for us
 #include <RcppArmadillo.h>
+#include <math.h>
+
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 using namespace arma;
@@ -18,17 +20,17 @@ using namespace arma;
 
 
 // [[Rcpp::export]]
-double fimlEstimator_Gauss_group_cpp(
+double logLikelihood_gaussian_subgroup_fiml_cpp(
     arma::mat sigma, 
     arma::mat kappa,
     arma::vec mu,
     Rcpp::List fimldata,
-    double epsilon,
-    double n) {
+    double epsilon) {
   
   double result = 0;
   double logdet = 0;
   double n_part;
+  double log2pi = log(2*M_PI);
   
   // Loop over groups
   for (int i = 0; i < fimldata.size(); i++){
@@ -38,6 +40,7 @@ double fimlEstimator_Gauss_group_cpp(
     
     // Observed indices:
     vec obs = dat["obs"];
+
     uvec inds = find(obs == true);
   
   // sample size:
@@ -47,6 +50,8 @@ double fimlEstimator_Gauss_group_cpp(
     arma::mat sigma_p = sigma(inds,inds);
     arma::mat kappa_p(sigma_p);
     arma::vec mu_p = mu(inds);
+    
+    int nvar = mu_p.size();
     
     // Observed values:
     arma::mat S = dat["S"];
@@ -70,13 +75,16 @@ double fimlEstimator_Gauss_group_cpp(
     }
     
     // Likelihood:
-    result += n_part * (trace(S * kappa_p) + 
-      dot((means - mu_p).t(), kappa_p * (means - mu_p)) - 
-      logdet);
+    result += n_part * (
+      logdet - nvar * log2pi - trace(S * kappa_p) -
+        dot((means - mu_p).t(), kappa_p * (means - mu_p))
+    );
     
+    // nvar <- ncol(kappa)
+      // res <-  attr(kappa, "logdet") - nvar * log((2*pi)) - sum(diag(SK)) - t(means - mu) %*% kappa %*% (means - mu)
   }
   
   
   // Return
-  return (1/n) * result;
+  return result;
 }
