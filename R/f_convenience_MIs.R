@@ -80,14 +80,15 @@ MIs_inner <- function(x,all = FALSE, matrices, type = c("normal","equal","free")
     parTable[[epccol]] <- goodNum2(parTable[[epccol]])
 
     # For each group:
-    message <- switch(type,
-                      "normal" = paste0("Modification indices for group :",x@sample@groups$label[g]),
-                      "equal" = paste0("Group-constrained modification indicesfor group :",x@sample@groups$label[g]),
-                      "free" = paste0("Equality-free modification indices for group :",x@sample@groups$label[g]))
-    cat(message)
     
     
     for (g in x@sample@groups$label){
+      message <- switch(type,
+                        "normal" = paste0("Modification indices for group :",x@sample@groups$label[g]),
+                        "equal" = paste0("Group-constrained modification indicesfor group :",x@sample@groups$label[g]),
+                        "free" = paste0("Equality-free modification indices for group :",x@sample@groups$label[g]))
+      cat(message)
+      
       # cat(paste0("\n\nGroup ",x@sample@groups$label[g]))
       
       # for each matrix:
