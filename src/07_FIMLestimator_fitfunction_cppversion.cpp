@@ -7,6 +7,15 @@ using namespace Rcpp;
 using namespace arma;
 
 
+// mat test(
+//   mat X,
+//   mat Y,
+//   uvec ind
+// ){
+//   X(ind,ind) += Y;
+//   return X;
+// }
+
 
 // [[Rcpp::export]]
 double fimlEstimator_Gauss_group_cpp(
