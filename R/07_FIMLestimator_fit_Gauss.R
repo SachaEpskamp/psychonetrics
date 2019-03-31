@@ -12,7 +12,8 @@ fimlEstimator_Gauss_subgroup <- function(dat,sigma,kappa,mu,...){
 
 # Fit function per group:
 fimlEstimator_Gauss_group <- function(fimldata,fulln,sigma,kappa,mu,...){
-  # # 
+  
+ # # 
   # Sigma <<- sigma
   # Kappa <<- kappa
   # Mu <<- mu
@@ -23,7 +24,11 @@ fimlEstimator_Gauss_group <- function(fimldata,fulln,sigma,kappa,mu,...){
   
 }
 
-
+# C++ version:
+fimlEstimator_Gauss_group_cpp_outer<- function(fimldata,fulln,sigma,kappa,mu,...){
+  
+  fimlEstimator_Gauss_group_cpp(sigma=as.matrix(sigma),mu=as.matrix(mu),kappa = as.matrix(kappa),fimldata = fimldata,epsilon = .Machine$double.eps, n = fulln) 
+}
 
 
 # Fit function for Gauss ML: -2n* log likelihood
@@ -31,9 +36,15 @@ fimlEstimator_Gauss <- function(x, model){
   # Prepare
   prep <- prepareModel(x, model)
   
-  
-  # Fit function per group:
-  fit_per_group <- prep$nPerGroup / prep$nTotal * sapply(prep$groupModels,do.call,what=fimlEstimator_Gauss_group)
+  # Use C++?
+  if (model@cpp){
+    # Fit function per group:
+    fit_per_group <- prep$nPerGroup / prep$nTotal * sapply(prep$groupModels,do.call,what=fimlEstimator_Gauss_group_cpp_outer)
+  } else {
+    # Fit function per group:
+    fit_per_group <- prep$nPerGroup / prep$nTotal * sapply(prep$groupModels,do.call,what=fimlEstimator_Gauss_group)    
+  }
+
   
   # Sum and return:
   sum(fit_per_group)

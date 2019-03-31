@@ -70,7 +70,8 @@ generate_psychonetrics <- setClass("psychonetrics", slots = c(
   extramatrices = "list", # Contains extra matrices
   rawts = "logical",
   Drawts = "list",
-  types = "list"
+  types = "list",
+  cpp = "logical"
 ),
 prototype = list(
   model = "dummy", submodel = "none",
@@ -121,7 +122,8 @@ prototype = list(
   identification = "none",
   optimizer = "ucminf",
   estimator = "ML",
-  rawts = FALSE
+  rawts = FALSE,
+  cpp = TRUE # Use C++ when available
 ))
 
 generate_psychonetrics()
