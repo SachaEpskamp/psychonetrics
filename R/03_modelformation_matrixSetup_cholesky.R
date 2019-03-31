@@ -20,7 +20,12 @@ matrixsetup_lowertri <- function(
     
     # Start values:
     if (!any(is.na(covest))){
-      Lest <- t(as.matrix(chol(covest)))
+      tryres <- try(
+        Lest <- t(as.matrix(chol(covest))), silent = TRUE
+      )
+      if (is(tryres, "try-error")){
+        Lest <- diag(nrow(covest))
+      }
       # Chol with sample cholesky:
       lowertriStart[,,g] <-  1*(lowertriStart[,,g]!=0) * Lest
     } else {
