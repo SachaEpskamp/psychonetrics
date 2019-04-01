@@ -9,6 +9,7 @@ stepup <- function(
   greedy = FALSE, # If TRUE, will start by adding all significant effects followed by pruning
   verbose = TRUE,
   checkinformation = TRUE,
+  maxtry = 5,
   ... # Fit arguments
 ){
   greedyadjust <- match.arg(greedyadjust)
@@ -113,7 +114,7 @@ stepup <- function(
       # FIXME: Make nice free parameter function
       if (!greedy){
         x@parameters[[mi]] <- ifelse(is.na(x@parameters[[mi]]),0,x@parameters[[mi]])
-        best <- which(x@parameters[[mi]] == max(x@parameters[[mi]][x@parameters$matrix %in% matrices & x@parameters$fixed]))
+        best <- which(x@parameters[[mi]] == max(x@parameters[[mi]][x@parameters$matrix %in% matrices & x@parameters$fixed & !x@parameters$identified]))[1]
         x@parameters$par[best] <- max(x@parameters$par) + 1
         x@parameters$fixed[best] <- FALSE
         
@@ -126,17 +127,66 @@ stepup <- function(
         x@extramatrices$M <- Mmatrix(x@parameters) # FIXME: Make nice function for this
         
         if (verbose){
-          message(paste("Adding parameter",x@parameters$var1[best],x@parameters$op[best],x@parameters$var2[best]))
+          message(paste0("Adding parameter ",x@parameters$matrix[best],"[",x@parameters$var1[best],", ",x@parameters$var2[best],"]"))
         }
         
         # Run:
-        x <- x %>% runmodel(...,log=FALSE)
+        curtry <- 0
+        repeat{
+          newx <- x %>% runmodel(...,log=FALSE)
+          
+          
+          # Check information:
+          if (checkinformation){
+            if (any(eigen(x@information)$values < 0)){
+              if (curtry < maxtry){
+                if (verbose){
+                  message(paste("Model may not be identified, adjusting start values and trying again."))
+                }
+                x@parameters$est[best] <- 0.1 * x@parameters$est[best]
+                curtry <- curtry + 1
+              } else {
+                if (verbose){
+                  message(paste("Model may not be identified, continuing with previous model."))
+                }
+                x <- oldMod
+                x@parameters$identified[best] <- TRUE
+                x@parameters[[mi]][best] <- 0
+                break
+              }
+ 
+            } else {
+              x <- newx
+              break
+            }
+          } else {
+            x <- newx
+            break
+          }
+        }
+        # Check criterion:
+        if (criterion != "none"){
+          if (!criterion %in% names(oldMod@fitmeasures)){
+            stop(paste0("Criterion '",criterion,"' is not supported."))
+          }
+          oldCrit <- oldMod@fitmeasures[[criterion]]
+          newCrit <- x@fitmeasures[[criterion]]
+          
+          if (oldCrit < newCrit){
+            if (verbose){
+              message(paste("Model did not improve criterion, returning previous model."))
+            }
+            x <- oldMod
+            break
+          }
+        }
+        
       } else {
         # Add al significant effects:
         # nTest <- sum(x@parameters$matrix %in% matrices & x@parameters$fixed)
         # best <- which(x@parameters[[mi]] > qchisq(alpha,1,lower.tail=FALSE) & x@parameters$matrix %in% matrices & x@parameters$fixed)
         
-        parsToTest <- which(x@parameters$matrix %in% matrices & x@parameters$fixed)
+        parsToTest <- which(x@parameters$matrix %in% matrices & x@parameters$fixed & !x@parameters$identified)
         x@parameters[[mi]] <- ifelse(is.na(x@parameters[[mi]]),0,x@parameters[[mi]])
         best <- parsToTest[p.adjust(pchisq(x@parameters[[mi]][parsToTest],1,lower.tail=FALSE), method = greedyadjust) < alpha]
         
@@ -156,16 +206,35 @@ stepup <- function(
           message(paste("Adding",length(best),"parameters in greedy search start."))
         }
         # Run:
-        x <- x %>% runmodel(...,log=FALSE) %>% prune(alpha = alpha, adjust = greedyadjust)
         greedy <- FALSE
-        
-        if (checkinformation){
-          if (any(eigen(x@information)$values < 0)){
-            if (verbose){
-              message(paste("Model may not be identified, continuing with previous model."))
+        curtry <- 0
+        repeat{
+          newx <- x %>% runmodel(...,log=FALSE) # %>% prune(alpha = alpha, adjust = greedyadjust)
+          
+          if (checkinformation){
+            if (any(eigen(x@information)$values < 0)){
+              if (curtry < maxtry){
+                if (verbose){
+                  message(paste("Model may not be identified, adjusting start values and trying again."))
+                }
+                x@parameters$est[best] <- 0.1 * x@parameters$est[best]
+                curtry <- curtry + 1
+              } else {
+                if (verbose){
+                  message(paste("Model may not be identified, continuing with previous model."))
+                }
+                x <- oldMod  
+                break
+              }
+            } else {
+              x <- newx %>% prune(alpha = alpha, adjust = greedyadjust)
+              break
             }
-            x <- oldMod
+          } else {
+            x <- newx %>% prune(alpha = alpha, adjust = greedyadjust)
+            break
           }
+          
         }
         
         # Check criterion:
@@ -185,7 +254,7 @@ stepup <- function(
         }
         
       }
-
+      
     } else {
       break
     }
@@ -210,35 +279,7 @@ stepup <- function(
     #   }
     # }
     # 
-    # Check information:
-    if (checkinformation){
-      if (any(eigen(x@information)$values < 0)){
-        if (verbose){
-          message(paste("Model may not be identified, continuing with previous model."))
-        }
-        x <- oldMod
-        x@parameters$identified[best] <- TRUE
-        x@parameters[[mi]][best] <- 0
-        
-      }
-    }
     
-    # Check criterion:
-    if (criterion != "none"){
-      if (!criterion %in% names(oldMod@fitmeasures)){
-        stop(paste0("Criterion '",criterion,"' is not supported."))
-      }
-      oldCrit <- oldMod@fitmeasures[[criterion]]
-      newCrit <- x@fitmeasures[[criterion]]
-
-      if (oldCrit < newCrit){
-        if (verbose){
-          message(paste("Model did not improve criterion, returning previous model."))
-        }
-        x <- oldMod
-        break
-      }
-    }
   }
   
   # Add log:
