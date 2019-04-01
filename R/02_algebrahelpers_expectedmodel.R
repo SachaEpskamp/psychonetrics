@@ -8,9 +8,9 @@ expectedmodel <- function(x){
     if (length(x@sample@fimldata) > 0){
       nPat <- length(x@sample@fimldata[[g]])
       for (i in seq_len(nPat)){
-        x@sample@fimldata[[g]][[i]]$means <- prep$groupModels[[g]]$mu[!x@sample@fimldata[[g]][[i]]$pattern]
+        x@sample@fimldata[[g]][[i]]$means <- as.matrix(prep$groupModels[[g]]$mu[!x@sample@fimldata[[g]][[i]]$pattern,drop=FALSE])
         if (!all(x@sample@fimldata[[g]][[i]]$S == 0)){
-          x@sample@fimldata[[g]][[i]]$S <- prep$groupModels[[g]]$sigma[!x@sample@fimldata[[g]][[i]]$pattern,!x@sample@fimldata[[g]][[i]]$pattern]
+          x@sample@fimldata[[g]][[i]]$S <- as.matrix(prep$groupModels[[g]]$sigma[!x@sample@fimldata[[g]][[i]]$pattern,!x@sample@fimldata[[g]][[i]]$pattern, drop = FALSE])
         }
       }
     }
