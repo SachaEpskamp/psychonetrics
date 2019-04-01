@@ -427,7 +427,9 @@ dlvm1 <- function(
   
   
   ### Baseline model ###
-  if (baseline_saturated){
+  if (is.list(baseline_saturated)){
+    model@baseline_saturated <- baseline_saturated
+  } else if (isTRUE(baseline_saturated)){
     
     # Form baseline model:
     model@baseline_saturated$baseline <- varcov(data,

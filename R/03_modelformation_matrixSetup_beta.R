@@ -13,7 +13,7 @@ matrixsetup_beta <- function(
   
   # For each group, form starting values:
   if (missing(start)){
-    betaStart <- 0.005*(beta!=0)  
+    betaStart <- 0.001*(beta!=0)  
   } else {
     betaStart <- beta
     for (g in seq_along(start)){
