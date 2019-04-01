@@ -9,7 +9,7 @@ stepup <- function(
   greedy = FALSE, # If TRUE, will start by adding all significant effects followed by pruning
   verbose = TRUE,
   checkinformation = TRUE,
-  maxtry = 5,
+  maxtry = 1,
   ... # Fit arguments
 ){
   greedyadjust <- match.arg(greedyadjust)
