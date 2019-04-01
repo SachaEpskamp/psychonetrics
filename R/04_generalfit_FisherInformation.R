@@ -1,4 +1,5 @@
 numeric_FisherInformation <- function(model){
+  model <- expectedmodel(model)
   2 * sum(model@sample@groups$nobs) * numDeriv::jacobian(psychonetrics_gradient,parVector(model),model=model)
 }
 
