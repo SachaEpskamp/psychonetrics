@@ -4,6 +4,8 @@ clearpars <- function(x, ind){
   x$std[ind] <- NA
   x$se[ind] <- NA
   x$p[ind] <- NA
+  x$se_boot[ind] <- NA
+  x$p_boot[ind] <- NA
   x$mi[ind] <- NA
   x$pmi[ind] <- NA
   x$epc[ind] <- NA

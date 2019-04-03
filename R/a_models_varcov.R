@@ -19,6 +19,7 @@ varcov <- function(
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   estimator = "ML",
   optimizer = "default",
+  storedata = FALSE,
   sampleStats # Leave to missing
 ){
   rawts = FALSE
@@ -39,7 +40,8 @@ varcov <- function(
                                nobs = nobs, 
                                missing = ifelse(estimator == "FIML","pairwise",missing),
                                rawts = rawts,
-                               fimldata = estimator == "FIML")
+                               fimldata = estimator == "FIML",
+                               storedata = storedata)
   }
 
 

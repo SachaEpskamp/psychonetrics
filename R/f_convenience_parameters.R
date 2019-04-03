@@ -12,8 +12,16 @@ parameters <- function(x){
   
   # filter only non-zero parameters and select only relevant columns:
   # FIXME: std not yet implemented, so remove now:
+  
+  if (!all(is.na(x@parameters$se_boot))){
+    cols <- c("var1","op","var2","est","se","p","se_boot","p_boot","matrix","row","col","group","par")
+    boots <- TRUE
+  } else {
+    cols <- c("var1","op","var2","est","se","p","matrix","row","col","group","par")
+    boots <- FALSE
+  }
   parTable <- parTable %>% filter_(~!fixed|est != 0) %>% 
-    select_("var1","op","var2","est","se","p","matrix","row","col","group","par")
+    select_(.dots = cols)
   
   # Make var2 nicer:
   parTable$var2 <- ifelse(is.na(parTable$var2),"",parTable$var2)
@@ -22,6 +30,12 @@ parameters <- function(x){
   parTable$est <- goodNum2(parTable$est)
   parTable$se <- goodNum(parTable$se)
   parTable$p <- goodNum(parTable$p)
+  
+  if (boots){
+    parTable$se_boot <- goodNum(parTable$se_boot)
+    parTable$p_boot <- goodNum(parTable$p_boot)
+  }
+  
   
   # if not computed, remove est, se and p:
   if (!x@computed){

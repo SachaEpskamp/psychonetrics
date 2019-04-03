@@ -12,6 +12,11 @@ stepup <- function(
   maxtry = 1,
   ... # Fit arguments
 ){
+  # If not run, run model:
+  if (!x@computed){
+    x <- x %>% runmodel(..., verbose = verbose)
+  }
+  
   greedyadjust <- match.arg(greedyadjust)
   mi <- match.arg(mi)
   if (missing(matrices)){

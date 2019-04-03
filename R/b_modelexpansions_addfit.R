@@ -102,7 +102,7 @@ addfit <- function(
     fitMeasures$nfi <- (Tb - Tm) / Tb
 
     # Stop here if baseline is not good:
-    if (!is.finite(dfb) || !is.finite(Tb)){
+    if (is.null(dfb) || !is.finite(dfb) || !is.finite(Tb)){
       return(x)
     }
     
