@@ -378,7 +378,6 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
     Jac[sigInds[[t]],sigma_epsilon_between_inds] <- dots$D_y %*% aug_between_residual
   }
   
-
   # Permute the matrix:
   Jac <- P %*% Jac
   

@@ -401,6 +401,9 @@ dlvm1 <- function(
   
   allSigmas <- blockToeplitz(U)
   
+  # Total number:
+  totElements <- max(allSigmas)
+  
   # Now subset with only observed:
   subMu <- muDummy[as.vector(design==1),,drop=FALSE]
   subSigmas <- allSigmas[as.vector(design==1),as.vector(design==1)]
@@ -416,11 +419,10 @@ dlvm1 <- function(
   # Now I can make the matrix:
   
   model@extramatrices$P <- sparseMatrix(
-    i = distVecrawts, j = distVec, dims = c(nTotal, max(subSigmas))
+    i = distVecrawts, j = distVec, dims = c(nTotal, totElements)
   )
-  
   # model@extramatrices$P <- sparseMatrix(j=seq_along(inds),i=order(inds))
-  
+
   
   # Form the model matrices
   model@modelmatrices <- formModelMatrices(model)
