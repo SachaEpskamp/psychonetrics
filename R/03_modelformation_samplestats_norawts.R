@@ -8,7 +8,8 @@ samplestats_norawts <- function(
   nobs, # Alternative if data is missing (length ngroup)
   missing = c("listwise","pairwise"),
   fimldata = FALSE,
-  verbose = TRUE){
+  verbose = TRUE,
+  storedata = FALSE){
   missing <- match.arg(missing)
   
   # Check data:
@@ -18,7 +19,9 @@ samplestats_norawts <- function(
   if (!missing(data) & !missing(covs)){
     stop("'data' and 'covs' may not both *not* be missing")
   }
-  
+  if (missing(data) & storedata){
+    stop("'data' may not be missing if 'storedata = TRUE'")
+  }
   # If data is supplied:
   if (!missing(data) && !is.null(data)){
     if (!is.data.frame(data) & !is.matrix(data)){
@@ -231,11 +234,20 @@ samplestats_norawts <- function(
     id = seq_along(vars), stringsAsFactors = FALSE
   )
   
-  # add datA:
+  # add fiml data (still summary statistics...):
   if (fimldata){
     object@fimldata <- lapply(seq_along(groupNames),function(x){
       missingpatterns(data[data[[groups]] == x,vars],verbose=verbose)
     })
+  }
+  
+  # add full data:
+  if (storedata){
+    object@rawdata <- data[,c(vars, groups)]
+    attr(object@rawdata, "vars") <- vars
+    attr(object@rawdata, "groups") <- groups
+    attr(object@rawdata, "missing") <- missing
+    attr(object@rawdata, "fimldata") <- fimldata
   }
     
   

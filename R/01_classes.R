@@ -8,7 +8,8 @@ generate_psychonetrics_samplestats <- setClass("psychonetrics_samplestats",  slo
   nobs = "numeric", # Number of observations
   # missingness = "list", # Missing patterns, only used when rawts = TRUE
   # data = "list" # Raw data, used only with fimldata
-  fimldata = "list"
+  fimldata = "list",
+  rawdata = "data.frame" # For bootstrapping!
 ), prototype = list(groups = data.frame(
   label = character(0),
   id = integer(0),
@@ -85,6 +86,8 @@ prototype = list(
     std = numeric(0),
     se = numeric(0),
     p = numeric(0),
+    se_boot = numeric(0),
+    p_boot = numeric(0),
     matrix = character(0),
     row = numeric(0),
     col = numeric(0),

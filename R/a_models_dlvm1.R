@@ -69,6 +69,7 @@ dlvm1 <- function(
   # fitfunctions, # Leave empty
   estimator = "ML",
   optimizer = "default",
+  storedata = FALSE,
   sampleStats
 ){
   # Check for missing:
@@ -120,7 +121,8 @@ dlvm1 <- function(
                                means = means, 
                                nobs = nobs, 
                                missing  = ifelse(estimator == "FIML","pairwise",missing),
-                               fimldata = estimator == "FIML")
+                               fimldata = estimator == "FIML",
+                               storedata = storedata)
   }
 
   

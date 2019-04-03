@@ -2,6 +2,7 @@
 prune <- function(
   x, # Model
   alpha = 0.01, # Significance
+  bootstrap = FALSE,
   # bonferroni = FALSE,
   adjust = c( "none", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr"),
   matrices, # Automatically chosen
@@ -10,11 +11,27 @@ prune <- function(
   verbose = TRUE,
   log = TRUE,
   identify = TRUE,
+  nCores = 1,
+  reps = 1000,
   ...){
   adjust <- match.arg(adjust)
   # If not computed, nothing to do:
   if (!x@computed){
     stop("Model must have been computed first.")
+  }
+  
+  if (bootstrap && all(is.na(x@parameters$boot_p))){
+    if (verbose) message("Bootstrapping SEs...")
+    x <- x %>% bootstrap_SEs(nCores = nCores, reps = reps,verbose = verbose)
+  }
+  
+  # Whcih cols?
+  if (bootstrap){
+    secol <- "se_boot"
+    pcol <- "p_boot" 
+  } else {
+    secol <- "se"
+    pcol <- "p"
   }
   
   
@@ -145,7 +162,7 @@ prune <- function(
   # }
   # Test for significance:
   # nonsig <- x@parameters$p > alpha_adjust & (seq_len(nrow(x@parameters)) %in% whichTest)
-  nonsig <- p.adjust(x@parameters$p,method = adjust) > alpha & (seq_len(nrow(x@parameters)) %in% whichTest)
+  nonsig <- p.adjust(x@parameters[[pcol]],method = adjust) > alpha & (seq_len(nrow(x@parameters)) %in% whichTest)
   
   # If any non-sig, adjust:
   if (all(is.na(nonsig)) || !any(nonsig[!is.na(nonsig)])){
@@ -209,6 +226,7 @@ prune <- function(
       verbose = verbose,
       log = log,
       identify = identify,
+      bootstrap = bootstrap,
       ...
     )
   }
