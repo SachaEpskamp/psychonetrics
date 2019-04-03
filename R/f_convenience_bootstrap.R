@@ -8,7 +8,7 @@ bootstrap <- function(x, replacement = TRUE, proportion = 1, verbose = TRUE, sto
   x@computed <- FALSE
   
   # Obtain the raw data:
-  if (is.null(x@sample@rawdata)){
+  if (is.null(x@sample@rawdata) || nrow(x@sample@rawdata) == 0){
     stop("Raw data is needed. Please run input with 'storedata = TRUE'")
   }
   data <- x@sample@rawdata
