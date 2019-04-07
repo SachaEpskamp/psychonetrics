@@ -713,7 +713,7 @@ lnmMod
 We can remove an edge from the latent network, which is different then removing a correlation:
 
 ``` r
-lnmMod2 <- lnmMod %>% fixpar("omega_eta","speed","textual") %>% runmodel
+lnmMod2 <- lnmMod %>% fixpar("omega_zeta","speed","textual") %>% runmodel
 ```
 
     ## Fixed 1 parameters!
