@@ -151,6 +151,9 @@ lvm <- function(
  
     # Cur loadings:
     curLambda <- modMatrices$lambda$start[,,g]
+    if (!is.matrix(curLambda)){
+      curLambda <- as.matrix(curLambda)
+    }
     
     # Residual variances, let's start by putting the vars on 1/4 times the observed variances:
     Theta <- diag(diag(curcov)/4)
