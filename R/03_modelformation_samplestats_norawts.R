@@ -9,8 +9,11 @@ samplestats_norawts <- function(
   missing = c("listwise","pairwise"),
   fimldata = FALSE,
   verbose = TRUE,
-  storedata = FALSE){
+  storedata = FALSE,
+  weightsmatrix = c("none","identity","full","diag")
+){
   missing <- match.arg(missing)
+  weightsmatrix <- match.arg(weightsmatrix)
   
   # Check data:
   if (missing(data) & missing(covs)){
@@ -22,6 +25,9 @@ samplestats_norawts <- function(
   if (missing(data) & storedata){
     stop("'data' may not be missing if 'storedata = TRUE'")
   }
+  if (missing(data) & weightsmatrix %in% c("full","diag")){
+    stop("'data' may not be missing if estimator = 'WLS' or esitmator = 'DWLS'")
+  }
   # If data is supplied:
   if (!missing(data) && !is.null(data)){
     if (!is.data.frame(data) & !is.matrix(data)){
@@ -30,7 +36,7 @@ samplestats_norawts <- function(
     if (is.matrix(data)){
       data <- as.data.frame(data)
     }
-   
+    
     
     # If group variable is missing, add (dummy):
     if (missing(groups)|| is.null(groups)){
@@ -94,17 +100,17 @@ samplestats_norawts <- function(
         subData <- data[data[[groups]] == g,c(vars)]
         cov <-  (nrow(subData)-1)/(nrow(subData)) * 
           cov(subData, use = switch(
-          missing, "listwise" = "complete.obs", "pairwise" = "pairwise.complete.obs"
-        ))
+            missing, "listwise" = "complete.obs", "pairwise" = "pairwise.complete.obs"
+          ))
         cov <- 0.5*(cov + t(cov))
         covs[[g]] <- as(cov,"dsyMatrix")
-     
+        
         if (!any(is.na(cov))){
           cors[[g]] <- new("corMatrix", cov2cor(cov), sd = diag(cov))          
         } else {
           cors[[g]] <- NA
         }
-
+        
         means[[g]] <- colMeans(subData, na.rm = TRUE)
       }
       
@@ -128,7 +134,7 @@ samplestats_norawts <- function(
     if (!missing(nobs)){
       warning("'nobs' argument ignored and obtained from data")
     }
-
+    
     nobs <- as.vector(tapply(data[[groups]],data[[groups]],length))
   } else {
     ### Input via matrices ###
@@ -162,7 +168,7 @@ samplestats_norawts <- function(
       
       nVars <- ncol(covs[[1]])
     } else {
-
+      
       # Make array
       if (length(dim(covs)) == 2){
         if (!is.null(colnames(covs))){
@@ -186,7 +192,7 @@ samplestats_norawts <- function(
     
     # Number of vars:
     nVars <- nrow(covs[[1]])
-
+    
     # Varnames:
     if (missing(vars)){
       if (!is.null(colnames(covs[[1]]))){
@@ -195,7 +201,7 @@ samplestats_norawts <- function(
         vars <- paste0("V",seq_len(nVars))
       }
     }
-
+    
     # Check if means is missing:
     if (missing(means)){
       means <- lapply(1:nGroup,function(x)matrix(0,nVars,1))
@@ -249,7 +255,21 @@ samplestats_norawts <- function(
     attr(object@rawdata, "missing") <- missing
     attr(object@rawdata, "fimldata") <- fimldata
   }
-    
+  
+  # add WLS.V:
+  if (weightsmatrix != "none"){
+    for (g in 1:nGroup){
+      subData <- data[data[[groups]] == g,c(vars)]
+      if (weightsmatrix == "identity"){
+        object@WLS.V[[g]] <- Diagonal(nVars + nVars*(nVars+1)/2)  
+      } else if (weightsmatrix == "full"){
+        object@WLS.V[[g]] <- LS_weightsmat(subData)
+      } else if (weightsmatrix == "diag"){
+        object@WLS.V[[g]] <- LS_weightsmat(subData, type = "diagonal")
+      }
+    }
+  }
+  
   
   # Return object:
   return(object)

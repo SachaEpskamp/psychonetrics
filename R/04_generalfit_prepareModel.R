@@ -30,6 +30,13 @@ prepareModel <- function(x, model){
   # FIXME: Add Cpp to prep model:
   prep$cpp <- model@cpp
   
+  # FIXME Add WLS.V:
+  if (model@estimator %in%  c("WLS","DWLS","ULS")){
+    for (g in seq_along(prep$groupModels)){
+      prep$groupModels[[g]]$WLS.V <- model@sample@WLS.V[[g]]
+    }
+  }
+  
  # Return:
   return(prep)
 }

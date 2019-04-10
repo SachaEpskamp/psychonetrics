@@ -41,7 +41,13 @@ varcov <- function(
                                missing = ifelse(estimator == "FIML","pairwise",missing),
                                rawts = rawts,
                                fimldata = estimator == "FIML",
-                               storedata = storedata)
+                               storedata = storedata,
+                               weightsmatrix = ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
+                                                      switch(estimator,
+                                                        "WLS" = "full",
+                                                        "ULS" = "identity",
+                                                        "DWLS" = "diag"
+                                                      )))
   }
 
 

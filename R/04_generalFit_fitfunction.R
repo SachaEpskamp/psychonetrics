@@ -8,6 +8,8 @@ psychonetrics_fitfunction <- function(x, model){
     estimator,
     "ML" = maxLikEstimator,
     "ULS" = ULSestimator,
+    "DWLS" = ULSestimator,
+    "WLS" = ULSestimator,
     "FIML" = fimlEstimator
   )
   

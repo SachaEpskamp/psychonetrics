@@ -12,7 +12,7 @@ ULS_gradient_Gauss <- function(prep){
 
 
 # Fit per group:
-ULS_Gauss_gradient_pergroup <- function(means,S,mu,sigma,...){
+ULS_Gauss_gradient_pergroup <- function(means,S,mu,sigma,WLS.V,...){
   # observed statistics:
   obs <- c(as.vector(means),Vech(S))
   
@@ -20,5 +20,5 @@ ULS_Gauss_gradient_pergroup <- function(means,S,mu,sigma,...){
   imp <- c(as.vector(mu),Vech(sigma))
   
   # ULS:
-  -2 * t(obs - imp)
+  -2 * t(obs - imp) %*% WLS.V
 }

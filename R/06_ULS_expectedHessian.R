@@ -13,7 +13,7 @@ expected_hessian_ULS_Gaussian <- function(prep){
 
 
 # Fit per group:
-ULS_Gauss_exphes_pergroup <- function(means,S,mu,sigma,...){
+ULS_Gauss_exphes_pergroup <- function(means,S,mu,sigma,WLS.V,...){
   # model is already prepared!
   # Dummy for WLS:
   # observed statistics:
@@ -24,5 +24,6 @@ ULS_Gauss_exphes_pergroup <- function(means,S,mu,sigma,...){
   
   # ULS:
   
-  2 * Diagonal(n = length(imp))
+  # 2 * Diagonal(n = length(imp))
+  2 * WLS.V
 }

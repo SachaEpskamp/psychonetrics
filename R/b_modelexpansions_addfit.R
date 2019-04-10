@@ -64,7 +64,7 @@ addfit <- function(
   # Likelihood ratio:
   if (x@estimator %in% c("FIML","ML")){
     fitMeasures$chisq <- -2 * (LL - satLL)
-  } else  if (x@estimator == "ULS"){
+  } else  if (x@estimator %in% c("WLS","DWLS","ULS")){
     fitMeasures$chisq <- x@objective  * (sampleSize)
   } 
   fitMeasures$pvalue <- pchisq(fitMeasures$chisq, fitMeasures$df, lower.tail = FALSE)
@@ -79,7 +79,7 @@ addfit <- function(
     # fitMeasures$baseline.chisq <-  sampleSize * fitMeasures$fmin_baseline
     if (x@estimator%in% c("FIML","ML")){
       fitMeasures$baseline.chisq <-  -2 * (basLL - satLL)
-    } else  if (x@estimator == "ULS"){
+    } else  if (x@estimator %in% c("WLS","DWLS","ULS")){
       fitMeasures$baseline.chisq <- x@baseline_saturated$baseline@objective  * (sampleSize)
     } 
 

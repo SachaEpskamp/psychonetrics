@@ -32,6 +32,12 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
     "ULS" = switch(model@distribution,
                   "Gaussian" = expected_hessian_ULS_Gaussian
     ),
+    "WLS" = switch(model@distribution,
+                   "Gaussian" = expected_hessian_ULS_Gaussian
+    ),
+    "DWLS" = switch(model@distribution,
+                   "Gaussian" = expected_hessian_ULS_Gaussian
+    ),
     "FIML" = switch(model@distribution,
                    "Gaussian" = expected_hessian_fiml_Gaussian
     )
