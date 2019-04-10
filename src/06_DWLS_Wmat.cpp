@@ -11,7 +11,7 @@ using namespace arma;
 
 // Asymptotic cov matrix
 // [[Rcpp::export]]
-arma::mat WLS_wmat(
+arma::sp_mat DWLS_wmat(
     arma::mat data,
     arma::vec means,
     int ncase,
@@ -20,7 +20,7 @@ arma::mat WLS_wmat(
   
   // Asyptotic 2nd, 3rd and 4th order cov matrix:
   double secondorder[nvar][nvar];
-  double thirdorder[nvar][nvar][nvar];
+  // double thirdorder[nvar][nvar][nvar];
   double fourthorder[nvar][nvar][nvar][nvar];
   for (p=0; p < ncase; p++){
     for (g = 0; g < nvar; g++){
@@ -30,10 +30,10 @@ arma::mat WLS_wmat(
         }
         secondorder[g][h] += pow(ncase,-1.0) * (data(p,g) - means(g)) * (data(p,h) - means(h));
         for (i = 0; i < nvar; i++){
-          if (p==0){
-            thirdorder[g][h][i] = 0;
-          }
-          thirdorder[g][h][i] += pow(ncase,-1.0) * (data(p,g) - means(g)) * (data(p,h) - means(h)) * (data(p,i) - means(i)) ;
+          // if (p==0){
+          //   thirdorder[g][h][i] = 0;
+          // }
+          // thirdorder[g][h][i] += pow(ncase,-1.0) * (data(p,g) - means(g)) * (data(p,h) - means(h)) * (data(p,i) - means(i)) ;
           for (j = i; j < nvar; j ++){
             if (p==0){
               fourthorder[i][j][g][h] = 0;
@@ -60,7 +60,7 @@ arma::mat WLS_wmat(
   
   
   // Weights matrix:
-  arma::mat Wmat = zeros(nvar + nvar*(nvar+1)/2,nvar + nvar*(nvar+1)/2);
+  arma::sp_mat Wmat(nvar + nvar*(nvar+1)/2,nvar + nvar*(nvar+1)/2);
   // First fill the mean part:
   // for (i=0;i<nvar;i++){
   //   for (j=0;j<=i;j++){
@@ -77,15 +77,19 @@ arma::mat WLS_wmat(
   for (g = 0; g < nvar; g++){
     for (h = g; h < nvar; h ++){
       // Fill the mean part:
-      Wmat(g,h) = Wmat(h,g) = secondorder[g][h];
+      if (g == h){
+        Wmat(g,h) = Wmat(h,g) = secondorder[g][h]; 
+      }
       
       for (i = 0; i < nvar; i++){
-        // Fill the mean by var part:
-        Wmat(i,colind) = Wmat(colind,i) = thirdorder[g][h][i]; // - (means(i) * secondorder[g][h]);
-        
+        // // Fill the mean by var part:
+        // Wmat(i,colind) = Wmat(colind,i) = thirdorder[g][h][i]; // - (means(i) * secondorder[g][h]);
+        // 
         for (j = i; j < nvar; j ++){
           // Fill the var by var part:
-          Wmat(rowind,colind) =  Wmat(colind,rowind) = fourthorder[i][j][g][h] - (secondorder[i][j] * secondorder[g][h]);
+          if (rowind == colind){
+            Wmat(rowind,colind) =  Wmat(colind,rowind) = fourthorder[i][j][g][h] - (secondorder[i][j] * secondorder[g][h]);
+          }
           rowind++;
         }
       }

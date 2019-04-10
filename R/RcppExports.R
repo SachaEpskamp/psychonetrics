@@ -5,6 +5,14 @@ logLikelihood_gaussian_subgroup_fiml_cpp <- function(sigma, kappa, mu, fimldata,
     .Call(`_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp`, sigma, kappa, mu, fimldata, epsilon)
 }
 
+DWLS_wmat <- function(data, means, ncase, nvar) {
+    .Call(`_psychonetrics_DWLS_wmat`, data, means, ncase, nvar)
+}
+
+WLS_wmat <- function(data, means, ncase, nvar) {
+    .Call(`_psychonetrics_WLS_wmat`, data, means, ncase, nvar)
+}
+
 expected_hessian_fiml_Gaussian_group_cpp <- function(sigma, kappa, mu, fimldata, epsilon) {
     .Call(`_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp`, sigma, kappa, mu, fimldata, epsilon)
 }

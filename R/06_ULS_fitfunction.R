@@ -23,7 +23,7 @@ ULS_Gauss <- function(x, model){
 }
 
 # Fit per group:
-ULS_Gauss_pergroup <- function(means,S,mu,sigma,...){
+ULS_Gauss_pergroup <- function(means,S,mu,sigma,WLS.V,...){
   # observed statistics:
   obs <- c(as.vector(means),Vech(S))
   
@@ -31,5 +31,5 @@ ULS_Gauss_pergroup <- function(means,S,mu,sigma,...){
   imp <- c(as.vector(mu),Vech(sigma))
   
   # ULS:
-  as.numeric(t(obs - imp) %*% (obs - imp))
+  as.numeric(t(obs - imp) %*% WLS.V %*% (obs - imp))
 }

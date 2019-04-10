@@ -71,7 +71,13 @@ var1 <- function(
                                nobs = nobs, 
                                missing  = ifelse(estimator == "FIML","pairwise",missing),
                                fimldata = estimator == "FIML",
-                               storedata = storedata)    
+                               storedata = storedata,
+                               weightsmatrix = ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
+                                                      switch(estimator,
+                                                        "WLS" = "full",
+                                                        "ULS" = "identity",
+                                                        "DWLS" = "diag"
+                                                      )))    
   }
 
   

@@ -122,9 +122,15 @@ dlvm1 <- function(
                                nobs = nobs, 
                                missing  = ifelse(estimator == "FIML","pairwise",missing),
                                fimldata = estimator == "FIML",
-                               storedata = storedata)
+                               storedata = storedata,
+                               weightsmatrix = ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
+                                                      switch(estimator,
+                                                        "WLS" = "full",
+                                                        "ULS" = "identity",
+                                                        "DWLS" = "diag"
+                                                      )))
   }
-
+  
   
   # Design matrix:
   design <- as(1*(!is.na(vars)),"sparseMatrix")
@@ -132,7 +138,7 @@ dlvm1 <- function(
   # time per var:
   timePerVar <- as.vector(design * row(design))
   timePerVar <- timePerVar[timePerVar!=0]
-
+  
   # Number of variables:
   nVar <- nrow(vars)
   
@@ -182,14 +188,14 @@ dlvm1 <- function(
   
   # Generate model object:
   model <- generate_psychonetrics(model = "dlvm1", 
-                types = list(
-                  within_latent = within_latent, between_latent = between_latent,
-                  within_residual = within_residual, between_residual = between_residual
-                 ),
-                  sample = sampleStats,computed = FALSE, 
-                  equal = equal,
-                  optimizer = optimizer, estimator = estimator, distribution = "Gaussian",
-                identification=identification)
+                                  types = list(
+                                    within_latent = within_latent, between_latent = between_latent,
+                                    within_residual = within_residual, between_residual = between_residual
+                                  ),
+                                  sample = sampleStats,computed = FALSE, 
+                                  equal = equal,
+                                  optimizer = optimizer, estimator = estimator, distribution = "Gaussian",
+                                  identification=identification)
   
   # Number of groups:
   nGroup <- nrow(model@sample@groups)
@@ -203,17 +209,17 @@ dlvm1 <- function(
   
   # Model matrices:
   modMatrices <- list()
-
+  
   # Expected means:
   expMeans <- lapply(model@sample@means, function(x)tapply(x,timePerVar,mean,na.rm=TRUE))
   
   # Fix tau
   modMatrices$tau <- matrixsetup_mu(tau,nNode = nVar, nGroup = nGroup, labels = varnames,equal = "tau" %in% equal,
-                                   expmeans = expMeans, sampletable = sampleStats, name = "tau")
+                                    expmeans = expMeans, sampletable = sampleStats, name = "tau")
   
   # Fix between-subject means:
   modMatrices$mu_eta <- matrixsetup_mu(mu_eta,nNode = nLat, nGroup = nGroup, labels = latents, equal = "mu_eta" %in% equal,
-                                    expmeans = lapply(1:nGroup,function(x)rep(0, nLat)), sampletable = sampleStats, name = "mu_eta")
+                                       expmeans = lapply(1:nGroup,function(x)rep(0, nLat)), sampletable = sampleStats, name = "mu_eta")
   
   # FIXME: simple start values for now...
   
@@ -225,7 +231,7 @@ dlvm1 <- function(
   
   # Setup lambda:
   modMatrices$lambda <- matrixsetup_lambda(lambda, expcov=firstSigma0, nGroup = nGroup, observednames = sampleStats@variables$label, latentnames = latents,
-                     sampletable = sampleStats, name = "lambda")
+                                           sampletable = sampleStats, name = "lambda")
   
   # If beta = 0, these sort of estimate the within and between subject covs:
   prior_bet_cov <- lapply(firstSigma1,function(x)spectralshift(0.5*(x+t(x))))
@@ -245,23 +251,23 @@ dlvm1 <- function(
     inv <- corpcor::pseudoinverse(as.matrix(kronecker(curLam,curLam)))
     
     # And obtain psi estimate:
-     matrix(inv %*% as.vector(prior_wit_cov[[i]])/2,nLat,nLat)
+    matrix(inv %*% as.vector(prior_wit_cov[[i]])/2,nLat,nLat)
   })
   
-
+  
   # Setup latent varcov:
   modMatrices <- c(modMatrices,
-  matrixsetup_flexcov(sigma = sigma_zeta_within,lowertri = lowertri_zeta_within,omega = omega_zeta_within,delta = delta_zeta_within,kappa = kappa_zeta_within,
-    type = within_latent,
-    name= "zeta_within",
-    sampleStats= sampleStats,
-    equal = equal,
-    nNode = nLat,
-    expCov = prior_sig_zeta_within,
-    nGroup = nGroup,
-    labels = latents
-  ))
- 
+                   matrixsetup_flexcov(sigma = sigma_zeta_within,lowertri = lowertri_zeta_within,omega = omega_zeta_within,delta = delta_zeta_within,kappa = kappa_zeta_within,
+                                       type = within_latent,
+                                       name= "zeta_within",
+                                       sampleStats= sampleStats,
+                                       equal = equal,
+                                       nNode = nLat,
+                                       expCov = prior_sig_zeta_within,
+                                       nGroup = nGroup,
+                                       labels = latents
+                   ))
+  
   # Setup Beta:
   modMatrices$beta <- matrixsetup_beta(beta, 
                                        name = "beta",
@@ -328,14 +334,14 @@ dlvm1 <- function(
                                        nGroup = nGroup,
                                        labels = sampleStats@variables$label 
                    ))
-
+  
   # Generate the full parameter table:
   pars <- do.call(generateAllParameterTables, modMatrices)
   
   # Store in model:
   model@parameters <- pars$partable
   model@matrices <- pars$mattable
-
+  
   model@extramatrices <- list(
     # Entire duplication matrix needed for likelihood:
     D = psychonetrics::duplicationMatrix(nAllVar),
@@ -368,7 +374,7 @@ dlvm1 <- function(
     C_y_y = as(lavaan::lav_matrix_commutation(nVar, nVar),"sparseMatrix"),
     C_y_eta = as(lavaan::lav_matrix_commutation(nVar, nLat),"sparseMatrix"),
     C_eta_eta = as(lavaan::lav_matrix_commutation(nLat, nLat),"sparseMatrix"),
-   
+    
     # 
     # C_y_within = as(lavaan::lav_matrix_commutation(nVar, nLat),"sparseMatrix"),
     # C_within_within = as(lavaan::lav_matrix_commutation(nLat, nLat),"sparseMatrix"),
@@ -378,7 +384,7 @@ dlvm1 <- function(
     # Elimination matrices:
     L_y = psychonetrics::eliminationMatrix(nVar),
     L_eta = psychonetrics::eliminationMatrix(nLat),
-
+    
     # L_within = psychonetrics::eliminationMatrix(nLat),
     # L_between = psychonetrics::eliminationMatrix(nLat),
     
@@ -424,7 +430,7 @@ dlvm1 <- function(
     i = distVecrawts, j = distVec, dims = c(nTotal, totElements)
   )
   # model@extramatrices$P <- sparseMatrix(j=seq_along(inds),i=order(inds))
-
+  
   
   # Form the model matrices
   model@modelmatrices <- formModelMatrices(model)

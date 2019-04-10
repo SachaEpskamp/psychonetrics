@@ -14,6 +14,10 @@ psychonetrics_gradient <- function(x, model){
     ),
     "ULS" = switch(model@distribution,
                 "Gaussian" = ULS_gradient_Gauss),
+    "WLS" = switch(model@distribution,
+                   "Gaussian" = ULS_gradient_Gauss),
+    "DWLS" = switch(model@distribution,
+                   "Gaussian" = ULS_gradient_Gauss),
     "FIML" = switch(model@distribution,
                    "Gaussian" = jacobian_fiml_gaussian_sigma)
   )
