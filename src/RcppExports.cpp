@@ -21,6 +21,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// WLS_wmat
+arma::mat WLS_wmat(arma::mat data, arma::vec means, int ncase, int nvar);
+RcppExport SEXP _psychonetrics_WLS_wmat(SEXP dataSEXP, SEXP meansSEXP, SEXP ncaseSEXP, SEXP nvarSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type means(meansSEXP);
+    Rcpp::traits::input_parameter< int >::type ncase(ncaseSEXP);
+    Rcpp::traits::input_parameter< int >::type nvar(nvarSEXP);
+    rcpp_result_gen = Rcpp::wrap(WLS_wmat(data, means, ncase, nvar));
+    return rcpp_result_gen;
+END_RCPP
+}
 // expected_hessian_fiml_Gaussian_group_cpp
 arma::mat expected_hessian_fiml_Gaussian_group_cpp(arma::mat sigma, arma::mat kappa, arma::vec mu, Rcpp::List fimldata, double epsilon);
 RcppExport SEXP _psychonetrics_expected_hessian_fiml_Gaussian_group_cpp(SEXP sigmaSEXP, SEXP kappaSEXP, SEXP muSEXP, SEXP fimldataSEXP, SEXP epsilonSEXP) {
@@ -125,6 +139,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp, 5},
+    {"_psychonetrics_WLS_wmat", (DL_FUNC) &_psychonetrics_WLS_wmat, 4},
     {"_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp, 5},
     {"_psychonetrics_fimlEstimator_Gauss_group_cpp", (DL_FUNC) &_psychonetrics_fimlEstimator_Gauss_group_cpp, 6},
     {"_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp", (DL_FUNC) &_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp, 5},
