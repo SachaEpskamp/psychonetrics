@@ -140,7 +140,13 @@ samplestats_norawts <- function(
     ### Input via matrices ###
     # Check groups:
     if (missing(groups) || is.null(groups)){
-      groups <- groupNames <- "singlegroup"
+      if (is.array(covs) && length(dim(covs)) > 2){
+        groups <- groupNames <- paste0("group_",seq_len(dim(covs)[[3]]))
+      } else if (is.list(covs)){
+        groups <- groupNames <- paste0("group_",seq_len(length(covs)))
+      } else {
+        groups <- groupNames <- "singlegroup" 
+      }
     } else {
       groupNames <- groups
     }
