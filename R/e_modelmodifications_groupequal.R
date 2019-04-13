@@ -45,21 +45,20 @@ groupequal <- function(
   }
   
   # Check if consistent across groups:
-  cons <- x@parameters %>% dplyr::group_by_("matrix","row","col") %>% dplyr::summarize_(consistent = ~all(fixed)|all(!fixed))
-  cons <- cons$consistent[cons$matrix %in% matrix & cons$row %in% row & cons$col %in% col]
+  cons <- x@parameters %>% dplyr::group_by_("matrix","row","col") %>% dplyr::summarize_(consistent = ~all(fixed)|all(!fixed), anyIdentified = ~any(identified))
+  cons <- cons$consistent[cons$matrix %in% matrix & cons$row %in% row & cons$col %in% col & !cons$anyIdentified]
   
   # which are constrained:
   whichCons <- which(x@parameters$matrix == matrix & x@parameters$row %in% row & x@parameters$col %in% col & !x@parameters$fixed)
   
-  
-  # Length0?
-  if (length(cons)==0 | length(whichCons) == 0){
+  # Length?
+  if (length(whichCons) == 0){
     if (verbose) message("No parameters need to be constrained...")
       return(x)
   }
   
   # Any inconsistent?
-  if (any(!cons)){
+  if (length(cons) > 0 && any(!cons)){
     stop("Model is not consistent across groups. Run unionmodel() or intersectionmodel() first, or manually set parameters consistent across groups.")
   }
   
@@ -72,8 +71,13 @@ groupequal <- function(
   # for each group, set parameters equal to first group FIXME: Not pretty but gets the job done:
   id1 <- x@sample@groups$id[1]
   for (g in x@sample@groups$id[-1]){
-    x@parameters$par[x@parameters$matrix == matrix & x@parameters$row %in% row & x@parameters$col %in% col & x@parameters$group_id == g & !x@parameters$fixed] <- 
-      x@parameters$par[x@parameters$matrix == matrix & x@parameters$row %in% row & x@parameters$col %in% col & x@parameters$group_id == id1 & !x@parameters$fixed]
+    group_g <- x@parameters$matrix == matrix & x@parameters$row %in% row & x@parameters$col %in% col & x@parameters$group_id == g
+    group_1 <- x@parameters$matrix == matrix & x@parameters$row %in% row & x@parameters$col %in% col & x@parameters$group_id == id1
+
+    x@parameters$par[group_g] <- x@parameters$par[group_1]
+    x@parameters$est[group_g] <- x@parameters$est[group_1]
+    x@parameters$fixed[group_g] <- x@parameters$fixed[group_1]
+    # x@parameters$identified[group_g] <- x@parameters$identified[group_1]
   }
   
 
@@ -92,7 +96,7 @@ groupequal <- function(
   x@parameters <- clearpars(x@parameters,whichCons)
   
   # For every parameter, take mean as starting value:
-  x@parameters  <-    x@parameters %>% group_by_("par") %>% mutate_(est=~ifelse(par==0,est,mean(est,na.rm=TRUE))) %>% ungroup
+  x@parameters  <- x@parameters %>% group_by_("par") %>% mutate_(est=~ifelse(par==0,est,mean(est,na.rm=TRUE))) %>% ungroup
 
   # Identify:
   if (identify){

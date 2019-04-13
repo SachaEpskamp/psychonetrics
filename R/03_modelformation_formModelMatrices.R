@@ -5,7 +5,7 @@ formModelMatrices <- function(x){
   mats <- x@matrices
   
   # All groups:
-  allGroups <- unique(pars$group_id)
+  allGroups <- x@sample@groups$id
   nGroup <- length(allGroups)
 
   # form matrices:
@@ -44,7 +44,8 @@ formModelMatrices <- function(x){
     names(groupMod) <-  mats$name
     groupMod
   })
-  names(Matrices) <- allGroups
+
+  names(Matrices) <-  unique(x@sample@groups$label)
   
 
   return(Matrices)

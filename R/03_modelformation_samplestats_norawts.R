@@ -88,13 +88,13 @@ samplestats_norawts <- function(
       }
       # cors <- list(new("corMatrix", cov2cor(cov), sd = diag(cov)))
       means <- list(colMeans(data[,c(vars)], na.rm = TRUE))
-      groupNames <- unique(data[[groups]])
+      # groupNames <- unique(data[[groups]])
       
     } else {
       covs <- list()
       cors <- list()
       means <- list()
-      groupNames <- unique(data[[groups]])
+      # groupNames <- unique(data[[groups]])
       
       for (g in 1:nGroup){
         subData <- data[data[[groups]] == g,c(vars)]

@@ -12,10 +12,11 @@ labtoind <- function(x,row,col,Mat,symmetrical=FALSE){
     row <- vars$ind[match(row,vars$var)]
     col <- vars$ind[match(col,vars$var)]
   } else{
+    
     rows <- x@parameters %>% filter_(~matrix == Mat) %>% group_by_("row") %>%
-      summarize_(var = ~unique(var1))
+      summarize_(ind = ~unique(row), var = ~unique(var1))
     cols <-  x@parameters %>% filter_(~matrix == Mat) %>% group_by_("col") %>%
-      summarize_(var = ~unique(var2))
+      summarize_(ind = ~unique(col), var = ~unique(var2))
     
     
     row <- rows$ind[match(row,rows$var)]
