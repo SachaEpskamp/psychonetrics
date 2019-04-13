@@ -15,21 +15,31 @@ matrixsetup_omega <- function(
   # For each group, form starting values:
   omegaStart <- omega
   for (g in 1:nGroup){
+
     # Current estimate:
     covest <- as.matrix(expcov[[g]])
-    
-    zeroes <- which(omegaStart[,,g]==0 & t(omegaStart[,,g])==0 & diag(nNode) != 1,arr.ind=TRUE)
-    if (nrow(zeroes) == 0){
-      wi <- solve_symmetric(covest)
+    if (!any(is.na(covest))){
+      
+      zeroes <- which(omegaStart[,,g]==0 & t(omegaStart[,,g])==0 & diag(nNode) != 1,arr.ind=TRUE)
+      if (nrow(zeroes) == 0){
+        wi <- solve_symmetric(covest)
+      } else {
+        glas <- glasso(as.matrix(covest),
+                       rho = 1e-10, zero = zeroes)
+        wi <- glas$wi
+      }
+      
+      # Network starting values:
+      omegaStart[,,g] <- as.matrix(qgraph::wi2net(as.matrix(wi)))
+      diag(omegaStart[,,g] ) <- 0
+      
     } else {
-      glas <- glasso(as.matrix(covest),
-                     rho = 1e-10, zero = zeroes)
-      wi <- glas$wi
+      
+      # Network starting values:
+      omegaStart[,,g] <- (omegaStart[,,g]!=0) * 0.001
+      diag(omegaStart[,,g] ) <- 0
     }
-
-    # Network starting values:
-    omegaStart[,,g] <- as.matrix(qgraph::wi2net(as.matrix(wi)))
-    diag(omegaStart[,,g] ) <- 0
+    
   }
   
   # Form the model matrix part:
