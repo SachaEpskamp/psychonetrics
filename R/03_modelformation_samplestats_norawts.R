@@ -140,7 +140,13 @@ samplestats_norawts <- function(
     ### Input via matrices ###
     # Check groups:
     if (missing(groups) || is.null(groups)){
-      groups <- groupNames <- "singlegroup"
+      if (is.array(covs) && length(dim(covs)) > 2){
+        groups <- groupNames <- paste0("group_",seq_len(dim(covs)[[3]]))
+      } else if (is.list(covs)){
+        groups <- groupNames <- paste0("group_",seq_len(length(covs)))
+      } else {
+        groups <- groupNames <- "singlegroup" 
+      }
     } else {
       groupNames <- groups
     }
@@ -159,10 +165,24 @@ samplestats_norawts <- function(
       if (!is.list(covs)){
         class(covs) <- "matrix"
         covs <- list(as(covs,"dpoMatrix"))        
-        cors <- list(new("corMatrix", cov2cor(covs), sd = diag(covs)))
+        # cors <- list(new("corMatrix", cov2cor(covs), sd = diag(covs)))
+        
+        if (!any(is.na(covs))){
+          cors <- list(new("corMatrix", cov2cor(covs), sd = diag(covs)))
+        } else {
+          cors <- list(NA)
+        }
+        
       } else {
         cors <- lapply(covs,function(x){
-          new("corMatrix", cov2cor(x), sd = diag(x))
+          
+          if (!any(is.na(x))){
+            return(new("corMatrix", cov2cor(x), sd = diag(x)))
+          } else {
+            return(NA)
+          }
+          
+          # new("corMatrix", cov2cor(x), sd = diag(x))
         })
       }
       
@@ -242,9 +262,16 @@ samplestats_norawts <- function(
   
   # add fiml data (still summary statistics...):
   if (fimldata){
-    object@fimldata <- lapply(seq_along(groupNames),function(x){
-      missingpatterns(data[data[[groups]] == x,vars],verbose=verbose)
-    })
+    if (!missing(data)){
+      object@fimldata <- lapply(seq_along(groupNames),function(x){
+        missingpatterns(data[data[[groups]] == x,vars],verbose=verbose)
+      })
+    } else {
+      object@fimldata <- lapply(seq_along(groupNames),function(x){
+        missingpatterns_covs(means[[x]],covs[[x]],nobs[x],verbose=verbose)
+      })
+    }
+ 
   }
   
   # add full data:
