@@ -48,8 +48,8 @@ MIs_inner <- function(x,all = FALSE, matrices, type = c("normal","equal","free")
   # filter only non-zero parameters and select only relevant columns:
   # parTable <- parTable %>% filter_(~fixed,~!is.na(mi)) %>% 
   #   select_("var1","op","var2","mi","pmi","mi_equal","pmi_equal","matrix","row","col","group")
-  parTable <- parTable %>% filter_(~mi!=0) %>% 
-    select_("var1","op","var2","est",micol,pcol,epccol,"matrix","row","col","group")
+  parTable <- parTable %>%  filter_(~matrix %in% matrices) %>% #filter_(~mi!=0) %>% 
+    select_("var1","op","var2","est",micol,pcol,epccol,"matrix","row","col","group","group_id")
   
   # If nothing, return:
   if (nrow(parTable)==0){
@@ -82,17 +82,18 @@ MIs_inner <- function(x,all = FALSE, matrices, type = c("normal","equal","free")
     # For each group:
     
     
-    for (g in x@sample@groups$label){
+    for (g in x@sample@groups$id){
       message <- switch(type,
-                        "normal" = paste0("Modification indices for group :",x@sample@groups$label[g]),
-                        "equal" = paste0("Group-constrained modification indicesfor group :",x@sample@groups$label[g]),
-                        "free" = paste0("Equality-free modification indices for group :",x@sample@groups$label[g]))
+                        "normal" = paste0("\nModification indices for group:",x@sample@groups$label[g]),
+                        "equal" = paste0("\nGroup-constrained modification indicesfor group:",x@sample@groups$label[g]),
+                        "free" = paste0("\nEquality-free modification indices for group:",x@sample@groups$label[g]))
       cat(message)
       
       # cat(paste0("\n\nGroup ",x@sample@groups$label[g]))
       
       # for each matrix:
-      for (mat in unique(parTable$matrix[parTable$group == g])){
+      # for (mat in unique(parTable$matrix[parTable$group_id == g])){
+      for (mat in matrices){
         if (x@matrices$diagonal[x@matrices$name==mat]){
           brackets <- "(diagonal)"
         } else  if (x@matrices$symmetrical[x@matrices$name==mat]){
@@ -100,7 +101,7 @@ MIs_inner <- function(x,all = FALSE, matrices, type = c("normal","equal","free")
         }  else {
           brackets <- "" 
         }
-        subTable <- parTable %>% filter_(~group == g,~matrix==mat) %>% select_(~-matrix,~-group) 
+        subTable <- parTable %>% filter_(~group_id == g,~matrix==mat) %>% select_(~-matrix,~-group,~-group_id) 
         # subTable <- subTable[order(subTable[[sortby]],decreasing = TRUE),] 
         if (nrow(subTable) > 0){
           cat("\n\t- ",mat,brackets,"\n")

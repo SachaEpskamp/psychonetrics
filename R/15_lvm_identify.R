@@ -79,12 +79,11 @@ identify_lvm <- function(x){
     # at least n_eta intercepts nead to be equal
     if (consPerMat$n[consPerMat$matrix == "tau"] >= nLat){
       means <- which(x@parameters$matrix %in% c("tau_eta") & x@parameters$group_id == 1)
-      free <-  which(x@parameters$matrix %in% c("tau_eta") & x@parameters$group_id > 1)
+      free <-  which(x@parameters$matrix %in% c("tau_eta") & x@parameters$group_id > 1 & !(x@parameters$fixed & !x@parameters$identified))
     } else {
       means <- which(x@parameters$matrix %in% c("tau_eta"))
       free <- numeric(0)
     }
-    
     # Constrain means:
     x@parameters$est[means] <- 0
     # x@parameters$std[means] <- NA
@@ -133,7 +132,7 @@ identify_lvm <- function(x){
       # At least n_eta factor loadings need to be equal (FIXME: not sure about this...)
       if (consPerMat$n[consPerMat$matrix == "lambda"] >= nLat){
         variance <- which(x@parameters$matrix == mat & x@parameters$group_id == 1 & x@parameters$row == x@parameters$col)
-        free <- which(x@parameters$matrix == mat & x@parameters$group_id > 1 & x@parameters$row == x@parameters$col)
+        free <- which(x@parameters$matrix == mat & x@parameters$group_id > 1 & x@parameters$row == x@parameters$col & !x@parameters$identified)
       } else {
         variance <- which(x@parameters$matrix == mat &  x@parameters$row == x@parameters$col)
         free <- numeric(0)
