@@ -33,14 +33,21 @@ identify_lvm <- function(x){
   # Single group is easy:
   if (nrow(x@sample@groups) == 1){
     
-    # Set all latent intercepts to zero:
-    means <- which(x@parameters$matrix %in% c("tau_eta"))
-    x@parameters$est[means] <- 0
-    x@parameters$par[means] <- 0
-    x@parameters$fixed[means] <- TRUE
-    x@parameters$identified[means] <- TRUE
+    # How many values of tau are fixed?
+    nConsInTau <- sum(x@parameters$fixed[x@parameters$matrix == "tau"])
     
-    x@parameters <- clearpars(x@parameters, means)
+    # Set all latent intercepts to zero if there are not enough constrains in tau:
+    means <- which(x@parameters$matrix %in% c("tau_eta"))
+    if (nConsInTau <= length(means)){
+      
+      x@parameters$est[means] <- 0
+      x@parameters$par[means] <- 0
+      x@parameters$fixed[means] <- TRUE
+      x@parameters$identified[means] <- TRUE
+      
+      x@parameters <- clearpars(x@parameters, means)
+    }
+
     
     
     # variance ifentification:
