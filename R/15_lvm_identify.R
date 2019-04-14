@@ -13,6 +13,23 @@ identify_lvm <- function(x){
   x@parameters$identified[betaDiag] <- TRUE
   x@parameters <- clearpars(x@parameters, betaDiag)
   
+  # Always set residual (co)variance of single indicator items to zero:
+  nIndicators <- x@parameters %>% filter_(~matrix == "lambda") %>% group_by_(~var1_id) %>% 
+    summarize_(nLats = ~length(unique(var2_id[!fixed])))
+  if (any(nIndicators$nLats == 1)){
+    for (inds in nIndicators$var1_id[nIndicators$nLats == 1]){
+      # Which to constrain?
+      cons <- x@parameters$var1_id == inds & 
+        x@parameters$matrix %in% c("sigma_epsilon","omega_epsilon","delta_epsilon","lowertri_epsilon","kappa_epsilon")
+      
+      x@parameters$est[cons] <- 0
+      x@parameters$par[cons] <- 0
+      x@parameters$fixed[cons] <- TRUE
+      x@parameters$identified[cons] <- TRUE
+      x@parameters <- clearpars(x@parameters, cons)
+    }
+  }
+  
   # Single group is easy:
   if (nrow(x@sample@groups) == 1){
     
