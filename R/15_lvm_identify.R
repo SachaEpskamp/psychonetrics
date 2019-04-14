@@ -14,10 +14,11 @@ identify_lvm <- function(x){
   x@parameters <- clearpars(x@parameters, betaDiag)
   
   # Always set residual (co)variance of single indicator items to zero:
-  nIndicators <- x@parameters %>% filter_(~matrix == "lambda") %>% group_by_(~var1_id) %>% 
-    summarize_(nLats = ~length(unique(var2_id[!fixed])))
+  nIndicators <- x@parameters %>% filter_(~matrix == "lambda") %>% group_by_(~var2_id) %>% 
+    summarize_(nLats = ~length(unique(var1_id[!fixed])))
+
   if (any(nIndicators$nLats == 1)){
-    for (inds in nIndicators$var1_id[nIndicators$nLats == 1]){
+    for (inds in unique(x@parameters$var1_id[x@parameters$var2_id%in%nIndicators$var2_id[nIndicators$nLats == 1] & x@parameters$matrix == "lambda"])){
       # Which to constrain?
       cons <- x@parameters$var1_id == inds & 
         x@parameters$matrix %in% c("sigma_epsilon","omega_epsilon","delta_epsilon","lowertri_epsilon","kappa_epsilon")
@@ -156,7 +157,8 @@ identify_lvm <- function(x){
       # At least n_eta factor loadings need to be equal (FIXME: not sure about this...)
       if (consPerMat$n[consPerMat$matrix == "lambda"] >= nLat){
         variance <- which(x@parameters$matrix == mat & x@parameters$group_id == 1 & x@parameters$row == x@parameters$col)
-        free <- which(x@parameters$matrix == mat & x@parameters$group_id > 1 & x@parameters$row == x@parameters$col & !x@parameters$identified)
+        free <- which(x@parameters$matrix == mat & x@parameters$group_id > 1 & x@parameters$row == x@parameters$col & x@parameters$identified)
+        # free <- which(x@parameters$matrix == mat & x@parameters$group_id > 1 & x@parameters$row == x@parameters$col)
       } else {
         variance <- which(x@parameters$matrix == mat &  x@parameters$row == x@parameters$col)
         free <- numeric(0)
