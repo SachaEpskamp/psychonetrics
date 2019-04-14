@@ -228,7 +228,7 @@ samplestats_norawts <- function(
     }
     
     # Check if means is matrix:
-    if (is.matrix(means)){
+    if (!is.list(means)){
       means <-lapply(1:nGroup,function(x)means)  
     }
   }
