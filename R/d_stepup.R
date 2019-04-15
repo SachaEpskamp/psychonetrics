@@ -114,12 +114,12 @@ stepup <- function(
     oldMod <- x
     # Stepwise up?
     # if (!any(matrices %in% x@equal)){ # FIXME: this will add equality constraints for all matrices...
-    if (any(x@parameters[[mi]][x@parameters$matrix %in% matrices & x@parameters$fixed & !is.na(x@parameters[[mi]])] > qchisq(alpha,1,lower.tail=FALSE))){
+    if (any(x@parameters[[mi]][x@parameters$matrix %in% matrices & x@parameters$fixed & !x@parameters$identified & !is.na(x@parameters[[mi]])] > qchisq(alpha,1,lower.tail=FALSE))){
       
       # FIXME: Make nice free parameter function
       if (!greedy){
         x@parameters[[mi]] <- ifelse(is.na(x@parameters[[mi]]),0,x@parameters[[mi]])
-        best <- which(x@parameters[[mi]] %in% matrices & x@parameters[[mi]] == max(x@parameters[[mi]][x@parameters$matrix %in% matrices & x@parameters$fixed & !x@parameters$identified]))[1]
+        best <- which(x@parameters$matrix %in% matrices & x@parameters[[mi]] == max(x@parameters[[mi]][x@parameters$matrix %in% matrices & x@parameters$fixed & !x@parameters$identified]))[1]
         x@parameters$par[best] <- max(x@parameters$par) + 1
         x@parameters$fixed[best] <- FALSE
         
