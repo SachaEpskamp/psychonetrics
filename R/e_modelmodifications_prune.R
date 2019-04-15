@@ -190,6 +190,10 @@ prune <- function(
   # x@parameters$mi_equal[nonsig] <- NA
   # x@parameters$pmi_equal[nonsig] <- NA
   
+  # FIXME: Reduce parameter estimates from remainder of matrix a bit to avoid problems:
+  x@parameters$par[x@parameters$matrix %in% matrices & !x@parameters$fixed & !x@parameters$identified & x@parameters$est != 0] <- 
+    0.75 * x@parameters$par[x@parameters$matrix %in% matrices & !x@parameters$fixed & !x@parameters$identified & x@parameters$est != 0] 
+  
   x@parameters <- clearpars(x@parameters,nonsig)
 
   x@parameters   <- parRelabel(x@parameters)
