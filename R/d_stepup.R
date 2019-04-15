@@ -103,7 +103,7 @@ stepup <- function(
       
     }  else stop("No default argument for 'matrices' for current model.")
   }
-  
+
   # Check if MIs are added:
   if (all(is.na(x@parameters[[mi]]))){
     x <- x %>% addMIs(matrices = matrices)
@@ -119,7 +119,7 @@ stepup <- function(
       # FIXME: Make nice free parameter function
       if (!greedy){
         x@parameters[[mi]] <- ifelse(is.na(x@parameters[[mi]]),0,x@parameters[[mi]])
-        best <- which(x@parameters[[mi]] == max(x@parameters[[mi]][x@parameters$matrix %in% matrices & x@parameters$fixed & !x@parameters$identified]))[1]
+        best <- which(x@parameters[[mi]] %in% matrices & x@parameters[[mi]] == max(x@parameters[[mi]][x@parameters$matrix %in% matrices & x@parameters$fixed & !x@parameters$identified]))[1]
         x@parameters$par[best] <- max(x@parameters$par) + 1
         x@parameters$fixed[best] <- FALSE
         
