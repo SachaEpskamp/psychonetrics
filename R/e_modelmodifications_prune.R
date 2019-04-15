@@ -13,6 +13,7 @@ prune <- function(
   identify = TRUE,
   nCores = 1,
   reps = 1000,
+  startreduce = 0.75,
   ...){
   adjust <- match.arg(adjust)
   # If not computed, nothing to do:
@@ -192,7 +193,7 @@ prune <- function(
   
   # FIXME: Reduce parameter estimates from remainder of matrix a bit to avoid problems:
   x@parameters$par[x@parameters$matrix %in% matrices & !x@parameters$fixed & !x@parameters$identified & x@parameters$est != 0] <- 
-    0.75 * x@parameters$par[x@parameters$matrix %in% matrices & !x@parameters$fixed & !x@parameters$identified & x@parameters$est != 0] 
+    startreduce * x@parameters$par[x@parameters$matrix %in% matrices & !x@parameters$fixed & !x@parameters$identified & x@parameters$est != 0] 
   
   x@parameters <- clearpars(x@parameters,nonsig)
 
