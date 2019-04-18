@@ -206,7 +206,6 @@ stepup <- function(
         # Update the model:
         x@extramatrices$M <- Mmatrix(x@parameters) # FIXME: Make nice function for this
         
-        
         if (verbose){
           message(paste("Adding",length(best),"parameters in greedy search start."))
         }

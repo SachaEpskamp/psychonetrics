@@ -164,6 +164,9 @@ varcov <- function(
   if (baseline_saturated){
    
     # Form baseline model:
+    if ("omega" %in% equal | "sigma" %in% equal | "kappa" %in% equal){
+      equal <- c(equal,"lowertri")
+    }
     model@baseline_saturated$baseline <- varcov(data,
                                                 type = "chol",
                                                 lowertri = "empty",
