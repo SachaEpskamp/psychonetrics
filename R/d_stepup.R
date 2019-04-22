@@ -6,6 +6,7 @@ stepup <- function(
   matrices, # Matrices to search
   mi = c("mi","mi_free","mi_equal"),
   greedyadjust = c("bonferroni", "none", "holm", "hochberg", "hommel", "fdr", "BH", "BY"),
+  stopif,
   greedy = FALSE, # If TRUE, will start by adding all significant effects followed by pruning
   verbose = TRUE,
   checkinformation = TRUE,
@@ -283,6 +284,17 @@ stepup <- function(
     #   }
     # }
     # 
+    
+    # Check if we should stop
+    if (!missing(stopif)){
+      condition <- eval(substitute(stopif), envir = x@fitmeasures)
+      if (condition){
+        if (verbose){
+          message(paste("Model in line with stopping criterion: stopping search."))
+        }
+        break
+      }
+    }
     
   }
   
