@@ -6,8 +6,12 @@ matrixsetup_kappa <- function(
   labels,
   equal = FALSE,
   sampletable,
-  name = "kappa"
+  name = "kappa",
+  beta = array(0, c(nNode, nNode,nGroup))
 ){
+  # Check if kappa is character:
+  ischar <- is.character(kappa)
+  
   # Fix lower tri:
   kappa <- fixAdj(kappa,nGroup,nNode,equal,diag0=FALSE)
   
@@ -29,6 +33,16 @@ matrixsetup_kappa <- function(
     
     # Network starting values:
     kappaStart[,,g] <- (kappaStart[,,g] !=0) * as.matrix(wi)
+    
+    # If kappa was a character, remove offdiagonal for endogenous variables:
+    if (ischar){
+      # Which are endogenous?
+      endo <- which(rowSums(beta[,,g])>0)
+      
+      # Remove these:
+      inds <- (row(kappa[,,g]) %in% endo | col(kappa[,,g]) %in% endo) & (row(kappa[,,g] ) != col(kappa[,,g] ))
+      kappa[,,g][inds] <- kappaStart[,,g][inds] <-  0
+    }
   }
 
   # Form the model matrix part:

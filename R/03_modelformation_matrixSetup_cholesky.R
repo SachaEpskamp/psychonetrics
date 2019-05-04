@@ -6,8 +6,12 @@ matrixsetup_lowertri <- function(
   labels,
   equal = FALSE,
   sampletable,
-  name = "lowertri"
+  name = "lowertri",
+  beta = array(0, c(nNode, nNode,nGroup))
 ){
+  # Check if sigma is character:
+  ischar <- is.character(lowertri)
+  
   # Fix lower tri:
   lowertri <- fixAdj(lowertri,nGroup,nNode,equal)
   
@@ -30,6 +34,17 @@ matrixsetup_lowertri <- function(
       lowertriStart[,,g] <-  1*(lowertriStart[,,g]!=0) * Lest
     } else {
       lowertriStart[,,g] <-  1*(lowertriStart[,,g]!=0) * 0.05
+    }
+    
+    if (ischar){
+      
+      
+      # Which are endogenous?
+      endo <- which(rowSums(beta[,,g])>0)
+      
+      # Remove these:
+      inds <- (row(lowertri[,,g]) %in% endo | col(lowertri[,,g]) %in% endo) & (row(lowertri[,,g] ) != col(lowertri[,,g] ))
+      lowertri[,,g][inds] <- lowertriStart[,,g][inds] <-  0
     }
   }
   

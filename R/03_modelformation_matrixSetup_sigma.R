@@ -6,8 +6,12 @@ matrixsetup_sigma <- function(
   labels,
   equal = FALSE,
   sampletable,
-  name = "sigma"
+  name = "sigma",
+  beta = array(0, c(nNode, nNode,nGroup))
 ){
+  # Check if sigma is character:
+  ischar <- is.character(sigma)
+  
   # Fix Sigma:
   sigma <- fixAdj(sigma,nGroup,nNode,equal)
   
@@ -19,6 +23,16 @@ matrixsetup_sigma <- function(
     
     # Covs with sample covs:
     sigmaStart[,,g] <-  1*(sigmaStart[,,g]!=0) * covest  
+    
+    # If Sigma was a character, remove offdiagonal for endogenous variables:
+    if (ischar){
+      # Which are endogenous?
+      endo <- which(rowSums(beta[,,g])>0)
+      
+      # Remove these:
+      inds <- (row(sigma[,,g]) %in% endo | col(sigma[,,g]) %in% endo) & (row(sigma[,,g] ) != col(sigma[,,g] ))
+      sigma[,,g][inds] <- sigmaStart[,,g][inds] <-  0
+    }
   }
   
   # Form the model matrix part:

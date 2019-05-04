@@ -6,8 +6,12 @@ matrixsetup_omega <- function(
   labels,
   equal = FALSE,
   sampletable,
-  name = "omega"
+  name = "omega",
+  beta = array(0, c(nNode, nNode,nGroup))
 ){
+  # Check if sigma is character:
+  ischar <- is.character(omega)
+  
   # Fix lower tri:
   omega <- fixAdj(omega,nGroup,nNode,equal,diag0=TRUE)
   
@@ -38,6 +42,16 @@ matrixsetup_omega <- function(
       # Network starting values:
       omegaStart[,,g] <- (omegaStart[,,g]!=0) * 0.001
       diag(omegaStart[,,g] ) <- 0
+    }
+    
+    # If omega was a character, remove offdiagonal for endogenous variables:
+    if (ischar){
+      # Which are endogenous?
+      endo <- which(rowSums(beta[,,g])>0)
+      
+      # Remove these:
+      inds <- (row(omega[,,g]) %in% endo | col(omega[,,g]) %in% endo) & (row(omega[,,g] ) != col(omega[,,g] ))
+      omega[,,g][inds] <- omegaStart[,,g][inds] <-  0
     }
     
   }

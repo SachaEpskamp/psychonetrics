@@ -205,7 +205,8 @@ lvm <- function(
                                            nNode = nLatent, 
                                            nGroup = nGroup, 
                                            labels = latents,
-                                           equal = "sigma_zeta" %in% equal, sampletable = sampleStats)    
+                                           equal = "sigma_zeta" %in% equal, sampletable = sampleStats,
+                                           beta = modMatrices$beta[[1]])    
   } else if (latent == "chol"){
     modMatrices$lowertri_zeta <- matrixsetup_lowertri(lowertri_zeta, 
                                                       name = "lowertri_zeta",
@@ -213,7 +214,8 @@ lvm <- function(
                                                       nNode = nLatent, 
                                                       nGroup = nGroup, 
                                                       labels = latents,
-                                                 equal = "lowertri_zeta" %in% equal, sampletable = sampleStats)
+                                                 equal = "lowertri_zeta" %in% equal, sampletable = sampleStats,
+                                                 beta = modMatrices$beta[[1]])
   } else if (latent == "ggm"){
     # Add omega matrix:
     modMatrices$omega_zeta <- matrixsetup_omega(omega_zeta, 
@@ -222,7 +224,8 @@ lvm <- function(
                                                 nNode = nLatent, 
                                                 nGroup = nGroup, 
                                                 labels = latents,
-                                           equal = "lowertri_zeta" %in% equal, sampletable = sampleStats)
+                                           equal = "lowertri_zeta" %in% equal, sampletable = sampleStats,
+                                           beta = modMatrices$beta[[1]])
     
     # Add delta matrix:
     modMatrices$delta_zeta <- matrixsetup_delta(delta_zeta, 
@@ -241,7 +244,8 @@ lvm <- function(
                                                 nNode = nLatent, 
                                                 nGroup = nGroup, 
                                                 labels = latents,
-                                           equal = "kappa_zeta" %in% equal, sampletable = sampleStats)
+                                           equal = "kappa_zeta" %in% equal, sampletable = sampleStats,
+                                           beta = modMatrices$beta[[1]])
   }
   
   ### Residual varcov ###
