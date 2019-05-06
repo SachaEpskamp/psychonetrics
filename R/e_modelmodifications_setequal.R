@@ -1,13 +1,13 @@
 # Function to fix a certain parameter
 fixpar <- function(
   x, # Model
- inds, # Indices to set equal
+  ...,
+ inds = integer(0), # Indices to set equal
   verbose = TRUE,
   log = TRUE,
-  runmodel = FALSE,
-  ...){
+  runmodel = FALSE){
 
-
+  inds <- c(unlist(list(...),inds))
   # current max par:
   curMax <- max(x@parameters$par)
   
