@@ -1,5 +1,5 @@
 # Function to fix a certain parameter
-fixpar <- function(
+setequal <- function(
   x, # Model
   ...,
  inds = integer(0), # Indices to set equal
