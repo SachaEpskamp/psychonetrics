@@ -1,5 +1,5 @@
 # Function to fix a certain parameter
-setequal <- function(
+parequal <- function(
   x, # Model
   ...,
  inds = integer(0), # Indices to set equal
