@@ -27,6 +27,11 @@ prepareModel <- function(x, model){
     }
   }
   
+  # FIXME: Add the estimator to group modes for DWLS:
+  for (g in seq_along(prep$groupModels)){
+    prep$groupModels[[g]]$estimator <- model@estimator
+  }
+  
   # FIXME: Add Cpp to prep model:
   prep$cpp <- model@cpp
   

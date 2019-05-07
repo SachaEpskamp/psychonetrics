@@ -23,7 +23,10 @@ ULS_Gauss <- function(x, model){
 }
 
 # Fit per group:
-ULS_Gauss_pergroup <- function(means,S,mu,sigma,WLS.V,...){
+ULS_Gauss_pergroup <- function(means,S,mu,sigma,WLS.V,estimator,...){
+  if (estimator == "DWLS"){
+     WLS.V <- Diagonal(x = diag(WLS.V))
+  }
   # observed statistics:
   obs <- c(as.vector(means),Vech(S))
   

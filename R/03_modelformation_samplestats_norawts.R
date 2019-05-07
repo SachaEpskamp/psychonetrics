@@ -10,10 +10,10 @@ samplestats_norawts <- function(
   fimldata = FALSE,
   verbose = TRUE,
   storedata = FALSE,
-  weightsmatrix = c("none","identity","full","diag")
+  weightsmatrix = "none" #c("none","identity","full","diag")
 ){
   missing <- match.arg(missing)
-  weightsmatrix <- match.arg(weightsmatrix)
+  # weightsmatrix <- match.arg(weightsmatrix)
   
   # Check data:
   if (missing(data) & missing(covs)){
@@ -25,7 +25,7 @@ samplestats_norawts <- function(
   if (missing(data) & storedata){
     stop("'data' may not be missing if 'storedata = TRUE'")
   }
-  if (missing(data) & weightsmatrix %in% c("full","diag")){
+  if (missing(data) & is.character(weightsmatrix) && weightsmatrix %in% c("full","diag")){
     stop("'data' may not be missing if estimator = 'WLS' or esitmator = 'DWLS'")
   }
   # If data is supplied:
@@ -284,18 +284,46 @@ samplestats_norawts <- function(
   }
   
   # add WLS.V:
-  if (weightsmatrix != "none"){
+  if (is.list(weightsmatrix) || is.matrix(weightsmatrix)){
+    if (is.list(weightsmatrix)){
+      object@WLS.V <- as(weightsmatrix,"Matrix")
+    } else {
+      object@WLS.V <- lapply(1:nGroup,function(x)as(weightsmatrix,"Matrix"))
+    }
+    
+    # Check if mean structure is added, otherwise add identitiy matrix:
     for (g in 1:nGroup){
-      subData <- data[data[[groups]] == g,c(vars)]
-      if (weightsmatrix == "identity"){
-        object@WLS.V[[g]] <- Diagonal(nVars + nVars*(nVars+1)/2)  
-      } else if (weightsmatrix == "full"){
-        object@WLS.V[[g]] <- LS_weightsmat(subData)
-      } else if (weightsmatrix == "diag"){
-        object@WLS.V[[g]] <- LS_weightsmat(subData, type = "diagonal")
+      if (ncol(object@WLS.V[[1]]) != nVars + nVars*(nVars+1)/2){
+        if (ncol(object@WLS.V[[1]]) == nVars*(nVars+1)/2){
+          if (verbose){
+            warning("WLS.V only supplied for variance/covariance structure. Adding identitiy matrix to means part.")
+          }
+          object@WLS.V[[1]] <- rbind(
+            cbind(Diagonal(nVars), Matrix(0,nVars,nVars*(nVars+1)/2)),
+            cbind(Matrix(0,nVars*(nVars+1)/2,nVars), object@WLS.V[[1]])
+            )
+        } else {
+          stop("WLS.V not of appropriate dimension.")  
+        }
+      }
+    }
+  } else {
+    if (weightsmatrix != "none"){
+      for (g in 1:nGroup){
+        if (weightsmatrix == "identity"){
+          object@WLS.V[[g]] <- Diagonal(nVars + nVars*(nVars+1)/2)  
+        } else if (weightsmatrix == "full"){
+          subData <- data[data[[groups]] == g,c(vars)]
+          object@WLS.V[[g]] <- LS_weightsmat(subData)
+        } else if (weightsmatrix == "diag"){
+          subData <- data[data[[groups]] == g,c(vars)]
+          object@WLS.V[[g]] <- LS_weightsmat(subData, type = "diagonal")
+        }
       }
     }
   }
+  
+  
   
   
   # Return object:

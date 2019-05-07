@@ -43,6 +43,7 @@ lvm <- function(
   estimator = "ML",
   optimizer = "default",
   storedata = FALSE,
+  WLS.V,
   sampleStats
 ){
   rawts = FALSE
@@ -57,6 +58,16 @@ lvm <- function(
   # Identification:
   identification <- match.arg(identification)
 
+  # WLS weights:
+  if (missing(WLS.V)){
+    WLS.V <- ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
+                    switch(estimator,
+                           "WLS" = "full",
+                           "ULS" = "identity",
+                           "DWLS" = "diag"
+                    ))
+  }
+  
   # Obtain sample stats:
   if (missing(sampleStats)){
     sampleStats <- samplestats(data = data, 
@@ -69,12 +80,7 @@ lvm <- function(
                                rawts = rawts,
                                fimldata = estimator == "FIML",
                                storedata = storedata,
-                               weightsmatrix = ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
-                                                      switch(estimator,
-                                                        "WLS" = "full",
-                                                        "ULS" = "identity",
-                                                        "DWLS" = "diag"
-                                                      )))    
+                               weightsmatrix = WLS.V)
   }
 
 
