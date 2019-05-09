@@ -1,6 +1,81 @@
+### Dynlib ###
 useDynLib(psychonetrics, .registration = TRUE)
+
+### Exports ###
+# exportPattern("^[[:alpha:]]+")
+#  varcov models:
+export(varcov)
+export(ggm)
+export(precision)
+export(cholesky)
+
+# lvm models:
+export(lvm)
+export(lnm)
+export(rnm)
+export(lrnm)
+export(bifactor)
+export(latentgrowth)
+
+# VAR models:
+export(var1)
+export(gvar)
+
+# Panel var models:
+export(dlvm1)
+export(panelgvar)
+
+# extra:
+export(joingroups)
+export(frombootnet)
+
+# Model expansions:
+export(addMIs)
+export(addSEs)
+export(addfit)
+export(identify)
+export(updateModel)
+
+# Run:
+export(runmodel)
+
+# Search:
+export(stepup)
+export(prune)
+
+# Model modification:
+export(fixpar)
+export(freepar)
+export(groupequal)
+export(groupfree)
+export(intersectionmodel)
+export(unionmodel)
+export(setequal)
+
+# Convenience functions:
+export(changedata)
+export(generate)
+export(setestimator)
+export(setoptimizer)
+export(usecpp)
+export(MIs)
+export(bootstrap)
+export(bootstrap_SEs)
+export(fit)
+export(getmatrix)
+export(compare)
+export(parameters)
+export(replicator)
+
+# export Classes
+exportClasses("psychonetrics_samplestats","psychonetrics_log","psychonetrics" )
+
+# export Methods
+exportMethods("show", "resid"  )
+
+
+### Imports ###
 importFrom(lavaan, lavCor, lavInspect)
-exportPattern("^[[:alpha:]]+")
 import(dplyr)
 importFrom(abind, abind)
 importFrom(matrixcalc,duplication.matrix,elimination.matrix,commutation.matrix)

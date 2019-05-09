@@ -141,11 +141,19 @@ samplestats_norawts <- function(
     # Check groups:
     if (missing(groups) || is.null(groups)){
       if (is.array(covs) && length(dim(covs)) > 2){
-        groups <- groupNames <- paste0("group_",seq_len(dim(covs)[[3]]))
+        if (!is.null(dimnames(covs)[[3]])){
+          groups <- groupNames <- paste0("group_",seq_len(dim(covs)[[3]]))  
+        } else {
+          groups <- groupNames <- dimnames(covs)[[3]]
+        }
       } else if (is.list(covs)){
-        groups <- groupNames <- paste0("group_",seq_len(length(covs)))
+        if (!is.null(names(covs))){
+          groups <- groupNames <- names(covs)
+        } else {
+          groups <- groupNames <- paste0("group_",seq_len(length(covs)))  
+        }
       } else {
-        groups <- groupNames <- "singlegroup" 
+        groups <- groupNames <- "full" 
       }
     } else {
       groupNames <- groups
