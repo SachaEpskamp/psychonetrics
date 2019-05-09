@@ -13,7 +13,7 @@
 The DESCRIPTION file:
 \packageDESCRIPTION{psychonetrics}
 \packageIndices{psychonetrics}
-~~ An overview of how to use the package, including the most important functions ~~
+This package can be used to perform Structural Equation Modeling and confirmatory network modeling. Current implemented families of models are (1) the variance--covariance matrix (\code{\link{varcov}}), (2) the latent variable model (\code{\link{lvm}}), (3) the lag-1 vector autoregression model (\code{\link{var1}}), and (4) the dynamical lag-1 latent variable model for panel data (\code{\link{dlvm1}}).
 }
 \author{
 \packageAuthor{psychonetrics}
@@ -21,15 +21,5 @@ The DESCRIPTION file:
 Maintainer: \packageMaintainer{psychonetrics}
 }
 \references{
-~~ Literature or other references for background information ~~
-}
-~~ Optionally other standard keywords, one per line, from file KEYWORDS in the R ~~
-~~ documentation directory ~~
-\keyword{ package }
-\seealso{
-~~ Optional links to other man pages, e.g. ~~
-~~ \code{\link[<pkg>:<pkg>-package]{<pkg>}} ~~
-}
-\examples{
-~~ simple examples of the most important functions ~~
+More information: psychonetrics.org
 }

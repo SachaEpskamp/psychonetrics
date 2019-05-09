@@ -1,3 +1,3 @@
-sem <- function(...){
-  lvm(...,latent = "cov", residual = "cov")
-}
+# sem <- function(...){
+#   lvm(...,latent = "cov", residual = "cov")
+# }
