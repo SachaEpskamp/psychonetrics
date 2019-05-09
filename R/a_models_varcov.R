@@ -4,7 +4,7 @@ varcov <- function(
   type = c("cov","chol","prec","ggm"), # Maybe add cor at some point, but not now
   sigma = "full", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
   kappa = "full", # Precision
-  rho = "full", # Correlations
+  # rho = "full", # Correlations
   omega = "full", # Partial correlations
   lowertri = "full", # Cholesky
   delta = "full", # Used for both ggm and pcor

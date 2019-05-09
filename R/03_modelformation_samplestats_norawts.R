@@ -40,8 +40,8 @@ samplestats_norawts <- function(
     
     # If group variable is missing, add (dummy):
     if (missing(groups)|| is.null(groups)){
-      groups <- "singlegroup"
-      data[[groups]] <- "singlegroup"
+      groups <- "fullsample"
+      data[[groups]] <- "fullsample"
     }
     # Extract group names:
     groupNames <- unique(data[[groups]])
@@ -153,7 +153,7 @@ samplestats_norawts <- function(
           groups <- groupNames <- paste0("group_",seq_len(length(covs)))  
         }
       } else {
-        groups <- groupNames <- "full" 
+        groups <- groupNames <- "fullsample" 
       }
     } else {
       groupNames <- groups

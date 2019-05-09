@@ -6,7 +6,8 @@ matrixsetup_beta <- function(
   equal = FALSE,
   sampletable,
   name = "beta",
-  start
+  start,
+  onlyStartSign = FALSE
 ){
   # Fix beta:
   beta <- fixMatrix(beta,nGroup = nGroup,nrows = nNode,ncols = nNode,equal = equal,diag0=TRUE)
@@ -18,6 +19,9 @@ matrixsetup_beta <- function(
     betaStart <- beta
     for (g in seq_along(start)){
       betaStart[,,g] <- (beta[,,g]!=0) * start[[g]]
+      if (onlyStartSign){
+        betaStart[,,g] <- ifelse(betaStart[,,g]!=0,0.001 * sign(betaStart[,,g]), 0)
+      }
     }
   }
   

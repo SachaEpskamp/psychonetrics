@@ -8,6 +8,6 @@ Description: Structural Equation Modeling and Confirmatory Network Analysis
 License: GPL-2
 LinkingTo: Rcpp, RcppArmadillo
 Imports: Rcpp (>= 0.11.3), methods, pbapply, qgraph, numDeriv, dplyr, abind, matrixcalc, Matrix, lavaan, corpcor, ucminf, glasso, mgcv, optimx, mvtnorm, VCA, pbapply, parallel, magrittr
-Suggests: psych
+Suggests: psych, lavaan, graphicalVAR, qgraph
 Bytecompile: true
 StagedInstall: false

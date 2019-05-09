@@ -1,6 +1,7 @@
 # Implied model for precision. Requires appropriate model matrices:
 implied_var1 <- function(model,all = FALSE){
   x <- formModelMatrices(model)
+
   x <- impliedcovstructures(x,"zeta",type = model@types$zeta, all = all)
   
   # For each group:

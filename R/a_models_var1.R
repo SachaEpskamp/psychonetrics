@@ -30,7 +30,7 @@ var1 <- function(
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   # fitfunctions, # Leave empty
   estimator = "ML",
-  optimizer = "default",
+  optimizer = "default", # ucminf
   storedata = FALSE,
   sampleStats
 ){
@@ -148,7 +148,8 @@ var1 <- function(
                                        nNode = nNode, 
                                        nGroup = nGroup, 
                                        labels = sampleStats@variables$label[nNode + (1:nNode)],
-                                       equal = "beta" %in% equal, sampletable = sampleStats, start = betaEst)
+                                       equal = "beta" %in% equal, sampletable = sampleStats, start = betaEst,
+                                       onlyStartSign = FALSE)
   
   
   # A prior guess for the contemporaneous covariances is (Schur complement):
@@ -178,7 +179,8 @@ var1 <- function(
                                                 nNode = nNode, 
                                                 nGroup = nGroup, 
                                                 labels = sampleStats@variables$label[-(1:nNode)],
-                                                equal = "omega_zeta" %in% equal, sampletable = sampleStats)
+                                                equal = "omega_zeta" %in% equal, sampletable = sampleStats,
+                                                onlyStartSign = FALSE)
     
     # Add delta matrix:
     modMatrices$delta_zeta <- matrixsetup_delta(delta_zeta, name = "delta_zeta",
@@ -186,7 +188,8 @@ var1 <- function(
                                                 nNode = nNode, 
                                                 nGroup = nGroup, 
                                                 labels = sampleStats@variables$label[-(1:nNode)],
-                                                equal = "delta_zeta" %in% equal, sampletable = sampleStats) 
+                                                equal = "delta_zeta" %in% equal, sampletable = sampleStats,
+                                                onlyStartSign = FALSE) 
   } else if (contemporaneous == "prec"){
     
     # Add omega matrix:
