@@ -6,7 +6,8 @@ matrixsetup_delta <- function(
   labels,
   equal = FALSE,
   sampletable,
-  name = "delta"
+  name = "delta",
+  onlyStartSign = FALSE
 ){
   # Fix lower tri:
   delta <- fixAdj(delta,nGroup,nNode,equal,diagonal=TRUE)
@@ -30,6 +31,10 @@ matrixsetup_delta <- function(
     
     # Network starting values:
     deltaStart[,,g] <- diag(1/sqrt(diag(wi)))
+    
+    if (onlyStartSign){
+      deltaStart[,,g] <- ifelse(deltaStart[,,g]!=0,sign(deltaStart[,,g]), 0)
+    }
   }
   
   # Form the model matrix part:

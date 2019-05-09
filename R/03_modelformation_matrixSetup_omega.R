@@ -7,7 +7,8 @@ matrixsetup_omega <- function(
   equal = FALSE,
   sampletable,
   name = "omega",
-  beta = array(0, c(nNode, nNode,nGroup))
+  beta = array(0, c(nNode, nNode,nGroup)),
+  onlyStartSign = FALSE
 ){
   # Check if sigma is character:
   ischar <- is.character(omega)
@@ -42,6 +43,10 @@ matrixsetup_omega <- function(
       # Network starting values:
       omegaStart[,,g] <- (omegaStart[,,g]!=0) * 0.001
       diag(omegaStart[,,g] ) <- 0
+    }
+    
+    if (onlyStartSign){
+      omegaStart[,,g] <- ifelse(omegaStart[,,g]!=0,0.001 * sign(omegaStart[,,g]), 0)
     }
     
     # If omega was a character, remove offdiagonal for endogenous variables:

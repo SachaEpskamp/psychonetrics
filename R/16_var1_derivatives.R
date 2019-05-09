@@ -126,6 +126,15 @@ d_phi_theta_var1_group <- function(beta,P,zeta,...){
   # Fill sigma1 to sigma_zeta part:
   Jac[sigma1Inds,sigmazetaInds] <- d_sigma1_sigma_zeta_var1(Js=Js,...)
   
+  # Augment:
+  # if (zeta == "chol"){
+  #   Jac[sigma1Inds,sigmazetaInds] <- Jac[sigma1Inds,sigmazetaInds]  %*% d_sigma_zeta_cholesky_var1(...)
+  # } else if (zeta == "prec"){
+  #   Jac[sigma1Inds,sigmazetaInds] <- Jac[sigma1Inds,sigmazetaInds]  %*% d_sigma_zeta_kappa_var1(...)
+  # } else if (zeta == "ggm"){
+  #   Jac[sigma1Inds,sigmazetaInds] <- Jac[sigma1Inds,sigmazetaInds]  %*% d_sigma_zeta_ggm_var1(...)
+  # }
+  
   # Permute the matrix:
   Jac <- P %*% Jac
 
