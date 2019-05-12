@@ -20,6 +20,7 @@ varcov <- function(
   estimator = "ML",
   optimizer = "default",
   storedata = FALSE,
+  WLS.V,
   sampleStats # Leave to missing
 ){
   rawts = FALSE
@@ -32,6 +33,16 @@ varcov <- function(
 
   # Obtain sample stats:
   if (missing(sampleStats)){
+    # WLS weights:
+    if (missing(WLS.V)){
+      WLS.V <- ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
+                      switch(estimator,
+                             "WLS" = "full",
+                             "ULS" = "identity",
+                             "DWLS" = "diag"
+                      ))
+    }
+    
     sampleStats <- samplestats(data = data, 
                                vars = vars, 
                                groups = groups,
@@ -42,12 +53,7 @@ varcov <- function(
                                rawts = rawts,
                                fimldata = estimator == "FIML",
                                storedata = storedata,
-                               weightsmatrix = ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
-                                                      switch(estimator,
-                                                        "WLS" = "full",
-                                                        "ULS" = "identity",
-                                                        "DWLS" = "diag"
-                                                      )))
+                               weightsmatrix = WLS.V)
   }
 
 
