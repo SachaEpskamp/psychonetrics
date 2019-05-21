@@ -80,7 +80,7 @@ The estimator to be used. Currently implemented are \code{"ML"} for maximum like
 The optimizer to be used. Usually either \code{"nlminb"} (with box constrains) or \code{"ucminf"} (ignoring box constrains), but any optimizer supported by \code{optimr} can be used.
 }
   \item{storedata}{
-Logical, should the raw data be stored? Needed for bootstrapping (see \code{\link{bootstrap}}).
+Logical, should the raw data be stored? Needed for bootstrapping (see \code{bootstrap}).
 }
   \item{sampleStats}{
 An optional sample statistics object. Mostly used internally. 
@@ -93,7 +93,7 @@ Arguments sent to \code{var1}
 This will be updated in a later version.
 }
 \value{
-An object of the class psychonetrics (\link{psychonetrics-class})
+An object of the class psychonetrics
 }
 \references{
 Epskamp, S., Waldorp, L. J., Mõttus, R., & Borsboom, D. (2018). The Gaussian graphical model in cross-sectional and time-series data. Multivariate Behavioral Research, 53(4), 453-480.
