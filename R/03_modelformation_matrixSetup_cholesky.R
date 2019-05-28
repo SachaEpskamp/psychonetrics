@@ -36,7 +36,7 @@ matrixsetup_lowertri <- function(
       lowertriStart[,,g] <-  1*(lowertriStart[,,g]!=0) * 0.05
     }
     
-    if (ischar){
+    if (ischar && nNode > 1){
       
       
       # Which are endogenous?

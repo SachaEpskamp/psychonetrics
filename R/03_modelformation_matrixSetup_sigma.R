@@ -25,7 +25,7 @@ matrixsetup_sigma <- function(
     sigmaStart[,,g] <-  1*(sigmaStart[,,g]!=0) * covest  
     
     # If Sigma was a character, remove offdiagonal for endogenous variables:
-    if (ischar){
+    if (ischar && nNode > 1){
       # Which are endogenous?
       endo <- which(rowSums(beta[,,g])>0)
       
