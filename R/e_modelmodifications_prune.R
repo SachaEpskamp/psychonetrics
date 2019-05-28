@@ -14,6 +14,7 @@ prune <- function(
   nCores = 1,
   reps = 1000,
   startreduce = 0.75,
+  limit = Inf,
   ...){
   adjust <- match.arg(adjust)
   # If not computed, nothing to do:
@@ -163,7 +164,9 @@ prune <- function(
   # }
   # Test for significance:
   # nonsig <- x@parameters$p > alpha_adjust & (seq_len(nrow(x@parameters)) %in% whichTest)
+  pValues <- p.adjust(x@parameters[[pcol]],method = adjust) 
   nonsig <- p.adjust(x@parameters[[pcol]],method = adjust) > alpha & (seq_len(nrow(x@parameters)) %in% whichTest)
+  
   
   # If any non-sig, adjust:
   if (all(is.na(nonsig)) || !any(nonsig[!is.na(nonsig)])){
@@ -173,6 +176,9 @@ prune <- function(
     }    
     return(x)
   } 
+  
+  # Limit:
+  nonsig[nonsig & pValues < min(head(sort(pValues[nonsig],decreasing = TRUE), limit))] <- FALSE
   
   
   curPars <- max(x@parameters$par)
@@ -192,8 +198,8 @@ prune <- function(
   # x@parameters$pmi_equal[nonsig] <- NA
   
   # FIXME: Reduce parameter estimates from remainder of matrix a bit to avoid problems:
-  x@parameters$par[x@parameters$matrix %in% matrices & !x@parameters$fixed & !x@parameters$identified & x@parameters$est != 0] <- 
-    startreduce * x@parameters$par[x@parameters$matrix %in% matrices & !x@parameters$fixed & !x@parameters$identified & x@parameters$est != 0] 
+  x@parameters$est[x@parameters$matrix %in% matrices & !x@parameters$fixed & !x@parameters$identified & x@parameters$est != 0] <- 
+    startreduce * x@parameters$est[x@parameters$matrix %in% matrices & !x@parameters$fixed & !x@parameters$identified & x@parameters$est != 0] 
   
   x@parameters <- clearpars(x@parameters,nonsig)
 
