@@ -35,7 +35,7 @@ matrixsetup_kappa <- function(
     kappaStart[,,g] <- (kappaStart[,,g] !=0) * as.matrix(wi)
     
     # If kappa was a character, remove offdiagonal for endogenous variables:
-    if (ischar){
+    if (ischar && nNode > 1){
       # Which are endogenous?
       endo <- which(rowSums(beta[,,g])>0)
       
