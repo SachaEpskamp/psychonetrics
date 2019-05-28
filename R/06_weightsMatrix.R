@@ -19,4 +19,5 @@ LS_weightsmat <- function(dat, type = c("full","diagonal")){
 
   
   WmatInv <- as(solve_symmetric(as(Wmat,"Matrix")),"Matrix")
+  WmatInv
 }
