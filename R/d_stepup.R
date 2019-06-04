@@ -10,9 +10,11 @@ stepup <- function(
   greedy = FALSE, # If TRUE, will start by adding all significant effects followed by pruning
   verbose = TRUE,
   checkinformation = TRUE,
-  maxtry = 1,
+  singularinformation = c("skip","continue","stop"), # skip = go to next parameter, continue = continue search, stop = stop and return current and previous model
+  # maxtry = 0,
   ... # Fit arguments
 ){
+  singularinformation <- match.arg(singularinformation)
   # If not run, run model:
   if (!x@computed){
     x <- x %>% runmodel(..., verbose = verbose)
@@ -121,19 +123,29 @@ stepup <- function(
       if (!greedy){
         x@parameters[[mi]] <- ifelse(is.na(x@parameters[[mi]]),0,x@parameters[[mi]])
         best <- which(x@parameters$matrix %in% matrices & x@parameters[[mi]] == max(x@parameters[[mi]][x@parameters$matrix %in% matrices & x@parameters$fixed & !x@parameters$identified]))[1]
-        x@parameters$par[best] <- max(x@parameters$par) + 1
-        x@parameters$fixed[best] <- FALSE
         
-        # # Perturb estimate a bit:
-        # x@parameters$est[best] <- 0.01
-        # Set estimate to EPC:
-        x@parameters$est[best] <- x@parameters$est[best] + sign(x@parameters$epc[best]) * 0.01
         
-        # Update the model:
-        x@extramatrices$M <- Mmatrix(x@parameters) # FIXME: Make nice function for this
-        
+        x <- freepar(x, matrix = x@parameters$matrix[best],row = x@parameters$row[best],
+                     col = x@parameters$col[best], group = x@parameters$group[best],
+                     verbose = FALSE, log = FALSE)
+        # x@parameters$par[best] <- max(x@parameters$par) + 1
+        # x@parameters$fixed[best] <- FALSE
+        # 
+        # # # Perturb estimate a bit:
+        # # x@parameters$est[best] <- 0.01
+        # # Set estimate to EPC:
+        # x@parameters$est[best] <- x@parameters$est[best] + sign(x@parameters$epc[best]) * 0.01
+        # 
+        # # Update the model:
+        # x@extramatrices$M <- Mmatrix(x@parameters) # FIXME: Make nice function for this
+        # 
         if (verbose){
-          message(paste0("Adding parameter ",x@parameters$matrix[best],"[",x@parameters$var1[best],", ",x@parameters$var2[best],"]"))
+          if (nrow(x@sample@groups) == 1){
+            message(paste0("Adding parameter ",x@parameters$matrix[best],"[",x@parameters$var1[best],", ",x@parameters$var2[best],"]"))            
+          } else {
+            message(paste0("Adding parameter ",x@parameters$matrix[best],"[",x@parameters$var1[best],", ",x@parameters$var2[best],", ",x@parameters$group[best],"]"))
+          }
+
         }
         
         # Run:
@@ -144,22 +156,42 @@ stepup <- function(
           
           # Check information:
           if (checkinformation){
-            if (any(eigen(x@information)$values < 0)){
-              if (curtry < maxtry){
-                if (verbose){
-                  message(paste("Model may not be identified, adjusting start values and trying again."))
+            if (any(eigen(newx@information)$values < 0)){
+              # if (curtry < maxtry){
+              #   if (verbose){
+              #     message(paste("Model may not be identified, adjusting start values and trying again."))
+              #   }
+              #   x@parameters$est[best] <- 0.1 * x@parameters$est[best]
+              #   curtry <- curtry + 1
+              # } else {
+                # if (verbose){
+                #   message(paste("Model may not be identified, continuing with previous model."))
+                # }
+                # x <- oldMod
+                # x@parameters$identified[best] <- TRUE
+                # x@parameters[[mi]][best] <- 0
+                # break
+              # }
+                
+                if (singularinformation == "skip"){
+                  if (verbose){
+                    message(paste("Model may not be identified, continuing with previous model."))
+                  }
+                  x <- oldMod
+                  x@parameters$identified[best] <- TRUE
+                  x@parameters[[mi]][best] <- 0
+                  break
+                } else if (singularinformation == "stop"){
+                  if (verbose){
+                    message(paste("Model may not be identified, returning list with last two models."))
+                  }
+                  return(list(
+                    final = newx,
+                    previous = x
+                  ))
                 }
-                x@parameters$est[best] <- 0.1 * x@parameters$est[best]
-                curtry <- curtry + 1
-              } else {
-                if (verbose){
-                  message(paste("Model may not be identified, continuing with previous model."))
-                }
-                x <- oldMod
-                x@parameters$identified[best] <- TRUE
-                x@parameters[[mi]][best] <- 0
-                break
-              }
+              
+
  
             } else {
               x <- newx
