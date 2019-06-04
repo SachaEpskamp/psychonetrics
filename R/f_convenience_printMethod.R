@@ -38,7 +38,8 @@ definition = function(object){
     "lvm" = "Latent variable model (LVM)",
     "var1" = "Lag-1 vector-autoregression (VAR1)",
     "panelvar1" = "Lag-1 panel vector auto-regression (panelvar1)",
-    "dlvm1" = "Lag-1 dynamic latent variable model (dlvm1)"
+    "dlvm1" = "Lag-1 dynamic latent variable model for panel data (dlvm1)",
+    "tsdlvm1" = "Lag-1 dynamic latent variable model for time-series data (tsdlvm1)"
   )
   
   submod <- switch(

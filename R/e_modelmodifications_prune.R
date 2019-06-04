@@ -142,6 +142,20 @@ prune <- function(
         matrices <- c(matrices,"omega_epsilon_between")
       }
       
+    } else if (x@model == "tsdlvm1"){
+      matrices <- c("beta")
+      if (x@types$zeta == "prec"){
+        matrices <- c(matrices,"kappa_zeta")
+      } else if (x@types$zeta == "ggm"){
+        matrices <- c(matrices,"omega_zeta")
+      }
+      
+      if (x@types$epsilon == "prec"){
+        matrices <- c(matrices,"kappa_epsilon")
+      } else if (x@types$epsilon == "ggm"){
+        matrices <- c(matrices,"omega_epsilon")
+      }
+      
     } else stop("No default argument for 'matrices' for current model.")
   }
   

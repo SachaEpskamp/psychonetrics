@@ -64,7 +64,7 @@ stepup <- function(
         matrices <- c(matrices,"omega_zeta")
       }
       
-    }else if (x@model == "panelvar1"){
+    } else if (x@model == "panelvar1"){
       matrices <- c("beta")
       if (x@types$contemporaneous == "prec"){
         matrices <- c(matrices,"kappa_zeta")
@@ -102,6 +102,20 @@ stepup <- function(
         matrices <- c(matrices,"kappa_epsilon_between")
       } else if (x@types$between_residual == "ggm"){
         matrices <- c(matrices,"omega_epsilon_between")
+      }
+      
+    } else if (x@model == "tsdlvm1"){
+      matrices <- c("beta")
+      if (x@types$zeta == "prec"){
+        matrices <- c(matrices,"kappa_zeta")
+      } else if (x@types$zeta == "ggm"){
+        matrices <- c(matrices,"omega_zeta")
+      }
+      
+      if (x@types$epsilon == "prec"){
+        matrices <- c(matrices,"kappa_epsilon")
+      } else if (x@types$epsilon == "ggm"){
+        matrices <- c(matrices,"omega_epsilon")
       }
       
     }  else stop("No default argument for 'matrices' for current model.")
