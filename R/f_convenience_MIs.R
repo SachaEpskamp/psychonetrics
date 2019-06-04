@@ -1,4 +1,4 @@
-MIs <- function(x, all = FALSE, matrices, type = c("normal","equal","free"), top = 10,verbose = TRUE){
+MIs <- function(x, all = FALSE, matrices, type = c("normal","equal","free"), top = 10,verbose = TRUE, nonZero = FALSE){
   # Check if equal and free are needed:
   if (any(type != "normal")){
     if (nrow(x@sample@groups) == 1){
@@ -8,13 +8,13 @@ MIs <- function(x, all = FALSE, matrices, type = c("normal","equal","free"), top
   
   # Print the tables:
   for (t in seq_along(type)){
-    MIs_inner(x, all=all, matrices = matrices, type = type[t], top = top, verbose = verbose)
+    MIs_inner(x, all=all, matrices = matrices, type = type[t], top = top, verbose = verbose, nonZero = nonZero)
   }
   
 }
 
 # psychonetrics parameter extraction:
-MIs_inner <- function(x,all = FALSE, matrices, type = c("normal","equal","free"), top = 10,verbose = TRUE){
+MIs_inner <- function(x,all = FALSE, matrices, type = c("normal","equal","free"), top = 10,verbose = TRUE, nonZero = FALSE){
   # sortby <- match.arg(sortby)
   if (missing(matrices)) matrices <- x@matrices$name
   
@@ -50,6 +50,11 @@ MIs_inner <- function(x,all = FALSE, matrices, type = c("normal","equal","free")
   #   select_("var1","op","var2","mi","pmi","mi_equal","pmi_equal","matrix","row","col","group")
   parTable <- parTable %>%  filter_(~matrix %in% matrices) %>% #filter_(~mi!=0) %>% 
     select_("var1","op","var2","est",micol,pcol,epccol,"matrix","row","col","group","group_id")
+  
+  # nonZero:
+  if (nonZero){
+    parTable <- parTable %>% filter(est!=0)
+  }
   
   # If nothing, return:
   if (nrow(parTable)==0){

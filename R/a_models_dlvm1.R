@@ -230,7 +230,7 @@ dlvm1 <- function(
   firstSigma1 <- lapply(sampleStats@covs,function(x)spectralshift(x[secondVars,firstVars]))
   
   # Setup lambda:
-  modMatrices$lambda <- matrixsetup_lambda(lambda, expcov=firstSigma0, nGroup = nGroup, observednames = sampleStats@variables$label, latentnames = latents,
+  modMatrices$lambda <- matrixsetup_lambda(lambda, expcov=firstSigma0, nGroup = nGroup, observednames = varnames, latentnames = latents,
                                            sampletable = sampleStats, name = "lambda")
   
   # If beta = 0, these sort of estimate the within and between subject covs:
@@ -287,7 +287,7 @@ dlvm1 <- function(
                                        nNode = nVar,
                                        expCov = lapply(1:nGroup,function(x)diag(0.5,nVar)),
                                        nGroup = nGroup,
-                                       labels = sampleStats@variables$label 
+                                       labels = varnames
                    ))
   
   # Between-case effects:
@@ -332,7 +332,7 @@ dlvm1 <- function(
                                        nNode = nVar,
                                        expCov = lapply(1:nGroup,function(x)diag(0.5,nVar)),
                                        nGroup = nGroup,
-                                       labels = sampleStats@variables$label 
+                                       labels = varnames
                    ))
   
   # Generate the full parameter table:
