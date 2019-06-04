@@ -17,7 +17,11 @@ identify <- function(x){
   } else if (x@model == "dlvm1"){
     x <- identify_dlvm1(x)
     return(x)
+  } else if (x@model == "tsdlvm1"){
+    x <- identify_tsdlvm1(x)
+    return(x)
   }
+  
   
   stop("Model not supported...")
 }
