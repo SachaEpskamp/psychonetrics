@@ -140,7 +140,7 @@ stepup <- function(
         
         
         x <- freepar(x, matrix = x@parameters$matrix[best],row = x@parameters$row[best],
-                     col = x@parameters$col[best], group = x@parameters$group[best],
+                     col = x@parameters$col[best], group = x@parameters$group_id[best],
                      verbose = FALSE, log = FALSE)
         # x@parameters$par[best] <- max(x@parameters$par) + 1
         # x@parameters$fixed[best] <- FALSE
@@ -167,7 +167,6 @@ stepup <- function(
         repeat{
           newx <- x %>% runmodel(...,log=FALSE)
           
-          
           # Check information:
           if (checkinformation){
             if (any(eigen(newx@information)$values < 0)){
@@ -186,7 +185,7 @@ stepup <- function(
                 # x@parameters[[mi]][best] <- 0
                 # break
               # }
-                
+               
                 if (singularinformation == "skip"){
                   if (verbose){
                     message(paste("Model may not be identified, continuing with previous model."))
