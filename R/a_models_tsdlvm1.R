@@ -53,7 +53,8 @@ tsdlvm1 <- function(
   estimator = "ML",
   optimizer = "default", # ucminf
   storedata = FALSE,
-  sampleStats
+  sampleStats,
+  centerWithin = FALSE
 ){
   contemporaneous <- match.arg(contemporaneous)
   residual <- match.arg(residual)
@@ -75,7 +76,7 @@ tsdlvm1 <- function(
   }
   
   # If data is not missing, make augmented data:
-  data <- tsData(data, vars = vars2, beepvar = beepvar, dayvar = dayvar, idvar = idvar, groupvar = groups)
+  data <- tsData(data, vars = vars2, beepvar = beepvar, dayvar = dayvar, idvar = idvar, groupvar = groups, centerWithin = centerWithin)
   
   # Extract var names:
   if (is.null(groups)){
@@ -192,7 +193,7 @@ tsdlvm1 <- function(
   
   # Setup lambda:
   modMatrices$lambda <- matrixsetup_lambda(lambda, expcov=S0est, nGroup = nGroup, observednames = varnames, latentnames = latents,
-                                           sampletable = sampleStats, name = "lambda")
+                                           sampletable = sampleStats, name = "lambda", equal = "lambda" %in% equal)
   
 
   # Quick and dirty sigma_zeta estimate:

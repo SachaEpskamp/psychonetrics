@@ -71,7 +71,7 @@ d_sigma0_beta_dlvm1 <- function(BetaStar,I_eta,allSigmas_within,C_eta_eta,...){
   # res2 <- BetaStar %*% (allSigmas_within[[2]] %x% I_eta) +
   #   BetaStar %*% (I_eta %x% allSigmas_within[[2]]) %*% C_eta_eta
   # 
-  
+
   res <- ((I_eta%x%I_eta) + C_eta_eta) %*% BetaStar %*% (allSigmas_within[[2]] %x% I_eta) 
 
     
@@ -308,7 +308,7 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
     aug_between_residual <- Diagonal(nVar*(nVar+1)/2)
   }
 
-
+ 
   # message("Starting...")
   # fill intercept part:
   Jac[meanInds,tau_inds] <- Diagonal(nVar)
@@ -384,7 +384,7 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
   
   # Make sparse if needed:
   Jac <- as(Jac, "Matrix")
-  
+
   # Return jacobian:
   return(Jac)
 }

@@ -13,8 +13,9 @@ tsData <- function(data,
                      idvar = NULL,
                    groupvar = NULL,
                    lags = 1,
-                     # scale = TRUE,
-                     centerWithin # False if idvar is missing, true otherwise
+                     scale = FALSE,
+                   center = FALSE,
+                     centerWithin = FALSE # False if idvar is missing, true otherwise
                    ){
   # If not missing groupvar, just do this per group:
 
@@ -36,9 +37,9 @@ tsData <- function(data,
   data <- as.data.frame(data)
   
   # defaults:
-  scale <- FALSE
-  centerWithin <- TRUE
-  
+  # scale <- FALSE
+  # centerWithin <- TRUE
+  # 
   # Add subject:
   if (is.null(idvar)){
     idvar <- "ID"
@@ -68,7 +69,7 @@ tsData <- function(data,
   data <- data[,c(vars,idvar,dayvar,beepvar)]
   
   # Center and scale data:
-  data[,vars] <- scale(data[,vars], TRUE, scale)
+  data[,vars] <- scale(data[,vars], center, scale)
   
   # Obtain person specific means:
   MeansData <- data %>% dplyr::group_by_(idvar) %>% dplyr::summarise_at(funs(mean(.,na.rm=TRUE)),.vars = vars)
