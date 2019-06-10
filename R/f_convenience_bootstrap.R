@@ -27,7 +27,7 @@ bootstrap <- function(x, replacement = TRUE, proportion = 1, verbose = TRUE, sto
     # means, # alternative means (matrix nvar * ngroup)
     # nobs, # Alternative if data is missing (length ngroup)
     missing =  attr(data, "missing"),
-    fimldata = FALSE,
+    fimldata = x@estimator == "FIML",
     verbose = verbose,
     storedata = storedata
   )

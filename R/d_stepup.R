@@ -138,11 +138,33 @@ stepup <- function(
         x@parameters[[mi]] <- ifelse(is.na(x@parameters[[mi]]),0,x@parameters[[mi]])
         best <- which(x@parameters$matrix %in% matrices & x@parameters[[mi]] == max(x@parameters[[mi]][x@parameters$matrix %in% matrices & x@parameters$fixed & !x@parameters$identified]))[1]
         
+        # Check if equal constrained:
+        if (x@parameters$matrix[best] %in% x@equal){
+          x <- freepar(x, matrix = x@parameters$matrix[best],row = x@parameters$row[best],
+                       col = x@parameters$col[best], 
+                       verbose = FALSE, log = FALSE)
+          x <- groupequal(x, matrix = x@parameters$matrix[best],row = x@parameters$row[best],
+                          col = x@parameters$col[best],verbose = FALSE, log = FALSE)
+          
+  
+              message(paste0("Adding parameter ",x@parameters$matrix[best],"[",x@parameters$var1[best],", ",x@parameters$var2[best],"]"))            
+      
+        } else {
+          x <- freepar(x, matrix = x@parameters$matrix[best],row = x@parameters$row[best],
+                       col = x@parameters$col[best], group = x@parameters$group_id[best],
+                       verbose = FALSE, log = FALSE)
+          
+          if (verbose){
+            if (nrow(x@sample@groups) == 1){
+              message(paste0("Adding parameter ",x@parameters$matrix[best],"[",x@parameters$var1[best],", ",x@parameters$var2[best],"]"))            
+            } else {
+              message(paste0("Adding parameter ",x@parameters$matrix[best],"[",x@parameters$var1[best],", ",x@parameters$var2[best],", ",x@parameters$group[best],"]"))
+            }
+            
+          }
+        }
         
-        x <- freepar(x, matrix = x@parameters$matrix[best],row = x@parameters$row[best],
-                     col = x@parameters$col[best], group = x@parameters$group_id[best],
-                     verbose = FALSE, log = FALSE)
-        # x@parameters$par[best] <- max(x@parameters$par) + 1
+          # x@parameters$par[best] <- max(x@parameters$par) + 1
         # x@parameters$fixed[best] <- FALSE
         # 
         # # # Perturb estimate a bit:
@@ -153,14 +175,7 @@ stepup <- function(
         # # Update the model:
         # x@extramatrices$M <- Mmatrix(x@parameters) # FIXME: Make nice function for this
         # 
-        if (verbose){
-          if (nrow(x@sample@groups) == 1){
-            message(paste0("Adding parameter ",x@parameters$matrix[best],"[",x@parameters$var1[best],", ",x@parameters$var2[best],"]"))            
-          } else {
-            message(paste0("Adding parameter ",x@parameters$matrix[best],"[",x@parameters$var1[best],", ",x@parameters$var2[best],", ",x@parameters$group[best],"]"))
-          }
-
-        }
+       
         
         # Run:
         curtry <- 0

@@ -33,7 +33,7 @@ d_sigma0_sigma_zeta_tsdlvm1 <- function(lamWkronlamW, BetaStar, D_eta, ...){
   BetaStar %*% D_eta
 }
 
-d_sigma0_beta_dlvm1 <- function(BetaStar,I_eta,Sigma_eta_1,C_eta_eta,...){
+d_sigma0_beta_tsdlvm1 <- function(BetaStar,I_eta,Sigma_eta_1,C_eta_eta,...){
   
   res <- ((I_eta%x%I_eta) + C_eta_eta) %*% BetaStar %*% (Sigma_eta_1 %x% I_eta) 
  
@@ -41,7 +41,7 @@ d_sigma0_beta_dlvm1 <- function(BetaStar,I_eta,Sigma_eta_1,C_eta_eta,...){
 
 }
 
-d_sigma1_beta_dlvm1 <- function(J_sigma_beta,IkronBeta,k,  Sigma_eta_0,I_eta,...){
+d_sigma1_beta_tsdlvm1 <- function(J_sigma_beta,IkronBeta,k,  Sigma_eta_0,I_eta,...){
   
   IkronBeta %*% J_sigma_beta + (t(Sigma_eta_0) %x% I_eta)
   
@@ -162,7 +162,7 @@ d_phi_theta_tsdlvm1_group <- function(zeta,epsilon,...){
   Jac[sigma0Inds,contInds] <- L_y %*% dots$lamWkronlamW %*% J_sigma_zeta 
   
   # Fill s0 to beta part (and store for later use):
-  J_sigma_beta <- d_sigma0_beta_dlvm1(...)
+  J_sigma_beta <- d_sigma0_beta_tsdlvm1(...)
   Jac[sigma0Inds, betaInds] <- L_y  %*% dots$lamWkronlamW %*% J_sigma_beta
   
   # Fill s0 to sigma_epsilon_within:
@@ -181,7 +181,7 @@ d_phi_theta_tsdlvm1_group <- function(zeta,epsilon,...){
   Jac[sigma1Inds, contInds] <- dots$lamWkronlamW %*% J_sigma_zeta
   
   # Fill s1 to beta part (and store for later use):
-  J_sigma_beta <- d_sigma1_beta_dlvm1(J_sigma_beta=J_sigma_beta,...)
+  J_sigma_beta <- d_sigma1_beta_tsdlvm1(J_sigma_beta=J_sigma_beta,...)
   Jac[sigma1Inds,betaInds] <- dots$lamWkronlamW %*% J_sigma_beta
   
   

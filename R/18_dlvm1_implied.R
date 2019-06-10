@@ -92,7 +92,6 @@ implied_dlvm1 <- function(model,all = FALSE){
     }
     
   }
-
   
   x
 }

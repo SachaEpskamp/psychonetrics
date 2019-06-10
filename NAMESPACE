@@ -24,6 +24,7 @@ export(gvar)
 
 # Panel var models:
 export(dlvm1)
+export(tsdlvm1)
 export(panelgvar)
 
 # extra:
