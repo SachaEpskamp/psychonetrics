@@ -17,7 +17,7 @@ generate <- function(x, n = 500){
 generate_gaussian <- function(x,n){
   nGroup <- length(x@sample@groups$id)
   data <- do.call(rbind,lapply(seq_len(nGroup),function(i){
-    data <- rmvnorm(n, as.vector(x@modelmatrices[[i]]$mu),
+    mod_lnm_full@data <- rmvnorm(n, as.vector(x@modelmatrices[[i]]$mu),
                     as.matrix(x@modelmatrices[[i]]$sigma))
     data <- as.data.frame(data)
     names(data) <- x@sample@variables$label

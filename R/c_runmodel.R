@@ -314,7 +314,7 @@ runmodel <- function(
     # if (verbose){
     #   message("Eigenvalues...")
     # }
-    if (any(Re(eigen(x@information)$values) < 0)){
+    if (any(Re(eigen(x@information)$values) < -sqrt(.Machine$double.eps))){
       warning("Information matrix is not positive semi-definite. Model might not be identified.")
     }    
   }
