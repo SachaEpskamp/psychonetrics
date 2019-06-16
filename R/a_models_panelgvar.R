@@ -56,3 +56,8 @@ panelgvar <- function(data,vars,...){
 }
 
 
+# Panel gvar:
+panel_lvgvar <- function(...){
+  dlvm1(..., within_latent = "ggm", between_latent = "ggm")
+}
+

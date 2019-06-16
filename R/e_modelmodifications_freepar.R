@@ -67,6 +67,10 @@ freepar <- function(
   # Fix the parameters:
   if (!missing(start)){
     x@parameters$est[whichFree] <- start  
+  } else {
+    # Set to EPC:
+    x@parameters$est[whichFree][!is.na(x@parameters$epc[whichFree])] <- x@parameters$epc[whichFree][!is.na(x@parameters$epc[whichFree])] 
+    
   }
   # x@parameters$std[whichFree] <- NA
   x@parameters$par[whichFree] <- curMax + seq_len(length(whichFree))
