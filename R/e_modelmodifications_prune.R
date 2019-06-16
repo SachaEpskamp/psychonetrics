@@ -13,7 +13,7 @@ prune <- function(
   identify = TRUE,
   nCores = 1,
   reps = 1000,
-  startreduce = 0.75,
+  startreduce = 1,
   limit = Inf,
   ...){
   adjust <- match.arg(adjust)
@@ -237,7 +237,12 @@ prune <- function(
 
   # Rerun if needed:
   if (runmodel){
-    x <- x %>% runmodel(verbose=verbose,...)
+    suppressWarnings(x <- x %>% runmodel(verbose=verbose,...))
+  }
+  
+  # If not identified, try with emergency start:
+  if (any(eigen(x@information)$values < -sqrt(.Machine$double.eps))){
+    x <- x %>% emergencystart %>% runmodel(verbose=verbose,...)
   }
   
   # Recurse if needed:

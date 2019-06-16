@@ -24,8 +24,13 @@ export(gvar)
 
 # Panel var models:
 export(dlvm1)
-export(tsdlvm1)
+export(panelvar)
 export(panelgvar)
+export(panel_lvgvar)
+
+# Time-series lvvar models:
+export(ts_lvgvar)
+export(tsdlvm1)
 
 # extra:
 export(joingroups)

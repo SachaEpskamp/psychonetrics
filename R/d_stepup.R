@@ -10,11 +10,13 @@ stepup <- function(
   greedy = FALSE, # If TRUE, will start by adding all significant effects followed by pruning
   verbose = TRUE,
   checkinformation = TRUE,
-  singularinformation = c("skip","continue","stop"), # skip = go to next parameter, continue = continue search, stop = stop and return current and previous model
+  singularinformation = c("tryfix","skip","continue","stop"), # tryfix = try to fix by adjusting starting values (once), skip = go to next parameter, continue = continue search, stop = stop and return current and previous model
   # maxtry = 0,
   ... # Fit arguments
 ){
   singularinformation <- match.arg(singularinformation)
+  triedfixing <- FALSE
+  
   # If not run, run model:
   if (!x@computed){
     x <- x %>% runmodel(..., verbose = verbose)
@@ -120,7 +122,7 @@ stepup <- function(
       
     }  else stop("No default argument for 'matrices' for current model.")
   }
-
+  
   # Check if MIs are added:
   if (all(is.na(x@parameters[[mi]]))){
     x <- x %>% addMIs(matrices = matrices)
@@ -146,9 +148,9 @@ stepup <- function(
           x <- groupequal(x, matrix = x@parameters$matrix[best],row = x@parameters$row[best],
                           col = x@parameters$col[best],verbose = FALSE, log = FALSE)
           
-  
-              message(paste0("Adding parameter ",x@parameters$matrix[best],"[",x@parameters$var1[best],", ",x@parameters$var2[best],"]"))            
-      
+          
+          message(paste0("Adding parameter ",x@parameters$matrix[best],"[",x@parameters$var1[best],", ",x@parameters$var2[best],"]"))            
+          
         } else {
           x <- freepar(x, matrix = x@parameters$matrix[best],row = x@parameters$row[best],
                        col = x@parameters$col[best], group = x@parameters$group_id[best],
@@ -164,7 +166,7 @@ stepup <- function(
           }
         }
         
-          # x@parameters$par[best] <- max(x@parameters$par) + 1
+        # x@parameters$par[best] <- max(x@parameters$par) + 1
         # x@parameters$fixed[best] <- FALSE
         # 
         # # # Perturb estimate a bit:
@@ -175,12 +177,12 @@ stepup <- function(
         # # Update the model:
         # x@extramatrices$M <- Mmatrix(x@parameters) # FIXME: Make nice function for this
         # 
-       
+        
         
         # Run:
         curtry <- 0
         repeat{
-          newx <- x %>% runmodel(...,log=FALSE)
+          suppressWarnings(newx <- x %>% runmodel(...,log=FALSE))
           
           # Check information:
           if (checkinformation){
@@ -192,36 +194,49 @@ stepup <- function(
               #   x@parameters$est[best] <- 0.1 * x@parameters$est[best]
               #   curtry <- curtry + 1
               # } else {
-                # if (verbose){
-                #   message(paste("Model may not be identified, continuing with previous model."))
-                # }
-                # x <- oldMod
-                # x@parameters$identified[best] <- TRUE
-                # x@parameters[[mi]][best] <- 0
-                # break
+              # if (verbose){
+              #   message(paste("Model may not be identified, continuing with previous model."))
               # }
-               
-                if (singularinformation == "skip"){
-                  if (verbose){
-                    message(paste("Model may not be identified, continuing with previous model."))
-                  }
-                  x <- oldMod
-                  x@parameters$identified[best] <- TRUE
-                  x@parameters[[mi]][best] <- 0
-                  break
-                } else if (singularinformation == "stop"){
-                  if (verbose){
-                    message(paste("Model may not be identified, returning list with last two models."))
-                  }
-                  return(list(
-                    final = newx,
-                    previous = x
-                  ))
-                }
+              # x <- oldMod
+              # x@parameters$identified[best] <- TRUE
+              # x@parameters[[mi]][best] <- 0
+              # break
+              # }
               
-
- 
+              if (singularinformation == "tryfix"){
+                if (triedfixing){
+                  stop("Could not repair identification issue. Aborting search.")
+                }
+                
+                triedfixing <- TRUE
+                
+                if (verbose){
+                  message("Model may not be identified. Adjusting starting values and trying again")
+                }
+                x <- emergencystart(x)
+                
+              } else if (singularinformation == "skip"){
+                if (verbose){
+                  message(paste("Model may not be identified, continuing with previous model."))
+                }
+                x <- oldMod
+                x@parameters$identified[best] <- TRUE
+                x@parameters[[mi]][best] <- 0
+                break
+              } else if (singularinformation == "stop"){
+                if (verbose){
+                  message(paste("Model may not be identified, returning list with last two models."))
+                }
+                return(list(
+                  final = newx,
+                  previous = x
+                ))
+              }
+              
+              
+              
             } else {
+              triedfixing <- FALSE
               x <- newx
               break
             }
@@ -263,6 +278,8 @@ stepup <- function(
         # x@parameters$est[best] <- 0.001
         # Set estimate to EPC:
         x@parameters$est[best] <- x@parameters$est[best] + sign(x@parameters$epc[best]) * 0.01
+        # Use the emergency start function:
+        x <- emergencystart(x)
         
         # Update the model:
         x@extramatrices$M <- Mmatrix(x@parameters) # FIXME: Make nice function for this
@@ -292,11 +309,11 @@ stepup <- function(
                 break
               }
             } else {
-              x <- newx %>% prune(alpha = alpha, adjust = greedyadjust)
+              x <- newx #%>% prune(alpha = alpha, adjust = greedyadjust)
               break
             }
           } else {
-            x <- newx %>% prune(alpha = alpha, adjust = greedyadjust)
+            x <- newx #%>% prune(alpha = alpha, adjust = greedyadjust)
             break
           }
           
