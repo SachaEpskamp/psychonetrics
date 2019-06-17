@@ -40,7 +40,7 @@ samplestats_norawts <- function(
     
     # If group variable is missing, add (dummy):
     if (missing(groups)|| is.null(groups)){
-      groups <- "fullsample"
+      groups <- "group"
       data[[groups]] <- "fullsample"
     }
     # Extract group names:
@@ -284,6 +284,9 @@ samplestats_norawts <- function(
   
   # add full data:
   if (storedata){
+    # Overwrite group with name:
+    data[[groups]] <- groupNames[ data[[groups]]]
+    
     object@rawdata <- data[,c(vars, groups)]
     attr(object@rawdata, "vars") <- vars
     attr(object@rawdata, "groups") <- groups
