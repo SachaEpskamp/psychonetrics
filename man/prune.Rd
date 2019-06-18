@@ -48,7 +48,7 @@ A numeric value indicating a factor with which the starting values should be red
 The maximum number of parameters to be pruned.
 }
   \item{\dots}{
-Arguments sent to \link{\code{runmodel}}
+Arguments sent to \code{\link{runmodel}}
 }
 }
 \value{
@@ -56,4 +56,7 @@ An object of the class psychonetrics (\link{psychonetrics-class})
 }
 \author{
 Sacha Epskamp
+}
+\seealso{
+\code{\link{stepup}}
 }
