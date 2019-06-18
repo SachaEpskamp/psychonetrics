@@ -1,6 +1,9 @@
 ### Dynlib ###
 useDynLib(psychonetrics, .registration = TRUE)
 
+# Crayon:
+import(crayon)
+
 ### Exports ###
 # exportPattern("^[[:alpha:]]+")
 #  varcov models:
@@ -41,7 +44,6 @@ export(addMIs)
 export(addSEs)
 export(addfit)
 export(identify)
-export(updateModel)
 
 # Run:
 export(runmodel)
@@ -57,7 +59,7 @@ export(groupequal)
 export(groupfree)
 export(intersectionmodel)
 export(unionmodel)
-export(setequal)
+export(parequal)
 
 # Convenience functions:
 export(changedata)
@@ -67,12 +69,12 @@ export(setoptimizer)
 export(usecpp)
 export(MIs)
 export(bootstrap)
-export(bootstrap_SEs)
+# export(bootstrap_SEs)
 export(fit)
 export(getmatrix)
 export(compare)
 export(parameters)
-export(replicator)
+# export(replicator)
 
 # Special matrices:
 export(duplicationMatrix, eliminationMatrix, diagonalizationMatrix)

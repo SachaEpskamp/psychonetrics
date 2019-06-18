@@ -1,7 +1,7 @@
 # Implied model for precision. Requires appropriate model matrices:
 implied_dlvm1 <- function(model,all = FALSE){
   x <- formModelMatrices(model)
-
+  
   # Implied covariance structures:
   x <- impliedcovstructures(x, "zeta_within", type = model@types$within_latent, all = all)
   x <- impliedcovstructures(x, "epsilon_within", type = model@types$within_residual, all = all)
@@ -23,7 +23,7 @@ implied_dlvm1 <- function(model,all = FALSE){
   for (g in 1:nGroup){
     # Beta star:
     BetaStar <- as(solve(I_eta %x% I_eta - (x[[g]]$beta %x% x[[g]]$beta)),"Matrix")
-  
+    
     # Implied mean vector:
     impMu <- x[[g]]$tau + x[[g]]$lambda %*% x[[g]]$mu_eta
     
@@ -36,14 +36,14 @@ implied_dlvm1 <- function(model,all = FALSE){
     
     allSigmas_within <- list()
     allSigmas_within[[1]] <- Matrix(as.vector(BetaStar %*% Vec(x[[g]]$sigma_zeta_within)), nLatent, nLatent)
-
+    
     # Fill implied:
     if (nTime > 1){
       for (t in 2:nTime){
         allSigmas_within[[t]] <- x[[g]]$beta %*% allSigmas_within[[t-1]]
       }      
     }
-
+    
     # Create the block Toeplitz:
     fullSigma_within_latent  <- as(blockToeplitz(lapply(allSigmas_within,as.matrix)), "Matrix")
     
@@ -61,7 +61,7 @@ implied_dlvm1 <- function(model,all = FALSE){
     # Subset and add to the list:
     x[[g]]$mu <- fullMu
     x[[g]]$sigma <- fullSigma[as.vector(design)==1,as.vector(design)==1]
-  
+    
     # FIXME: forcing symmetric, but not sure why this is needed...
     x[[g]]$sigma <- 0.5*(x[[g]]$sigma + t(x[[g]]$sigma))
     
@@ -77,7 +77,7 @@ implied_dlvm1 <- function(model,all = FALSE){
     # Let's round to make sparse if possible:
     # x[[g]]$kappa <- as(round(x[[g]]$kappa,14),"Matrix")
     
-
+    
     # Extra matrices needed in optimization:
     if (!all){
       x[[g]]$BetaStar <- BetaStar
@@ -89,6 +89,9 @@ implied_dlvm1 <- function(model,all = FALSE){
       x[[g]]$sigma_within <- x[[g]]$lambda %*% allSigmas_within[[1]] %*% t(x[[g]]$lambda) + x[[g]]$sigma_epsilon_between
       x[[g]]$sigma_between <- x[[g]]$lambda %*% x[[g]]$sigma_zeta_between %*% t(x[[g]]$lambda) + x[[g]]$sigma_epsilon_between
       x[[g]]$sigma_within_full <- fullSigma_within
+      
+      # Add PDC:
+      x[[g]]$PDC <- computePDC(x[[g]]$beta,x[[g]]$kappa_zeta)
     }
     
   }

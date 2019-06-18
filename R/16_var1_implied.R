@@ -45,6 +45,9 @@ implied_var1 <- function(model,all = FALSE){
       # x[[g]]$E <- Emat(nrow(x[[g]]$beta),x[[g]]$beta)
       x[[g]]$sigmaZetaVec <- sigmaZetaVec
       x[[g]]$BetaStar <- BetaStar
+    } else {
+      # Add PDC:
+      x[[g]]$PDC <- computePDC(x[[g]]$beta,x[[g]]$kappa_zeta)
     }
     
   }

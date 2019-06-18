@@ -8,7 +8,7 @@ getmatrix <- function(x,matrix,group){
   if (missing(matrix)){
     stop("'matrix' argument may not be missing.")
   }
-  if (!is.character(matrix) || length(matrix) > 1 || !matrix %in% x@matrices$name){
+  if (!is.character(matrix) || length(matrix) > 1 || !matrix %in% names(x@modelmatrices[[1]])){
     stop("'matrix' argument is not a character string of a single matrix in the model.")
   }
   
@@ -28,5 +28,10 @@ getmatrix <- function(x,matrix,group){
   # Obtain matrices:
   mats <- lapply(x@modelmatrices[groupID],function(x)as.matrix(x[[matrix]]))
   names(mats) <- group
+  
+  # If length = 1, only return the matrix:
+  if (length(mats)==1){
+    mats <- mats[[1]]
+  }
   return(mats)
 }

@@ -26,7 +26,7 @@ implied_lvm <- function(model, all = FALSE){
         x[[g]]$Lambda_BetaStar <- Lambda_BetaStar
         x[[g]]$Betasta_sigmaZeta <- Betasta_sigmaZeta
         x[[g]]$tBetakronBeta <- tBetakronBeta
-      }
+      } 
       
       # Implied means
       x[[g]]$mu <- x[[g]]$tau +  x[[g]]$lambda %*% BetaStar  %*% x[[g]]$tau_eta
