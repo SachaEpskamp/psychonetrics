@@ -19,7 +19,7 @@ unionmodel <- function(
   pars$id <- seq_len(nrow(pars))
   
   # Find set of parameters at least in one group:
-  pars <- pars %>%  left_join(pars %>% dplyr::group_by_("matrix","row","col") %>% dplyr::summarise(anyFree = any(!fixed)),
+  pars <- pars %>%  left_join(pars %>% dplyr::group_by_("matrix","row","col") %>% dplyr::summarise_(anyFree = ~any(!fixed)),
                     by = c("matrix","row","col"))
   
   # So which to free?

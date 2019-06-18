@@ -14,6 +14,7 @@ stepup <- function(
   # maxtry = 0,
   ... # Fit arguments
 ){
+  maxtry <- 1
   singularinformation <- match.arg(singularinformation)
   triedfixing <- FALSE
   
@@ -299,7 +300,7 @@ stepup <- function(
                 if (verbose){
                   message(paste("Model may not be identified, adjusting start values and trying again."))
                 }
-                x@parameters$est[best] <- 0.1 * x@parameters$est[best]
+                x <- emergencystart(x)
                 curtry <- curtry + 1
               } else {
                 if (verbose){

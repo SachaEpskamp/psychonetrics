@@ -4,8 +4,7 @@ setMethod(f = "show",
  signature = "psychonetrics",
 definition = function(object){
     # version:
-  version <- read.dcf(file=system.file("DESCRIPTION", package="psychonetrics"),
-           fields="Version")
+  version <- packageVersion("psychonetrics")
   
   # Make super cool header:
   # cat(

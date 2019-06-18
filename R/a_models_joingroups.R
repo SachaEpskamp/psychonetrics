@@ -13,7 +13,7 @@ joingroups <- function(..., verbose = TRUE, log = TRUE, runmodel = FALSE,baselin
   # Check if not single input:
   if (length(dots)==1){
     if (verbose) message("Only one model used as input to 'joingroups'. Nothing to do...")
-    return(x)
+    return(dots[[1]])
   }
   
   # If all models are not from the same class, stop:
