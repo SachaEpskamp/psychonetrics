@@ -52,7 +52,7 @@ to skip the current parameter, \code{"continue"} will ignore the situation, and 
 will break the algorithm and return a list with the last two models.
 }
   \item{\dots}{
-Arguments sent to \link{\code{runmodel}}
+Arguments sent to \code{\link{runmodel}}
 }
 }
 \value{
@@ -60,4 +60,7 @@ An object of the class psychonetrics (\link{psychonetrics-class})
 }
 \author{
 Sacha Epskamp
+}
+\seealso{
+\code{\link{prune}}
 }
