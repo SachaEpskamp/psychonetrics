@@ -7,7 +7,8 @@ Maintainer: Sacha Epskamp <mail@sachaepskamp.com>
 Description: Structural Equation Modeling and Confirmatory Network Analysis
 License: GPL-2
 LinkingTo: Rcpp, RcppArmadillo
-Imports: Rcpp (>= 0.11.3), crayon, methods, pbapply, qgraph, numDeriv, dplyr, abind, matrixcalc, Matrix, lavaan, corpcor, ucminf, glasso, mgcv, optimx, mvtnorm, VCA, pbapply, parallel, magrittr
-Suggests: psych, lavaan, graphicalVAR, qgraph
+Depends: R (>= 3.5.0)
+Imports: Rcpp (>= 0.11.3), crayon, methods, qgraph, numDeriv, dplyr, abind, matrixcalc, Matrix, lavaan, corpcor, ucminf, glasso, mgcv, optimx, mvtnorm, VCA, pbapply, parallel, magrittr
+Suggests: psych
 Bytecompile: true
-StagedInstall: false
+StagedInstall: true

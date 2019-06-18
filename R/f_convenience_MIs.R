@@ -53,7 +53,7 @@ MIs_inner <- function(x,all = FALSE, matrices, type = c("normal","equal","free")
   
   # nonZero:
   if (nonZero){
-    parTable <- parTable %>% filter(est!=0)
+    parTable <- parTable %>% filter_(~est!=0)
   }
   
   # If nothing, return:

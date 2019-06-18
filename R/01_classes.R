@@ -130,4 +130,4 @@ prototype = list(
   cpp = TRUE # Use C++ when available
 ))
 
-generate_psychonetrics()
+# generate_psychonetrics()

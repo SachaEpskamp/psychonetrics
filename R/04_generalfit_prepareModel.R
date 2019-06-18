@@ -7,11 +7,11 @@ prepareModel <- function(x, model){
         # "lnm" = prepare_lnm,
         # "ggm" = prepare_ggm,
         # "rnm" = prepare_rnm,
-        "gvar" = prepare_gvar,
+        # "gvar" = prepare_gvar,
         "varcov" = prepare_varcov,
         "lvm" = prepare_lvm,
         "var1" = prepare_var1,
-        "panelvar1" = prepare_panelvar1,
+        # "panelvar1" = prepare_panelvar1,
         "dlvm1" = prepare_dlvm1,
         "tsdlvm1" = prepare_tsdlvm1
         # "cholesky" = prepare_cholesky

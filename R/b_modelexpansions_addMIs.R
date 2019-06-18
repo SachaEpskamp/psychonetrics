@@ -73,7 +73,7 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
     
     # Left join back:
     modCopy@parameters <- modCopy@parameters %>% left_join(sum,by=c("matrix","row","col")) %>% 
-      mutate(par = ifelse(identified,0,ifelse(par==0,par2,par)))
+      mutate_(par = ~ifelse(identified,0,ifelse(par==0,par2,par)))
     
   } else {
     # Add free parameter numbers:

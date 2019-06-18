@@ -28,14 +28,14 @@ psychonetrics_gradient <- function(x, model){
   # model part:
   modelJacobian <- switch(
     model@model,
-    "lnm" = d_phi_theta_lnm,
+    # "lnm" = d_phi_theta_lnm,
     # "ggm" = d_phi_theta_ggm,
-    "rnm" = d_phi_theta_rnm,
-    "gvar" = ifelse(model@rawts,d_phi_theta_gvar_rawts,d_phi_theta_gvar),
+    # "rnm" = d_phi_theta_rnm,
+    # "gvar" = ifelse(model@rawts,d_phi_theta_gvar_rawts,d_phi_theta_gvar),
     "varcov" = d_phi_theta_varcov,
     "lvm" = d_phi_theta_lvm,
     "var1" = d_phi_theta_var1,
-    "panelvar1" = d_phi_theta_panelvar1,
+    # "panelvar1" = d_phi_theta_panelvar1,
     "dlvm1" = d_phi_theta_dlvm1,
     "tsdlvm1" = d_phi_theta_tsdlvm1
     # "cholesky" = d_phi_theta_cholesky

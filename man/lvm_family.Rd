@@ -165,6 +165,8 @@ Sacha Epskamp
 }
 
 \examples{
+library("dplyr")
+
 ### Confirmatory Factor Analysis ###
 
 # Example also shown in https://youtu.be/Hdu5z-fwuk8

@@ -112,3 +112,7 @@ importFrom("VCA","MPinv")
 importFrom("pbapply","pblapply")
 import(parallel)
 import(magrittr)
+
+
+  importFrom("stats", "na.omit", "p.adjust", "rnorm", "sd")
+     importFrom("utils", "setTxtProgressBar", "txtProgressBar")

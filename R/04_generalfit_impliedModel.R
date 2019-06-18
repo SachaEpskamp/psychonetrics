@@ -6,9 +6,9 @@ impliedModel <- function(model, types, all = FALSE){
   impFun <- switch(framework,
         "lvm" = implied_lvm,
         "varcov" = implied_varcov,
-        "gvar" = implied_gvar_norawts,
+        # "gvar" = implied_gvar_norawts,
         "var1" = implied_var1,
-        "panelvar1" = implied_panelvar1,
+        # "panelvar1" = implied_panelvar1,
         "dlvm1" = implied_dlvm1,
         "tsdlvm1" = implied_tsdlvm1
         )
