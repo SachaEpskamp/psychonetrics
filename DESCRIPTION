@@ -11,4 +11,6 @@ Depends: R (>= 3.5.0)
 Imports: Rcpp (>= 0.11.3), crayon, methods, qgraph, numDeriv, dplyr, abind, matrixcalc, Matrix, lavaan, corpcor, ucminf, glasso, mgcv, optimx, mvtnorm, VCA, pbapply, parallel, magrittr
 Suggests: psych, semPlot
 ByteCompile: true
+URL: http://psychonetrics.org/
+BugReports: https://github.com/SachaEpskamp/psychonetrics/issues
 StagedInstall: true
