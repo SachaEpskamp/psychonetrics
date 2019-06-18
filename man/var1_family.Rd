@@ -6,10 +6,14 @@
 Lag-1 vector autoregression family of psychonetrics models
 }
 \description{
-This is the family of models that models time-series data using a lag-1 vector autoregressive model (VAR; Epskamp,Waldorp, Mõttus, Borsboom, 2018). The model is fitted to the Toeplitz matrix, but unlike typical SEM software the block of covariances of the lagged variables is not used in estimating the temporal and contemporaneous relationships (the block is modeled completely separately using a cholesky decomposition, and does not enter the model elsewise). The \code{contemporaneous} argument can be used to define what contemporaneous model is used: \code{contemporaneous = "cov"} (default) models a variance-covariance matrix, \code{contemporaneous = "chol"} models a Cholesky decomposition, \code{contemporaneous = "prec"} models a precision matrix, and \code{contemporaneous = "ggm"} (alias: \code{gvar()}) models a Gaussian graphical model, also then known as a graphical VAR model.
+This is the family of models that models time-series data using a lag-1 vector autoregressive model (VAR; Epskamp,Waldorp, Mottus, Borsboom, 2018). The model is fitted to the Toeplitz matrix, but unlike typical SEM software the block of covariances of the lagged variables is not used in estimating the temporal and contemporaneous relationships (the block is modeled completely separately using a cholesky decomposition, and does not enter the model elsewise). The \code{contemporaneous} argument can be used to define what contemporaneous model is used: \code{contemporaneous = "cov"} (default) models a variance-covariance matrix, \code{contemporaneous = "chol"} models a Cholesky decomposition, \code{contemporaneous = "prec"} models a precision matrix, and \code{contemporaneous = "ggm"} (alias: \code{gvar()}) models a Gaussian graphical model, also then known as a graphical VAR model.
 }
 \usage{
-var1(data, contemporaneous = c("cov", "chol", "prec", "ggm"), beta = "full", omega_zeta = "full", delta_zeta = "full", kappa_zeta = "full", sigma_zeta = "full", lowertri_zeta = "full", mu, beepvar, dayvar, idvar, vars, groups, covs, means, nobs, missing = "listwise", equal = "none", baseline_saturated = TRUE, estimator = "ML", optimizer = "default", storedata = FALSE, sampleStats)
+var1(data, contemporaneous = c("cov", "chol", "prec", "ggm"), beta = "full", omega_zeta = 
+    "full", delta_zeta = "full", kappa_zeta = "full", sigma_zeta = "full", 
+    lowertri_zeta = "full", mu, beepvar, dayvar, idvar, vars, groups, covs, means, nobs, 
+    missing = "listwise", equal = "none", baseline_saturated = TRUE, estimator = "ML", 
+    optimizer = "default", storedata = FALSE, sampleStats)
 
 gvar(...)
 }
@@ -122,6 +126,7 @@ library("dplyr")
 # Science, 6(3), 416-427.
 # 
 # Available here: https://osf.io/c8wjz/
+
 tsdata <- read.csv("Supplementary2_data.csv")
 
 # Encode time variable in a way R understands:
@@ -140,9 +145,9 @@ model_FDRprune <- gvar(
   vars = vars, 
   dayvar = "Day",
   estimator = "FIML"
-  ) %>% 
-  runmodel %>% 
-  prune(adjust = "fdr", recursive = FALSE) %>% 
+  ) \%>\% 
+  runmodel \%>\% 
+  prune(adjust = "fdr", recursive = FALSE) \%>\% 
   stepup(criterion = "bic")
 
 # Estimate with greedy stepup search:
@@ -153,8 +158,8 @@ model_stepup <- gvar(
   estimator = "FIML",
   omega_zeta = "empty",
   beta = "empty"
-) %>% 
-  runmodel %>% 
+) \%>\% 
+  runmodel \%>\% 
   stepup(greedy = TRUE, greedyadjust = "bonferroni", criterion = "bic")
 
 # Compare models:
@@ -164,9 +169,9 @@ compare(
 )
 # Very similar but not identical. Stepup is prefered here according to AIC and BIC
 
-# Stepup results::
-temporal <- getmatrix(model_stepup, "PDC") # PDC = Partial Directed Correlations, standardized (and traspose) beta
-contemporaneous <- getmatrix(model_stepup, "omega_zeta") # PDC = Partial Directed Correlations, standardized (and traspose) beta
+# Stepup results:
+temporal <- getmatrix(model_stepup, "PDC") # PDC = Partial Directed Correlations
+contemporaneous <- getmatrix(model_stepup, "omega_zeta")
 
 # Average layout:
 library("qgraph")

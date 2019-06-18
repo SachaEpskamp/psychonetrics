@@ -1,5 +1,6 @@
 \name{groupequal}
 \alias{groupequal}
+\alias{groupfree}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 Group equality constrains

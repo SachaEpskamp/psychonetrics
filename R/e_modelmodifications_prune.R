@@ -2,7 +2,6 @@
 prune <- function(
   x, # Model
   alpha = 0.01, # Significance
-  bootstrap = FALSE,
   # bonferroni = FALSE,
   adjust = c( "none", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr"),
   matrices, # Automatically chosen
@@ -11,11 +10,14 @@ prune <- function(
   verbose = TRUE,
   log = TRUE,
   identify = TRUE,
-  nCores = 1,
-  reps = 1000,
+  # nCores = 1,
+  # reps = 1000,
   startreduce = 1,
   limit = Inf,
   ...){
+  reps <- 1000
+  nCores <- 1
+  bootstrap <- FALSE
   adjust <- match.arg(adjust)
   # If not computed, nothing to do:
   if (!x@computed){

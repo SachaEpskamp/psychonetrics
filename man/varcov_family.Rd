@@ -15,7 +15,7 @@ This is the family of models that models only a variance-covariance matrix with 
 varcov(data, type = c("cov", "chol", "prec", "ggm"), sigma = "full", kappa = "full", 
       omega = "full", lowertri = "full", delta = "full", mu, vars, groups, covs, means, 
       nobs, missing = "listwise", equal = "none", baseline_saturated = TRUE, 
-      estimator = "ML", optimizer = "default", storedata = FALSE, sampleStats)
+      estimator = "ML", optimizer = "default", storedata = FALSE, WLS.V, sampleStats)
 cholesky(\dots)
 precision(\dots)
 prec(\dots)
@@ -80,6 +80,9 @@ The optimizer to be used. Usually either \code{"nlminb"} (with box constrains) o
   \item{storedata}{
 Logical, should the raw data be stored? Needed for bootstrapping (see \code{bootstrap}).
 }
+\item{WLS.V}{
+Optional WLS weights matrix.
+}
   \item{sampleStats}{
 An optional sample statistics object. Mostly used internally. 
 }
@@ -121,16 +124,16 @@ Sacha Epskamp
 \code{\link{lvm}}, \code{\link{var1}}, \code{\link{dlvm1}}
 }
 \examples{
-# Also load dplyr for the pipe operator:
-library("dplyr")
-
 # Load bfi data from psych package:
 library("psych")
 data(bfi)
 
+# Also load dplyr for the pipe operator:
+library("dplyr")
+
 # Let's take the agreeableness items, and gender:
-ConsData <- bfi %>% 
-  select(A1:A5, gender) %>% 
+ConsData <- bfi \%>\% 
+  select(A1:A5, gender) \%>\% 
   na.omit # Let's remove missingness (otherwise use Estimator = "FIML)
 
 # Define variables:
@@ -139,37 +142,37 @@ vars <- names(ConsData)[1:5]
 # Let's fit an empty GGM:
 mod0 <- ggm(ConsData, vars = vars, omega = "empty")
 
+\dontrun{
 # Run the model:
-mod0 <- mod0 %>% runmodel
+mod0 <- mod0 \%>\% runmodel
 
 # We can look at the modification indices:
-mod0 %>% MIs
+mod0 \%>\% MIs
 
 # To automatically add along modification indices, we can use stepup:
-mod1 <- mod0 %>% stepup(alpha = 0.005)
+mod1 <- mod0 \%>\% stepup(greedy = TRUE, alpha = 0.005, greedyadjust = "fdr")
 
 # Let's also prune all non-significant edges to finish:
-mod1 <- mod1 %>% prune(alpha = 0.005)
+mod1 <- mod1 \%>\% prune(alpha = 0.005)
 
 # Look at the fit:
-mod1 %>% fit
+mod1 \%>\% fit
 
 # Compare to original (baseline) model:
 compare(baseline = mod0, adjusted = mod1)
 
 # We can also look at the parameters:
-mod1 %>% parameters
+mod1 \%>\% parameters
 
 # Or obtain the network as follows:
 getmatrix(mod1, "omega")
 
-\dontrun{
 # We may also be interested in the stability of our search algorithm.
 # We can bootstrap our data and repeat the search as follows:
-mod_boot <- ggm(ConsData, vars = vars, omega = "empty", storedata = TRUE) %>%
-  bootstrap %>% # bootstrap data
-  runmodel %>% # Run model
-  stepup(alpha = 0.005) %>% # Search algorithm 1
+mod_boot <- ggm(ConsData, vars = vars, omega = "empty", storedata = TRUE) \%>\%
+  bootstrap \%>\% # bootstrap data
+  runmodel \%>\% # Run model
+  stepup(greedy = TRUE, alpha = 0.005, greedyadjust = "fdr") \%>\% # Search algorithm 1
   prune(alpha = 0.005) # Search algorithm 2
 
 # Which may give some different results:
@@ -177,12 +180,12 @@ getmatrix(mod_boot, "omega")
 
 # This can be repeated (ideally 100 - 1000 times):
 bootstraps <- replicate(10,simplify = FALSE,expr = {
-  mod_boot <- ggm(ConsData, vars = vars, omega = "empty", storedata = TRUE) %>%
-    bootstrap %>% # bootstrap data
-    runmodel %>% # Run model
-    stepup(alpha = 0.005) %>% # Search algorithm 1
+  mod_boot <- ggm(ConsData, vars = vars, omega = "empty", storedata = TRUE) \%>\%
+    bootstrap \%>\% # bootstrap data
+    runmodel \%>\% # Run model
+    stepup(greedy = TRUE, alpha = 0.005, greedyadjust = "fdr") \%>\% # Search algorithm 1
     prune(alpha = 0.005) # Search algorithm 2
-  getmatrix(mod_boot, "omega")[[1]]
+  getmatrix(mod_boot, "omega")
 })
 
 # Now we can look at, for example, the inclusion probability:

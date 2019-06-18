@@ -2,7 +2,7 @@
 samplestats <- function(
   ..., rawts = FALSE){
   if (rawts){
-    return(samplestats_rawts(...))
+    stop("rawts currently not supported")
   } else {
     return(samplestats_norawts(...))
   }
