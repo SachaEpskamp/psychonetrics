@@ -133,33 +133,33 @@ Arguments sent to \code{varcov}
 \details{
 The model used in this family is:
 
-\eqn{\mathrm{var}( \pmb{y} ) = \pmb{\Lambda} (\pmb{I} - \pmb{B})^{-1} \pmb{\Sigma}_{\zeta}  (\pmb{I} - \pmb{B})^{-1\top}  \pmb{\Lambda}^{\top} +  \pmb{\Sigma}_{\varepsilon} }{var(y) = lambda * (I - beta)^(-1) * sigma_zeta * (I - beta)^(-1') * lambda' + sigma_epsilon}
+\eqn{\mathrm{var}( \boldsymbol{y} ) = \boldsymbol{\Lambda} (\boldsymbol{I} - \boldsymbol{B})^{-1} \boldsymbol{\Sigma}_{\zeta}  (\boldsymbol{I} - \boldsymbol{B})^{-1\top}  \boldsymbol{\Lambda}^{\top} +  \boldsymbol{\Sigma}_{\varepsilon} }{var(y) = lambda * (I - beta)^(-1) * sigma_zeta * (I - beta)^(-1') * lambda' + sigma_epsilon}
 
-\eqn{\mathcal{E}( \pmb{y} ) = \pmb{\tau} +  \pmb{\Lambda}  (\pmb{I} - \pmb{B})^{-1} \pmb{\tau}_eta}{E(y) = tau + lambda * (I - beta)^(-1) * tau_eta}
+\eqn{\mathcal{E}( \boldsymbol{y} ) = \boldsymbol{\tau} +  \boldsymbol{\Lambda}  (\boldsymbol{I} - \boldsymbol{B})^{-1} \boldsymbol{\tau}_eta}{E(y) = tau + lambda * (I - beta)^(-1) * tau_eta}
 
 in which the latent covariance matrix can further be modeled in three ways. With \code{latent = "chol"} as Cholesky decomposition:
 
-\eqn{\pmb{\Sigma}_{\zeta} = \pmb{L}_{\zeta}\pmb{L}_{\zeta}}{sigma_zeta = lowertri_zeta * lowertri_zeta},
+\eqn{\boldsymbol{\Sigma}_{\zeta} = \boldsymbol{L}_{\zeta}\boldsymbol{L}_{\zeta}}{sigma_zeta = lowertri_zeta * lowertri_zeta},
 
 with \code{latent = "prec"} as Precision matrix:
 
-\eqn{\pmb{\Sigma}_{\zeta} = \pmb{K}_{\zeta}^{-1}}{sigma_zeta = kappa_zeta^(-1)},
+\eqn{\boldsymbol{\Sigma}_{\zeta} = \boldsymbol{K}_{\zeta}^{-1}}{sigma_zeta = kappa_zeta^(-1)},
 
 and finally with \code{latent = "ggm"} as Gaussian graphical model:
 
-\eqn{\pmb{\Sigma}_{\zeta} = \pmb{\Delta}_{\zeta}(\pmb{I} - \pmb{\Omega}_{\zeta})^(-1) \pmb{\Delta}_{\zeta}}{sigma_zeta = delta_zeta * (I - omega_zeta)^(-1) * delta_zeta}.
+\eqn{\boldsymbol{\Sigma}_{\zeta} = \boldsymbol{\Delta}_{\zeta}(\boldsymbol{I} - \boldsymbol{\Omega}_{\zeta})^(-1) \boldsymbol{\Delta}_{\zeta}}{sigma_zeta = delta_zeta * (I - omega_zeta)^(-1) * delta_zeta}.
 
 Likewise, the residual covariance matrix can also further be modeled in three ways. With \code{residual = "chol"} as Cholesky decomposition:
 
-\eqn{\pmb{\Sigma}_{\varepsilon} = \pmb{L}_{\varepsilon}\pmb{L}_{\varepsilon}}{sigma_epsilon = lowertri_epsilon * lowertri_epsilon},
+\eqn{\boldsymbol{\Sigma}_{\varepsilon} = \boldsymbol{L}_{\varepsilon}\boldsymbol{L}_{\varepsilon}}{sigma_epsilon = lowertri_epsilon * lowertri_epsilon},
 
 with \code{latent = "prec"} as Precision matrix:
 
-\eqn{\pmb{\Sigma}_{\varepsilon} = \pmb{K}_{\varepsilon}^{-1}}{sigma_epsilon = kappa_epsilon^(-1)},
+\eqn{\boldsymbol{\Sigma}_{\varepsilon} = \boldsymbol{K}_{\varepsilon}^{-1}}{sigma_epsilon = kappa_epsilon^(-1)},
 
 and finally with \code{latent = "ggm"} as Gaussian graphical model:
 
-\eqn{\pmb{\Sigma}_{\varepsilon} = \pmb{\Delta}_{\varepsilon}(\pmb{I} - \pmb{\Omega}_{\varepsilon})^(-1) \pmb{\Delta}_{\varepsilon}}{sigma_epsilon = delta_epsilon * (I - omega_epsilon)^(-1) * delta_epsilon}.
+\eqn{\boldsymbol{\Sigma}_{\varepsilon} = \boldsymbol{\Delta}_{\varepsilon}(\boldsymbol{I} - \boldsymbol{\Omega}_{\varepsilon})^(-1) \boldsymbol{\Delta}_{\varepsilon}}{sigma_epsilon = delta_epsilon * (I - omega_epsilon)^(-1) * delta_epsilon}.
 }
 \value{
 An object of the class psychonetrics (\link{psychonetrics-class})

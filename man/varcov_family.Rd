@@ -93,21 +93,21 @@ Arguments sent to \code{varcov}
 \details{
 The model used in this family is:
 
-\eqn{\mathrm{var}(\pmb{y} ) = \pmb{\Sigma}}{var(y) = sigma}
+\eqn{\mathrm{var}(\boldsymbol{y} ) = \boldsymbol{\Sigma}}{var(y) = sigma}
 
-\eqn{\mathcal{E}( \pmb{y} ) = \pmb{\mu}}{E(y) = mu}
+\eqn{\mathcal{E}( \boldsymbol{y} ) = \boldsymbol{\mu}}{E(y) = mu}
 
 in which the covariance matrix can further be modeled in three ways. With \code{type = "chol"} as Cholesky decomposition:
 
-\eqn{\pmb{\Sigma} = \pmb{L}\pmb{L}}{sigma = lowertri * lowertri},
+\eqn{\boldsymbol{\Sigma} = \boldsymbol{L}\boldsymbol{L}}{sigma = lowertri * lowertri},
 
 with \code{type = "prec"} as Precision matrix:
 
-\eqn{\pmb{\Sigma} = \pmb{K}^{-1}}{sigma = kappa^(-1)},
+\eqn{\boldsymbol{\Sigma} = \boldsymbol{K}^{-1}}{sigma = kappa^(-1)},
 
 and finally with \code{type = "ggm"} as Gaussian graphical model:
 
-\eqn{\pmb{\Sigma} = \pmb{\Delta}(\pmb{I} - \pmb{\Omega})^(-1) \pmb{\Delta}}{sigma = delta * (I - omega)^(-1) * delta}.
+\eqn{\boldsymbol{\Sigma} = \boldsymbol{\Delta}(\boldsymbol{I} - \boldsymbol{\Omega})^(-1) \boldsymbol{\Delta}}{sigma = delta * (I - omega)^(-1) * delta}.
 }
 \value{
 An object of the class psychonetrics 
