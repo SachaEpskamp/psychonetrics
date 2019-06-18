@@ -23,6 +23,7 @@ variables = data.frame(
 
 # Timestamp:
 setOldClass("sessionInfo")
+
 psychonetrics_log <- setClass("psychonetrics_log",  slots = c(
   event = "character",
   time = "POSIXct",
@@ -33,7 +34,7 @@ generate_psychonetrics_logentry <- function(event){
   stamp <- psychonetrics_log()
   stamp@event <- event
   stamp@time <- Sys.time()
-  stamp@sessionInfo <- sessionInfo()
+  # stamp@sessionInfo <- sessionInfo()
   stamp
 }
 
