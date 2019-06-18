@@ -36,8 +36,8 @@ export(ts_lvgvar)
 export(tsdlvm1)
 
 # extra:
-export(joingroups)
-export(frombootnet)
+# export(joingroups)
+# export(frombootnet)
 
 # Model expansions:
 export(addMIs)
@@ -80,10 +80,11 @@ export(parameters)
 export(duplicationMatrix, eliminationMatrix, diagonalizationMatrix)
 
 # export Classes
-exportClasses("psychonetrics_samplestats","psychonetrics_log","psychonetrics" )
+exportClasses("psychonetrics" )
+#exportClasses("psychonetrics_samplestats","psychonetrics_log","psychonetrics" )
 
 # export Methods
-exportMethods("show", "resid"  )
+exportMethods("show", "resid", "residuals")
 
 
 ### Imports ###

@@ -8,7 +8,8 @@ Print modification indices
 This function prints a list of modification indices (MIs)
 }
 \usage{
-MIs(x, all = FALSE, matrices, type = c("normal", "equal", "free"), top = 10, verbose = TRUE, nonZero = FALSE)
+MIs(x, all = FALSE, matrices, type = c("normal", "equal", "free"), top = 10, 
+    verbose = TRUE, nonZero = FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

@@ -29,12 +29,9 @@ Arguments sent to \code{\link{lvm}}
 See \url{https://github.com/SachaEpskamp/SEM-code-examples/tree/master/Latent_growth_examples/psychonetrics} for examples
 }
 \value{
-An object of the class psychonetrics (\link{psychonetrics-class})
+An object of the class psychonetrics (\link{psychonetrics-class}). See for an example \url{https://github.com/SachaEpskamp/SEM-code-examples/tree/master/Latent_growth_examples/psychonetrics}.
 }
 \author{
 Sacha Epskamp
-}
-\examples{
-# See https://github.com/SachaEpskamp/SEM-code-examples/tree/master/Latent_growth_examples/psychonetrics
 }
 

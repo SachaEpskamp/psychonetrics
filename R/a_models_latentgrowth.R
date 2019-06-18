@@ -1,6 +1,6 @@
 latentgrowth <- function(
   vars,  # design matrix
-  time = seq_len(ncol(vars)),
+  time = seq_len(ncol(vars)) - 1,
   covariates = character(0),
   ...){
   if (missing(vars)){

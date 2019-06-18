@@ -8,7 +8,8 @@ Bootstrap a psychonetrics model
 This function will bootstrap the data (once) and return a new unevaluated psychonetrics object. It requres \code{storedata = TRUE} to be used when forming a model.
 }
 \usage{
-bootstrap(x, replacement = TRUE, proportion = 1, verbose = TRUE, storedata = FALSE, baseline_saturated = TRUE)
+bootstrap(x, replacement = TRUE, proportion = 1, verbose = TRUE, storedata = FALSE, 
+          baseline_saturated = TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

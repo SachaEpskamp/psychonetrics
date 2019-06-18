@@ -125,6 +125,9 @@ The optimizer to be used. Usually either \code{"nlminb"} (with box constrains) o
   \item{storedata}{
 Logical, should the raw data be stored? Needed for bootstrapping (see \code{bootstrap}).
 }
+  \item{sampleStats}{
+An optional sample statistics object. Mostly used internally. 
+}
   \item{centerWithin}{
 Logical, should data be within-person centered?
 }
@@ -174,10 +177,10 @@ model <- tsdlvm1(
 )
 
 # Run model:
-model <- model %>% runmodel
+model <- model \%>\% runmodel
 
 # Look at fit:
-model %>% print
-model %>% fit # Pretty bad fit
+model \%>\% print
+model \%>\% fit # Pretty bad fit
 }
 }

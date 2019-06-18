@@ -8,7 +8,7 @@
 
 \title{Class \code{"psychonetrics"}}
 \description{
-%%  ~~ A concise (1-5 lines) description of what the class is. ~~
+Main class for psychonetrics results.
 }
 \section{Objects from the Class}{
 Objects can be created by calls of the form \code{new("psychonetrics", ...)}.
@@ -48,22 +48,10 @@ Objects can be created by calls of the form \code{new("psychonetrics", ...)}.
     \item{show}{\code{signature(object = "psychonetrics")}: ... }
 	 }
 }
-\references{
-%%  ~~put references to the literature/web site here~~
-}
 \author{
-%%  ~~who you are~~
-}
-\note{
-%%  ~~further notes~~
+Sacha Epskamp
 }
 
-%% ~Make other sections like Warning with \section{Warning }{....} ~
-
-\seealso{
-%%  ~~objects to See Also as \code{\link{~~fun~~}}, ~~~
-%%  ~~or \code{\linkS4class{CLASSNAME}} for links to other classes ~~~
-}
 \examples{
 showClass("psychonetrics")
 }

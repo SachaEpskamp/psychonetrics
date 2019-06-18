@@ -34,7 +34,7 @@ String indicating which kind of modification index should be used (\code{"mi"} i
 String indicating which p-value adjustment should be used in greedy start. Any method from \code{p.adjust} can be used.
 }
   \item{stopif}{
-An R expression, using objects from \link{\code{fit}}, which will break stepup search if it evaluates to \code{TRUE}. For example, \code{stopif = rmsea < 0.05} will lead to search to stop if rmsea is below 0.05. 
+An R expression, using objects from \code{fit}, which will break stepup search if it evaluates to \code{TRUE}. For example, \code{stopif = rmsea < 0.05} will lead to search to stop if rmsea is below 0.05. 
 }
   \item{greedy}{
 Logical, should a greedy start be used? If \code{TRUE}, the first step adds any parameter that is significant (after adjustement)
@@ -60,7 +60,4 @@ An object of the class psychonetrics (\link{psychonetrics-class})
 }
 \author{
 Sacha Epskamp
-}
-\seealso{
-\link{\code{prune}}
 }
