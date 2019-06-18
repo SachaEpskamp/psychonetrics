@@ -38,6 +38,10 @@ bootstrap <- function(x, replacement = TRUE, proportion = 1, verbose = TRUE, sto
   x@sample@nobs <-  
     nVar * (nVar+1) / 2 * nGroup + # Covariances per group
     nVar * nGroup
+  
+  # Reset start values:
+  x <- emergencystart(x)
+  
   # Recompute baseline and saturated:
   
   # Form baseline model:

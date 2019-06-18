@@ -10,6 +10,8 @@ This is the family of models that models time-series data using a lag-1 vector a
 }
 \usage{
 var1(data, contemporaneous = c("cov", "chol", "prec", "ggm"), beta = "full", omega_zeta = "full", delta_zeta = "full", kappa_zeta = "full", sigma_zeta = "full", lowertri_zeta = "full", mu, beepvar, dayvar, idvar, vars, groups, covs, means, nobs, missing = "listwise", equal = "none", baseline_saturated = TRUE, estimator = "ML", optimizer = "default", storedata = FALSE, sampleStats)
+
+gvar(...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -20,7 +22,7 @@ A data frame encoding the data used in the analysis. Can be missing if \code{cov
 The type of contemporaneous model used. See description.
 }
   \item{beta}{
-A model matrix encoding the temporal relationships (transpose of temporal network). A 0 encodes a fixed to zero element, a 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+A model matrix encoding the temporal relationships (transpose of temporal network). A 0 encodes a fixed to zero element, a 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.  Can also be \code{"full"} for a full temporal network or \code{"empty"} for an empty temporal network.
 }
   \item{omega_zeta}{
 Only used when \code{contemporaneous = "ggm"}. Either \code{"full"} to estimate every element freely, \code{"empty"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
@@ -109,5 +111,77 @@ Sacha Epskamp
 
 
 \examples{
+\dontrun{
+library("dplyr")
 
+# Obtain the data from:
+#
+# Epskamp, S., van Borkulo, C. D., van der Veen, D. C., Servaas, M. N., Isvoranu, A. M., 
+# Riese, H., & Cramer, A. O. (2018). Personalized network modeling in psychopathology: 
+# The importance of contemporaneous and temporal connections. Clinical Psychological 
+# Science, 6(3), 416-427.
+# 
+# Available here: https://osf.io/c8wjz/
+tsdata <- read.csv("Supplementary2_data.csv")
+
+# Encode time variable in a way R understands:
+tsdata$time <- as.POSIXct(tsdata$time, tz = "Europe/Amsterdam")
+
+# Extract days:
+tsdata$Day <- as.Date(tsdata$time, tz = "Europe/Amsterdam")
+
+# Variables to use:
+vars <- c("relaxed", "sad", "nervous", "concentration", "tired", "rumination", 
+          "bodily.discomfort")
+
+# Estimate, prune with FDR, and perform stepup search:
+model_FDRprune <- gvar(
+  tsdata, 
+  vars = vars, 
+  dayvar = "Day",
+  estimator = "FIML"
+  ) %>% 
+  runmodel %>% 
+  prune(adjust = "fdr", recursive = FALSE) %>% 
+  stepup(criterion = "bic")
+
+# Estimate with greedy stepup search:
+model_stepup <- gvar(
+  tsdata, 
+  vars = vars, 
+  dayvar = "Day",
+  estimator = "FIML",
+  omega_zeta = "empty",
+  beta = "empty"
+) %>% 
+  runmodel %>% 
+  stepup(greedy = TRUE, greedyadjust = "bonferroni", criterion = "bic")
+
+# Compare models:
+compare(
+  FDRprune = model_FDRprune,
+  stepup = model_stepup
+)
+# Very similar but not identical. Stepup is prefered here according to AIC and BIC
+
+# Stepup results::
+temporal <- getmatrix(model_stepup, "PDC") # PDC = Partial Directed Correlations, standardized (and traspose) beta
+contemporaneous <- getmatrix(model_stepup, "omega_zeta") # PDC = Partial Directed Correlations, standardized (and traspose) beta
+
+# Average layout:
+library("qgraph")
+L <- averageLayout(temporal, contemporaneous)
+
+# Labels:
+labs <- gsub("\\.","\n",vars)
+
+# Plot:
+layout(t(1:2))
+qgraph(temporal, layout = L, theme = "colorblind", directed=TRUE, diag=TRUE,
+       title = "Temporal", vsize = 12, mar = rep(6,4), asize = 5,
+       labels = labs)
+qgraph(contemporaneous, layout = L, theme = "colorblind", 
+       title = "Contemporaneous", vsize = 12, mar = rep(6,4), asize = 5,
+       labels = labs)
+}
 }

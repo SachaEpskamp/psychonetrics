@@ -1,6 +1,6 @@
 # thanks to http://patorjk.com/software/taag-v1/!
 
-psychonetrics_print_logo <- function(){
+psychonetrics_print_logo <- function(color = c("default","red","green","yellow","blue","magenta","cyan","white","silver")){
   # logo <- c("                        _                      _        _          ",
   #           "                      | |                    | |      (_)         ",
   #           "  _ __  ___ _   _  ___| |__   ___  _ __   ___| |_ _ __ _  ___ ___ ",
@@ -10,6 +10,7 @@ psychonetrics_print_logo <- function(){
   #           " | |         __/ |                                                ",
   #           " |_|        |___/                                                 ","\n"
   # )
+  color <- match.arg(color)
   logo <- c("                        _                      _        _          ",
             "                      | |                    | |      (_)         ",
             "  _ __  ___ _   _  ___| |__   ___  _ __   ___| |_ _ __ _  ___ ___ ",
@@ -19,6 +20,10 @@ psychonetrics_print_logo <- function(){
             " | |         __/ |                                                ",
             " |_|        |___/                                                 ","\n"
   )
-
+if (color == "default"){
   cat(paste0(logo,collaps="\n"))
+} else {
+  cat(do.call(color,list(paste0(logo,collaps="\n"))))
+}
+  
 }

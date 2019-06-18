@@ -2,7 +2,6 @@
 runmodel <- function(
   x, # psychonetrics model
   # stepwise = FALSE, # Stepwise up search with modification indices?
-  matrices, # Matrices to search
   level = c("gradient","fitfunction"),
   addfit = TRUE,
   addMIs = TRUE,
