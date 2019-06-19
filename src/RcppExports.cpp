@@ -22,29 +22,29 @@ BEGIN_RCPP
 END_RCPP
 }
 // DWLS_wmat
-arma::sp_mat DWLS_wmat(arma::mat data, arma::vec means, int ncase, int nvar);
+arma::sp_mat DWLS_wmat(arma::mat data, arma::vec means, const int ncase, const int nvar);
 RcppExport SEXP _psychonetrics_DWLS_wmat(SEXP dataSEXP, SEXP meansSEXP, SEXP ncaseSEXP, SEXP nvarSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type data(dataSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type means(meansSEXP);
-    Rcpp::traits::input_parameter< int >::type ncase(ncaseSEXP);
-    Rcpp::traits::input_parameter< int >::type nvar(nvarSEXP);
+    Rcpp::traits::input_parameter< const int >::type ncase(ncaseSEXP);
+    Rcpp::traits::input_parameter< const int >::type nvar(nvarSEXP);
     rcpp_result_gen = Rcpp::wrap(DWLS_wmat(data, means, ncase, nvar));
     return rcpp_result_gen;
 END_RCPP
 }
 // WLS_wmat
-arma::mat WLS_wmat(arma::mat data, arma::vec means, int ncase, int nvar);
+arma::mat WLS_wmat(arma::mat data, arma::vec means, const int ncase, const int nvar);
 RcppExport SEXP _psychonetrics_WLS_wmat(SEXP dataSEXP, SEXP meansSEXP, SEXP ncaseSEXP, SEXP nvarSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type data(dataSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type means(meansSEXP);
-    Rcpp::traits::input_parameter< int >::type ncase(ncaseSEXP);
-    Rcpp::traits::input_parameter< int >::type nvar(nvarSEXP);
+    Rcpp::traits::input_parameter< const int >::type ncase(ncaseSEXP);
+    Rcpp::traits::input_parameter< const int >::type nvar(nvarSEXP);
     rcpp_result_gen = Rcpp::wrap(WLS_wmat(data, means, ncase, nvar));
     return rcpp_result_gen;
 END_RCPP
