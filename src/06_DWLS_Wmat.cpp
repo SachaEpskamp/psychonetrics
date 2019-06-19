@@ -3,6 +3,7 @@
 // we only include RcppArmadillo.h which pulls Rcpp.h in for us
 #include <RcppArmadillo.h>
 #include <math.h>
+#include <vector>
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -18,17 +19,29 @@ arma::sp_mat DWLS_wmat(
     const int nvar) {
   int i, j, g, h, p;
   
+  // // Asyptotic 2nd, 3rd and 4th order cov matrix:
+  // double secondorder[nvar][nvar];
+  // // double thirdorder[nvar][nvar][nvar];
+  // double fourthorder[nvar][nvar][nvar][nvar];
+  // 
   // Asyptotic 2nd, 3rd and 4th order cov matrix:
-  double secondorder[nvar][nvar];
-  // double thirdorder[nvar][nvar][nvar];
-  double fourthorder[nvar][nvar][nvar][nvar];
+  std::vector<double> secondorder(pow(nvar, 2));
+  // std::vector<double> thirdorder(pow(nvar, 3));
+  std::vector<double> fourthorder(pow(nvar, 4));
+  
+  // Trick from Joris
+  auto sec = [&](size_t s1, size_t s2)->double& { return secondorder[s1 + s2 * nvar]; };
+  // auto thi = [&](size_t s1, size_t s2, size_t s3)->double& { return thirdorder[s1 + s2 * nvar + s3 * nvar * nvar]; };
+  auto four = [&](size_t s1, size_t s2, size_t s3, size_t s4)->double& { return fourthorder[s1 + s2 * nvar+ s3 * nvar * nvar + s4 * nvar * nvar * nvar]; };
+  
+  
   for (p=0; p < ncase; p++){
     for (g = 0; g < nvar; g++){
       for (h = g; h < nvar; h ++){
         if (p==0){
-          secondorder[g][h] = 0;
+          sec(g, h) = 0;
         }
-        secondorder[g][h] += pow(ncase,-1.0) * (data(p,g) - means(g)) * (data(p,h) - means(h));
+        sec(g, h) += pow(ncase,-1.0) * (data(p,g) - means(g)) * (data(p,h) - means(h));
         for (i = 0; i < nvar; i++){
           // if (p==0){
           //   thirdorder[g][h][i] = 0;
@@ -36,9 +49,9 @@ arma::sp_mat DWLS_wmat(
           // thirdorder[g][h][i] += pow(ncase,-1.0) * (data(p,g) - means(g)) * (data(p,h) - means(h)) * (data(p,i) - means(i)) ;
           for (j = i; j < nvar; j ++){
             if (p==0){
-              fourthorder[i][j][g][h] = 0;
+              four(i,j,g,h) = 0;
             }
-            fourthorder[i][j][g][h] +=  pow(ncase,-1.0) *(data(p,i) - means(i)) * (data(p,j) - means(j)) * (data(p,g) - means(g)) * (data(p,h) - means(h));
+            four(i,j,g,h) +=  pow(ncase,-1.0) *(data(p,i) - means(i)) * (data(p,j) - means(j)) * (data(p,g) - means(g)) * (data(p,h) - means(h));
           }
         }
       }
@@ -78,7 +91,7 @@ arma::sp_mat DWLS_wmat(
     for (h = g; h < nvar; h ++){
       // Fill the mean part:
       if (g == h){
-        Wmat(g,h) = Wmat(h,g) = secondorder[g][h]; 
+        Wmat(g,h) = Wmat(h,g) = sec(g,h); 
       }
       
       for (i = 0; i < nvar; i++){
@@ -88,7 +101,7 @@ arma::sp_mat DWLS_wmat(
         for (j = i; j < nvar; j ++){
           // Fill the var by var part:
           if (rowind == colind){
-            Wmat(rowind,colind) =  Wmat(colind,rowind) = fourthorder[i][j][g][h] - (secondorder[i][j] * secondorder[g][h]);
+            Wmat(rowind,colind) =  Wmat(colind,rowind) = four(i,j,g,h) - (sec(i,j) * sec(g,h));
           }
           rowind++;
         }
