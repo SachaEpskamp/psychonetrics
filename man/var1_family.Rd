@@ -115,7 +115,7 @@ Sacha Epskamp
 
 
 \examples{
-\dontrun{
+\donttest{
 library("dplyr")
 
 # Obtain the data from:

@@ -208,8 +208,7 @@ mod1 \%>\% parameters
 
 # Look at modification indices:
 mod1 \%>\% MIs
-
-\dontrun{
+\donttest{
 # Add and refit:
 mod2 <- mod1 \%>\% freepar("sigma_epsilon","Q10","Q4") \%>\% runmodel
 

@@ -1,0 +1,7 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+readme.md
+logo.png
+README_figs
+\.gitignore
+psychonetrics\.Rproj
