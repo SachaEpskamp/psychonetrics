@@ -95,61 +95,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// multiply
-arma::sp_mat multiply(arma::sp_mat A, arma::sp_mat B);
-RcppExport SEXP _psychonetrics_multiply(SEXP ASEXP, SEXP BSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::sp_mat >::type A(ASEXP);
-    Rcpp::traits::input_parameter< arma::sp_mat >::type B(BSEXP);
-    rcpp_result_gen = Rcpp::wrap(multiply(A, B));
-    return rcpp_result_gen;
-END_RCPP
-}
-// rcpparma_hello_world
-arma::mat rcpparma_hello_world();
-RcppExport SEXP _psychonetrics_rcpparma_hello_world() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(rcpparma_hello_world());
-    return rcpp_result_gen;
-END_RCPP
-}
-// rcpparma_outerproduct
-arma::mat rcpparma_outerproduct(const arma::colvec& x);
-RcppExport SEXP _psychonetrics_rcpparma_outerproduct(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::colvec& >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(rcpparma_outerproduct(x));
-    return rcpp_result_gen;
-END_RCPP
-}
-// rcpparma_innerproduct
-double rcpparma_innerproduct(const arma::colvec& x);
-RcppExport SEXP _psychonetrics_rcpparma_innerproduct(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::colvec& >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(rcpparma_innerproduct(x));
-    return rcpp_result_gen;
-END_RCPP
-}
-// rcpparma_bothproducts
-Rcpp::List rcpparma_bothproducts(const arma::colvec& x);
-RcppExport SEXP _psychonetrics_rcpparma_bothproducts(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::colvec& >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(rcpparma_bothproducts(x));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp, 5},
@@ -158,11 +103,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp, 5},
     {"_psychonetrics_fimlEstimator_Gauss_group_cpp", (DL_FUNC) &_psychonetrics_fimlEstimator_Gauss_group_cpp, 6},
     {"_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp", (DL_FUNC) &_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp, 5},
-    {"_psychonetrics_multiply", (DL_FUNC) &_psychonetrics_multiply, 2},
-    {"_psychonetrics_rcpparma_hello_world", (DL_FUNC) &_psychonetrics_rcpparma_hello_world, 0},
-    {"_psychonetrics_rcpparma_outerproduct", (DL_FUNC) &_psychonetrics_rcpparma_outerproduct, 1},
-    {"_psychonetrics_rcpparma_innerproduct", (DL_FUNC) &_psychonetrics_rcpparma_innerproduct, 1},
-    {"_psychonetrics_rcpparma_bothproducts", (DL_FUNC) &_psychonetrics_rcpparma_bothproducts, 1},
     {NULL, NULL, 0}
 };
 

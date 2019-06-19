@@ -25,23 +25,3 @@ jacobian_fiml_gaussian_subgroup_sigma_cpp <- function(sigma, kappa, mu, fimldata
     .Call(`_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp`, sigma, kappa, mu, fimldata, epsilon)
 }
 
-multiply <- function(A, B) {
-    .Call(`_psychonetrics_multiply`, A, B)
-}
-
-rcpparma_hello_world <- function() {
-    .Call(`_psychonetrics_rcpparma_hello_world`)
-}
-
-rcpparma_outerproduct <- function(x) {
-    .Call(`_psychonetrics_rcpparma_outerproduct`, x)
-}
-
-rcpparma_innerproduct <- function(x) {
-    .Call(`_psychonetrics_rcpparma_innerproduct`, x)
-}
-
-rcpparma_bothproducts <- function(x) {
-    .Call(`_psychonetrics_rcpparma_bothproducts`, x)
-}
-
