@@ -14,8 +14,8 @@ using namespace arma;
 arma::sp_mat DWLS_wmat(
     arma::mat data,
     arma::vec means,
-    int ncase,
-    int nvar) {
+    const int ncase,
+    const int nvar) {
   int i, j, g, h, p;
   
   // Asyptotic 2nd, 3rd and 4th order cov matrix:

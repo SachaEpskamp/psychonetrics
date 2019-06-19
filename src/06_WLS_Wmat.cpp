@@ -14,14 +14,17 @@ using namespace arma;
 arma::mat WLS_wmat(
     arma::mat data,
     arma::vec means,
-    int ncase,
-    int nvar) {
+    const int ncase,
+    const int nvar) {
   int i, j, g, h, p;
   
   // Asyptotic 2nd, 3rd and 4th order cov matrix:
   double secondorder[nvar][nvar];
   double thirdorder[nvar][nvar][nvar];
   double fourthorder[nvar][nvar][nvar][nvar];
+  
+  
+  
   for (p=0; p < ncase; p++){
     for (g = 0; g < nvar; g++){
       for (h = g; h < nvar; h ++){
