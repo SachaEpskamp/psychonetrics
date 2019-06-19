@@ -143,7 +143,7 @@ An object of the class psychonetrics (\link{psychonetrics-class})
 Sacha Epskamp
 }
 \examples{
-\donttest{
+\dontrun{
 # Obtain the data from:
 #
 # Epskamp, S., van Borkulo, C. D., van der Veen, D. C., Servaas, M. N., Isvoranu, A. M., 
