@@ -172,6 +172,7 @@ Sacha Epskamp
 }
 
 \examples{
+\dontrun{
 library("dplyr")
 
 ### Confirmatory Factor Analysis ###
@@ -209,7 +210,6 @@ mod1 \%>\% parameters
 # Look at modification indices:
 mod1 \%>\% MIs
 
-\dontrun{
 # Add and refit:
 mod2 <- mod1 \%>\% freepar("sigma_epsilon","Q10","Q4") \%>\% runmodel
 
@@ -365,17 +365,17 @@ ggmmod \%>\% fit
 
 # Plot network:
 nodeNames <- c(
-"I am a huge Star Wars\nfan! (star what?)",
-"I would trust this person\nwith my democracy.",
-"I enjoyed the story of\nAnakin's early life.",
-"The special effects in\nthis scene are awful (Battle of\nGeonosis).",
-"I would trust this person\nwith my life.",
-"I found Darth Vader's big\nreveal in 'Empire' one of the greatest
+"I am a huge Star Wars\\nfan! (star what?)",
+"I would trust this person\\nwith my democracy.",
+"I enjoyed the story of\\nAnakin's early life.",
+"The special effects in\\nthis scene are awful (Battle of\\nGeonosis).",
+"I would trust this person\\nwith my life.",
+"I found Darth Vader's big\\nreveal in 'Empire' one of the greatest
 moments in movie history.",
-"The special effects in\nthis scene are amazing (Death Star\nExplosion).",
-"If possible, I would\ndefinitely buy this\ndroid.",
-"The story in the Star\nWars sequels is an improvement to\nthe previous movies.",
-"The special effects in\nthis scene are marvellous (Starkiller\nBase Firing)."
+"The special effects in\\nthis scene are amazing (Death Star\\nExplosion).",
+"If possible, I would\\ndefinitely buy this\\ndroid.",
+"The story in the Star\\nWars sequels is an improvement to\\nthe previous movies.",
+"The special effects in\\nthis scene are marvellous (Starkiller\\nBase Firing)."
 )
 library("qgraph")
 qgraph(as.matrix(ggmmod@modelmatrices[[1]]$omega), nodeNames = nodeNames, 
