@@ -35,6 +35,8 @@ An object of the class psychonetrics (\link{psychonetrics-class}). See for an ex
 Sacha Epskamp
 }
 \example{
+library("dplyr")
+
 # Smoke data cov matrix, based on LISS data panel https://www.dataarchive.lissdata.nl
 smoke <- structure(c(47.2361758611759, 43.5366809116809, 41.0057465682466, 
                      38.1397306397306, 43.5366809116809, 57.9789886039886, 47.6992521367521, 
