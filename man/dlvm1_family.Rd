@@ -184,27 +184,24 @@ library("dplyr")
 
 # Smoke data cov matrix, based on LISS data panel https://www.dataarchive.lissdata.nl
 smoke <- structure(c(47.2361758611759, 43.5366809116809, 41.0057465682466, 
-                     38.1397306397306, 43.5366809116809, 57.9789886039886, 
-                     47.6992521367521, 45.1153846153846, 41.0057465682466, 
-                     47.6992521367521, 53.0669434731935, 45.226948976949, 
-                     38.1397306397306, 45.1153846153846, 45.226948976949, 
-                     53.7296037296037), .Dim = c(4L, 4L), .Dimnames = list(c("smoke2008", 
-                     "smoke2009", "smoke2010", "smoke2011"), c("smoke2008", "smoke2009", 
-                      "smoke2010", "smoke2011")))
+                     43.5366809116809, 57.9789886039886, 47.6992521367521, 
+                     41.0057465682466, 
+                     47.6992521367521, 53.0669434731935), .Dim = c(3L, 3L), 
+                   .Dimnames = list(
+                       c("smoke2008", "smoke2009", "smoke2010"), c("smoke2008", 
+                   "smoke2009", "smoke2010")))
 
 # Design matrix:
-design <- matrix(rownames(smoke),1,4)
+design <- matrix(rownames(smoke),1,3)
 
 # Form model:
 mod <- panelvar(vars = design, 
-             covs = smoke, nobs = 352
-             )
+                covs = smoke, nobs = 352
+)
 
 # Run model:
 mod <- mod \%>\% runmodel
 
-\dontrun{
 # Evaluate fit:
 mod \%>\% fit
-}
 }
