@@ -54,6 +54,7 @@ mod <- latentgrowth(vars = design,
                 covs = smoke, nobs = 352
 )
 
+\dontrun{
 # Run model:
 mod <- mod \%>\% runmodel
 
@@ -62,5 +63,6 @@ mod \%>\% fit
 
 # Look at parameters:
 mod \%>\% parameters
+}
 }
 
