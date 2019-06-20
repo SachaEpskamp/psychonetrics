@@ -115,9 +115,29 @@ Sacha Epskamp
 
 
 \examples{
-\dontrun{
 library("dplyr")
+library("graphicalVAR")
 
+beta <- matrix(c(
+  0,0.5,
+  0.5,0
+),2,2,byrow=TRUE)
+kappa <- diag(2)
+simData <- graphicalVARsim(50, beta, kappa)
+
+# Form model:
+model <- gvar(simData)
+
+# Evaluate model:
+model <- model \%>\% runmodel
+
+# Parameter estimates:
+model \%>\% parameters
+
+
+\dontrun{
+# Longer example:
+#
 # Obtain the data from:
 #
 # Epskamp, S., van Borkulo, C. D., van der Veen, D. C., Servaas, M. N., Isvoranu, A. M., 

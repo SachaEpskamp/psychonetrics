@@ -172,7 +172,6 @@ Sacha Epskamp
 }
 
 \examples{
-\dontrun{
 library("dplyr")
 
 ### Confirmatory Factor Analysis ###
@@ -182,6 +181,21 @@ library("dplyr")
 # Load data:
 data(StarWars)
 
+# Originals only:
+Lambda <- matrix(1,4)
+
+# Model:
+mod0 <- lvm(StarWars, lambda = Lambda, vars = c("Q1","Q5","Q6","Q7"), 
+            identification = "variance", latents = "Originals")
+            
+# Run model:
+mod0 <- mod0 \%>\% runmodel
+
+# Evaluate fit:
+mod0 \%>\% fit
+
+\dontrun{
+# Full analysis
 # Factor loadings matrix:
 Lambda <- matrix(0, 10, 3)
 Lambda[1:4,1] <- 1

@@ -142,10 +142,10 @@ vars <- names(ConsData)[1:5]
 # Let's fit an empty GGM:
 mod0 <- ggm(ConsData, vars = vars, omega = "empty")
 
-\dontrun{
 # Run the model:
 mod0 <- mod0 \%>\% runmodel
 
+\dontrun{
 # We can look at the modification indices:
 mod0 \%>\% MIs
 
