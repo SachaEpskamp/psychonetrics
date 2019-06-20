@@ -34,7 +34,7 @@ An object of the class psychonetrics (\link{psychonetrics-class}). See for an ex
 \author{
 Sacha Epskamp
 }
-\example{
+\examples{
 library("dplyr")
 
 # Smoke data cov matrix, based on LISS data panel https://www.dataarchive.lissdata.nl
