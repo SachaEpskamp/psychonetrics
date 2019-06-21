@@ -31,7 +31,9 @@ A string indicating the optimizer to be used
 Logical indicating if C++ should be used (currently only used in FIML)
 }
 }
-
+\value{
+An object of the class psychonetrics (\link{psychonetrics-class})
+}
 \author{
 Sacha Epskamp
 }

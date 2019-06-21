@@ -194,7 +194,7 @@ mod0 <- mod0 \%>\% runmodel
 # Evaluate fit:
 mod0 \%>\% fit
 
-\dontrun{
+\donttest{
 # Full analysis
 # Factor loadings matrix:
 Lambda <- matrix(0, 10, 3)

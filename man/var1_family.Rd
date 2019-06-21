@@ -134,7 +134,8 @@ model <- model \%>\% runmodel
 # Parameter estimates:
 model \%>\% parameters
 
-
+# Note: this example is wrapped in a dontrun environment because the data is not 
+# available locally.
 \dontrun{
 # Longer example:
 #

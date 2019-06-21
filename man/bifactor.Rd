@@ -28,7 +28,9 @@ Name of the bifactor
 Arguments sent to \code{\link{lvm}}
 }
 }
-
+\value{
+An object of the class psychonetrics (\link{psychonetrics-class})
+}
 \author{
 Sacha Epskamp
 }

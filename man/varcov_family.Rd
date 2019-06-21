@@ -145,7 +145,7 @@ mod0 <- ggm(ConsData, vars = vars, omega = "empty")
 # Run the model:
 mod0 <- mod0 \%>\% runmodel
 
-\dontrun{
+\donttest{
 # We can look at the modification indices:
 mod0 \%>\% MIs
 

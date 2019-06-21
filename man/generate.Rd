@@ -23,3 +23,6 @@ Number of cases to sample per group.
 \author{
 Sacha Epskamp
 }
+\value{
+A data frame with simulated data
+}
