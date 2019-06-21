@@ -155,6 +155,7 @@ addfit <- function(
 
   # fitMeasures$rmsea <- sqrt( max(Tm - dfm,0) / (sampleSize * dfm))
   fitMeasures$rmsea <-  sqrt( max( c((Tm/sampleSize)/dfm - 1/sampleSize, 0) ) )
+  if (!is.finite(fitMeasures$rmsea)) fitMeasures$rmsea <- NA
   
   # FIXME: Multi-group correction from lavaan source code:
   nGroups <- nrow(x@sample@groups)

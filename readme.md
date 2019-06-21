@@ -1,4 +1,4 @@
-![img](logo.png)
+Psychonetrics
 ================
 Sacha Epskamp
 
@@ -102,6 +102,8 @@ model <- model %>% runmodel
 
     ## Estimating model...
 
+    ## Computing Fisher information...
+
     ## Computing modification indices...
 
 This will compute the baseline and saturated model as well, which are stored in the object so they don't have to be computed again. We can now print the model to obtain some information:
@@ -121,8 +123,8 @@ model
     ##  
     ## 
     ## General: 
-    ##  - psychonetrics version: 0.1.2 
-    ##  - Model last edited at: 2019-03-06 10:02:51
+    ##  - psychonetrics version: 0.3.1 
+    ##  - Model last edited at: 2019-06-21 21:58:27
     ## 
     ## Sample: 
     ##  - Number of cases: 1562 
@@ -130,18 +132,19 @@ model
     ##  - Number of observed summary statistics: 350
     ## 
     ## Model: 
-    ##  - model used: Gaussian graphical model (GGM) 
+    ##  - Model used: Variance-covariance matrix (varcov) 
+    ##  - Submodel used: Gaussian graphical model (GGM) 
     ##  - Number of parameters: 350
     ## 
     ## Estimation: 
     ##  - Optimizer used: nlminb 
     ##  - Estimator used: Maximum likelihood estimation (ML) 
-    ##  - Message: both X-convergence and relative convergence (5)
+    ##  - Message: relative convergence (4)
     ## 
     ## Fit: 
     ##  - Model Fit Test Statistic: < 0.0001 
     ##  - Degrees of freedom: 0 
-    ##  - p-value (Chi-square): 1
+    ##  - p-value (Chi-square): < 0.0001
     ## 
     ## Tips: 
     ##  - Use 'psychonetrics::compare' to compare psychonetrics models 
@@ -155,25 +158,11 @@ Since the model is saturated, this is not that interesting. Let's check the esti
 model %>% parameters
 ```
 
-    ## 
-    ##  Parameters for group 1
-  
-  			(...)
-  			
-    ## 
-    ##  -  omega (symmetric) 
-    ##  var1 op var2      est    se        p row col par
-    ##    A2 --   A1    -0.23 0.024 < 0.0001   2   1  26
-    ##    A3 --   A1    -0.16 0.025 < 0.0001   3   1  27
-  
-    			(...)
-  
     ##    N4 --   A5   -0.015 0.025     0.56  19   5 129
     ##    N5 --   A5    0.055 0.025    0.029  20   5 130
     ##    O1 --   A5 -0.00093 0.025     0.97  21   5 131
     ##    O2 --   A5    0.015 0.025     0.54  22   5 132
 
-  			(...)
 
 The edge *O1 -- A5* is estimated to be near zero, so let's try removing this edge:
 
@@ -191,6 +180,8 @@ model2 <- model2 %>% runmodel
 
     ## Estimating model...
 
+    ## Computing Fisher information...
+
     ## Computing modification indices...
 
 We can compare the two models:
@@ -199,11 +190,12 @@ We can compare the two models:
 compare(model, model2)
 ```
 
-    ##    model DF       AIC       BIC    Chisq Chisq_diff DF_diff p_value
-    ##  Model 1  0 125975.19 127848.99 < 0.0001                           
-    ##  Model 2  1 125973.19 127841.64   0.0013     0.0013       1    0.97
-    ## 
-    ## Note: Chi-square difference test assumes models are nested.
+    ##     model DF      AIC      BIC RMSEA        Chisq  Chisq_diff DF_diff
+    ## 1 Model 1  0 125975.2 127849.0    NA 8.528586e-07          NA      NA
+    ## 2 Model 2  1 125973.2 127841.6     0 1.348750e-03 0.001347897       1
+    ##     p_value
+    ## 1        NA
+    ## 2 0.9707133
 
 Removing the edge improved our model. The *prune* function can be used to automatically and recursively remove any parameter that is not significant at some *α* level
 
@@ -215,11 +207,15 @@ prunedmodel <- model2 %>% prune(alpha = 0.01, recursive = TRUE)
 
     ## Estimating model...
 
+    ## Computing Fisher information...
+
     ## Computing modification indices...
 
     ## Clearing 6 parameters!
 
     ## Estimating model...
+
+    ## Computing Fisher information...
 
     ## Computing modification indices...
 
@@ -227,16 +223,14 @@ prunedmodel <- model2 %>% prune(alpha = 0.01, recursive = TRUE)
 compare(saturated = model, nearsaturated = model2, pruned = prunedmodel)
 ```
 
-    ##          model  DF       AIC       BIC    Chisq Chisq_diff DF_diff
-    ##      saturated   0 125975.19 127848.99 < 0.0001                   
-    ##  nearsaturated   1 125973.19 127841.64   0.0013     0.0013       1
-    ##         pruned 206 126082.68 126853.61   519.49     519.48     205
-    ##   p_value
-    ##          
-    ##      0.97
-    ##  < 0.0001
-    ## 
-    ## Note: Chi-square difference test assumes models are nested.
+    ##           model  DF      AIC      BIC      RMSEA        Chisq   Chisq_diff
+    ## 1     saturated   0 125975.2 127849.0         NA 8.528586e-07           NA
+    ## 2 nearsaturated   1 125973.2 127841.6 0.00000000 1.348750e-03 1.347897e-03
+    ## 3        pruned 206 126082.7 126853.6 0.03121292 5.194852e+02 5.194839e+02
+    ##   DF_diff      p_value
+    ## 1      NA           NA
+    ## 2       1 9.707133e-01
+    ## 3     205 3.213195e-29
 
 The pruned model has a much better BIC, although the comparison with regard to AIC and *χ*<sup>2</sup> is less strong in favor of this pruned model. We can also look at the modification indices:
 
@@ -247,17 +241,17 @@ prunedmodel %>% MIs
     ## 
     ## Top 10 modification indices:
     ## 
-    ##  var1 op var2 est    mi      pmi epc matrix row col group
-    ##    C1 --   A1   0 19.72 < 0.0001      omega   6   1     1
-    ##    C2 --   A1   0 14.94  0.00011      omega   7   1     1
-    ##    E5 --   C2   0 14.59  0.00013      omega  15   7     1
-    ##    N5 --   A4   0 13.64  0.00022      omega  20   4     1
-    ##    O4 --   N4   0 11.97  0.00054      omega  24  19     1
-    ##    O5 --   N5   0 11.70  0.00062      omega  25  20     1
-    ##    E5 --   C5   0 11.59  0.00066      omega  15  10     1
-    ##    C5 --   A1   0 11.44  0.00072      omega  10   1     1
-    ##    O5 --   N1   0 10.84  0.00099      omega  25  16     1
-    ##    O5 --   E2   0 10.57   0.0011      omega  25  12     1
+    ##  var1 op var2 est    mi      pmi    epc matrix row col      group group_id
+    ##    C1 --   A1   0 19.72 < 0.0001  0.094  omega   6   1 fullsample        1
+    ##    C2 --   A1   0 14.94  0.00011  0.081  omega   7   1 fullsample        1
+    ##    E5 --   C2   0 14.59  0.00013  0.083  omega  15   7 fullsample        1
+    ##    N5 --   A4   0 13.64  0.00022  0.077  omega  20   4 fullsample        1
+    ##    O4 --   N4   0 11.97  0.00054  0.080  omega  24  19 fullsample        1
+    ##    O5 --   N5   0 11.70  0.00062  0.072  omega  25  20 fullsample        1
+    ##    E5 --   C5   0 11.59  0.00066 -0.067  omega  15  10 fullsample        1
+    ##    C5 --   A1   0 11.44  0.00072 -0.074  omega  10   1 fullsample        1
+    ##    O5 --   N1   0 10.84  0.00099  0.050  omega  25  16 fullsample        1
+    ##    O5 --   E2   0 10.57   0.0011  0.070  omega  25  12 fullsample        1
 
 By default, only the top 10 modification indices are shown, but this can be changed with `MIs(all = TRUE)`. We can try to add one edge to the model:
 
@@ -270,6 +264,8 @@ model3 <- prunedmodel %>% freepar("omega","A1","C1") %>% runmodel
 
     ## Estimating model...
 
+    ## Computing Fisher information...
+
     ## Computing modification indices...
 
 ``` r
@@ -278,18 +274,16 @@ compare(saturated = model, nearsaturated = model2,
         pruned = prunedmodel, lastmodel = model3)
 ```
 
-    ##          model  DF       AIC       BIC    Chisq Chisq_diff DF_diff
-    ##      saturated   0 125975.19 127848.99 < 0.0001                   
-    ##  nearsaturated   1 125973.19 127841.64   0.0013     0.0013       1
-    ##      lastmodel 205 126064.95 126841.24   499.76     499.76     204
-    ##         pruned 206 126082.68 126853.61   519.49      19.73       1
-    ##   p_value
-    ##          
-    ##      0.97
-    ##  < 0.0001
-    ##  < 0.0001
-    ## 
-    ## Note: Chi-square difference test assumes models are nested.
+    ##           model  DF      AIC      BIC      RMSEA        Chisq   Chisq_diff
+    ## 1     saturated   0 125975.2 127849.0         NA 8.528586e-07           NA
+    ## 2 nearsaturated   1 125973.2 127841.6 0.00000000 1.348750e-03 1.347897e-03
+    ## 3     lastmodel 205 126065.0 126841.2 0.03034006 4.997594e+02 4.997581e+02
+    ## 4        pruned 206 126082.7 126853.6 0.03121292 5.194852e+02 1.972579e+01
+    ##   DF_diff      p_value
+    ## 1      NA           NA
+    ## 2       1 9.707133e-01
+    ## 3     204 7.911584e-27
+    ## 4       1 8.938710e-06
 
 We can see that this model fits better. There is an automated function in *psychonetrics* that adds edges according to modification indices at a given level of *α*, which will stop searching by default if BIC is no longer increased:
 
@@ -301,20 +295,18 @@ model_stepup <- model3 %>% stepup
 compare(saturated = model, nearsaturated = model2, pruned = prunedmodel, oneMIadded = model3, stepup = model_stepup)
 ```
 
-    ##          model  DF       AIC       BIC    Chisq Chisq_diff DF_diff
-    ##      saturated   0 125975.19 127848.99 < 0.0001                   
-    ##  nearsaturated   1 125973.19 127841.64   0.0013     0.0013       1
-    ##         stepup 192 125954.11 126800.00   362.92     362.92     191
-    ##     oneMIadded 205 126064.95 126841.24   499.76     136.84      13
-    ##         pruned 206 126082.68 126853.61   519.49      19.73       1
-    ##   p_value
-    ##          
-    ##      0.97
-    ##  < 0.0001
-    ##  < 0.0001
-    ##  < 0.0001
-    ## 
-    ## Note: Chi-square difference test assumes models are nested.
+    ##           model  DF      AIC      BIC      RMSEA        Chisq   Chisq_diff
+    ## 1     saturated   0 125975.2 127849.0         NA 8.528586e-07           NA
+    ## 2 nearsaturated   1 125973.2 127841.6 0.00000000 1.348750e-03 1.347897e-03
+    ## 3        stepup 192 125954.1 126800.0 0.02387301 3.629215e+02 3.629201e+02
+    ## 4    oneMIadded 205 126065.0 126841.2 0.03034006 4.997594e+02 1.368379e+02
+    ## 5        pruned 206 126082.7 126853.6 0.03121292 5.194852e+02 1.972579e+01
+    ##   DF_diff      p_value
+    ## 1      NA           NA
+    ## 2       1 9.707133e-01
+    ## 3     191 8.656480e-13
+    ## 4      13 9.038185e-23
+    ## 5       1 8.938710e-06
 
 Which leads to a best fitting model according to all indices.. This leads to an efficient estimation algorithm by combining the two. For example, `model %>% runmodel %>% prune %>% stepup` will estimate a model structure relatively fast, while `model %>% runmodel %>% stepup %>% prune` will be slower but generally more conservative. all these model modifications we made are actually stored in the *psychonetrics* object. For example:
 
@@ -325,6 +317,9 @@ data.frame(
 )
 ```
 
+             timestamp
+
+1 2019-06-21 21:55:54 2 2019-06-21 21:58:27 3 2019-06-21 21:58:27 4 2019-06-21 21:58:35 5 2019-06-21 21:58:35 6 2019-06-21 21:58:45 7 2019-06-21 21:58:45 8 2019-06-21 21:58:52 9 2019-06-21 21:58:52 10 2019-06-21 21:58:52 11 2019-06-21 21:59:01 12 2019-06-21 22:00:56 event 1 Model created 2 Evaluated model 3 Fixed element(s) of omega: 1 parameters! 4 Evaluated model 5 Pruned all parameters in matrices omega at alpha = 0.01 6 Evaluated model 7 Pruned all parameters in matrices omega at alpha = 0.01 8 Evaluated model 9 Pruned all parameters in matrices omega at alpha = 0.01 (none were removed) 10 Freed element(s) of omega: 1 parameters! 11 Evaluated model 12 Performed step-up model search
 
 Obtaining a network from bootnet
 --------------------------------
@@ -339,12 +334,16 @@ net <- estimateNetwork(trainingData[,vars], default = "ggmModSelect", verbose = 
 We can transform this into a psychonetrics object and refit the model:
 
 ``` r
-model_frombootnet <- frombootnet(net) %>% runmodel
+network <- 1*(net$graph != 0)
+model_frombootnet <- ggm(trainingData, vars = vars, omega = network) %>% 
+  runmodel
 ```
 
     ## Estimating baseline model...
 
     ## Estimating model...
+
+    ## Computing Fisher information...
 
     ## Computing modification indices...
 
@@ -354,11 +353,12 @@ And compare it to our model:
 compare(ggmModSelect = model_frombootnet, psychonetrics = model_stepup)
 ```
 
-    ##          model  DF       AIC       BIC  Chisq Chisq_diff DF_diff  p_value
-    ##   ggmModSelect 173 125905.33 126852.94 276.14                            
-    ##  psychonetrics 192 125954.11 126800.00 362.92      86.78      19 < 0.0001
-    ## 
-    ## Note: Chi-square difference test assumes models are nested.
+    ##           model  DF      AIC      BIC      RMSEA    Chisq Chisq_diff
+    ## 1  ggmModSelect 173 125905.3 126852.9 0.01953653 276.1388         NA
+    ## 2 psychonetrics 192 125954.1 126800.0 0.02387301 362.9215   86.78266
+    ##   DF_diff      p_value
+    ## 1      NA           NA
+    ## 2      19 1.226178e-10
 
 Which results in a comparable fit.
 
@@ -369,8 +369,8 @@ The package does not contain plotting methods yet, but does return the estimated
 
 ``` r
 library("qgraph")
-stepup_net <- model_stepup@modelmatrices$`1`$omega
-bootnet_net <- model_frombootnet@modelmatrices$`1`$omega
+stepup_net <- getmatrix(model_stepup, "omega")
+bootnet_net <- getmatrix(model_frombootnet, "omega")
 L <- averageLayout(as.matrix(stepup_net), as.matrix(bootnet_net))
 layout(t(1:2))
 qgraph(stepup_net, labels = vars, theme = "colorblind", 
@@ -387,7 +387,7 @@ Confirmatory fit
 Now let's take our model (let's use only the psychonetrics estimated model) and fit it to the test data:
 
 ``` r
-adjacency <- 1*(model_stepup@modelmatrices$`1`$omega!=0)
+adjacency <- 1*(getmatrix(model_stepup, "omega")!=0)
 confirmatory <- ggm(testData, vars = vars, omega = adjacency)
 confirmatory <- confirmatory %>% runmodel
 ```
@@ -395,6 +395,8 @@ confirmatory <- confirmatory %>% runmodel
     ## Estimating baseline model...
 
     ## Estimating model...
+
+    ## Computing Fisher information...
 
     ## Computing modification indices...
 
@@ -436,8 +438,10 @@ confirmatory %>% fit
     ##             aic.x2    791.49
     ##                bic  71295.50
     ##               bic2  70793.73
-    ##               ebic  71804.09
-    ##         ebicTuning      0.25
+    ##            ebic.25  71804.09
+    ##             ebic.5  72312.67
+    ##            ebic.75  72719.53
+    ##              ebic1  73329.83
 
 Multi-group analysis
 --------------------
@@ -486,8 +490,10 @@ groupmodel %>% fit
     ##             aic.x2   1291.50
     ##                bic 127469.68
     ##               bic2 126465.82
-    ##               ebic 128486.84
-    ##         ebicTuning      0.25
+    ##            ebic.25 128486.84
+    ##             ebic.5 129504.01
+    ##            ebic.75 130317.74
+    ##              ebic1 131538.34
 
 Next, I can constrain all edges to be equal:
 
@@ -500,6 +506,8 @@ groupmodel_2 <- groupmodel %>% groupequal("omega") %>% runmodel
 
     ## Estimating model...
 
+    ## Computing Fisher information...
+
     ## Computing modification indices...
 
 ``` r
@@ -507,11 +515,12 @@ groupmodel_2 <- groupmodel %>% groupequal("omega") %>% runmodel
 compare(configural = groupmodel, metric = groupmodel_2)
 ```
 
-    ##       model  DF       AIC       BIC  Chisq Chisq_diff DF_diff  p_value
-    ##  configural 384 125777.90 127469.68 659.50                            
-    ##      metric 492 125737.35 126850.92 834.95     175.44     108 < 0.0001
-    ## 
-    ## Note: Chi-square difference test assumes models are nested.
+    ##        model  DF      AIC      BIC      RMSEA    Chisq Chisq_diff DF_diff
+    ## 1 configural 384 125777.9 127469.7 0.03030893 659.5012         NA      NA
+    ## 2     metric 492 125737.3 126850.9 0.02987478 834.9459   175.4447     108
+    ##       p_value
+    ## 1          NA
+    ## 2 4.39028e-05
 
 The model with constrained edges is confirmed. However, I can look at the equality-free modification indices (note: this is very experimental still and may not be the best method for this):
 
@@ -522,17 +531,17 @@ groupmodel_2 %>% MIs(type = "free")
     ## 
     ## Top 10 equality-free modification indices:
     ## 
-    ##  var1 op var2        est mi_free pmi_free epc_free matrix row col group
-    ##    E5 --   E4 0.00000000   25.58 < 0.0001           omega  15  14     2
-    ##    E2 --   C5 0.08470832   12.92  0.00032           omega  12  10     2
-    ##    E5 --   A4 0.00000000   12.61  0.00038           omega  15   4     1
-    ##    C4 --   A3 0.00000000   12.17  0.00049           omega   9   3     2
-    ##    E4 --   E3 0.12475596   11.28  0.00078           omega  14  13     2
-    ##    N4 --   A3 0.00000000   10.62   0.0011           omega  19   3     2
-    ##    C5 --   A3 0.00000000   10.39   0.0013           omega  10   3     2
-    ##    E3 --   E1 0.00000000   10.27   0.0014           omega  13  11     2
-    ##    E1 --   C5 0.00000000    9.86   0.0017           omega  11  10     1
-    ##    E5 --   E3 0.13680946    9.00   0.0027           omega  15  13     2
+    ##  var1 op var2 est mi_free pmi_free epc_free matrix row col group group_id
+    ##    E5 --   E4   0   25.58 < 0.0001           omega  15  14     1        1
+    ##    E5 --   A4   0   12.61  0.00038           omega  15   4     2        2
+    ##    C4 --   A3   0   12.17  0.00049           omega   9   3     1        1
+    ##    N4 --   A3   0   10.62   0.0011           omega  19   3     1        1
+    ##    C5 --   A3   0   10.39   0.0013           omega  10   3     1        1
+    ##    E3 --   E1   0   10.27   0.0014           omega  13  11     1        1
+    ##    E1 --   C5   0    9.86   0.0017           omega  11  10     2        2
+    ##    E4 --   C3   0    8.82   0.0030           omega  14   8     1        1
+    ##    O5 --   N3   0    8.72   0.0031           omega  25  18     1        1
+    ##    O3 --   A4   0    8.53   0.0035           omega  23   4     2        2
 
 And see that there are several edges that are included in the model but could improve fit when freed. Let's only look at the first two:
 
@@ -549,16 +558,20 @@ groupmodel_3 <- groupmodel_2 %>%
 
     ## Estimating model...
 
+    ## Computing Fisher information...
+
 ``` r
 compare(configural = groupmodel, metric = groupmodel_2, metric_adjusted = groupmodel_3)
 ```
 
-    ##            model  DF       AIC       BIC  Chisq Chisq_diff DF_diff p_value
-    ##       configural 384 125777.90 127469.68 659.50                           
-    ##  metric_adjusted 491 125729.27 126848.20 824.87     165.37     107 0.00025
-    ##           metric 492 125737.35 126850.92 834.95      10.08       1  0.0015
-    ## 
-    ## Note: Chi-square difference test assumes models are nested.
+    ##             model  DF      AIC      BIC      RMSEA    Chisq Chisq_diff
+    ## 1      configural 384 125777.9 127469.7 0.03030893 659.5012         NA
+    ## 2 metric_adjusted 491 125729.3 126848.2 0.02950670 824.8673  165.36606
+    ## 3          metric 492 125737.3 126850.9 0.02987478 834.9459   10.07867
+    ##   DF_diff      p_value
+    ## 1      NA           NA
+    ## 2     107 0.0002537147
+    ## 3       1 0.0014999592
 
 This improved the fit of the model, giving evidence that the edges E2 (find it difficult to approach others) - C5 (waste my time) and E5 (take charge) - A4 (love children) differ across genders. Let's try to confirm this in the test data (not computing modification indices to increase speed):
 
@@ -571,13 +584,18 @@ groupmodel_test_configural <-  ggm(testData, vars = vars, omega = adjacency, gro
 
     ## Estimating model...
 
+    ## Computing Fisher information...
+
 ``` r
 groupmodel_test_metric <- groupmodel_test_configural %>% groupequal("omega") %>% 
   runmodel(addMIs = FALSE)
 ```
 
     ## Constrained 108 parameters!
+
     ## Estimating model...
+
+    ## Computing Fisher information...
 
 ``` r
 groupmodel_test_metric_adjusted <- groupmodel_test_metric  %>% 
@@ -592,6 +610,8 @@ groupmodel_test_metric_adjusted <- groupmodel_test_metric  %>%
 
     ## Estimating model...
 
+    ## Computing Fisher information...
+
 ``` r
 compare(
   configural = groupmodel_test_configural, 
@@ -599,12 +619,14 @@ compare(
   metric_adjusted = groupmodel_test_metric_adjusted)
 ```
 
-    ##            model  DF      AIC      BIC  Chisq Chisq_diff DF_diff p_value
-    ##       configural 384 70490.25 71998.54 713.95                           
-    ##  metric_adjusted 491 70428.63 71426.21 866.34     152.39     107  0.0026
-    ##           metric 492 70431.27 71424.07 870.98       4.64       1   0.031
-    ## 
-    ## Note: Chi-square difference test assumes models are nested.
+    ##             model  DF      AIC      BIC      RMSEA    Chisq Chisq_diff
+    ## 1      configural 384 70490.25 71998.54 0.04434246 713.9531         NA
+    ## 2 metric_adjusted 491 70428.63 71426.21 0.04182447 866.3391 152.386045
+    ## 3          metric 492 70431.27 71424.07 0.04198391 870.9766   4.637459
+    ##   DF_diff     p_value
+    ## 1      NA          NA
+    ## 2     107 0.002616962
+    ## 3       1 0.031281287
 
 Which provides mixed support, as BIC is lower for the metric model but AIC is lower for the adjusted model.
 
@@ -634,7 +656,7 @@ fit <- cfa(HS.model, data=HolzingerSwineford1939)
 fit
 ```
 
-    ## lavaan 0.6-4.1351 ended normally after 35 iterations
+    ## lavaan 0.6-3 ended normally after 35 iterations
     ## 
     ##   Optimization method                           NLMINB
     ##   Number of free parameters                         21
@@ -665,6 +687,8 @@ lnmMod <- lnmMod %>% runmodel
 
     ## Estimating model...
 
+    ## Computing Fisher information...
+
     ## Computing modification indices...
 
 ``` r
@@ -682,8 +706,8 @@ lnmMod
     ##  
     ## 
     ## General: 
-    ##  - psychonetrics version: 0.1.2 
-    ##  - Model last edited at: 2019-03-06 10:26:42
+    ##  - psychonetrics version: 0.3.1 
+    ##  - Model last edited at: 2019-06-21 22:05:13
     ## 
     ## Sample: 
     ##  - Number of cases: 301 
@@ -691,13 +715,14 @@ lnmMod
     ##  - Number of observed summary statistics: 54
     ## 
     ## Model: 
-    ##  - model used: Latent Network Model (LNM) 
+    ##  - Model used: Latent variable model (LVM) 
+    ##  - Submodel used: Latent Network Model (LNM) 
     ##  - Number of parameters: 30
     ## 
     ## Estimation: 
-    ##  - Optimizer used: ucminf 
+    ##  - Optimizer used: nlminb 
     ##  - Estimator used: Maximum likelihood estimation (ML) 
-    ##  - Message: Stopped by small gradient (grtol).
+    ##  - Message: relative convergence (4)
     ## 
     ## Fit: 
     ##  - Model Fit Test Statistic: 85.31 
@@ -720,17 +745,20 @@ lnmMod2 <- lnmMod %>% fixpar("omega_zeta","speed","textual") %>% runmodel
 
     ## Estimating model...
 
+    ## Computing Fisher information...
+
     ## Computing modification indices...
 
 ``` r
 compare(lnmMod2, lnmMod)
 ```
 
-    ##    model DF     AIC     BIC Chisq Chisq_diff DF_diff p_value
-    ##  Model 2 24 7535.49 7646.70 85.31                           
-    ##  Model 1 25 7534.49 7642.00 86.31       1.00       1    0.32
-    ## 
-    ## Note: Chi-square difference test assumes models are nested.
+    ##     model DF      AIC      BIC      RMSEA    Chisq Chisq_diff DF_diff
+    ## 1 Model 2 24 7535.490 7646.703 0.09212148 85.30552         NA      NA
+    ## 2 Model 1 25 7534.494 7642.001 0.09026361 86.31009   1.004565       1
+    ##     p_value
+    ## 1        NA
+    ## 2 0.3162085
 
 Which improves the fit.
 
@@ -765,7 +793,7 @@ fit <- sem(model, data=PoliticalDemocracy)
 fit
 ```
 
-    ## lavaan 0.6-4.1351 ended normally after 40 iterations
+    ## lavaan 0.6-3 ended normally after 40 iterations
     ## 
     ##   Optimization method                           NLMINB
     ##   Number of free parameters                         25
@@ -803,6 +831,8 @@ rnmMod <- rnmMod %>% runmodel
 
     ## Estimating model...
 
+    ## Computing Fisher information...
+
     ## Computing modification indices...
 
 ``` r
@@ -820,8 +850,8 @@ rnmMod
     ##  
     ## 
     ## General: 
-    ##  - psychonetrics version: 0.1.2 
-    ##  - Model last edited at: 2019-03-06 10:26:58
+    ##  - psychonetrics version: 0.3.1 
+    ##  - Model last edited at: 2019-06-21 22:05:28
     ## 
     ## Sample: 
     ##  - Number of cases: 75 
@@ -829,7 +859,8 @@ rnmMod
     ##  - Number of observed summary statistics: 77
     ## 
     ## Model: 
-    ##  - model used: Residual network model (RNM) 
+    ##  - Model used: Latent variable model (LVM) 
+    ##  - Submodel used: Residual network model (RNM) 
     ##  - Number of parameters: 33
     ## 
     ## Estimation: 
@@ -854,15 +885,27 @@ Next, we can find a residual network:
 rnmMod_resid <- rnmMod %>% stepup
 ```
 
+    ## Adding parameter omega_epsilon[y6, y2]
+
     ## Estimating model...
+
+    ## Computing Fisher information...
 
     ## Computing modification indices...
 
+    ## Adding parameter omega_epsilon[y8, y6]
+
     ## Estimating model...
+
+    ## Computing Fisher information...
 
     ## Computing modification indices...
 
+    ## Adding parameter omega_epsilon[y4, y2]
+
     ## Estimating model...
+
+    ## Computing Fisher information...
 
     ## Computing modification indices...
 
@@ -870,65 +913,76 @@ rnmMod_resid <- rnmMod %>% stepup
 compare(rnmMod, rnmMod_resid)
 ```
 
-    ##    model DF     AIC     BIC Chisq Chisq_diff DF_diff  p_value
-    ##  Model 2 41 3173.78 3257.21 44.32                            
-    ##  Model 1 44 3198.07 3274.55 74.62      30.29       3 < 0.0001
-    ## 
-    ## Note: Chi-square difference test assumes models are nested.
+    ##     model DF      AIC      BIC      RMSEA    Chisq Chisq_diff DF_diff
+    ## 1 Model 2 41 3173.781 3257.211 0.03288097 44.32456         NA      NA
+    ## 2 Model 1 44 3198.075 3274.552 0.09632310 74.61786    30.2933       3
+    ##        p_value
+    ## 1           NA
+    ## 2 1.197272e-06
 
 The new model fits much better. The residual network can be obtained as follows:
 
 ``` r
-rnmMod_resid@modelmatrices$`1`$omega_epsilon
+getmatrix(rnmMod_resid, "omega_epsilon")
 ```
 
-    ## 11 x 11 sparse Matrix of class "dsCMatrix"
-    ##                                                            
-    ##  [1,] . . . . .         . .         . .         . .        
-    ##  [2,] . . . . .         . .         . .         . .        
-    ##  [3,] . . . . .         . .         . .         . .        
-    ##  [4,] . . . . .         . .         . .         . .        
-    ##  [5,] . . . . .         . 0.3639576 . 0.3874871 . .        
-    ##  [6,] . . . . .         . .         . .         . .        
-    ##  [7,] . . . . 0.3639576 . .         . .         . .        
-    ##  [8,] . . . . .         . .         . .         . .        
-    ##  [9,] . . . . 0.3874871 . .         . .         . 0.4095972
-    ## [10,] . . . . .         . .         . .         . .        
-    ## [11,] . . . . .         . .         . 0.4095972 . .
+    ##       [,1] [,2] [,3] [,4]      [,5] [,6]      [,7] [,8]      [,9] [,10]
+    ##  [1,]    0    0    0    0 0.0000000    0 0.0000000    0 0.0000000     0
+    ##  [2,]    0    0    0    0 0.0000000    0 0.0000000    0 0.0000000     0
+    ##  [3,]    0    0    0    0 0.0000000    0 0.0000000    0 0.0000000     0
+    ##  [4,]    0    0    0    0 0.0000000    0 0.0000000    0 0.0000000     0
+    ##  [5,]    0    0    0    0 0.0000000    0 0.3639633    0 0.3874882     0
+    ##  [6,]    0    0    0    0 0.0000000    0 0.0000000    0 0.0000000     0
+    ##  [7,]    0    0    0    0 0.3639633    0 0.0000000    0 0.0000000     0
+    ##  [8,]    0    0    0    0 0.0000000    0 0.0000000    0 0.0000000     0
+    ##  [9,]    0    0    0    0 0.3874882    0 0.0000000    0 0.0000000     0
+    ## [10,]    0    0    0    0 0.0000000    0 0.0000000    0 0.0000000     0
+    ## [11,]    0    0    0    0 0.0000000    0 0.0000000    0 0.4095958     0
+    ##           [,11]
+    ##  [1,] 0.0000000
+    ##  [2,] 0.0000000
+    ##  [3,] 0.0000000
+    ##  [4,] 0.0000000
+    ##  [5,] 0.0000000
+    ##  [6,] 0.0000000
+    ##  [7,] 0.0000000
+    ##  [8,] 0.0000000
+    ##  [9,] 0.4095958
+    ## [10,] 0.0000000
+    ## [11,] 0.0000000
 
 which has three unique elements. Note that the implied *marginal* covariances are more:
 
 ``` r
-delta <- rnmMod_resid@modelmatrices$`1`$delta_epsilon
-omega <- rnmMod_resid@modelmatrices$`1`$omega_epsilon
+delta <- getmatrix(rnmMod_resid, "delta_epsilon")
+omega <- getmatrix(rnmMod_resid, "omega_epsilon") 
 delta %*% solve(diag(11) - omega) %*% delta
 ```
 
-    ## 11 x 11 sparse Matrix of class "dgCMatrix"
-    ##                                                                          
-    ##  [1,] 0.08049846 .         .         .        .        .        .        
-    ##  [2,] .          0.1239359 .         .        .        .        .        
-    ##  [3,] .          .         0.4663338 .        .        .        .        
-    ##  [4,] .          .         .         1.629812 .        .        .        
-    ##  [5,] .          .         .         .        8.479909 .        2.2555751
-    ##  [6,] .          .         .         .        .        4.679754 .        
-    ##  [7,] .          .         .         .        2.255575 .        3.7120701
-    ##  [8,] .          .         .         .        .        .        .        
-    ##  [9,] .          .         .         .        3.172173 .        0.8437677
-    ## [10,] .          .         .         .        .        .        .        
-    ## [11,] .          .         .         .        1.160370 .        0.3086475
-    ##                                            
-    ##  [1,] .        .         .        .        
-    ##  [2,] .        .         .        .        
-    ##  [3,] .        .         .        .        
-    ##  [4,] .        .         .        .        
-    ##  [5,] .        3.1721728 .        1.1603704
-    ##  [6,] .        .         .        .        
-    ##  [7,] .        0.8437677 .        0.3086475
-    ##  [8,] 2.032229 .         .        .        
-    ##  [9,] .        5.7060878 .        2.0872682
-    ## [10,] .        .         3.614543 .        
-    ## [11,] .        2.0872682 .        3.7633248
+    ##             [,1]      [,2]      [,3]     [,4]     [,5]     [,6]      [,7]
+    ##  [1,] 0.08049819 0.0000000 0.0000000 0.000000 0.000000 0.000000 0.0000000
+    ##  [2,] 0.00000000 0.1239382 0.0000000 0.000000 0.000000 0.000000 0.0000000
+    ##  [3,] 0.00000000 0.0000000 0.4663314 0.000000 0.000000 0.000000 0.0000000
+    ##  [4,] 0.00000000 0.0000000 0.0000000 1.629816 0.000000 0.000000 0.0000000
+    ##  [5,] 0.00000000 0.0000000 0.0000000 0.000000 8.479966 0.000000 2.2556279
+    ##  [6,] 0.00000000 0.0000000 0.0000000 0.000000 0.000000 4.679743 0.0000000
+    ##  [7,] 0.00000000 0.0000000 0.0000000 0.000000 2.255628 0.000000 3.7120980
+    ##  [8,] 0.00000000 0.0000000 0.0000000 0.000000 0.000000 0.000000 0.0000000
+    ##  [9,] 0.00000000 0.0000000 0.0000000 0.000000 3.172195 0.000000 0.8437877
+    ## [10,] 0.00000000 0.0000000 0.0000000 0.000000 0.000000 0.000000 0.0000000
+    ## [11,] 0.00000000 0.0000000 0.0000000 0.000000 1.160377 0.000000 0.3086545
+    ##           [,8]      [,9]    [,10]     [,11]
+    ##  [1,] 0.000000 0.0000000 0.000000 0.0000000
+    ##  [2,] 0.000000 0.0000000 0.000000 0.0000000
+    ##  [3,] 0.000000 0.0000000 0.000000 0.0000000
+    ##  [4,] 0.000000 0.0000000 0.000000 0.0000000
+    ##  [5,] 0.000000 3.1721947 0.000000 1.1603775
+    ##  [6,] 0.000000 0.0000000 0.000000 0.0000000
+    ##  [7,] 0.000000 0.8437877 0.000000 0.3086545
+    ##  [8,] 2.032229 0.0000000 0.000000 0.0000000
+    ##  [9,] 0.000000 5.7060738 0.000000 2.0872614
+    ## [10,] 0.000000 0.0000000 3.614537 0.0000000
+    ## [11,] 0.000000 2.0872614 0.000000 3.7633267
 
 thus, with only three parameters, *six* residual covariances are added to the model.
 
@@ -968,7 +1022,17 @@ Data$Day <- as.Date(Data$time, tz = "Europe/Amsterdam")
 # Model, using FIML for missing data:
 mod <- gvar(Data, vars = Vars, dayvar = "Day", beta = "full", 
             omega_zeta = "full", estimator = "FIML")
+```
 
+    ## 
+      |                                                                       
+      |                                                                 |   0%
+      |                                                                       
+      |================================                                 |  50%
+      |                                                                       
+      |=================================================================| 100%
+
+``` r
 # Run and stepup:
 mod <- mod %>% runmodel %>% prune %>% stepup(criterion = "none")
 ```
@@ -990,8 +1054,8 @@ mod
     ##  
     ## 
     ## General: 
-    ##  - psychonetrics version: 0.1.2 
-    ##  - Model last edited at: 2019-03-06 10:36:59
+    ##  - psychonetrics version: 0.3.1 
+    ##  - Model last edited at: 2019-06-21 22:07:12
     ## 
     ## Sample: 
     ##  - Number of cases: 65 
@@ -999,7 +1063,8 @@ mod
     ##  - Number of observed summary statistics: 119
     ## 
     ## Model: 
-    ##  - model used: Graphical vector-autoregression (GVAR) 
+    ##  - Model used: Lag-1 vector-autoregression (VAR1) 
+    ##  - Submodel used: Graphical vector-autoregression (GVAR) 
     ##  - Number of parameters: 63
     ## 
     ## Estimation: 
@@ -1022,8 +1087,8 @@ We can plot the result as follows (plot methods will be added soon):
 
 ``` r
 layout(t(1:2))
-temporal <- t(as.matrix(mod@modelmatrices$`1`$beta))
-contemporaneous <- as.matrix(mod@modelmatrices$`1`$omega_zeta)
+temporal <- t(getmatrix(mod, "beta"))
+contemporaneous <- getmatrix(mod, "omega_zeta")
 Layout <- averageLayout(temporal, contemporaneous)
 
 layout(t(1:2))

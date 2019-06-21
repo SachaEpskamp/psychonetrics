@@ -63,8 +63,8 @@ data(bfi)
 library("dplyr")
 
 # Let's take the agreeableness items, and gender:
-ConsData <- bfi %>% 
-  select(A1:A5, gender) %>% 
+ConsData <- bfi \%>\% 
+  select(A1:A5, gender) \%>\% 
   na.omit # Let's remove missingness (otherwise use Estimator = "FIML)
 
 # Define variables:
@@ -74,5 +74,5 @@ vars <- names(ConsData)[1:5]
 mod <- ggm(ConsData, vars = vars, omega = "full")
 
 # Run model:
-mod <- mod %>% runmodel
+mod <- mod \%>\% runmodel
 }

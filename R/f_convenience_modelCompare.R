@@ -27,7 +27,7 @@ compare <- function(...){
   
   # Obtain the fitmeasures of each model:
   fits <- lapply(dots, function(x) x@fitmeasures)
-  
+
   # Create first table:
   Tab <- data.frame(
     model = names(dots),

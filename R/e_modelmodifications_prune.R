@@ -258,7 +258,7 @@ prune <- function(
       verbose = verbose,
       log = log,
       identify = identify,
-      bootstrap = bootstrap,
+      # bootstrap = bootstrap,
       ...
     )
   }
