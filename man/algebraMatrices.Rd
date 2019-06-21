@@ -29,3 +29,16 @@ Logical indicating if the diagonal should be included (set to FALSE for derivati
 \author{
 Sacha Epskamp
 }
+\value{
+A sparse matrix
+}
+\examples{
+# Duplication matrix for 10 variables:
+duplicationMatrix(10)
+
+# Elimination matrix for 10 variables:
+eliminationMatrix(10)
+
+# Diagonailzation matrix for 10 variables:
+diagonalizationMatrix(10)
+}

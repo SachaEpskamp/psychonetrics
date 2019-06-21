@@ -199,9 +199,11 @@ mod <- panelvar(vars = design,
                 covs = smoke, nobs = 352
 )
 
+\donttest{
 # Run model:
 mod <- mod \%>\% runmodel
 
 # Evaluate fit:
 mod \%>\% fit
+}
 }

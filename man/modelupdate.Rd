@@ -44,3 +44,6 @@ Logical indicating if an analytic Fisher information matrix should be used.
 \author{
 Sacha Epskamp
 }
+\value{
+An object of the class psychonetrics (\link{psychonetrics-class})
+}

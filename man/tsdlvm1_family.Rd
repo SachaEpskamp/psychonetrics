@@ -143,6 +143,9 @@ An object of the class psychonetrics (\link{psychonetrics-class})
 Sacha Epskamp
 }
 \examples{
+
+# Note: this example is wrapped in a dontrun environment because the data is not 
+# available locally.
 \dontrun{
 # Obtain the data from:
 #
