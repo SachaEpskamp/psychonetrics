@@ -22,6 +22,9 @@ String indicating the matrix to be extracted.
 Integer indicating the group for the matrix to be extracted.
 }
 }
+\value{
+A matrix of parameter estimates, of a list of such matrices for multiple group models.
+}
 \author{
 Sacha Epskamp
 }

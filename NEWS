@@ -1,0 +1,10 @@
+Changes in version 0.3.2:
+	o The parameters function now invisibly returns the parameter estimate data frame
+	o The MIs function now invisibly returns a data frame with MI estimates
+	o fit now invisibly returns a data frame with fit measure estimates
+
+
+Changes in version 0.3.1:
+	o Several help-files are now updated with executable examples
+
+Version 0.3.0: First version to be submitted to CRAN

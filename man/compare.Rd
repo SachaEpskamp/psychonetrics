@@ -16,6 +16,9 @@ compare(...)
 Any number of \code{psychonetrics} models. Can be named to change the rownames of the output.
 }
 }
+\value{
+A data frame with chi-square values, degrees of freedoms, RMSEAs, AICs, and BICs.
+}
 \author{
 Sacha Epskamp
 }
