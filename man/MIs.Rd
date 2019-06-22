@@ -38,6 +38,9 @@ Logical, should only MIs be printed of non-zero parameters? Useful to explore vi
 \author{
 Sacha Epskamp
 }
+\value{
+Invisibly returns a relevant subset of the data frame containing all information on the parameters, or a list of such data frames if multiple types of MIs are requested.
+}
 \examples{
 # Load bfi data from psych package:
 library("psych")

@@ -6,11 +6,17 @@ MIs <- function(x, all = FALSE, matrices, type = c("normal","equal","free"), top
     }
   }
   
+  Results <- list()
   # Print the tables:
   for (t in seq_along(type)){
-    MIs_inner(x, all=all, matrices = matrices, type = type[t], top = top, verbose = verbose, nonZero = nonZero)
+    Results[[t]] <- MIs_inner(x, all=all, matrices = matrices, type = type[t], top = top, verbose = verbose, nonZero = nonZero)
   }
   
+  if (length(Results)==1){
+    invisible(Results[[1]])
+  } else {
+    invisible(Results)
+  }
 }
 
 # psychonetrics parameter extraction:
@@ -121,4 +127,6 @@ MIs_inner <- function(x,all = FALSE, matrices, type = c("normal","equal","free")
   
   # invisible(x@parameters %>% filter_(~fixed,~!is.na(mi)) %>% 
               # select_("var1","op","var2","mi","pmi","mi_equal","pmi_equal","matrix","row","col","group"))
+
+  return(parTable)
 }

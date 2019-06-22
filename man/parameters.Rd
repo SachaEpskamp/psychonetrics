@@ -19,6 +19,9 @@ A \code{psychonetrics} model.
 \author{
 Sacha Epskamp
 }
+\value{
+Invisibly returns a data frame containing information on all parameters.
+}
 \examples{
 # Load bfi data from psych package:
 library("psych")

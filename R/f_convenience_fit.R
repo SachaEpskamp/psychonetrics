@@ -20,4 +20,12 @@ fit <- function(x){
     Value = goodNum2(unlist(x@fitmeasures))
   )
   print.data.frame(df,row.names=FALSE)
+ 
+  # Numeric DF to return:
+  
+  dfnum <- data.frame(
+    Measure = names(x@fitmeasures),
+    Value = unlist(x@fitmeasures)
+  )
+  invisible(dfnum)
 }

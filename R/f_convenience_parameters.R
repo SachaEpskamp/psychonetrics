@@ -59,5 +59,5 @@ parameters <- function(x){
     }
   }
   
-
+  invisible(x@parameters)
 }
