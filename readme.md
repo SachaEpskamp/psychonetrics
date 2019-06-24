@@ -1014,10 +1014,10 @@ Vars <- c("relaxed", "sad", "nervous",
           "rumination", "bodily.discomfort")
 
 # Encode time variable in a way R understands:
-Data$time <- as.POSIXct(Data$time, tz = "Europe/Amsterdam")
+Data$time <- as.POSIXct(Data$time, tz = "Europe/Amsterdam", format=”%m/%d/%Y %H:%M” )
 
 # Extract days:
-Data$Day <- as.Date(Data$time, tz = "Europe/Amsterdam")
+Data$Day <- as.Date(Data$time, tz = "Europe/Amsterdam", format=”%m/%d/%Y %H:%M” )
 
 # Model, using FIML for missing data:
 mod <- gvar(Data, vars = Vars, dayvar = "Day", beta = "full", 
