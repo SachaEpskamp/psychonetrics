@@ -1024,14 +1024,6 @@ mod <- gvar(Data, vars = Vars, dayvar = "Day", beta = "full",
             omega_zeta = "full", estimator = "FIML")
 ```
 
-    ## 
-      |                                                                       
-      |                                                                 |   0%
-      |                                                                       
-      |================================                                 |  50%
-      |                                                                       
-      |=================================================================| 100%
-
 ``` r
 # Run and stepup:
 mod <- mod %>% runmodel %>% prune %>% stepup(criterion = "none")
