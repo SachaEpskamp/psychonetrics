@@ -199,7 +199,7 @@ library("qgraph")
 L <- averageLayout(temporal, contemporaneous)
 
 # Labels:
-labs <- gsub("\\.","\n",vars)
+labs <- gsub("\\\\.","\\n",vars)
 
 # Plot:
 layout(t(1:2))
