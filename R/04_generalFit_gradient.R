@@ -40,7 +40,7 @@ psychonetrics_gradient <- function(x, model){
     "tsdlvm1" = d_phi_theta_tsdlvm1
     # "cholesky" = d_phi_theta_cholesky
   )
-  
+
   # message("Model part...")
   modelPart <- modelJacobian(prep)
  
