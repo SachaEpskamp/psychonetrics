@@ -20,9 +20,9 @@ arma::mat WLS_wmat(
   int i, j, g, h, p;
   
   // Asyptotic 2nd, 3rd and 4th order cov matrix:
-  std::vector<double> secondorder(pow(nvar, 2));
-  std::vector<double> thirdorder(pow(nvar, 3));
-  std::vector<double> fourthorder(pow(nvar, 4));
+  std::vector<double> secondorder(nvar * nvar);
+  std::vector<double> thirdorder(nvar * nvar * nvar);
+  std::vector<double> fourthorder(nvar * nvar * nvar * nvar);
   
   // Trick from Joris
   auto sec = [&](size_t s1, size_t s2)->double& { return secondorder[s1 + s2 * nvar]; };
@@ -35,17 +35,17 @@ arma::mat WLS_wmat(
         if (p==0){
           sec(g, h) = 0;
         }
-        sec(g,h) += pow(ncase,-1.0) * (data(p,g) - means(g)) * (data(p,h) - means(h));
+        sec(g,h) += std::pow((double)ncase,-1.0) * (data(p,g) - means(g)) * (data(p,h) - means(h));
         for (i = 0; i < nvar; i++){
           if (p==0){
             thi(g,h,i) = 0;
           }
-          thi(g,h,i) += pow(ncase,-1.0) * (data(p,g) - means(g)) * (data(p,h) - means(h)) * (data(p,i) - means(i)) ;
+          thi(g,h,i) += std::pow((double)ncase,-1.0) * (data(p,g) - means(g)) * (data(p,h) - means(h)) * (data(p,i) - means(i)) ;
           for (j = i; j < nvar; j ++){
             if (p==0){
               four(i,j,g,h) = 0;
             }
-            four(i,j,g,h) +=  pow(ncase,-1.0) *(data(p,i) - means(i)) * (data(p,j) - means(j)) * (data(p,g) - means(g)) * (data(p,h) - means(h));
+            four(i,j,g,h) +=  std::pow((double)ncase,-1.0) *(data(p,i) - means(i)) * (data(p,j) - means(j)) * (data(p,g) - means(g)) * (data(p,h) - means(h));
           }
         }
       }
