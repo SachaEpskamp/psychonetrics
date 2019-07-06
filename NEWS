@@ -1,5 +1,7 @@
 Changes in version 0.3.3:
   o prune() now removes diagonal values of temporal effects
+  o psychonetrics now requires R 3.6
+  o Some C++ fixes for Solaris
   
 Changes in version 0.3.2:
 	o The parameters function now invisibly returns the parameter estimate data frame
