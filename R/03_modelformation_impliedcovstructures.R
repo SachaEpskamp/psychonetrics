@@ -15,6 +15,14 @@ impliedcovstructures <- function(
     lowertri = paste0("lowertri","_",name)
     IminOinv = paste0("IminOinv","_",name)
     delta_IminOinv = paste0("delta_IminOinv","_",name)
+    
+    rho = paste0("rho","_",name)
+    SD = paste0("SD","_",name)
+    
+    IplusRho = paste0("IplusRho","_",name)
+    SD_IplusRho = paste0("SD_IplusRho","_",name)
+    
+    
   } else {
     sigma = "sigma"
     omega = "omega"
@@ -23,6 +31,11 @@ impliedcovstructures <- function(
     lowertri = "lowertri"
     IminOinv = "IminOinv"
     delta_IminOinv = "delta_IminOinv"
+  
+    rho = "rho"
+    SD = "SD"
+    IplusRho = "IplusRho"
+    SD_IplusRho = "SD_IplusRho"
   }
   
   for (g in seq_len(nGroup)){
@@ -34,7 +47,9 @@ impliedcovstructures <- function(
       if (all){
         if (!all(x[[g]][[sigma]] == 0)){
           x[[g]][[kappa]] <- as(solve_symmetric(x[[g]][[sigma]]), "Matrix")
-          x[[g]][[omega]]  <- as(qgraph::wi2net(as.matrix(x[[g]][[kappa]])),"Matrix")          
+          x[[g]][[omega]]  <- as(qgraph::wi2net(as.matrix(x[[g]][[kappa]])),"Matrix")
+          x[[g]][[rho]] <- as(cov2cor(as.matrix(x[[g]][[sigma]])),"Matrix")
+          x[[g]][[SD]] <- as(diag(sqrt(diag(as.matrix(x[[g]][[sigma]])))),"Matrix")
         }
       }
     } else if(type == "chol"){
@@ -46,6 +61,8 @@ impliedcovstructures <- function(
         if (!all(x[[g]][[sigma]] == 0)){
           x[[g]][[kappa]] <- as(solve_symmetric(x[[g]][[sigma]]), "Matrix")
           x[[g]][[omega]]  <- as(qgraph::wi2net(as.matrix(x[[g]][[kappa]])),"Matrix")
+          x[[g]][[rho]] <- as(cov2cor(as.matrix(x[[g]][[sigma]])),"Matrix")
+          x[[g]][[SD]] <- as(diag(sqrt(diag(as.matrix(x[[g]][[sigma]])))),"Matrix")
         }
 
       }
@@ -56,6 +73,8 @@ impliedcovstructures <- function(
       if (all){
         if (!all(x[[g]][[sigma]] == 0)){
           x[[g]][[kappa]] <- solve_symmetric(x[[g]][[sigma]])
+          x[[g]][[rho]] <- as(cov2cor(as.matrix(x[[g]][[sigma]])),"Matrix")
+          x[[g]][[SD]] <- as(diag(sqrt(diag(as.matrix(x[[g]][[sigma]])))),"Matrix")
         }
         
       }
@@ -71,7 +90,30 @@ impliedcovstructures <- function(
       
       if (all) {
         x[[g]][[omega]] <- as(qgraph::wi2net(as.matrix(x[[g]][[kappa]])),"Matrix")
+        x[[g]][[rho]] <- as(cov2cor(as.matrix(x[[g]][[sigma]])),"Matrix")
+        x[[g]][[SD]] <- as(diag(sqrt(diag(as.matrix(x[[g]][[sigma]])))),"Matrix")
       }
+    } else if (type == "cor"){
+
+      x[[g]][[sigma]] <- x[[g]][[SD]] %*% (Diagonal(ncol(x[[g]][[rho]])) + x[[g]][[rho]]) %*% x[[g]][[SD]]
+      
+      # Stuff needed if all = TRUE:
+      if (all){
+        if (!all(x[[g]][[sigma]] == 0)){
+          x[[g]][[kappa]] <- solve_symmetric(x[[g]][[sigma]])
+          x[[g]][[omega]]  <- as(qgraph::wi2net(as.matrix(x[[g]][[kappa]])),"Matrix")
+        }
+        
+      }
+      
+      # Extra matrix needed:
+      if (!all){
+        x[[g]][[IplusRho]] <- as(Diagonal(ncol(x[[g]][[rho]])) + x[[g]][[rho]], "Matrix")
+        x[[g]][[SD_IplusRho]] <- x[[g]][[SD]] %*% x[[g]][[IplusRho]]
+      }
+      
+      
+      
     }
     
   }

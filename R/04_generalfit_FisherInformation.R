@@ -1,8 +1,10 @@
 numeric_FisherInformation <- function(model){
   model <- expectedmodel(model)
-  2 * sum(model@sample@groups$nobs) * numDeriv::jacobian(psychonetrics_gradient,parVector(model),model=model)
+  # 2 * sum(model@sample@groups$nobs) * numDeriv::jacobian(psychonetrics_gradient,parVector(model),model=model)
+  
+  # Unit information instead:
+  0.5 * numDeriv::jacobian(psychonetrics_gradient,parVector(model),model=model)
 }
-
 
 # General Fisher information former:
 psychonetrics_FisherInformation <- function(model, analytic = TRUE){
@@ -65,7 +67,11 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
   manualPart <- Mmatrix(model@parameters)
 
   # Compute fisher information and return:
-  Fisher <- 2 * prep$nTotal * t(manualPart) %*% t(modelPart) %*% estimatorPartHessian %*% modelPart %*% manualPart
+  # Fisher <- 2 * prep$nTotal * t(manualPart) %*% t(modelPart) %*% estimatorPartHessian %*% modelPart %*% manualPart
+  
+  # Unit information instead:
+  Fisher <- 0.5 * t(manualPart) %*% t(modelPart) %*% estimatorPartHessian %*% modelPart %*% manualPart
+  
   as.matrix(Fisher)
 }
 # 

@@ -1,13 +1,15 @@
 # Latent network model creator
 varcov <- function(
   data, # Dataset
-  type = c("cov","chol","prec","ggm"), # Maybe add cor at some point, but not now
+  type = c("cov","chol","prec","ggm","cor"),
   sigma = "full", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
   kappa = "full", # Precision
   # rho = "full", # Correlations
   omega = "full", # Partial correlations
   lowertri = "full", # Cholesky
   delta = "full", # Used for both ggm and pcor
+  rho = "full", # Used for cor
+  SD = "full", # Used for cor
   mu,
   vars, # character indicating the variables Extracted if missing from data - group variable
   groups, # ignored if missing. Can be character indicating groupvar, or vector with names of groups
@@ -21,7 +23,8 @@ varcov <- function(
   optimizer = "default",
   storedata = FALSE,
   WLS.V,
-  sampleStats # Leave to missing
+  sampleStats, # Leave to missing
+  meanstructure # Defaults to TRUE if data is used or means is used, FALSE otherwie
 ){
   rawts = FALSE
   if (rawts){
@@ -30,6 +33,11 @@ varcov <- function(
   
   # Type:
   type <- match.arg(type)
+  
+  # Set meanstructure:
+  if (missing(meanstructure)){
+    meanstructure <- (!missing(data) || !missing(means))
+  }
 
   # Obtain sample stats:
   if (missing(sampleStats)){
@@ -53,7 +61,8 @@ varcov <- function(
                                rawts = rawts,
                                fimldata = estimator == "FIML",
                                storedata = storedata,
-                               weightsmatrix = WLS.V)
+                               weightsmatrix = WLS.V,
+                               meanstructure = meanstructure)
   }
 
 
@@ -65,7 +74,7 @@ varcov <- function(
                                   equal = equal,
                                   optimizer = optimizer, estimator = estimator, distribution = "Gaussian",
                                   rawts = rawts, types = list(y = type),
-                                  submodel = type)
+                                  submodel = type, meanstructure = meanstructure)
   
   # Number of groups:
   nGroup <- nrow(model@sample@groups)
@@ -73,14 +82,14 @@ varcov <- function(
   # Add number of observations:
   model@sample@nobs <-  
     nNode * (nNode+1) / 2 * nGroup + # Covariances per group
-    nNode * nGroup # Means per group
+    meanstructure * nNode * nGroup # Means per group
   
   # Model matrices:
   modMatrices <- list()
   
   # Fix mu
   modMatrices$mu <- matrixsetup_mu(mu,nNode = nNode,nGroup = nGroup,labels = sampleStats@variables$label,equal = "mu" %in% equal,
-                       expmeans = model@sample@means, sampletable = sampleStats)
+                       expmeans = model@sample@means, sampletable = sampleStats, meanstructure = meanstructure)
   
   # fixMu(mu,nGroup,nNode,"mu" %in% equal)
   
@@ -124,6 +133,22 @@ varcov <- function(
                                            nGroup = nGroup, 
                                            labels = sampleStats@variables$label,
                                            equal = "kappa" %in% equal, sampletable = sampleStats)
+  } else if (type == "cor"){
+    # Add rho matrix:
+    modMatrices$rho <- matrixsetup_rho(rho, 
+                                           expcov=model@sample@covs,
+                                           nNode = nNode, 
+                                           nGroup = nGroup, 
+                                           labels = sampleStats@variables$label,
+                                           equal = "rho" %in% equal, sampletable = sampleStats)
+    
+    # Add SD matrix:
+    modMatrices$SD <- matrixsetup_SD(SD, 
+                                           expcov=model@sample@covs,
+                                           nNode = nNode, 
+                                           nGroup = nGroup, 
+                                           labels = sampleStats@variables$label,
+                                           equal = "SD" %in% equal, sampletable = sampleStats) 
   }
   
 
@@ -151,7 +176,7 @@ varcov <- function(
     In = Diagonal(nNode), # Identity of dim n
     C = as(lavaan::lav_matrix_commutation(nNode,nNode),"sparseMatrix")
     )
-  } else if (type == "ggm"){
+  } else if (type == "ggm" || type == "cor"){
     model@extramatrices <- list(
       D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
       L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix

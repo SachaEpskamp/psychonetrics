@@ -30,7 +30,7 @@ parRelabel <- function(x){
 }
 
 generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, sampletable, rownames, colnames, rowid, colid, sparse = FALSE, posdef = FALSE, diag0=FALSE, diagonal = FALSE,
-                                   lower = -Inf, upper = Inf, start, lowertri=FALSE,
+                                   lower = -Inf, upper = Inf, start, lowertri=FALSE, allFixed = FALSE,
                                    ... # Ignored dummy arguments
                                    ){
   # rowid and colid can be missing:
@@ -168,6 +168,13 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
       identified = FALSE,
       stringsAsFactors = FALSE
     )
+    
+    # Set all to be fixed:
+    if (isTRUE(allFixed)){
+      partable$fixed <- TRUE
+      partable$identified <- TRUE
+      partable$par <- 0
+    }
     
     if (!missing(start)){
       partable$est <- start[ind]

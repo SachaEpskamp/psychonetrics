@@ -6,7 +6,8 @@ matrixsetup_mu <- function(
   labels,
   equal = FALSE,
   sampletable,
-  name = "mu"
+  name = "mu",
+  meanstructure = FALSE
 ){
   # Fix mu
   mu <- fixMu(mu,nGroup,nNode,equal)
@@ -29,5 +30,6 @@ matrixsetup_mu <- function(
        sampletable=sampletable,
        rownames = labels,
        colnames = "1",
-       start = muStart)
+       start = muStart,
+       allFixed = !meanstructure)
 }

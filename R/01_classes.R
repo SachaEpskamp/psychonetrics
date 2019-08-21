@@ -74,7 +74,8 @@ generate_psychonetrics <- setClass("psychonetrics", slots = c(
   rawts = "logical",
   Drawts = "list",
   types = "list",
-  cpp = "logical"
+  cpp = "logical",
+  meanstructure = "logical"
 ),
 prototype = list(
   model = "dummy", submodel = "none",
@@ -128,7 +129,8 @@ prototype = list(
   optimizer = "ucminf",
   estimator = "ML",
   rawts = FALSE,
-  cpp = TRUE # Use C++ when available
+  cpp = TRUE, # Use C++ when available
+  meanstructure = TRUE
 ))
 
 # generate_psychonetrics()
