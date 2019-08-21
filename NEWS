@@ -1,3 +1,10 @@
+Changes in version 0.3.4:
+  o type = "cor" is now supported in varcov, with rho representing the correlations and SD the diagonal standard deviations matrix.
+  o The scale of the Fisher information matrix has been adjusted to portray unit information to be similar to Lavaan
+  o The getVCOV function has been added to obtain the estimated asymptotic var-cov matrix of the parameters.
+  o The meanstructure can now be ignored using meanstructure = TRUE in the following model families:
+    - varcov
+
 Changes in version 0.3.3:
   o prune() now removes diagonal values of temporal effects
   o psychonetrics now requires R 3.6

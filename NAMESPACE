@@ -12,6 +12,7 @@ export(ggm)
 export(precision)
 export(cholesky)
 export(prec)
+export(corr)
 
 # lvm models:
 export(lvm)
@@ -20,6 +21,8 @@ export(rnm)
 export(lrnm)
 export(bifactor)
 export(latentgrowth)
+
+export(getVCOV)
 
 # VAR models:
 export(var1)

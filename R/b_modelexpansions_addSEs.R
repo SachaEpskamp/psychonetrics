@@ -22,11 +22,12 @@ addSEs <-  function(x
   n <- sum(x@sample@groups$nobs)
   
   # Compute a hessian if requested or needed:
-  if (!is.null(x@information)){
-    Hinv <- solve_symmetric(x@information)
-  } else {
-    Hinv <- solve_symmetric(psychonetrics_FisherInformation(x))
-  } 
+  # if (!is.null(x@information)){
+  #   Hinv <- solve_symmetric(x@information)
+  # } else {
+  #   Hinv <- solve_symmetric(psychonetrics_FisherInformation(x))
+  # } 
+  Hinv <- getVCOV(x)
   # if (!is.null(x@information)){
   #   Hinv <- solve_symmetric(x@information)
   # } else if (!is.null(x@optim$inverseHessian)){
@@ -65,7 +66,7 @@ addSEs <-  function(x
     groups <- unique(x@parameters$group_id[x@parameters$par == i])
     Neff <- sum(x@sample@groups$nobs[x@sample@groups$id %in% groups])
     # x@parameters$se[x@parameters$par == i] <- sqrt(2/(Neff/N)) * SEs[i]
-    x@parameters$se[x@parameters$par == i] <- 2 * SEs[i]
+    x@parameters$se[x@parameters$par == i] <- SEs[i]
   }
   
   # Add p-value:

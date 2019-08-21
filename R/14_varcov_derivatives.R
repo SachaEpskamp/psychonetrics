@@ -40,6 +40,21 @@ d_sigma_kappa <- function(L,D,sigma,...){
   - L %*% (sigma %x% sigma) %*% D
 }
 
+# Derivative of rho:
+d_sigma_rho <- function(L,SD,A,delta,Dstar,...){
+  L %*% (SD %x% SD) %*% Dstar
+}
+
+# Derivative of SDs:
+d_sigma_SD <- function(L,SD_IplusRho,In,A,...){
+  L %*% (
+    (SD_IplusRho%x% In) + 
+      (In %x% SD_IplusRho)
+  ) %*% A
+}
+
+
+
 
 # Full jacobian of phi (distribution parameters) with respect to theta (model parameters) for a group
 d_phi_theta_varcov_group <- function(sigma,y,...){
@@ -79,6 +94,15 @@ d_phi_theta_varcov_group <- function(sigma,y,...){
     Jac[varPart,scalingPart] <- d_sigma_delta(...)
   } else  if (y == "prec"){
     Jac[varPart,varPart] <- d_sigma_kappa(sigma=sigma,...)
+  } else if (y == "cor"){
+    # Corelation matrix:
+    corPart <- max(meanPart) + seq_len(nvar*(nvar-1)/2)
+    sdPart <- max(corPart) + seq_len(nvar)
+    
+    
+    Jac[varPart,corPart] <- d_sigma_rho(...)
+    Jac[varPart,sdPart] <- d_sigma_SD(...)
+    
   }
   
   # Make sparse if needed:

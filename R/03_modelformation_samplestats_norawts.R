@@ -10,7 +10,8 @@ samplestats_norawts <- function(
   fimldata = FALSE,
   verbose = TRUE,
   storedata = FALSE,
-  weightsmatrix = "none" #c("none","identity","full","diag")
+  weightsmatrix = "none", #c("none","identity","full","diag")
+  meanstructure = TRUE
 ){
   missing <- match.arg(missing)
   # weightsmatrix <- match.arg(weightsmatrix)
@@ -325,10 +326,10 @@ samplestats_norawts <- function(
           object@WLS.V[[g]] <- Diagonal(nVars + nVars*(nVars+1)/2)  
         } else if (weightsmatrix == "full"){
           subData <- data[data[[groups]] == g,c(vars)]
-          object@WLS.V[[g]] <- LS_weightsmat(subData)
+          object@WLS.V[[g]] <- LS_weightsmat(subData,meanstructure=meanstructure)
         } else if (weightsmatrix == "diag"){
           subData <- data[data[[groups]] == g,c(vars)]
-          object@WLS.V[[g]] <- LS_weightsmat(subData, type = "diagonal")
+          object@WLS.V[[g]] <- LS_weightsmat(subData, type = "diagonal",meanstructure=meanstructure)
         }
       }
     }

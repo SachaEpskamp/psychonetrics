@@ -120,7 +120,11 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
   # } else {
   #   H <- numDeriv::hessian(x@fitfunctions$fitfunction,parVector(modCopy), model=modCopy) 
   # }
-  H <- as(psychonetrics_FisherInformation(modCopy, analyticFisher), "Matrix")
+  # Total sample size:
+  nTotal <- sum(x@sample@groups$nobs)
+  
+  # FIXME: 4 * n could be nicer here probably
+  H <- 4 * nTotal * as(psychonetrics_FisherInformation(modCopy, analyticFisher), "Matrix")
   
   # For every new parameter:
   curMax <- max(x@parameters$par)
@@ -136,8 +140,7 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
   }
   # How many in total?
   nTotalPars <- length(c(curInds,newInds))
-  # Total sample size:
-  nTotal <- sum(x@sample@groups$nobs)
+
   # 
   # 
   # # Effective N:
