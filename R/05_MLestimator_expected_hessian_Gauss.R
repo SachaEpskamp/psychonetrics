@@ -14,19 +14,35 @@ expected_hessian_Gaussian_group_varPart <- function(kappa,D,Drawts,...){
 }
 
 # Per group:
-expected_hessian_Gaussian_group <- function(...,mu,sigma){
+expected_hessian_Gaussian_group <- function(...,mu,sigma,corinput = FALSE,meanstructure = TRUE){
   # if (missing(Drawts)){
   #   Drawts <- Diagonal(NROW(mu) +  nrow(sigma) * ( nrow(sigma)+1) / 2)
   # }
   
-  # Mean part:
-  meanPart <- expected_hessian_Gaussian_group_meanPart(...)
- 
   # Variance part:
   varPart <- expected_hessian_Gaussian_group_varPart(...)
   
+  # Cut out variances if needed:
+  if (corinput){
+    keep <- diag(ncol(sigma))[lower.tri(diag(ncol(sigma)),diag=TRUE)] != 1
+    varPart <- as(varPart[keep,keep, drop=FALSE], "Matrix")
+  }
+  
+  # Cut out means if needed:
+  if (meanstructure){
+    # Mean part:
+    meanPart <- expected_hessian_Gaussian_group_meanPart(...)
+    
+    # Put int output:
+    Out <- bdiag(meanPart, varPart) 
+  } else {
+    Out <- varPart
+  }
+  
+  
+
   # Return as block matrix:
-  bdiag(meanPart, varPart) 
+  return(Out)
 }
 
 # Total:

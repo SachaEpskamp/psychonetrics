@@ -15,16 +15,42 @@ expected_hessian_fiml_Gaussian_subgroup <- function(dat,sigma,kappa,mu,...){
 }
 
 # Fit function per group:
-expected_hessian_fiml_Gaussian_group <- function(fimldata,fulln,sigma,kappa,mu,...){
+expected_hessian_fiml_Gaussian_group <- function(fimldata,fulln,sigma,kappa,mu,means, meanstructure = TRUE, corinput = FALSE,...){
   
   # Subgroup models:
-  1/fulln * Reduce("+", lapply(fimldata,expected_hessian_fiml_Gaussian_subgroup,sigma=sigma,kappa=kappa,mu=mu))
+  Hes <- 1/fulln * Reduce("+", lapply(fimldata,expected_hessian_fiml_Gaussian_subgroup,sigma=sigma,kappa=kappa,mu=mu))
+  
+  # Cut out the rows and columns not needed
+  # FIXME: Nicer to not have to compute these in the first place...
+  nvar <- ncol(sigma)
+  if (corinput){
+    keep <- c(rep(TRUE,nvar),diag(nvar)[lower.tri(diag(nvar),diag=TRUE)]!=1)
+    Hes <- Hes[keep,keep]
+  }
+  if (!meanstructure){
+    Hes <- Hes[-(seq_len(nvar)),-(seq_len(nvar))]
+  }
+  
+  return(Hes)
 }
 
 # C++ version
-expected_hessian_fiml_Gaussian_group_cpp_outer <- function(fimldata,fulln,sigma,kappa,mu,...){
+expected_hessian_fiml_Gaussian_group_cpp_outer <- function(fimldata,fulln,sigma,kappa,mu,means, meanstructure = TRUE, corinput = FALSE,...){
   # Subgroup models:
-  1/fulln * expected_hessian_fiml_Gaussian_group_cpp(fimldata=fimldata,sigma=as.matrix(sigma),kappa=as.matrix(kappa),mu=as.matrix(mu), epsilon = .Machine$double.eps)
+  Hes <- 1/fulln * expected_hessian_fiml_Gaussian_group_cpp(fimldata=fimldata,sigma=as.matrix(sigma),kappa=as.matrix(kappa),mu=as.matrix(mu), epsilon = .Machine$double.eps)
+  
+  # Cut out the rows and columns not needed
+  # FIXME: Nicer to not have to compute these in the first place...
+  nvar <- ncol(sigma)
+  if (corinput){
+    keep <- c(rep(TRUE,nvar),diag(nvar)[lower.tri(diag(nvar),diag=TRUE)]!=1)
+    Hes <- Hes[keep,keep]
+  }
+  if (!meanstructure){
+    Hes <- Hes[-(seq_len(nvar)),-(seq_len(nvar))]
+  }
+  
+  return(Hes)
 }
 
 # expected_hessian_fiml_Gaussian_group <- function(...){

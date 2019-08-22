@@ -1,6 +1,6 @@
 # Cholesky derivative:
 d_sigma_cholesky <- function(lowertri,L,C,In,...){
-
+  
   # library(microbenchmark)
   # microbenchmark(
   #   L %*% (
@@ -9,12 +9,12 @@ d_sigma_cholesky <- function(lowertri,L,C,In,...){
   #   ),
   #   L %*% ((In %x% In) + C) %*% ((lowertri %x% In) %*% t(L))
   # )
- # a <- L %*% (
- #    ( In %x% lowertri) %*% C %*% t(L) + 
- #      (lowertri %x% In) %*% t(L)
- #  )
- 
-L %*% ((In %x% In) + C) %*% ((lowertri %x% In) %*% t(L))
+  # a <- L %*% (
+  #    ( In %x% lowertri) %*% C %*% t(L) + 
+  #      (lowertri %x% In) %*% t(L)
+  #  )
+  
+  L %*% ((In %x% In) + C) %*% ((lowertri %x% In) %*% t(L))
 }
 
 # Derivative of scaling matrix:
@@ -53,11 +53,22 @@ d_sigma_SD <- function(L,SD_IplusRho,In,A,...){
   ) %*% A
 }
 
+# Derivative of omega to covariances in the corinput = TRUE setting:
+d_sigma_omega_corinput <- function(L,delta_IminOinv,A,delta,Dstar,IminOinv,In,...){
+  # L %*% (delta %x% delta) %*% (IminOinv %x% IminOinv) %*% Dstar
+  
+  # delta_IminOinv <- delta %*% IminOinv
+  L %*% (
+    (delta_IminOinv %x% delta_IminOinv) -
+      1/2 *  ((delta_IminOinv %x% In) + (In %x% delta_IminOinv)) %*% A %*% 
+      Diagonal(x = diag(IminOinv)^(-1.5)) %*% t(A) %*% (IminOinv %x% IminOinv)
+  ) %*% Dstar
+}
 
 
 
 # Full jacobian of phi (distribution parameters) with respect to theta (model parameters) for a group
-d_phi_theta_varcov_group <- function(sigma,y,...){
+d_phi_theta_varcov_group <- function(sigma,y,corinput,meanstructure,...){
   # Number of variables:
   nvar <- nrow(sigma)
   
@@ -65,49 +76,76 @@ d_phi_theta_varcov_group <- function(sigma,y,...){
   nobs <- nvar + # Means
     (nvar * (nvar+1))/2 # Variances
   
+  # Number of parameters is less if corinput is used or if meanstructure is ignored:
+  npars <- nobs - corinput * nvar - (!meanstructure) * nvar
+  
   # Mean part:
   meanPart <- seq_len(nvar)
   
   # Variance part:
-  varPart <- max(meanPart) + seq_len(nvar*(nvar+1)/2)
+  varPart <- max(meanPart) + seq_len(nvar*(nvar+1)/2)    
+  
+  # Var part for parameters:
+  varPartPars <- meanstructure * max(meanPart) + seq_len(nvar*(nvar+1)/2)    
   
   # Empty Jacobian:
-  Jac <- Matrix(0, nobs, nobs, sparse = FALSE)
-
-  # Fill mean part with diagonal:
-  Jac[meanPart,meanPart] <- Diagonal(nvar)
+  Jac <- Matrix(0, nobs, npars, sparse = FALSE)
+  
+  if (meanstructure){
+    # Fill mean part with diagonal:
+    Jac[meanPart,meanPart] <- Diagonal(nvar)    
+  }
+  
   
   # Now fill the sigma part:
   if (y == "cov"){
     # Regular covs:
-    Jac[varPart,varPart] <- Diagonal(nvar*(nvar+1)/2)
+    Jac[varPart,varPartPars] <- Diagonal(nvar*(nvar+1)/2)
   } else if (y == "chol"){
     # Cholesky decomposition:
-    Jac[varPart,varPart] <- d_sigma_cholesky(...)
+    Jac[varPart,varPartPars] <- d_sigma_cholesky(...)
   } else if (y == "ggm"){
+    
     # Gaussian graphical model:
-    netPart <- max(meanPart) + seq_len(nvar*(nvar-1)/2)
-    scalingPart <- max(netPart) + seq_len(nvar)
+    netPart <- meanstructure*max(meanPart) + seq_len(nvar*(nvar-1)/2)
+    scalingPart <- meanstructure*max(netPart) + seq_len(nvar)
     
+    if (corinput){
+      
+      Jac[varPart,netPart] <- d_sigma_omega_corinput(...)
+      
+    } else {
+      Jac[varPart,netPart] <- d_sigma_omega(...)
+      Jac[varPart,scalingPart] <- d_sigma_delta(...)
+      
+    }
     
-    Jac[varPart,netPart] <- d_sigma_omega(...)
-    Jac[varPart,scalingPart] <- d_sigma_delta(...)
   } else  if (y == "prec"){
-    Jac[varPart,varPart] <- d_sigma_kappa(sigma=sigma,...)
+    Jac[varPart,varPartPars] <- d_sigma_kappa(sigma=sigma,...)
   } else if (y == "cor"){
     # Corelation matrix:
-    corPart <- max(meanPart) + seq_len(nvar*(nvar-1)/2)
-    sdPart <- max(corPart) + seq_len(nvar)
-    
-    
+    corPart <- meanstructure*max(meanPart) + seq_len(nvar*(nvar-1)/2)
     Jac[varPart,corPart] <- d_sigma_rho(...)
-    Jac[varPart,sdPart] <- d_sigma_SD(...)
     
+    if (!corinput){
+      sdPart <- meanstructure*max(corPart) + seq_len(nvar)  
+      Jac[varPart,sdPart] <- d_sigma_SD(...)
+    }
+  }
+  
+  # Cut out the rows not needed
+  # FIXME: Nicer to not have to compute these in the first place...
+  if (corinput){
+    keep <- c(rep(TRUE,nvar),diag(nvar)[lower.tri(diag(nvar),diag=TRUE)]!=1)
+    Jac <- Jac[keep,]
+  }
+  if (!meanstructure){
+    Jac <- Jac[-(seq_len(nvar)), ]
   }
   
   # Make sparse if needed:
   Jac <- as(Jac, "Matrix")
- 
+  
   # Return jacobian:
   return(Jac)
 }

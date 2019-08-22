@@ -23,18 +23,36 @@ jacobian_gaussian_group_sigmaVersion_sigmaPart <- function(S,means,mu,sigma,D,ka
 
 
 # jacobian function per group:
-jacobian_gaussian_group_sigma <- function(...,Drawts,mu,sigma){
-  if (missing(Drawts)){
-    Drawts <- Diagonal(NROW(mu) +  nrow(sigma) * ( nrow(sigma)+1) / 2)
-  }
-  # Mean part:
-  grad_mean <- jacobian_gaussian_group_sigmaVersion_meanPart(mu=mu,sigma=sigma,...)
+jacobian_gaussian_group_sigma <- function(...,Drawts,mu,sigma, meanstructure = TRUE, corinput = FALSE){
 
+  
   # sigma part:
   grad_sigma <- jacobian_gaussian_group_sigmaVersion_sigmaPart(mu=mu,sigma=sigma,...,Drawts=Drawts)
 
+  # FIXME: Nicer to not bother with computing the parts not needed
+  # Cut out variances if needed:
+  if (corinput){
+    keep <- diag(ncol(sigma))[lower.tri(diag(ncol(sigma)),diag=TRUE)] != 1
+    grad_sigma <- as(grad_sigma[,keep, drop=FALSE], "Matrix")
+  }
+  
+  # Cut out means if needed:
+  if (meanstructure){
+    # Mean part:
+    grad_mean <- jacobian_gaussian_group_sigmaVersion_meanPart(mu=mu,sigma=sigma,...)
+    
+    # Put int output:
+    Out <- cbind(grad_mean,grad_sigma)
+  } else {
+    Out <- grad_sigma
+  }
+  
+  if (missing(Drawts)){
+    Drawts <- Diagonal(ncol(Out))
+  }
+  
   # Combine and return:
-  cbind(grad_mean,grad_sigma) %*% Drawts
+  Out %*% Drawts
 }
 
 # Now for all groups:

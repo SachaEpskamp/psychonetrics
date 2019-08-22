@@ -7,7 +7,7 @@ matrixsetup_mu <- function(
   equal = FALSE,
   sampletable,
   name = "mu",
-  meanstructure = FALSE
+  meanstructure = TRUE
 ){
   # Fix mu
   mu <- fixMu(mu,nGroup,nNode,equal)

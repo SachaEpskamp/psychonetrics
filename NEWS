@@ -4,6 +4,11 @@ Changes in version 0.3.4:
   o The getVCOV function has been added to obtain the estimated asymptotic var-cov matrix of the parameters.
   o The meanstructure can now be ignored using meanstructure = TRUE in the following model families:
     - varcov
+  o A correlation matrix can now be used as input (detected or set with corinput = TRUE) for the following families:
+    - varcov (type = "ggm" and type = "cor")
+  o The WLS estimator will now not investigate means when meanstructure is ignored, and variances when a correlaton matrix is used as input.
+    - The WLS weights matrix must be of the appropriate dimensions!
+    - The WLS.V matrix will no longer be adjusted for missing means.
 
 Changes in version 0.3.3:
   o prune() now removes diagonal values of temporal effects

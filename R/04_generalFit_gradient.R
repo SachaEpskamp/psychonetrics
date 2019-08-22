@@ -46,7 +46,7 @@ psychonetrics_gradient <- function(x, model){
  
   # Manual part:
   manualPart <- Mmatrix(model@parameters)
- 
+
   # Full Jacobian:
   Jac <- estimatorPart %*% modelPart %*% manualPart
 

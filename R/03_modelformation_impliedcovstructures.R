@@ -67,7 +67,15 @@ impliedcovstructures <- function(
 
       }
     } else if (type == "ggm"){
-      x[[g]][[sigma]] <- x[[g]][[delta]] %*% solve_symmetric(Diagonal(ncol(x[[g]][[omega]])) - x[[g]][[omega]]) %*% x[[g]][[delta]]
+      IminO_dummy <-  as(solve_symmetric(Diagonal(ncol(x[[g]][[omega]])) - x[[g]][[omega]]), "Matrix")
+      
+      # First check if the delta Matrix is present (it is ignored when corinput = TRUE only, so don't need to know that that argument was used):
+      if (is.null(x[[g]][[delta]])){
+        x[[g]][[delta]] <- Diagonal(x = diag(IminO_dummy)^(-0.5))
+      }
+      
+      
+      x[[g]][[sigma]] <- x[[g]][[delta]] %*%IminO_dummy  %*% x[[g]][[delta]]
       
       # Stuff needed if all = TRUE:
       if (all){
@@ -81,7 +89,7 @@ impliedcovstructures <- function(
       
       # Extra matrix needed:
       if (!all){
-        x[[g]][[IminOinv]] <- as(solve_symmetric(Diagonal(ncol(x[[g]][[omega]])) - x[[g]][[omega]]), "Matrix")
+        x[[g]][[IminOinv]] <- IminO_dummy
         x[[g]][[delta_IminOinv]] <- x[[g]][[delta]] %*% x[[g]][[IminOinv]]
       }
     } else if (type == "prec"){
@@ -95,6 +103,11 @@ impliedcovstructures <- function(
       }
     } else if (type == "cor"){
 
+      # First check if the SD Matrix is present (it is ignored when corinput = TRUE only, so don't need to know that that argument was used):
+      if (is.null(x[[g]][[SD]])){
+        x[[g]][[SD]] <- Diagonal(ncol(x[[g]][[rho]]))
+      }
+      
       x[[g]][[sigma]] <- x[[g]][[SD]] %*% (Diagonal(ncol(x[[g]][[rho]])) + x[[g]][[rho]]) %*% x[[g]][[SD]]
       
       # Stuff needed if all = TRUE:
