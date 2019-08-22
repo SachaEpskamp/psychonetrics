@@ -6,6 +6,12 @@ implied_varcov <- function(model, all = FALSE){
   x <- impliedcovstructures(x,type = model@types$y, all = all)
 
   for (g in seq_along(x)){
+    # Check mu (if it is not there, this is because meanstructure = FALSE):
+    if (is.null(x[[g]]$mu)){
+      x[[g]]$mu <- model@sample@means[[g]]
+    }
+    
+    # Check kappa
     if (is.null(x[[g]]$kappa)){
       x[[g]]$kappa <- solve_symmetric(x[[g]]$sigma, logdet = TRUE)
     } else {

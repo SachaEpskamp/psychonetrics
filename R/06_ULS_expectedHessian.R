@@ -18,13 +18,13 @@ ULS_Gauss_exphes_pergroup <- function(means,S,mu,sigma,WLS.V,estimator,...){
     WLS.V <- Diagonal(x = diag(WLS.V))
   }
   
-  # model is already prepared!
-  # Dummy for WLS:
-  # observed statistics:
-  obs <-c(as.vector(means),Vech(S))
-  
-  # implied statistics:
-  imp <-   c(as.vector(mu),Vech(sigma))
+  # # model is already prepared!
+  # # Dummy for WLS:
+  # # observed statistics:
+  # obs <-c(as.vector(means),Vech(S))
+  # 
+  # # implied statistics:
+  # imp <-   c(as.vector(mu),Vech(sigma))
   
   # ULS:
   

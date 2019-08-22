@@ -6,6 +6,7 @@ generate_psychonetrics_samplestats <- setClass("psychonetrics_samplestats",  slo
   groups = "data.frame", # Data frame with information on each group  
   variables = "data.frame",
   nobs = "numeric", # Number of observations
+  corinput = "logical",
   # missingness = "list", # Missing patterns, only used when rawts = TRUE
   # data = "list" # Raw data, used only with fimldata
   fimldata = "list",
@@ -14,12 +15,15 @@ generate_psychonetrics_samplestats <- setClass("psychonetrics_samplestats",  slo
 ), prototype = list(groups = data.frame(
   label = character(0),
   id = integer(0),
-  nobs = integer(0),stringsAsFactors = FALSE
+  nobs = integer(0),
+  stringsAsFactors = FALSE
 ),
 variables = data.frame(
   label = character(0),
   id = integer(0)
-)))
+),
+corinput = FALSE
+))
 
 # Timestamp:
 setOldClass("sessionInfo")

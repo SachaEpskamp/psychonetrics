@@ -17,18 +17,43 @@ jacobian_fiml_gaussian_subgroup_sigma <- function(dat,sigma,kappa,mu,...){
 
 
 # jacobian function per group
-jacobian_fiml_gaussian_group_sigma <- function(fimldata,fulln,sigma,kappa,mu,...){
+jacobian_fiml_gaussian_group_sigma <- function(fimldata,fulln,sigma,kappa,mu,means, meanstructure = TRUE, corinput = FALSE,...){
   
   # Subgroup models:
-  1/fulln * Reduce("+", lapply(fimldata,jacobian_fiml_gaussian_subgroup_sigma,sigma=sigma,kappa=kappa,mu=mu))
+  Jac <- 1/fulln * Reduce("+", lapply(fimldata,jacobian_fiml_gaussian_subgroup_sigma,sigma=sigma,kappa=kappa,mu=mu))
   
+  # Cut out the rows not needed
+  # FIXME: Nicer to not have to compute these in the first place...
+  nvar <- ncol(sigma)
+  if (corinput){
+    keep <- c(rep(TRUE,nvar),diag(nvar)[lower.tri(diag(nvar),diag=TRUE)]!=1)
+    Jac <- Jac[,keep]
+  }
+  if (!meanstructure){
+    Jac <- Jac[,-(seq_len(nvar))]
+  }
+  
+  return(Jac)
 }
 
 
 # Jacobian function per group, C++ version:
-jacobian_fiml_gaussian_group_sigma_cpp_outer <- function(fimldata,fulln,sigma,kappa,mu,...){
+jacobian_fiml_gaussian_group_sigma_cpp_outer <- function(fimldata,fulln,sigma,kappa,mu,means, meanstructure = TRUE, corinput = FALSE,...){
   # Subgroup models:
-  1/fulln * jacobian_fiml_gaussian_subgroup_sigma_cpp(fimldata=fimldata,sigma=as.matrix(sigma),kappa=as.matrix(kappa),mu=as.matrix(mu), epsilon = .Machine$double.eps)
+  Jac <- 1/fulln * jacobian_fiml_gaussian_subgroup_sigma_cpp(fimldata=fimldata,sigma=as.matrix(sigma),kappa=as.matrix(kappa),mu=as.matrix(mu), epsilon = .Machine$double.eps)
+  
+  # Cut out the rows not needed
+  # FIXME: Nicer to not have to compute these in the first place...
+  nvar <- ncol(sigma)
+  if (corinput){
+    keep <- c(rep(TRUE,nvar),diag(nvar)[lower.tri(diag(nvar),diag=TRUE)]!=1)
+    Jac <- Jac[,keep]
+  }
+  if (!meanstructure){
+    Jac <- Jac[, -(seq_len(nvar))]
+  }
+  
+  return(Jac)
 }
 
 # 

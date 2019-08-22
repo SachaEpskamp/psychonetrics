@@ -24,7 +24,8 @@ varcov <- function(
   storedata = FALSE,
   WLS.V,
   sampleStats, # Leave to missing
-  meanstructure # Defaults to TRUE if data is used or means is used, FALSE otherwie
+  meanstructure, # Defaults to TRUE if data is used or means is used, FALSE otherwie
+  corinput # Defaults to TRUE if the input is detected to consist of correlation matrix/matrices, FALSE otherwise
 ){
   rawts = FALSE
   if (rawts){
@@ -38,7 +39,13 @@ varcov <- function(
   if (missing(meanstructure)){
     meanstructure <- (!missing(data) || !missing(means))
   }
-
+  
+  # Check FIML:
+  if (!meanstructure && estimator == "FIML"){
+    stop("meanstructure = FALSE is not yet supported for 'FIML' estimator")
+  }
+  
+  
   # Obtain sample stats:
   if (missing(sampleStats)){
     # WLS weights:
@@ -62,10 +69,13 @@ varcov <- function(
                                fimldata = estimator == "FIML",
                                storedata = storedata,
                                weightsmatrix = WLS.V,
-                               meanstructure = meanstructure)
+                               meanstructure = meanstructure,
+                               corinput = corinput)
   }
-
-
+  
+  # Overwrite corinput:
+  corinput <- sampleStats@corinput
+  
   # Check some things:
   nNode <- nrow(sampleStats@variables)
   
@@ -81,20 +91,32 @@ varcov <- function(
   
   # Add number of observations:
   model@sample@nobs <-  
-    nNode * (nNode+1) / 2 * nGroup + # Covariances per group
+    nNode * (nNode-1) / 2 * nGroup + # Covariances per group
+    (!corinput) * nNode * nGroup + # Variances (ignored if correlation matrix is input)
     meanstructure * nNode * nGroup # Means per group
   
   # Model matrices:
   modMatrices <- list()
   
-  # Fix mu
-  modMatrices$mu <- matrixsetup_mu(mu,nNode = nNode,nGroup = nGroup,labels = sampleStats@variables$label,equal = "mu" %in% equal,
-                       expmeans = model@sample@means, sampletable = sampleStats, meanstructure = meanstructure)
+  # # Fix mu
+  # modMatrices$mu <- matrixsetup_mu(mu,nNode = nNode,nGroup = nGroup,labels = sampleStats@variables$label,equal = "mu" %in% equal,
+  #                                  expmeans = model@sample@means, sampletable = sampleStats, meanstructure = meanstructure)
+  
+  # Alternative, without mean structure just ignore mu:
+  if (meanstructure){
+    # Fix mu
+    modMatrices$mu <- matrixsetup_mu(mu,nNode = nNode,nGroup = nGroup,labels = sampleStats@variables$label,equal = "mu" %in% equal,
+                                     expmeans = model@sample@means, sampletable = sampleStats, meanstructure = meanstructure)
+  }
   
   # fixMu(mu,nGroup,nNode,"mu" %in% equal)
   
   # Fix sigma
   if (type == "cov"){
+    if (corinput){
+      stop("Correlation matrix input is not supported for type = 'cov'. Use type = 'cor' or set corinput = FALSE")
+    }
+    
     modMatrices$sigma <- matrixsetup_sigma(sigma, 
                                            expcov=model@sample@covs,
                                            nNode = nNode, 
@@ -102,12 +124,15 @@ varcov <- function(
                                            labels = sampleStats@variables$label,
                                            equal = "sigma" %in% equal, sampletable = sampleStats)    
   } else if (type == "chol"){
+    if (corinput){
+      stop("Correlation matrix input is not supported for type = 'chol'.")
+    }
     modMatrices$lowertri <- matrixsetup_lowertri(lowertri, 
-                                           expcov=model@sample@covs,
-                                           nNode = nNode, 
-                                           nGroup = nGroup, 
-                                           labels = sampleStats@variables$label,
-                                           equal = "lowertri" %in% equal, sampletable = sampleStats)
+                                                 expcov=model@sample@covs,
+                                                 nNode = nNode, 
+                                                 nGroup = nGroup, 
+                                                 labels = sampleStats@variables$label,
+                                                 equal = "lowertri" %in% equal, sampletable = sampleStats)
   } else if (type == "ggm"){
     # Add omega matrix:
     modMatrices$omega <- matrixsetup_omega(omega, 
@@ -117,14 +142,20 @@ varcov <- function(
                                            labels = sampleStats@variables$label,
                                            equal = "omega" %in% equal, sampletable = sampleStats)
     
-    # Add delta matrix:
-    modMatrices$delta <- matrixsetup_delta(delta, 
-                                           expcov=model@sample@covs,
-                                           nNode = nNode, 
-                                           nGroup = nGroup, 
-                                           labels = sampleStats@variables$label,
-                                           equal = "delta" %in% equal, sampletable = sampleStats) 
+    if (!corinput){
+      # Add delta matrix (ingored if corinput == TRUE):
+      modMatrices$delta <- matrixsetup_delta(delta, 
+                                             expcov=model@sample@covs,
+                                             nNode = nNode, 
+                                             nGroup = nGroup, 
+                                             labels = sampleStats@variables$label,
+                                             equal = "delta" %in% equal, sampletable = sampleStats)       
+    }
+    
   } else if (type == "prec"){
+    if (corinput){
+      stop("Correlation matrix input is not supported for type = 'prec'. Use type = 'ggm' or set corinput = FALSE")
+    }
     
     # Add omega matrix:
     modMatrices$kappa <- matrixsetup_kappa(kappa, 
@@ -136,28 +167,31 @@ varcov <- function(
   } else if (type == "cor"){
     # Add rho matrix:
     modMatrices$rho <- matrixsetup_rho(rho, 
-                                           expcov=model@sample@covs,
-                                           nNode = nNode, 
-                                           nGroup = nGroup, 
-                                           labels = sampleStats@variables$label,
-                                           equal = "rho" %in% equal, sampletable = sampleStats)
+                                       expcov=model@sample@covs,
+                                       nNode = nNode, 
+                                       nGroup = nGroup, 
+                                       labels = sampleStats@variables$label,
+                                       equal = "rho" %in% equal, sampletable = sampleStats)
     
-    # Add SD matrix:
-    modMatrices$SD <- matrixsetup_SD(SD, 
-                                           expcov=model@sample@covs,
-                                           nNode = nNode, 
-                                           nGroup = nGroup, 
-                                           labels = sampleStats@variables$label,
-                                           equal = "SD" %in% equal, sampletable = sampleStats) 
+    if (!corinput){
+      # Add SD matrix (ignored if corinput == TRUE):
+      modMatrices$SD <- matrixsetup_SD(SD, 
+                                       expcov=model@sample@covs,
+                                       nNode = nNode, 
+                                       nGroup = nGroup, 
+                                       labels = sampleStats@variables$label,
+                                       equal = "SD" %in% equal, sampletable = sampleStats) 
+    }      
   }
   
-
+  
+  
   
   
   
   # Generate the full parameter table:
   pars <- do.call(generateAllParameterTables, modMatrices)
-
+  
   
   # Store in model:
   model@parameters <- pars$partable
@@ -171,10 +205,10 @@ varcov <- function(
     )
   } else if (type == "chol"){
     model@extramatrices <- list(
-    D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
-    L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
-    In = Diagonal(nNode), # Identity of dim n
-    C = as(lavaan::lav_matrix_commutation(nNode,nNode),"sparseMatrix")
+      D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
+      L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
+      In = Diagonal(nNode), # Identity of dim n
+      C = as(lavaan::lav_matrix_commutation(nNode,nNode),"sparseMatrix")
     )
   } else if (type == "ggm" || type == "cor"){
     model@extramatrices <- list(
@@ -185,7 +219,7 @@ varcov <- function(
       A = psychonetrics::diagonalizationMatrix(nNode)
     )
   }
-
+  
   
   # Form the model matrices
   model@modelmatrices <- formModelMatrices(model)
@@ -193,41 +227,81 @@ varcov <- function(
   
   ### Baseline model ###
   if (baseline_saturated){
-   
+    
     # Form baseline model:
     if ("omega" %in% equal | "sigma" %in% equal | "kappa" %in% equal){
       equal <- c(equal,"lowertri")
     }
-    model@baseline_saturated$baseline <- varcov(data,
-                                                type = "chol",
-                                                lowertri = "empty",
-                                             vars = vars,
-                                             groups = groups,
-                                             covs = covs,
-                                             means = means,
-                                             nobs = nobs,
-                                             missing = missing,
-                                             equal = equal,
-                                             estimator = estimator,
-                                             baseline_saturated = FALSE,sampleStats=sampleStats)
+    if (!corinput){
+      model@baseline_saturated$baseline <- varcov(data,
+                                                  type = "chol",
+                                                  lowertri = "empty",
+                                                  vars = vars,
+                                                  groups = groups,
+                                                  covs = covs,
+                                                  means = means,
+                                                  nobs = nobs,
+                                                  missing = missing,
+                                                  equal = equal,
+                                                  estimator = estimator,
+                                                  meanstructure=meanstructure,
+                                                  corinput = ccorinput,
+                                                  baseline_saturated = FALSE,sampleStats=sampleStats)
+    } else {
+      model@baseline_saturated$baseline <- varcov(data,
+                                                  type = "cor",
+                                                  lowertri = "empty",
+                                                  vars = vars,
+                                                  groups = groups,
+                                                  covs = covs,
+                                                  means = means,
+                                                  nobs = nobs,
+                                                  missing = missing,
+                                                  equal = equal,
+                                                  estimator = estimator,
+                                                  meanstructure=meanstructure,
+                                                  corinput = ccorinput,
+                                                  baseline_saturated = FALSE,sampleStats=sampleStats)
+    }
+
     
     # Add model:
     # model@baseline_saturated$baseline@fitfunctions$extramatrices$M <- Mmatrix(model@baseline_saturated$baseline@parameters)
     
     
     ### Saturated model ###
-    model@baseline_saturated$saturated <- varcov(data,
-           type = "chol", 
-           lowertri = "full", 
-           vars = vars,
-           groups = groups,
-           covs = covs,
-           means = means,
-           nobs = nobs,
-           missing = missing,
-           equal = equal,
-           estimator = estimator,
-           baseline_saturated = FALSE,sampleStats=sampleStats)
+    if (!corinput){
+      model@baseline_saturated$saturated <- varcov(data,
+                                                   type = "chol", 
+                                                   lowertri = "full", 
+                                                   vars = vars,
+                                                   groups = groups,
+                                                   covs = covs,
+                                                   means = means,
+                                                   nobs = nobs,
+                                                   missing = missing,
+                                                   equal = equal,
+                                                   estimator = estimator,
+                                                   meanstructure=meanstructure,
+                                                   corinput = ccorinput,
+                                                   baseline_saturated = FALSE,sampleStats=sampleStats)
+    } else {
+      model@baseline_saturated$saturated <- varcov(data,
+                                                   type = "cor", 
+                                                   lowertri = "full", 
+                                                   vars = vars,
+                                                   groups = groups,
+                                                   covs = covs,
+                                                   means = means,
+                                                   nobs = nobs,
+                                                   missing = missing,
+                                                   equal = equal,
+                                                   estimator = estimator,
+                                                   meanstructure=meanstructure,
+                                                   corinput = ccorinput,
+                                                   baseline_saturated = FALSE,sampleStats=sampleStats)
+    }
+
     
     # if not FIML, Treat as computed:
     if (estimator != "FIML"){

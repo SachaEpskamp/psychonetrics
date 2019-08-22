@@ -11,7 +11,8 @@ samplestats_norawts <- function(
   verbose = TRUE,
   storedata = FALSE,
   weightsmatrix = "none", #c("none","identity","full","diag")
-  meanstructure = TRUE
+  meanstructure = TRUE,
+  corinput
 ){
   missing <- match.arg(missing)
   # weightsmatrix <- match.arg(weightsmatrix)
@@ -253,8 +254,22 @@ samplestats_norawts <- function(
   names(covs) <- groupNames
   names(means) <- groupNames
   
+  # Determine corinput (will also detect if standardized data was used as input):
+  if (missing(corinput)){
+    
+    if (all(
+      sapply(covs,function(x){
+        all(abs(diag(x) - 1) < sqrt(.Machine$double.eps))
+      })
+    )){
+      corinput <- TRUE
+    } else {
+      corinput <- FALSE
+    }
+  }
+  
   # Generate samplestats object:
-  object <- generate_psychonetrics_samplestats(covs = covs, cors = cors, means = means)
+  object <- generate_psychonetrics_samplestats(covs = covs, cors = cors, means = means, corinput = corinput)
   
   # Fill groups:
   object@groups <- data.frame(
@@ -280,7 +295,7 @@ samplestats_norawts <- function(
         missingpatterns_covs(means[[x]],covs[[x]],nobs[x],verbose=verbose)
       })
     }
- 
+    
   }
   
   # add full data:
@@ -305,39 +320,41 @@ samplestats_norawts <- function(
     
     # Check if mean structure is added, otherwise add identitiy matrix:
     for (g in 1:nGroup){
-      if (ncol(object@WLS.V[[1]]) != nVars + nVars*(nVars+1)/2){
-        if (ncol(object@WLS.V[[1]]) == nVars*(nVars+1)/2){
-          if (verbose){
-            warning("WLS.V only supplied for variance/covariance structure. Adding identitiy matrix to means part.")
+      # FIXME: DISABLED FOR NOW
+      #   if (ncol(object@WLS.V[[1]]) != nVars + nVars*(nVars+1)/2){
+      #     if (ncol(object@WLS.V[[1]]) == nVars*(nVars+1)/2){
+      #       if (verbose && meanstructure){
+      #         warning("WLS.V only supplied for variance/covariance structure. Adding identitiy matrix to means part.")
+      #       }
+      #       object@WLS.V[[1]] <- rbind(
+      #         cbind(Diagonal(nVars), Matrix(0,nVars,nVars*(nVars+1)/2)),
+      #         cbind(Matrix(0,nVars*(nVars+1)/2,nVars), object@WLS.V[[1]])
+      #         )
+      #     } else {
+      #       stop("WLS.V not of appropriate dimension.")  
+      #     }
+      #   }
+      # }
+      # } else {
+      if (is.character(weightsmatrix) && weightsmatrix != "none"){
+        for (g in 1:nGroup){
+          if (weightsmatrix == "identity"){
+            object@WLS.V[[g]] <- Diagonal(nVars + nVars*(nVars+1)/2)  
+          } else if (weightsmatrix == "full"){
+            subData <- data[data[[groups]] == g,c(vars)]
+            object@WLS.V[[g]] <- LS_weightsmat(subData,meanstructure=meanstructure,corinput=corinput)
+          } else if (weightsmatrix == "diag"){
+            subData <- data[data[[groups]] == g,c(vars)]
+            object@WLS.V[[g]] <- LS_weightsmat(subData, type = "diagonal",meanstructure=meanstructure,corinput=corinput)
           }
-          object@WLS.V[[1]] <- rbind(
-            cbind(Diagonal(nVars), Matrix(0,nVars,nVars*(nVars+1)/2)),
-            cbind(Matrix(0,nVars*(nVars+1)/2,nVars), object@WLS.V[[1]])
-            )
-        } else {
-          stop("WLS.V not of appropriate dimension.")  
-        }
-      }
-    }
-  } else {
-    if (weightsmatrix != "none"){
-      for (g in 1:nGroup){
-        if (weightsmatrix == "identity"){
-          object@WLS.V[[g]] <- Diagonal(nVars + nVars*(nVars+1)/2)  
-        } else if (weightsmatrix == "full"){
-          subData <- data[data[[groups]] == g,c(vars)]
-          object@WLS.V[[g]] <- LS_weightsmat(subData,meanstructure=meanstructure)
-        } else if (weightsmatrix == "diag"){
-          subData <- data[data[[groups]] == g,c(vars)]
-          object@WLS.V[[g]] <- LS_weightsmat(subData, type = "diagonal",meanstructure=meanstructure)
         }
       }
     }
   }
-  
-  
-  
-  
-  # Return object:
-  return(object)
-}
+    
+    
+    
+    
+    # Return object:
+    return(object)
+  }
