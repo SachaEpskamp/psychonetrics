@@ -108,13 +108,14 @@ d_phi_theta_varcov_group <- function(sigma,y,corinput,meanstructure,...){
     
     # Gaussian graphical model:
     netPart <- meanstructure*max(meanPart) + seq_len(nvar*(nvar-1)/2)
-    scalingPart <- meanstructure*max(netPart) + seq_len(nvar)
+    scalingPart <- max(netPart) + seq_len(nvar)
     
     if (corinput){
       
       Jac[varPart,netPart] <- d_sigma_omega_corinput(...)
       
     } else {
+     
       Jac[varPart,netPart] <- d_sigma_omega(...)
       Jac[varPart,scalingPart] <- d_sigma_delta(...)
       
@@ -128,7 +129,7 @@ d_phi_theta_varcov_group <- function(sigma,y,corinput,meanstructure,...){
     Jac[varPart,corPart] <- d_sigma_rho(...)
     
     if (!corinput){
-      sdPart <- meanstructure*max(corPart) + seq_len(nvar)  
+      sdPart <- max(corPart) + seq_len(nvar)  
       Jac[varPart,sdPart] <- d_sigma_SD(...)
     }
   }
@@ -145,7 +146,7 @@ d_phi_theta_varcov_group <- function(sigma,y,corinput,meanstructure,...){
   
   # Make sparse if needed:
   Jac <- as(Jac, "Matrix")
-  
+
   # Return jacobian:
   return(Jac)
 }
