@@ -15,6 +15,12 @@ runmodel <- function(
   analyticFisher = TRUE
   # inverseHessian = TRUE
 ){
+  # first check if there are any free parameters:
+  if (all(x@parameters$fixed)){
+    x@computed <- TRUE
+    return(x)
+  }
+  
   optimizer <- x@optimizer
   # Default:
   if (optimizer == "default"){
