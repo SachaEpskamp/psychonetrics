@@ -18,6 +18,14 @@ runmodel <- function(
   # first check if there are any free parameters:
   if (all(x@parameters$fixed)){
     x@computed <- TRUE
+    # Add fit:
+    if (addfit){
+      x <- addfit(x)
+    }
+    # FIXME: fis this Add MIs:
+    # if (addMIs){
+    #   x <- addMIs(x,analyticFisher=analyticFisher) 
+    # }
     return(x)
   }
   
