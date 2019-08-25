@@ -95,6 +95,29 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// corPrepare_cpp
+List corPrepare_cpp(List Data, LogicalVector isOrdered);
+RcppExport SEXP _psychonetrics_corPrepare_cpp(SEXP DataSEXP, SEXP isOrderedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type Data(DataSEXP);
+    Rcpp::traits::input_parameter< LogicalVector >::type isOrdered(isOrderedSEXP);
+    rcpp_result_gen = Rcpp::wrap(corPrepare_cpp(Data, isOrdered));
+    return rcpp_result_gen;
+END_RCPP
+}
+// computeThresholds
+NumericVector computeThresholds(IntegerVector y);
+RcppExport SEXP _psychonetrics_computeThresholds(SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type y(ySEXP);
+    rcpp_result_gen = Rcpp::wrap(computeThresholds(y));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp, 5},
@@ -103,6 +126,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp, 5},
     {"_psychonetrics_fimlEstimator_Gauss_group_cpp", (DL_FUNC) &_psychonetrics_fimlEstimator_Gauss_group_cpp, 6},
     {"_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp", (DL_FUNC) &_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp, 5},
+    {"_psychonetrics_corPrepare_cpp", (DL_FUNC) &_psychonetrics_corPrepare_cpp, 2},
+    {"_psychonetrics_computeThresholds", (DL_FUNC) &_psychonetrics_computeThresholds, 1},
     {NULL, NULL, 0}
 };
 

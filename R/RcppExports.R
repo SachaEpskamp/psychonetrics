@@ -25,3 +25,11 @@ jacobian_fiml_gaussian_subgroup_sigma_cpp <- function(sigma, kappa, mu, fimldata
     .Call(`_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp`, sigma, kappa, mu, fimldata, epsilon)
 }
 
+corPrepare_cpp <- function(Data, isOrdered) {
+    .Call(`_psychonetrics_corPrepare_cpp`, Data, isOrdered)
+}
+
+computeThresholds <- function(y) {
+    .Call(`_psychonetrics_computeThresholds`, y)
+}
+
