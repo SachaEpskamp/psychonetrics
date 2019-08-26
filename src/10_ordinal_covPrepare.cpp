@@ -20,7 +20,7 @@ using namespace arma;
 List covPrepare_cpp(
     NumericMatrix data, // Data as data frame
     LogicalVector isOrdered,
-    double tol = 0.0001
+    double tol = 0.000001
 ) { 
   // Iterators:
   int i, j, p;
