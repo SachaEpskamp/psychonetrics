@@ -226,7 +226,7 @@ double polychoric_fit_summary(double rho, IntegerMatrix tab, NumericVector t1, N
   int i, j;
   
   // Double used later:
-  double pi;
+  double pi, tabmult;
   
   // Levels:
   int nLevels1 = tab.nrow();
@@ -285,7 +285,14 @@ double polychoric_fit_summary(double rho, IntegerMatrix tab, NumericVector t1, N
         pbv::pbv_rcpp_pbvnorm0(t1_aug[i],t2_aug[j], rho);
       
       
-      curL +=  tab(i,j) * log(pi);
+      // Adjust table to 0.5 if it is zero:
+      // if (tab(i,j) == 0){
+      //   tabmult = 0.5;
+      // } else {
+        tabmult = (double)tab(i,j);
+      // }
+      
+      curL +=  tabmult * log(pi);
     }
   }
   
@@ -314,7 +321,7 @@ double polychoric_grad_summary(double rho, IntegerMatrix tab, NumericVector t1, 
   int i, j;
   
   // Double used later:
-  double pi, num;
+  double pi, num, tabmult;
   
   // Levels:
   int nLevels1 = tab.nrow();
@@ -377,8 +384,14 @@ double polychoric_grad_summary(double rho, IntegerMatrix tab, NumericVector t1, 
         pbv::pbv_rcpp_pbvnorm0(t1_aug[i+1],t2_aug[j], rho) + 
         pbv::pbv_rcpp_pbvnorm0(t1_aug[i],t2_aug[j], rho);
       
+      // Adjust table to 0.5 if it is zero:
+      // if (tab(i,j) == 0){
+      //   tabmult = 0.5;
+      // } else {
+      tabmult = (double)tab(i,j);
+      // }
       
-      curGrad +=  tab(i,j) * num / pi;
+      curGrad +=  tabmult * num / pi;
     }
   }
   
@@ -466,7 +479,9 @@ double polychoric_grad_summary(double rho, IntegerMatrix tab, NumericVector t1, 
 // My own Gradient Descent optimizer:
 // [[Rcpp::export]]
 double estimate_polychoric(IntegerVector y1, IntegerVector y2, NumericVector t1, NumericVector t2,
-                           double tol = 0.0001, double stepsize = 1, int maxIt = 1000){
+                           double tol = 0.000001, double stepsize = 1, int maxIt = 1000){
+  
+  // Table:
   IntegerMatrix tab = cpp_table(y1,y2);
   
   // Current iteration:
