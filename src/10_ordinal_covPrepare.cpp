@@ -19,7 +19,8 @@ using namespace arma;
 // [[Rcpp::export]]
 List covPrepare_cpp(
     NumericMatrix data, // Data as data frame
-    LogicalVector isOrdered
+    LogicalVector isOrdered,
+    double tol = 0.0001
 ) { 
   // Iterators:
   int i, j, p;
@@ -134,23 +135,17 @@ List covPrepare_cpp(
         // Else covariance or correlation:  
         if (isOrdered[i] && isOrdered[j]){
           // Rf_error("Polychoric correlation not yet supported");
+          covMat(i,j) = covMat(j,i) = estimate_polychoric(DataList[i], DataList[j],  meansAndThresholds[i],  meansAndThresholds[j], tol = tol);
+          
+          
         } else if (isOrdered[i] && !isOrdered[j]){
-          // Rf_error("Polyserial correlation not yet supported");
+          Rf_error("Polyserial correlation not yet supported");
         } else if (!isOrdered[i] && isOrdered[j]){
-          // Rf_error("Polyserial correlation not yet supported");
+          Rf_error("Polyserial correlation not yet supported");
         } else {
           covMat(i,j) = covMat(j,i) = pearsonCov(DataList[i], DataList[j], meansAndThresholds[i], meansAndThresholds[j]);
         }
-        
-        
-        
-        
-      }
-      
-      
-      
-      
-      
+       }
     }
   }
   

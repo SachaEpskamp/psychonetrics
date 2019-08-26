@@ -96,14 +96,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // covPrepare_cpp
-List covPrepare_cpp(NumericMatrix data, LogicalVector isOrdered);
-RcppExport SEXP _psychonetrics_covPrepare_cpp(SEXP dataSEXP, SEXP isOrderedSEXP) {
+List covPrepare_cpp(NumericMatrix data, LogicalVector isOrdered, double tol);
+RcppExport SEXP _psychonetrics_covPrepare_cpp(SEXP dataSEXP, SEXP isOrderedSEXP, SEXP tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
     Rcpp::traits::input_parameter< LogicalVector >::type isOrdered(isOrderedSEXP);
-    rcpp_result_gen = Rcpp::wrap(covPrepare_cpp(data, isOrdered));
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(covPrepare_cpp(data, isOrdered, tol));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -212,6 +213,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// estimate_polychoric
+double estimate_polychoric(IntegerVector y1, IntegerVector y2, NumericVector t1, NumericVector t2, double tol, double stepsize, int maxIt);
+RcppExport SEXP _psychonetrics_estimate_polychoric(SEXP y1SEXP, SEXP y2SEXP, SEXP t1SEXP, SEXP t2SEXP, SEXP tolSEXP, SEXP stepsizeSEXP, SEXP maxItSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type y1(y1SEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type y2(y2SEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type t1(t1SEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type t2(t2SEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< double >::type stepsize(stepsizeSEXP);
+    Rcpp::traits::input_parameter< int >::type maxIt(maxItSEXP);
+    rcpp_result_gen = Rcpp::wrap(estimate_polychoric(y1, y2, t1, t2, tol, stepsize, maxIt));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp, 5},
@@ -220,7 +238,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp, 5},
     {"_psychonetrics_fimlEstimator_Gauss_group_cpp", (DL_FUNC) &_psychonetrics_fimlEstimator_Gauss_group_cpp, 6},
     {"_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp", (DL_FUNC) &_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp, 5},
-    {"_psychonetrics_covPrepare_cpp", (DL_FUNC) &_psychonetrics_covPrepare_cpp, 2},
+    {"_psychonetrics_covPrepare_cpp", (DL_FUNC) &_psychonetrics_covPrepare_cpp, 3},
     {"_psychonetrics_computeMean", (DL_FUNC) &_psychonetrics_computeMean, 1},
     {"_psychonetrics_computeThresholds", (DL_FUNC) &_psychonetrics_computeThresholds, 1},
     {"_psychonetrics_pearsonCov", (DL_FUNC) &_psychonetrics_pearsonCov, 5},
@@ -229,6 +247,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_polychoric_fit_summary", (DL_FUNC) &_psychonetrics_polychoric_fit_summary, 4},
     {"_psychonetrics_binormal_density", (DL_FUNC) &_psychonetrics_binormal_density, 7},
     {"_psychonetrics_polychoric_grad_summary", (DL_FUNC) &_psychonetrics_polychoric_grad_summary, 4},
+    {"_psychonetrics_estimate_polychoric", (DL_FUNC) &_psychonetrics_estimate_polychoric, 7},
     {NULL, NULL, 0}
 };
 

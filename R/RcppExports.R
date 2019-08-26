@@ -25,8 +25,8 @@ jacobian_fiml_gaussian_subgroup_sigma_cpp <- function(sigma, kappa, mu, fimldata
     .Call(`_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp`, sigma, kappa, mu, fimldata, epsilon)
 }
 
-covPrepare_cpp <- function(data, isOrdered) {
-    .Call(`_psychonetrics_covPrepare_cpp`, data, isOrdered)
+covPrepare_cpp <- function(data, isOrdered, tol = 0.0001) {
+    .Call(`_psychonetrics_covPrepare_cpp`, data, isOrdered, tol)
 }
 
 computeMean <- function(y) {
@@ -59,5 +59,9 @@ binormal_density <- function(x1, x2, rho, sigma1 = 1.0, sigma2 = 1.0, mu1 = 0.0,
 
 polychoric_grad_summary <- function(rho, tab, t1, t2) {
     .Call(`_psychonetrics_polychoric_grad_summary`, rho, tab, t1, t2)
+}
+
+estimate_polychoric <- function(y1, y2, t1, t2, tol = 0.0001, stepsize = 1, maxIt = 1000L) {
+    .Call(`_psychonetrics_estimate_polychoric`, y1, y2, t1, t2, tol, stepsize, maxIt)
 }
 
