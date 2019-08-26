@@ -393,39 +393,67 @@ double polychoric_grad_summary(double rho, IntegerMatrix tab, NumericVector t1, 
 
 
 ////Test from https://cran.rstudio.com/web/packages/RcppNumerical/vignettes/introduction.html
-// P(0.3 < X < 0.8), X ~ Beta(a, b)
-class BetaPDF: public Func
+// [[Rcpp::depends(RcppEigen)]]
+// [[Rcpp::depends(RcppNumerical)]]
+
+#include <RcppNumerical.h>
+
+using namespace Numer;
+
+// f = 100 * (x2 - x1^2)^2 + (1 - x1)^2
+// True minimum: x1 = x2 = 1
+class Rosenbrock: public MFuncGrad
 {
-private:
-  double a;
-  double b;
 public:
-  BetaPDF(double a_, double b_) : a(a_), b(b_) {}
-  
-  double operator()(const double& x) const
+  double f_grad(Constvec& x, Refvec grad)
   {
-    return R::dbeta(x, a, b, 0);
+    double t1 = x[1] - x[0] * x[0];
+    double t2 = 1 - x[0];
+    grad[0] = -400 * x[0] * t1 - 2 * t2;
+    grad[1] = 200 * t1;
+    return 100 * t1 * t1 + t2 * t2;
   }
 };
 
 // [[Rcpp::export]]
-Rcpp::List integrate_test()
+Rcpp::List optim_test()
 {
-  const double a = 3, b = 10;
-  const double lower = 0.3, upper = 0.8;
-  const double true_val = R::pbeta(upper, a, b, 1, 0) -
-    R::pbeta(lower, a, b, 1, 0);
-  
-  BetaPDF f(a, b);
-  double err_est;
-  int err_code;
-  const double res = integrate(f, lower, upper, err_est, err_code);
+  Eigen::VectorXd x(2);
+  x[0] = -1.2;
+  x[1] = 1;
+  double fopt;
+  Rosenbrock f;
+  int res = optim_lbfgs(f, x, fopt);
   return Rcpp::List::create(
-    Rcpp::Named("true") = true_val,
-    Rcpp::Named("approximate") = res,
-    Rcpp::Named("error_estimate") = err_est,
-    Rcpp::Named("error_code") = err_code
+    Rcpp::Named("xopt") = x,
+    Rcpp::Named("fopt") = fopt,
+    Rcpp::Named("status") = res
   );
 }
 
 
+//class for a polychoric correlation
+class Polychoric: public MFuncGrad
+{
+public:
+  double f_grad(Constvec& rho, Refvec grad)
+  {
+    grad[0] = 2 * rho[0];
+    return pow(rho[0], 2.0);
+  }
+};
+
+// [[Rcpp::export]]
+Rcpp::List optim_test2()
+{
+  Eigen::VectorXd rho(1);
+  rho[0] = 0.0;
+  double fopt;
+  Polychoric f;
+  int res = optim_lbfgs(f, rho, fopt);
+  return Rcpp::List::create(
+    Rcpp::Named("xopt") = rho,
+    Rcpp::Named("fopt") = fopt,
+    Rcpp::Named("status") = res
+  );
+}
