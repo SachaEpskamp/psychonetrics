@@ -28,5 +28,7 @@ double polychoric_fit_summary(double rho, IntegerMatrix tab, NumericVector t1, N
 
 double binormal_density(double x1, double x2, double rho, double sigma1 = 1.0, double sigma2 = 1.0, double mu1 = 0.0, double mu2 = 0.0);
 
+double estimate_polychoric(IntegerVector y1, IntegerVector y2, NumericVector t1, NumericVector t2,
+                    double tol = 0.00000001, double stepsize = 1, int maxIt = 1000);
 
 #endif

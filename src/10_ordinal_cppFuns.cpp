@@ -8,12 +8,9 @@
 
 
 // [[Rcpp::depends(RcppArmadillo)]]
-// [[Rcpp::depends(RcppEigen)]]
-// [[Rcpp::depends(RcppNumerical)]]
 using namespace Rcpp;
 using namespace arma;
-#include <RcppNumerical.h>
-using namespace Numer;
+
 
 // FIXME: I want to put all these functions nicely in seperate files, but can't figure out how and get weird errors.
 // So my solution is that I put all helper functions in this file. 
@@ -391,69 +388,125 @@ double polychoric_grad_summary(double rho, IntegerMatrix tab, NumericVector t1, 
   return curGrad;
 }
 
+// FUCK THIS!
+// 
+// ////Test from https://cran.rstudio.com/web/packages/RcppNumerical/vignettes/introduction.html
+// // [[Rcpp::depends(RcppEigen)]]
+// // [[Rcpp::depends(RcppNumerical)]]
+// 
+// #include <RcppNumerical.h>
+// 
+// using namespace Numer;
+// 
+// // f = 100 * (x2 - x1^2)^2 + (1 - x1)^2
+// // True minimum: x1 = x2 = 1
+// class Rosenbrock: public MFuncGrad
+// {
+// public:
+//   double f_grad(Constvec& x, Refvec grad)
+//   {
+//     double t1 = x[1] - x[0] * x[0];
+//     double t2 = 1 - x[0];
+//     grad[0] = -400 * x[0] * t1 - 2 * t2;
+//     grad[1] = 200 * t1;
+//     return 100 * t1 * t1 + t2 * t2;
+//   }
+// };
+// 
+// // [[Rcpp::export]]
+// Rcpp::List optim_test()
+// {
+//   Eigen::VectorXd x(2);
+//   x[0] = -1.2;
+//   x[1] = 1;
+//   double fopt;
+//   Rosenbrock f;
+//   int res = optim_lbfgs(f, x, fopt);
+//   return Rcpp::List::create(
+//     Rcpp::Named("xopt") = x,
+//     Rcpp::Named("fopt") = fopt,
+//     Rcpp::Named("status") = res
+//   );
+// }
+// 
+// 
+// //class for a polychoric correlation
+// class Polychoric: public MFuncGrad
+// {
+// public:
+//   double f_grad(Constvec& rho, Refvec grad)
+//   {
+//     // Fill in gradient here:
+//     grad[0] = polychoric_grad_summary(rho[0], tab, t1, t2);
+//     
+//     // Fill in fit function here:
+//     double fit = polychoric_fit_summary(rho[0], tab, t1, t2);
+//     
+//     // return:
+//     return fit;
+//   }
+// };
+// 
+// // [[Rcpp::export]]
+// Rcpp::List optim_test2(IntegerMatrix tab, NumericVector t1, NumericVector t2)
+// {
+//   Eigen::VectorXd rho(1);
+//   rho[0] = 0.0;
+//   double fopt;
+//   Polychoric f;
+//   int res = optim_lbfgs(f, rho, fopt);
+//   return Rcpp::List::create(
+//     Rcpp::Named("xopt") = rho,
+//     Rcpp::Named("fopt") = fopt,
+//     Rcpp::Named("status") = res
+//   );
+// }
 
-////Test from https://cran.rstudio.com/web/packages/RcppNumerical/vignettes/introduction.html
-// [[Rcpp::depends(RcppEigen)]]
-// [[Rcpp::depends(RcppNumerical)]]
-
-#include <RcppNumerical.h>
-
-using namespace Numer;
-
-// f = 100 * (x2 - x1^2)^2 + (1 - x1)^2
-// True minimum: x1 = x2 = 1
-class Rosenbrock: public MFuncGrad
-{
-public:
-  double f_grad(Constvec& x, Refvec grad)
-  {
-    double t1 = x[1] - x[0] * x[0];
-    double t2 = 1 - x[0];
-    grad[0] = -400 * x[0] * t1 - 2 * t2;
-    grad[1] = 200 * t1;
-    return 100 * t1 * t1 + t2 * t2;
-  }
-};
-
+// 
+// My own Gradient Descent optimizer:
 // [[Rcpp::export]]
-Rcpp::List optim_test()
-{
-  Eigen::VectorXd x(2);
-  x[0] = -1.2;
-  x[1] = 1;
-  double fopt;
-  Rosenbrock f;
-  int res = optim_lbfgs(f, x, fopt);
-  return Rcpp::List::create(
-    Rcpp::Named("xopt") = x,
-    Rcpp::Named("fopt") = fopt,
-    Rcpp::Named("status") = res
-  );
+double estimate_polychoric(IntegerVector y1, IntegerVector y2, NumericVector t1, NumericVector t2,
+                           double tol = 0.0001, double stepsize = 1, int maxIt = 1000){
+  IntegerMatrix tab = cpp_table(y1,y2);
+  
+  // Current iteration:
+  int curIt = 0;
+  // Start value:
+  double rho = 0.0;
+
+  // Some doubles I'll need:
+  double curFit, newFit, curGrad, newGrad, delta, curStep;
+  
+  double gamma = stepsize;
+
+  curFit = newFit = polychoric_fit_summary(rho, tab, t1, t2);
+  curGrad = newGrad = polychoric_grad_summary(rho, tab, t1, t2);
+
+  // Start iterating:
+  do {
+    curIt++;
+    curFit = newFit;
+    curGrad = newGrad;
+
+    // Gradient descent step:
+    delta = -1.0 *  gamma * curGrad;
+    rho += delta;
+    
+    // Update fit:
+    newFit = polychoric_fit_summary(rho, tab, t1, t2);
+    
+    // Update gradient:
+    newGrad = polychoric_grad_summary(rho, tab, t1, t2);
+    
+    // Update step size:
+    gamma = abs(delta * (newGrad - curGrad)) / pow(newGrad - curGrad, 2.0);
+
+  } while (curIt < maxIt && abs(curFit - newFit) > tol);
+
+  if (curIt >= maxIt){
+    Rf_error("Polychoric correlation estimator did not converge.");
+  }
+
+  return(rho);
 }
 
-
-//class for a polychoric correlation
-class Polychoric: public MFuncGrad
-{
-public:
-  double f_grad(Constvec& rho, Refvec grad)
-  {
-    grad[0] = 2 * rho[0];
-    return pow(rho[0], 2.0);
-  }
-};
-
-// [[Rcpp::export]]
-Rcpp::List optim_test2()
-{
-  Eigen::VectorXd rho(1);
-  rho[0] = 0.0;
-  double fopt;
-  Polychoric f;
-  int res = optim_lbfgs(f, rho, fopt);
-  return Rcpp::List::create(
-    Rcpp::Named("xopt") = rho,
-    Rcpp::Named("fopt") = fopt,
-    Rcpp::Named("status") = res
-  );
-}
