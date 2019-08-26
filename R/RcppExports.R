@@ -25,11 +25,39 @@ jacobian_fiml_gaussian_subgroup_sigma_cpp <- function(sigma, kappa, mu, fimldata
     .Call(`_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp`, sigma, kappa, mu, fimldata, epsilon)
 }
 
-corPrepare_cpp <- function(Data, isOrdered) {
-    .Call(`_psychonetrics_corPrepare_cpp`, Data, isOrdered)
+covPrepare_cpp <- function(data, isOrdered) {
+    .Call(`_psychonetrics_covPrepare_cpp`, data, isOrdered)
+}
+
+computeMean <- function(y) {
+    .Call(`_psychonetrics_computeMean`, y)
 }
 
 computeThresholds <- function(y) {
     .Call(`_psychonetrics_computeThresholds`, y)
+}
+
+pearsonCov <- function(y1, y2, mean1, mean2, unbiased = FALSE) {
+    .Call(`_psychonetrics_pearsonCov`, y1, y2, mean1, mean2, unbiased)
+}
+
+toOrdinal <- function(var) {
+    .Call(`_psychonetrics_toOrdinal`, var)
+}
+
+cpp_table <- function(y1, y2) {
+    .Call(`_psychonetrics_cpp_table`, y1, y2)
+}
+
+polychoric_fit_summary <- function(rho, tab, t1, t2) {
+    .Call(`_psychonetrics_polychoric_fit_summary`, rho, tab, t1, t2)
+}
+
+binormal_density <- function(x1, x2, rho, sigma1 = 1.0, sigma2 = 1.0, mu1 = 0.0, mu2 = 0.0) {
+    .Call(`_psychonetrics_binormal_density`, x1, x2, rho, sigma1, sigma2, mu1, mu2)
+}
+
+polychoric_grad_summary <- function(rho, tab, t1, t2) {
+    .Call(`_psychonetrics_polychoric_grad_summary`, rho, tab, t1, t2)
 }
 
