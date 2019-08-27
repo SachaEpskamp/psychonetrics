@@ -40,7 +40,7 @@ fixTau <- function(Matrix,sampleThresholds, equal = FALSE){
   
   # Make the appropriate elements 0:
   for (g in seq_len(nGroup)){
-    for (i in seq_len(nNode)){
+    for (i in seq_len(ncols)){
       if (threshPerNode[i,g] < nrows){
         Matrix[(threshPerNode[i,g]+1):nrows,i,g] <- NA
       }
