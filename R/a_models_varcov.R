@@ -12,6 +12,7 @@ varcov <- function(
   SD = "full", # Used for cor
   mu,
   vars, # character indicating the variables Extracted if missing from data - group variable
+  ordered = character(0), # character indicating the variables that are ordinal
   groups, # ignored if missing. Can be character indicating groupvar, or vector with names of groups
   covs, # alternative covs (array nvar * nvar * ngroup)
   means, # alternative means (matrix nvar * ngroup)
@@ -19,7 +20,7 @@ varcov <- function(
   missing = "listwise",
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
-  estimator = "ML",
+  estimator = "default",
   optimizer = "default",
   storedata = FALSE,
   WLS.V,
@@ -30,6 +31,18 @@ varcov <- function(
   rawts = FALSE
   if (rawts){
     warning("'rawts' is only included for testing purposes. Please do not use!")
+  }
+  
+  if (estimator == "default"){
+    if (length(ordered) > 0){
+      estimator <- "WLS"
+    } else {
+      estimator <- "ML"
+    }
+  }
+  
+  if (length(ordered) > 0 & !estimator %in% c("WLS","DWLS","ULS")){
+    stop("Ordinal data is only supported for WLS, DWLS and ULS estimators.")
   }
   
   # Type:
@@ -60,6 +73,7 @@ varcov <- function(
     
     sampleStats <- samplestats(data = data, 
                                vars = vars, 
+                               ordered=ordered,
                                groups = groups,
                                covs = covs, 
                                means = means, 

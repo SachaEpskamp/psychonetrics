@@ -3,6 +3,7 @@ generate_psychonetrics_samplestats <- setClass("psychonetrics_samplestats",  slo
   covs = "list",
   cors = "list",
   means = "list",
+  thresholds = "list",
   groups = "data.frame", # Data frame with information on each group  
   variables = "data.frame",
   nobs = "numeric", # Number of observations

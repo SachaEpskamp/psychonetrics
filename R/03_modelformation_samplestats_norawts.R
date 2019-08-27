@@ -2,6 +2,7 @@
 samplestats_norawts <- function(
   data, # Dataset
   vars, # character indicating the variables Extracted if missing from data - group variable
+  ordered = character(0),
   groups, # ignored if missing. Can be character indicating groupvar, or vector with names of groups
   covs, # alternative covs (array nvar * nvar * ngroup)
   means, # alternative means (matrix nvar * ngroup)
@@ -18,6 +19,9 @@ samplestats_norawts <- function(
   # weightsmatrix <- match.arg(weightsmatrix)
   
   # Check data:
+  if (missing(data) & length(ordered) >0){
+    stop("Ordinal data only supported with raw data as input.")
+  }
   if (missing(data) & missing(covs)){
     stop("'data' and 'covs' may not both be missing")
   }
@@ -76,26 +80,54 @@ samplestats_norawts <- function(
       data <- data[rowSums(is.na(data[,c(vars)])) == 0,]
     }
     
+    # Check if none or all are ordered:
+    # FIXME: ADD POLYSERIALS LATER!!!
+    if (!all(vars %in% ordered) | all(!vars %in% ordered)){
+      stop("Either all variables or no variables may be ordered...")
+    }
+    
     # Create covs and means arguments:
     if (nGroup == 1){
-      cov <- (nrow(data[,c(vars)])-1)/(nrow(data[,c(vars)])) * cov(data[,c(vars)], use = switch(
-        missing, "listwise" = "complete.obs", "pairwise" = "pairwise.complete.obs"
-      ))
-      cov <- 0.5*(cov + t(cov))
-      covs <- list(as(cov,"dsyMatrix"))
-      if (!any(is.na(cov))){
-        cors <- list(new("corMatrix", cov2cor(cov), sd = diag(cov)))         
+      if (length(ordered)  > 0){
+        # Do I need a WLS.V?
+        if (is.character(weightsmatrix)){
+          needWLSV <- TRUE
+        } else {
+          needWLS <- FALSE
+        }
+        
+        # Run the Cpp function:
+        prepRes <- covPrepare_cpp(
+          data[,vars],
+          vars %in% ordered,
+          WLSweights = needWLSV
+        )
+        
       } else {
-        cors <- list()
+        
+        cov <- (nrow(data[,c(vars)])-1)/(nrow(data[,c(vars)])) * cov(data[,c(vars)], use = switch(
+          missing, "listwise" = "complete.obs", "pairwise" = "pairwise.complete.obs"
+        ))
+        cov <- 0.5*(cov + t(cov))
+        covs <- list(as(cov,"dsyMatrix"))
+        if (!any(is.na(cov))){
+          cors <- list(new("corMatrix", cov2cor(cov), sd = diag(cov)))         
+        } else {
+          cors <- list()
+        }
+        # cors <- list(new("corMatrix", cov2cor(cov), sd = diag(cov)))
+        means <- list(colMeans(data[,c(vars)], na.rm = TRUE))
+        
+        thresholds <- list()
       }
-      # cors <- list(new("corMatrix", cov2cor(cov), sd = diag(cov)))
-      means <- list(colMeans(data[,c(vars)], na.rm = TRUE))
+     
       # groupNames <- unique(data[[groups]])
       
     } else {
       covs <- list()
       cors <- list()
       means <- list()
+      thresholds <- list()
       # groupNames <- unique(data[[groups]])
       
       for (g in 1:nGroup){
