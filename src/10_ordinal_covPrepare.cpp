@@ -172,7 +172,7 @@ List covPrepare_cpp(
   if (WLSweights){
     // Make the parameter vector { mean / threhsolds ; lower tri covariances }
     // First let's count how many elements I need:
-  
+    
     for (j=0;j<nVar;j++){
       
       if (isOrdered[j]){
@@ -188,17 +188,17 @@ List covPrepare_cpp(
         if (i == j && !isOrdered[i]){
           nElements++;
         }
-
+        
         if (i != j){
           nElements++;
         }
       }
     }
-  
+    
     // Parameter vector:
     NumericVector parVector(nElements, 0.0);
-
-
+    
+    
     // Integer vector to store which variable belongs to each element. -1 in var2 indicates a mean or threshold:
     IntegerVector var1(nElements);
     IntegerVector var2(nElements);
@@ -245,7 +245,7 @@ List covPrepare_cpp(
       for (j=0;j<=i;j++){
         var1mt = var2[i] == -1;
         var2mt = var2[j] == -1;
-        DD(i,j) = DD(j,i) = 0.0;
+        DD(i,j) = DD(j,i) = B(i,j) = B(j,i) = 0.0;
         
         // Both a mean or threshold?
         if (var1mt && var2mt){
@@ -254,26 +254,26 @@ List covPrepare_cpp(
           LogicalVector mis2 = MissingList[var1[j]];
           nUsed = sum(!mis1 * !mis2);
           
-        
+          
           // For every subject:
           for (p=0; p<nCase; p++){
-
+            
             if (!mis1[p] && !mis2[p]){
-
+              
               // Var 1:
               if (isOrdered[var1[i]]){
                 D1 = threshold_grad_singlesubject(((IntegerVector)DataList[var1[i]])[p], whichPar[i], meansAndThresholds[var1[i]]);
               } else {
                 Rf_error("Only ordinal data supported now...");
               }
-
+              
               // Var 2:
               if (isOrdered[var1[j]]){
                 D2 = threshold_grad_singlesubject(((IntegerVector)DataList[var1[j]])[p], whichPar[j], meansAndThresholds[var1[j]]);
               } else {
                 Rf_error("Only ordinal data supported now...");
               }
-        
+              
               
               // Fill in matrices:
               DD(i,j) = DD(j,i) = DD(i,j) + (-2.0/(double)nUsed) * D1 * D2;
@@ -285,6 +285,49 @@ List covPrepare_cpp(
         }
         
         
+        // part 1 is (co)variance and part 2 mean/threshold?
+        if (!var1mt && var2mt){
+          // Missing patterns:
+          LogicalVector mis1a = MissingList[var1[i]];
+          LogicalVector mis1b = MissingList[var2[i]];
+          LogicalVector mis2 = MissingList[var1[j]];
+          
+          nUsed = sum(!mis1a * !mis1a * !mis2);
+          
+          
+          // For every subject:
+          for (p=0; p<nCase; p++){
+            
+            if (!mis1a[p] * !mis1a[p] * !mis2[p]){
+              
+              // part 1:
+              if (isOrdered[var1[i]] && isOrdered[var2[i]]){
+                D1 = polychor_grad_singlesubject(
+                  ((IntegerVector)DataList[var1[i]])[p], 
+                                                    ((IntegerVector)DataList[var2[i]])[p],
+                                                                                      covMat(var1[i],var2[i]),
+                                                                                      meansAndThresholds[var1[i]],
+                                                                                                        meansAndThresholds[var2[i]]);
+              } else {
+                Rf_error("Only ordinal data supported now...");
+              }
+              
+              // part 2:
+              if (isOrdered[var1[j]]){
+                D2 = threshold_grad_singlesubject(((IntegerVector)DataList[var1[j]])[p], whichPar[j], meansAndThresholds[var1[j]]);
+              } else {
+                Rf_error("Only ordinal data supported now...");
+              }
+              
+              
+              // Fill in matrices:
+              DD(i,j) = DD(j,i) = DD(i,j) + (-2.0/(double)nUsed) * D1 * (-2.0/(double)nUsed) * D2;
+              if (i == j){
+                B(i,j) = B(j,i) = DD(i,j);
+              }
+            }
+          }
+        }
         
         // Both a (co)variance?
         if (!var1mt && !var2mt){
@@ -293,24 +336,23 @@ List covPrepare_cpp(
           LogicalVector mis1b = MissingList[var2[i]];
           LogicalVector mis2a = MissingList[var1[j]];
           LogicalVector mis2b = MissingList[var2[j]];
-        
+          
           nUsed = sum(!mis1a * !mis1a * !mis2a * !mis2b);
-          Rf_PrintValue(wrap(i));
-          Rf_PrintValue(wrap(j));
+          
           
           // For every subject:
           for (p=0; p<nCase; p++){
-            Rf_PrintValue(wrap(p));
+            
             if (!mis1a[p] * !mis1a[p] * !mis2a[p] * !mis2b[p]){
               
               // part 1:
               if (isOrdered[var1[i]] && isOrdered[var2[i]]){
                 D1 = polychor_grad_singlesubject(
                   ((IntegerVector)DataList[var1[i]])[p], 
-                  ((IntegerVector)DataList[var2[i]])[p],
-                  covMat(var1[i],var2[i]),
-                  meansAndThresholds[var1[i]],
-                  meansAndThresholds[var2[i]]);
+                                                    ((IntegerVector)DataList[var2[i]])[p],
+                                                                                      covMat(var1[i],var2[i]),
+                                                                                      meansAndThresholds[var1[i]],
+                                                                                                        meansAndThresholds[var2[i]]);
               } else {
                 Rf_error("Only ordinal data supported now...");
               }
@@ -319,10 +361,10 @@ List covPrepare_cpp(
               if (isOrdered[var1[j]] && isOrdered[var2[j]]){
                 D2 = polychor_grad_singlesubject(
                   ((IntegerVector)DataList[var1[j]])[p], 
-                 ((IntegerVector)DataList[var2[j]])[p],
-                 covMat(var1[j],var2[j]),
-                 meansAndThresholds[var1[j]],
-                meansAndThresholds[var2[j]]);
+                                                    ((IntegerVector)DataList[var2[j]])[p],
+                                                                                      covMat(var1[j],var2[j]),
+                                                                                      meansAndThresholds[var1[j]],
+                                                                                                        meansAndThresholds[var2[j]]);
               } else {
                 Rf_error("Only ordinal data supported now...");
               }
@@ -355,13 +397,15 @@ List covPrepare_cpp(
     // arma::sp_mat Binv = spsolve( B, I );
     arma::mat WLS_V = Binv * DD * Binv;
     
-
+    
     // Store in output:
     Result["parameter_vector"] = parVector;
     Result["parameter_index"] = whichPar;
     Result["pars_var1"] = var1;
     Result["pars_var2"] = var2;
     Result["WLS_V"] = WLS_V;
+    Result["DD"] = DD;
+    Result["B"] = B;
   }
   
   // Return output:
