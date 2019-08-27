@@ -68,7 +68,7 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
 
   # Compute fisher information and return:
   # Fisher <- 2 * prep$nTotal * t(manualPart) %*% t(modelPart) %*% estimatorPartHessian %*% modelPart %*% manualPart
-  
+
   # Unit information instead:
   Fisher <- 0.5 * t(manualPart) %*% t(modelPart) %*% estimatorPartHessian %*% modelPart %*% manualPart
   

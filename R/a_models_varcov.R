@@ -11,6 +11,7 @@ varcov <- function(
   rho = "full", # Used for cor
   SD = "full", # Used for cor
   mu,
+  tau,
   vars, # character indicating the variables Extracted if missing from data - group variable
   ordered = character(0), # character indicating the variables that are ordinal
   groups, # ignored if missing. Can be character indicating groupvar, or vector with names of groups
@@ -41,8 +42,23 @@ varcov <- function(
     }
   }
   
+  # Check WLS for ordinal:
   if (length(ordered) > 0 & !estimator %in% c("WLS","DWLS","ULS")){
     stop("Ordinal data is only supported for WLS, DWLS and ULS estimators.")
+  }
+  
+  # Check corinput FIXME: may be mixture
+  if (length(ordered) > 0 & missing(corinput)){
+    corinput <- TRUE
+  }
+  if (length(ordered) > 0 && (!missing(corinput) && !corinput)){
+    stop("corinput must be TRUE for ordinal data.")
+  }
+
+  
+  # Disable meanstructure (FIXME: Allow for both ordinal and continuous):
+  if (length(ordered) > 0){
+    meanstructure <- FALSE
   }
   
   # Type:
@@ -86,7 +102,7 @@ varcov <- function(
                                meanstructure = meanstructure,
                                corinput = corinput)
   }
-  
+ 
   # Overwrite corinput:
   corinput <- sampleStats@corinput
   
@@ -103,11 +119,23 @@ varcov <- function(
   # Number of groups:
   nGroup <- nrow(model@sample@groups)
   
+
+  # Number of means and thresholds:
+  nMeans <- sum(sapply(model@sample@means,function(x)sum(!is.na(x))))
+
+  if (length(ordered) > 0){
+    nThresh <- sum(sapply(model@sample@thresholds,function(x)sum(sapply(x,length))))    
+  } else {
+    nThresh <- 0
+  }
+
+  
   # Add number of observations:
   model@sample@nobs <-  
     nNode * (nNode-1) / 2 * nGroup + # Covariances per group
     (!corinput) * nNode * nGroup + # Variances (ignored if correlation matrix is input)
-    meanstructure * nNode * nGroup # Means per group
+    meanstructure * nMeans + # Means per group
+    nThresh
   
   # Model matrices:
   modMatrices <- list()
@@ -120,7 +148,15 @@ varcov <- function(
   if (meanstructure){
     # Fix mu
     modMatrices$mu <- matrixsetup_mu(mu,nNode = nNode,nGroup = nGroup,labels = sampleStats@variables$label,equal = "mu" %in% equal,
-                                     expmeans = model@sample@means, sampletable = sampleStats, meanstructure = meanstructure)
+                       expmeans = model@sample@means, sampletable = sampleStats, meanstructure = meanstructure)
+  }
+  
+  # Thresholds:
+  if (length(ordered) > 0){
+    # Ideal setup for tau is a matrix, with NA for the missing elements.
+    modMatrices$tau <- matrixsetup_tau(tau, nNode = nNode,nGroup = nGroup,labels = sampleStats@variables$label,
+                                       equal = "tau" %in% equal, sampleThresholds = model@sample@thresholds, sampletable = sampleStats)
+    
   }
   
   # fixMu(mu,nGroup,nNode,"mu" %in% equal)
@@ -202,7 +238,7 @@ varcov <- function(
   
   
   
-  
+ 
   # Generate the full parameter table:
   pars <- do.call(generateAllParameterTables, modMatrices)
   
@@ -259,7 +295,8 @@ varcov <- function(
                                                   equal = equal,
                                                   estimator = estimator,
                                                   meanstructure=meanstructure,
-                                                  corinput = ccorinput,
+                                                  corinput = corinput,
+                                                  ordered = ordered,
                                                   baseline_saturated = FALSE,sampleStats=sampleStats)
     } else {
       model@baseline_saturated$baseline <- varcov(data,
@@ -274,7 +311,8 @@ varcov <- function(
                                                   equal = equal,
                                                   estimator = estimator,
                                                   meanstructure=meanstructure,
-                                                  corinput = ccorinput,
+                                                  corinput = corinput,
+                                                  ordered = ordered,
                                                   baseline_saturated = FALSE,sampleStats=sampleStats)
     }
 
@@ -297,7 +335,8 @@ varcov <- function(
                                                    equal = equal,
                                                    estimator = estimator,
                                                    meanstructure=meanstructure,
-                                                   corinput = ccorinput,
+                                                   corinput = corinput,
+                                                   ordered = ordered,
                                                    baseline_saturated = FALSE,sampleStats=sampleStats)
     } else {
       model@baseline_saturated$saturated <- varcov(data,
@@ -312,7 +351,8 @@ varcov <- function(
                                                    equal = equal,
                                                    estimator = estimator,
                                                    meanstructure=meanstructure,
-                                                   corinput = ccorinput,
+                                                   corinput = corinput,
+                                                   ordered = ordered,
                                                    baseline_saturated = FALSE,sampleStats=sampleStats)
     }
 

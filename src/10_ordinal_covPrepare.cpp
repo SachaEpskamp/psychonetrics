@@ -277,6 +277,7 @@ List covPrepare_cpp(
               
               // Fill in matrices:
               DD(i,j) = DD(j,i) = DD(i,j) + (-2.0/(double)nUsed) * D1* (-2.0/(double)nUsed)  * D2;
+              // DD(i,j) = DD(j,i) = DD(i,j) +  D1 *  D2;
               if (var1[i] == var1[j]){
                 B(i,j) = B(j,i) = DD(i,j);
               }
@@ -327,6 +328,7 @@ List covPrepare_cpp(
               // }
               // Not summetrical B?
               DD(i,j) = DD(j,i) = DD(i,j) + (-2.0/(double)nUsed) * D1 * (-2.0/(double)nUsed) * D2;
+              // DD(i,j) = DD(j,i) = DD(i,j) +  D1 *  D2;
               if (var1[i] == var1[j] || var1[i] == var2[j]){
                 B(i,j) = DD(i,j);
               }
@@ -377,6 +379,7 @@ List covPrepare_cpp(
               
               // Fill in matrices:
               DD(i,j) = DD(j,i) = DD(i,j) + (-2.0/(double)nUsed) * D1 * (-2.0/(double)nUsed) * D2;
+              // DD(i,j) = DD(j,i) = DD(i,j) +  D1 *  D2;
               if (i == j){
                 B(i,j) = B(j,i) = DD(i,j);
               }

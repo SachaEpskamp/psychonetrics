@@ -245,6 +245,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// polychor_grad_singlesubject
+double polychor_grad_singlesubject(int y1, int y2, double rho, NumericVector t1, NumericVector t2);
+RcppExport SEXP _psychonetrics_polychor_grad_singlesubject(SEXP y1SEXP, SEXP y2SEXP, SEXP rhoSEXP, SEXP t1SEXP, SEXP t2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type y1(y1SEXP);
+    Rcpp::traits::input_parameter< int >::type y2(y2SEXP);
+    Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type t1(t1SEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type t2(t2SEXP);
+    rcpp_result_gen = Rcpp::wrap(polychor_grad_singlesubject(y1, y2, rho, t1, t2));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp, 5},
@@ -264,6 +279,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_polychoric_grad_summary", (DL_FUNC) &_psychonetrics_polychoric_grad_summary, 4},
     {"_psychonetrics_estimate_polychoric", (DL_FUNC) &_psychonetrics_estimate_polychoric, 8},
     {"_psychonetrics_threshold_grad_singlesubject", (DL_FUNC) &_psychonetrics_threshold_grad_singlesubject, 3},
+    {"_psychonetrics_polychor_grad_singlesubject", (DL_FUNC) &_psychonetrics_polychor_grad_singlesubject, 5},
     {NULL, NULL, 0}
 };
 
