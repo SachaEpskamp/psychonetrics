@@ -29,7 +29,7 @@ implied_lvm <- function(model, all = FALSE){
       } 
       
       # Implied means
-      x[[g]]$mu <- x[[g]]$tau +  x[[g]]$lambda %*% BetaStar  %*% x[[g]]$tau_eta
+      x[[g]]$mu <- x[[g]]$nu +  x[[g]]$lambda %*% BetaStar  %*% x[[g]]$nu_eta
       
       # Implied variances:
       x[[g]]$sigma <- Lambda_BetaStar %*% x[[g]]$sigma_zeta %*% t(Lambda_BetaStar) + x[[g]]$sigma_epsilon

@@ -46,7 +46,7 @@ dlvm1 <- function(
   lowertri_epsilon_between = "empty",
   
   # Mean structure:
-  tau,
+  nu,
   mu_eta,
   
   # Identification:
@@ -213,9 +213,9 @@ dlvm1 <- function(
   # Expected means:
   expMeans <- lapply(model@sample@means, function(x)tapply(x,timePerVar,mean,na.rm=TRUE))
   
-  # Fix tau
-  modMatrices$tau <- matrixsetup_mu(tau,nNode = nVar, nGroup = nGroup, labels = varnames,equal = "tau" %in% equal,
-                                    expmeans = expMeans, sampletable = sampleStats, name = "tau")
+  # Fix nu
+  modMatrices$nu <- matrixsetup_mu(nu,nNode = nVar, nGroup = nGroup, labels = varnames,equal = "nu" %in% equal,
+                                    expmeans = expMeans, sampletable = sampleStats, name = "nu")
   
   # Fix between-subject means:
   modMatrices$mu_eta <- matrixsetup_mu(mu_eta,nNode = nLat, nGroup = nGroup, labels = latents, equal = "mu_eta" %in% equal,

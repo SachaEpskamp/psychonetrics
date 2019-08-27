@@ -22,7 +22,7 @@ dlvm1(data, vars, lambda, within_latent = c("cov", "chol", "prec", "ggm"),
       delta_zeta_between = "full", kappa_zeta_between = "full", sigma_zeta_between = 
       "full", lowertri_zeta_between = "full", omega_epsilon_between = "empty", 
       delta_epsilon_between = "empty", kappa_epsilon_between = "empty", 
-      sigma_epsilon_between = "empty", lowertri_epsilon_between = "empty", tau, mu_eta, 
+      sigma_epsilon_between = "empty", lowertri_epsilon_between = "empty", nu, mu_eta, 
       identify = TRUE, identification = c("loadings", "variance"), latents, groups, covs, 
       means, nobs, missing = "listwise", equal = "none", baseline_saturated = TRUE, 
       estimator = "ML", optimizer = "default", storedata = FALSE, sampleStats)
@@ -119,7 +119,7 @@ Only used when \code{between_residual = "cov"}. Can be \code{"full"}, \code{"emp
   \item{lowertri_epsilon_between}{
 Only used when \code{between_residual = "chol"}. Can be \code{"full"}, \code{"empty"}, or a typical model matrix with 0s indicating parameters constrained to zero, 1s indicating free parameters, and higher integers indicating equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
-  \item{tau}{
+  \item{nu}{
 Optional vector encoding the intercepts of the observed variables. Set elements to 0 to indicate fixed to zero constrains, 1 to indicate free intercepts, and higher integers to indicate equality constrains. For multiple groups, this argument can be a list or array with each element/column encoding such a vector.
 }
   \item{mu_eta}{

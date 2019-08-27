@@ -14,7 +14,7 @@ tsdlvm1(data, lambda, contemporaneous = c("cov", "chol", "prec", "ggm"),
         delta_zeta = "full", kappa_zeta = "full", sigma_zeta = "full", 
         lowertri_zeta = "full", omega_epsilon = "empty", delta_epsilon = "empty", 
         kappa_epsilon = "empty", sigma_epsilon = "empty", lowertri_epsilon = "empty", 
-        tau, mu_eta, identify = TRUE, identification = c("loadings", "variance"), 
+        nu, mu_eta, identify = TRUE, identification = c("loadings", "variance"), 
         latents, beepvar, dayvar, idvar, vars, groups, covs, means, nobs, missing = 
         "listwise", equal = "none", baseline_saturated = TRUE, estimator = "ML", 
         optimizer = "default", storedata = FALSE, sampleStats, centerWithin = FALSE)
@@ -68,7 +68,7 @@ Only used when \code{residual = "cov"}. Either \code{"full"} to estimate every e
   \item{lowertri_epsilon}{
 Only used when \code{residual = "chol"}. Either \code{"full"} to estimate every element freely, \code{"empty"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
-  \item{tau}{
+  \item{nu}{
 Optional vector encoding the intercepts of the observed variables. Set elements to 0 to indicate fixed to zero constrains, 1 to indicate free intercepts, and higher integers to indicate equality constrains. For multiple groups, this argument can be a list or array with each element/column encoding such a vector.
 }
   \item{mu_eta}{

@@ -26,7 +26,7 @@ tsdlvm1 <- function(
   lowertri_epsilon = "empty",
   
   # The rest:
-  tau,
+  nu,
   mu_eta,
   
   # Identification:
@@ -160,9 +160,9 @@ tsdlvm1 <- function(
                 expmeans = expMeans1, sampletable = sampleStats, name = "exo_means")
   
   
-  # Fix tau
-  modMatrices$tau <- matrixsetup_mu(tau, nNode = nNode, nGroup = nGroup, labels = varnames,equal = "tau" %in% equal,
-                                    expmeans = expMeans2, sampletable = sampleStats, name = "tau")
+  # Fix nu
+  modMatrices$nu <- matrixsetup_mu(nu, nNode = nNode, nGroup = nGroup, labels = varnames,equal = "nu" %in% equal,
+                                    expmeans = expMeans2, sampletable = sampleStats, name = "nu")
   
   # Fix between-subject means:
   modMatrices$mu_eta <- matrixsetup_mu(mu_eta,nNode = nLat, nGroup = nGroup, labels = latents, equal = "mu_eta" %in% equal,

@@ -1,4 +1,4 @@
-# Derivative of tau with respect to mu:
+# Derivative of nu with respect to mu:
 d_mu_mu_var1 <- function(beta,...){
   Diagonal(nrow(beta))
 }
