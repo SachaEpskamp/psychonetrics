@@ -21,7 +21,8 @@ generate_psychonetrics_samplestats <- setClass("psychonetrics_samplestats",  slo
 ),
 variables = data.frame(
   label = character(0),
-  id = integer(0)
+  id = integer(0),
+  ordered = logical(0)
 ),
 corinput = FALSE
 ))
@@ -126,7 +127,8 @@ prototype = list(
     symmetrical = logical(0),
     sparse = logical(0),
     posdef = logical(0),
-    diagonal = logical(0)
+    diagonal = logical(0),
+    incomplete = logical(0)
   ),
   computed = FALSE,
   log = createLogList(),

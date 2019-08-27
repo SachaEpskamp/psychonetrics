@@ -69,3 +69,7 @@ threshold_grad_singlesubject <- function(y, j, t) {
     .Call(`_psychonetrics_threshold_grad_singlesubject`, y, j, t)
 }
 
+polychor_grad_singlesubject <- function(y1, y2, rho, t1, t2) {
+    .Call(`_psychonetrics_polychor_grad_singlesubject`, y1, y2, rho, t1, t2)
+}
+

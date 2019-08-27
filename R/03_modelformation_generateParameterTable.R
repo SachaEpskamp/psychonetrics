@@ -31,6 +31,7 @@ parRelabel <- function(x){
 
 generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, sampletable, rownames, colnames, rowid, colid, sparse = FALSE, posdef = FALSE, diag0=FALSE, diagonal = FALSE,
                                    lower = -Inf, upper = Inf, start, lowertri=FALSE, allFixed = FALSE,
+                                   incomplete = FALSE,
                                    ... # Ignored dummy arguments
                                    ){
   # rowid and colid can be missing:
@@ -42,7 +43,9 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
   }
   
   # Indices to use:
-  if (diagonal){
+  if (incomplete){
+    ind <- !is.na(x)
+  } else if (diagonal){
     ind <- array(FALSE,dim=dim(x))
     for (i in 1:dim(ind)[3]){
       ind[,,i] <- diag(nrow(ind[,,i])) == 1
@@ -72,12 +75,12 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
   }
 
   # Est = 0 if matrix != symmetrical, 1 for diagonals if matrix = symmetrical:
-  if (symmetrical || lowertri){
+  if (symmetrical || lowertri || incomplete){
     est <- array(diag(nrow(x)),dim(x))[ind]
   } else {
     est <- rep(0,length(x))
   }
-  
+
   # Fixed are values that are zero:
   fixed <- x[ind] == 0
   
@@ -179,7 +182,7 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
     if (!missing(start)){
       partable$est <- start[ind]
     }
-    
+
     # Table for matrices:
     mattable <- data.frame(
       name = mat,
@@ -190,7 +193,8 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
       sparse = sparse,
       posdef=posdef,
       diagonal= diagonal,
-      lowertri = lowertri
+      lowertri = lowertri,
+      incomplete = incomplete
     )
   #   
   # } else {

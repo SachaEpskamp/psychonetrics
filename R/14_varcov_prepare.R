@@ -22,6 +22,7 @@ prepare_varcov <- function(x, model){
   S <- model@sample@covs
   means <- model@sample@means
   nVar <- nrow(model@sample@variables)
+  thresholds <- model@sample@thresholds
   
   # Extra mats:
   mMat <- list(
@@ -36,6 +37,7 @@ prepare_varcov <- function(x, model){
     groupModels[[g]]$means <- means[[g]]
     groupModels[[g]]$corinput <- model@sample@corinput
     groupModels[[g]]$meanstructure <- model@meanstructure
+    groupModels[[g]]$thresholds <- thresholds[[g]]
   }
   
   # Return

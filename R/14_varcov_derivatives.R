@@ -68,32 +68,43 @@ d_sigma_omega_corinput <- function(L,delta_IminOinv,A,delta,Dstar,IminOinv,In,..
 
 
 # Full jacobian of phi (distribution parameters) with respect to theta (model parameters) for a group
-d_phi_theta_varcov_group <- function(sigma,y,corinput,meanstructure,...){
+d_phi_theta_varcov_group <- function(sigma,y,corinput,meanstructure,tau,mu,...){
+  
   # Number of variables:
   nvar <- nrow(sigma)
   
+  if (missing(tau)){
+    tau <- matrix(NA,1,nvar)
+  }
+  
+
+  # Number of means/thresholds:
+  nMean_Thresh <- sum(!is.na(tau)) + sum(!is.na(mu))
+  
+  nThresh <- sum(!is.na(tau))
+  
   # Number of observations:
-  nobs <- nvar + # Means
+  nobs <- nMean_Thresh + # Means
     (nvar * (nvar+1))/2 # Variances
   
   # Number of parameters is less if corinput is used or if meanstructure is ignored:
-  npars <- nobs - corinput * nvar - (!meanstructure) * nvar
+  npars <- nobs - corinput * nvar - (!meanstructure) * sum(!is.na(mu))
   
   # Mean part:
-  meanPart <- seq_len(nvar)
+  meanPart <- seq_len(nMean_Thresh)
   
   # Variance part:
   varPart <- max(meanPart) + seq_len(nvar*(nvar+1)/2)    
   
   # Var part for parameters:
-  varPartPars <- meanstructure * max(meanPart) + seq_len(nvar*(nvar+1)/2)    
+  varPartPars <- meanstructure * max(meanPart) + nThresh +  seq_len(nvar*(nvar+1)/2)    
   
   # Empty Jacobian:
   Jac <- Matrix(0, nobs, npars, sparse = FALSE)
   
-  if (meanstructure){
+  if (meanstructure || nThresh > 0){
     # Fill mean part with diagonal:
-    Jac[meanPart,meanPart] <- Diagonal(nvar)    
+    Jac[meanPart,meanPart] <- Diagonal(nMean_Thresh)    
   }
   
   
@@ -107,7 +118,7 @@ d_phi_theta_varcov_group <- function(sigma,y,corinput,meanstructure,...){
   } else if (y == "ggm"){
     
     # Gaussian graphical model:
-    netPart <- meanstructure*max(meanPart) + seq_len(nvar*(nvar-1)/2)
+    netPart <- meanstructure*max(meanPart) + nThresh + seq_len(nvar*(nvar-1)/2)
     scalingPart <- max(netPart) + seq_len(nvar)
     
     if (corinput){
@@ -125,7 +136,7 @@ d_phi_theta_varcov_group <- function(sigma,y,corinput,meanstructure,...){
     Jac[varPart,varPartPars] <- d_sigma_kappa(sigma=sigma,...)
   } else if (y == "cor"){
     # Corelation matrix:
-    corPart <- meanstructure*max(meanPart) + seq_len(nvar*(nvar-1)/2)
+    corPart <- meanstructure*max(meanPart) + nThresh +  seq_len(nvar*(nvar-1)/2)
     Jac[varPart,corPart] <- d_sigma_rho(...)
     
     if (!corinput){
@@ -137,13 +148,16 @@ d_phi_theta_varcov_group <- function(sigma,y,corinput,meanstructure,...){
   # Cut out the rows not needed
   # FIXME: Nicer to not have to compute these in the first place...
   if (corinput){
-    keep <- c(rep(TRUE,nvar),diag(nvar)[lower.tri(diag(nvar),diag=TRUE)]!=1)
+    keep <- c(rep(TRUE,nMean_Thresh),diag(nvar)[lower.tri(diag(nvar),diag=TRUE)]!=1)
     Jac <- Jac[keep,]
   }
   if (!meanstructure){
-    Jac <- Jac[-(seq_len(nvar)), ]
+    if (all(is.na(tau))){
+      Jac <- Jac[-(seq_len(nvar)), ] 
+      if (any(is.na(tau))) stop("Mix of continuous and ordinal variables is not yet supported.")
+    }
   }
-  
+
   # Make sparse if needed:
   Jac <- as(Jac, "Matrix")
 

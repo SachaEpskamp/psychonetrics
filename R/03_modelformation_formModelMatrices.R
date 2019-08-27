@@ -11,7 +11,13 @@ formModelMatrices <- function(x){
   # form matrices:
   Matrices <- lapply(seq_len(nGroup),function(g){
     groupMod <- lapply(seq_len(nrow(mats)),function(i){
-      mat <- matrix(0, mats$nrow[i], mats$ncol[i])
+      
+      # For incomplete, use NA, otherwise 0
+      if (mats$incomplete[i]){
+        mat <- matrix(NA, mats$nrow[i], mats$ncol[i])
+      } else {
+        mat <- matrix(0, mats$nrow[i], mats$ncol[i])
+      }
       for (id in which(pars$matrix==mats$name[i]&pars$group_id==g)){
         mat[pars$row[id],pars$col[id]] <- pars$est[id]
       }
