@@ -292,13 +292,13 @@ List covPrepare_cpp(
           LogicalVector mis1b = MissingList[var2[i]];
           LogicalVector mis2 = MissingList[var1[j]];
           
-          nUsed = sum(!mis1a * !mis1a * !mis2);
+          nUsed = sum(!mis1a * !mis1b * !mis2);
           
           
           // For every subject:
           for (p=0; p<nCase; p++){
             
-            if (!mis1a[p] * !mis1a[p] * !mis2[p]){
+            if (!mis1a[p] * !mis1b[p] * !mis2[p]){
               
               // part 1:
               if (isOrdered[var1[i]] && isOrdered[var2[i]]){
@@ -342,22 +342,22 @@ List covPrepare_cpp(
           LogicalVector mis2a = MissingList[var1[j]];
           LogicalVector mis2b = MissingList[var2[j]];
           
-          nUsed = sum(!mis1a * !mis1a * !mis2a * !mis2b);
+          nUsed = sum(!mis1a * !mis1b * !mis2a * !mis2b);
           
           
           // For every subject:
           for (p=0; p<nCase; p++){
             
-            if (!mis1a[p] * !mis1a[p] * !mis2a[p] * !mis2b[p]){
+            if (!mis1a[p] * !mis1b[p] * !mis2a[p] * !mis2b[p]){
               
               // part 1:
               if (isOrdered[var1[i]] && isOrdered[var2[i]]){
                 D1 = polychor_grad_singlesubject(
                   ((IntegerVector)DataList[var1[i]])[p], 
-                                                    ((IntegerVector)DataList[var2[i]])[p],
-                                                                                      covMat(var1[i],var2[i]),
-                                                                                      meansAndThresholds[var1[i]],
-                                                                                                        meansAndThresholds[var2[i]]);
+                  ((IntegerVector)DataList[var2[i]])[p],
+                  covMat(var1[i],var2[i]),
+                 meansAndThresholds[var1[i]],
+                  meansAndThresholds[var2[i]]);
               } else {
                 Rf_error("Only ordinal data supported now...");
               }
@@ -366,10 +366,10 @@ List covPrepare_cpp(
               if (isOrdered[var1[j]] && isOrdered[var2[j]]){
                 D2 = polychor_grad_singlesubject(
                   ((IntegerVector)DataList[var1[j]])[p], 
-                                                    ((IntegerVector)DataList[var2[j]])[p],
-                                                                                      covMat(var1[j],var2[j]),
-                                                                                      meansAndThresholds[var1[j]],
-                                                                                                        meansAndThresholds[var2[j]]);
+                  ((IntegerVector)DataList[var2[j]])[p],
+                 covMat(var1[j],var2[j]),
+                 meansAndThresholds[var1[j]],
+                 meansAndThresholds[var2[j]]);
               } else {
                 Rf_error("Only ordinal data supported now...");
               }
