@@ -34,11 +34,11 @@ identify_lvm <- function(x){
   # Single group is easy:
   if (nrow(x@sample@groups) == 1){
     
-    # How many values of tau are fixed?
-    nConsInTau <- sum(x@parameters$fixed[x@parameters$matrix == "tau"])
+    # How many values of nu are fixed?
+    nConsInTau <- sum(x@parameters$fixed[x@parameters$matrix == "nu"])
     
-    # Set all latent intercepts to zero if there are not enough constrains in tau:
-    means <- which(x@parameters$matrix %in% c("tau_eta"))
+    # Set all latent intercepts to zero if there are not enough constrains in nu:
+    means <- which(x@parameters$matrix %in% c("nu_eta"))
     if (nConsInTau <= length(means)){
       
       x@parameters$est[means] <- 0
@@ -102,11 +102,11 @@ identify_lvm <- function(x){
     
     ### LATENT MEANS ###
     # at least n_eta intercepts nead to be equal
-    if (consPerMat$n[consPerMat$matrix == "tau"] >= nLat){
-      means <- which(x@parameters$matrix %in% c("tau_eta") & x@parameters$group_id == 1)
-      free <-  which(x@parameters$matrix %in% c("tau_eta") & x@parameters$group_id > 1 & !(x@parameters$fixed & !x@parameters$identified))
+    if (consPerMat$n[consPerMat$matrix == "nu"] >= nLat){
+      means <- which(x@parameters$matrix %in% c("nu_eta") & x@parameters$group_id == 1)
+      free <-  which(x@parameters$matrix %in% c("nu_eta") & x@parameters$group_id > 1 & !(x@parameters$fixed & !x@parameters$identified))
     } else {
-      means <- which(x@parameters$matrix %in% c("tau_eta"))
+      means <- which(x@parameters$matrix %in% c("nu_eta"))
       free <- numeric(0)
     }
     # Constrain means:

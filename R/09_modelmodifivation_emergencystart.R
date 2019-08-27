@@ -1,7 +1,7 @@
 emergencystart <- function(x){
   # Try fixing:
   # For all matrices in the model:
-  allMats <- x@matrices[!grepl("(mu)|(tau)",x@matrices$name),]
+  allMats <- x@matrices[!grepl("(mu)|(nu)",x@matrices$name),]
   for (mat in seq_len(nrow(allMats))){
     # Adjust starting values. Identity matrix for posdef matrices, Near-null matrix for anything else:
     if (allMats$posdef[mat]){

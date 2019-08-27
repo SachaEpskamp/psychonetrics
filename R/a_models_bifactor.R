@@ -35,9 +35,9 @@ bifactor <- function(data, lambda, latents,  bifactor = "g", ...){
   mod@parameters$est[ind] <- rnorm(sum(ind),0,0.01) # 0.05 * sign(mod@parameters$est[ind])
   
   # Adjust other start values:
-  ind <- mod@parameters$matrix != "lambda" &mod@parameters$matrix != "tau" & !mod@parameters$fixed & mod@parameters$row != mod@parameters$col
+  ind <- mod@parameters$matrix != "lambda" &mod@parameters$matrix != "nu" & !mod@parameters$fixed & mod@parameters$row != mod@parameters$col
   mod@parameters$est[ind] <-  rnorm(sum(ind),0,0.01) #0.05 * sign(mod@parameters$est[ind])
-  ind <- mod@parameters$matrix != "lambda" &mod@parameters$matrix != "tau" & !mod@parameters$fixed & mod@parameters$row == mod@parameters$col
+  ind <- mod@parameters$matrix != "lambda" &mod@parameters$matrix != "nu" & !mod@parameters$fixed & mod@parameters$row == mod@parameters$col
   mod@parameters$est[ind] <- 0.5 #* sign(mod@parameters$est[ind])
   
   

@@ -1,21 +1,21 @@
-# Derivative of tau with respect to mu:
-d_mu_tau_lvm <- function(tau,...){
-  Diagonal(length(tau))
+# Derivative of nu with respect to mu:
+d_mu_nu_lvm <- function(nu,...){
+  Diagonal(length(nu))
 }
 
 # derivative of latent intecepts:
-d_mu_tau_eta_lvm <- function(Lambda_BetaStar,...){
+d_mu_nu_eta_lvm <- function(Lambda_BetaStar,...){
   Lambda_BetaStar
 }
 
 # Derivative of factor loadings to means:
-d_mu_lambda_lvm <- function(tau_eta,BetaStar,In,...){
-  (t(tau_eta) %*% t(BetaStar)) %x% In
+d_mu_lambda_lvm <- function(nu_eta,BetaStar,In,...){
+  (t(nu_eta) %*% t(BetaStar)) %x% In
 }
 
 # Derivative of beta to means:
-d_mu_beta_lvm <- function(tau_eta,lambda,tBetakronBeta,...){
-  (t(tau_eta) %x% lambda) %*% tBetakronBeta
+d_mu_beta_lvm <- function(nu_eta,lambda,tBetakronBeta,...){
+  (t(nu_eta) %x% lambda) %*% tBetakronBeta
 }
 
 
@@ -125,8 +125,8 @@ d_phi_theta_lvm_group <- function(lambda,latent,residual,...){
   
   # Indices model:
   interceptInds <- 1:nvar
-  tauetaInds <- nvar + seq_len(nlat)
-  lambdaInds <- max(tauetaInds) + seq_len(nlat*nvar)
+  nuetaInds <- nvar + seq_len(nlat)
+  lambdaInds <- max(nuetaInds) + seq_len(nlat*nvar)
   betaInds <- max(lambdaInds) + seq_len(nlat^2)
   sigmazetaInds <- max(betaInds) + seq_len(nlat*(nlat+1)/2)
   sigmaepsilonInds <- max(sigmazetaInds) + seq_len(nvar*(nvar+1)/2)
@@ -134,10 +134,10 @@ d_phi_theta_lvm_group <- function(lambda,latent,residual,...){
   
   
   # fill intercept part:
-  Jac[meanInds,interceptInds] <- d_mu_tau_lvm(...)
+  Jac[meanInds,interceptInds] <- d_mu_nu_lvm(...)
   
   # Fill latent intercept part:
-  Jac[meanInds,tauetaInds] <- d_mu_tau_eta_lvm(...)
+  Jac[meanInds,nuetaInds] <- d_mu_nu_eta_lvm(...)
   
   # Fill factor loading parts:
   Jac[meanInds,lambdaInds] <- d_mu_lambda_lvm(...)

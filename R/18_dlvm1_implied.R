@@ -25,7 +25,7 @@ implied_dlvm1 <- function(model,all = FALSE){
     BetaStar <- as(solve(I_eta %x% I_eta - (x[[g]]$beta %x% x[[g]]$beta)),"Matrix")
     
     # Implied mean vector:
-    impMu <- x[[g]]$tau + x[[g]]$lambda %*% x[[g]]$mu_eta
+    impMu <- x[[g]]$nu + x[[g]]$lambda %*% x[[g]]$mu_eta
     
     fullMu <- as(do.call(rbind,lapply(seq_len(nTime),function(t){
       impMu[design[,t]==1,,drop=FALSE]

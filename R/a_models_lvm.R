@@ -23,8 +23,8 @@ lvm <- function(
   beta = "empty",
   
   # Mean structure:
-  tau,
-  tau_eta,
+  nu,
+  nu_eta,
   
   # Identification:
   identify = TRUE,
@@ -138,13 +138,13 @@ lvm <- function(
   # Model matrices:
   modMatrices <- list()
   
-  # Fix tau
-  modMatrices$tau <- matrixsetup_mu(tau,nNode = nNode,nGroup = nGroup,labels = sampleStats@variables$label,equal = "tau" %in% equal,
-                       expmeans = model@sample@means, sampletable = sampleStats, name = "tau")
+  # Fix nu
+  modMatrices$nu <- matrixsetup_mu(nu,nNode = nNode,nGroup = nGroup,labels = sampleStats@variables$label,equal = "nu" %in% equal,
+                       expmeans = model@sample@means, sampletable = sampleStats, name = "nu")
   
-  # Fix tau_eta
-  modMatrices$tau_eta <- matrixsetup_mu(tau_eta,nNode = nLatent,nGroup = nGroup,labels = latents,equal = "tau_eta" %in% equal,
-                                    expmeans = lapply(seq_len(nGroup),function(x)rep(0,nLatent)), sampletable = sampleStats, name = "tau_eta")
+  # Fix nu_eta
+  modMatrices$nu_eta <- matrixsetup_mu(nu_eta,nNode = nLatent,nGroup = nGroup,labels = latents,equal = "nu_eta" %in% equal,
+                                    expmeans = lapply(seq_len(nGroup),function(x)rep(0,nLatent)), sampletable = sampleStats, name = "nu_eta")
   
    # Setup lambda:
   modMatrices$lambda <- matrixsetup_lambda(lambda, expcov=model@sample@covs, nGroup = nGroup, observednames = sampleStats@variables$label, latentnames = latents, sampletable = sampleStats)

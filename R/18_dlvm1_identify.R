@@ -106,7 +106,7 @@ identify_dlvm1 <- function(x){
     
     ### LATENT MEANS ###
     # at least n_eta intercepts nead to be equal
-    if (consPerMat$n[consPerMat$matrix == "tau"] >= nLat){
+    if (consPerMat$n[consPerMat$matrix == "nu"] >= nLat){
       means <- which(x@parameters$matrix %in% c("mu_eta") & x@parameters$group_id == 1)
       free <-  which(x@parameters$matrix %in% c("mu_eta") & x@parameters$group_id > 1)
     } else {

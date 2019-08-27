@@ -16,7 +16,7 @@ lvm(data, lambda, latent = c("cov", "chol", "prec", "ggm"), residual = c("cov", 
       "prec", "ggm"), sigma_zeta = "full", kappa_zeta = "full", omega_zeta = "full", 
       lowertri_zeta = "full", delta_zeta = "full", sigma_epsilon = "empty", kappa_epsilon 
       = "empty", omega_epsilon = "empty", lowertri_epsilon = "empty", delta_epsilon = 
-      "empty", beta = "empty", tau, tau_eta, identify = TRUE, identification = 
+      "empty", beta = "empty", nu, nu_eta, identify = TRUE, identification = 
       c("loadings", "variance"), vars, latents, groups, covs, means, nobs, missing = 
       "listwise", equal = "none", baseline_saturated = TRUE, estimator = "ML", 
       optimizer = "default", storedata = FALSE, WLS.V, sampleStats)
@@ -72,10 +72,10 @@ Only used when \code{residual = "ggm"}. Either \code{"full"} to estimate every e
   \item{beta}{
 A model matrix encoding the structural relations between latent variables. A 0 encodes a fixed to zero element, a 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
-  \item{tau}{
+  \item{nu}{
 Optional vector encoding the intercepts of the observed variables. Set elements to 0 to indicate fixed to zero constrains, 1 to indicate free intercepts, and higher integers to indicate equality constrains. For multiple groups, this argument can be a list or array with each element/column encoding such a vector.
 }
-  \item{tau_eta}{
+  \item{nu_eta}{
 Optional vector encoding the intercepts of the latent variables. Set elements to 0 to indicate fixed to zero constrains, 1 to indicate free intercepts, and higher integers to indicate equality constrains. For multiple groups, this argument can be a list or array with each element/column encoding such a vector.
 }
   \item{identify}{
@@ -135,7 +135,7 @@ The model used in this family is:
 
 \eqn{\mathrm{var}( \boldsymbol{y} ) = \boldsymbol{\Lambda} (\boldsymbol{I} - \boldsymbol{B})^{-1} \boldsymbol{\Sigma}_{\zeta}  (\boldsymbol{I} - \boldsymbol{B})^{-1\top}  \boldsymbol{\Lambda}^{\top} +  \boldsymbol{\Sigma}_{\varepsilon} }{var(y) = lambda * (I - beta)^(-1) * sigma_zeta * (I - beta)^(-1') * lambda' + sigma_epsilon}
 
-\eqn{\mathcal{E}( \boldsymbol{y} ) = \boldsymbol{\tau} +  \boldsymbol{\Lambda}  (\boldsymbol{I} - \boldsymbol{B})^{-1} \boldsymbol{\tau}_eta}{E(y) = tau + lambda * (I - beta)^(-1) * tau_eta}
+\eqn{\mathcal{E}( \boldsymbol{y} ) = \boldsymbol{\nu} +  \boldsymbol{\Lambda}  (\boldsymbol{I} - \boldsymbol{B})^{-1} \boldsymbol{\nu}_eta}{E(y) = nu + lambda * (I - beta)^(-1) * nu_eta}
 
 in which the latent covariance matrix can further be modeled in three ways. With \code{latent = "chol"} as Cholesky decomposition:
 
@@ -450,7 +450,7 @@ mod_weak <- mod_configural \%>\% groupequal("lambda") \%>\% runmodel
 compare(configural = mod_configural, weak = mod_weak)
 
 # weak invariance can be accepted, let's try strong:
-mod_strong <- mod_weak \%>\% groupequal("tau") \%>\% runmodel
+mod_strong <- mod_weak \%>\% groupequal("nu") \%>\% runmodel
 # Means are automatically identified
 
 # Compare models:
@@ -459,13 +459,13 @@ compare(configural = mod_configural, weak = mod_weak, strong = mod_strong)
 # Questionable p-value and AIC difference, but ok BIC difference. This is quite good, but 
 # let's take a look. I have not yet implemented LM tests for equality constrains, but we 
 # can look at something called "equality-free" MIs:
-mod_strong \%>\% MIs(matrices = "tau", type = "free")
+mod_strong \%>\% MIs(matrices = "nu", type = "free")
 
 # Indicates that Q10 would improve fit. We can also look at residuals:
 residuals(mod_strong)
 
 # Let's try freeing intercept 10:
-mod_strong_partial <- mod_strong \%>\% groupfree("tau",10) \%>\% runmodel
+mod_strong_partial <- mod_strong \%>\% groupfree("nu",10) \%>\% runmodel
 
 # Compare all models:
 compare(configural = mod_configural,
@@ -475,7 +475,7 @@ compare(configural = mod_configural,
 
 # This seems worth it and lead to an acceptable model! It seems that older people find 
 # the latest special effects more marvellous!
-mod_strong_partial \%>\% getmatrix("tau")
+mod_strong_partial \%>\% getmatrix("nu")
 
 # Now let's investigate strict invariance:
 mod_strict <- mod_strong_partial \%>\% groupequal("sigma_epsilon") \%>\% runmodel
@@ -494,30 +494,30 @@ mod_eqvar <- mod_strict \%>\% groupequal("sigma_zeta") \%>\% runmodel
 # Compare:
 compare(strict = mod_strict, eqvar = mod_eqvar) 
 
-# This is acceptable. What about the means? (alpha = tau_eta)
-mod_eqmeans <- mod_eqvar \%>\% groupequal("tau_eta") \%>\% runmodel
+# This is acceptable. What about the means? (alpha = nu_eta)
+mod_eqmeans <- mod_eqvar \%>\% groupequal("nu_eta") \%>\% runmodel
 
 # Compare:
 compare(eqvar = mod_eqvar, eqmeans = mod_eqmeans)
 
 # Rejected! We could look at MIs again:
-mod_eqmeans \%>\% MIs(matrices = "tau_eta", type = "free")
+mod_eqmeans \%>\% MIs(matrices = "nu_eta", type = "free")
 
 # Indicates the strongest effect for prequels. Let's see what happens:
 eqmeans2 <- mod_eqvar \%>\% 
-  groupequal("tau_eta",row = c("Original","Sequels")) \%>\% runmodel
+  groupequal("nu_eta",row = c("Original","Sequels")) \%>\% runmodel
 
 # Compare:
 compare(eqvar = mod_eqvar, eqmeans = eqmeans2)
 # Questionable, what about the sequels as well?
 
-eqmeans3 <- mod_eqvar \%>\% groupequal("tau_eta", row = "Original") \%>\% runmodel
+eqmeans3 <- mod_eqvar \%>\% groupequal("nu_eta", row = "Original") \%>\% runmodel
 
 # Compare:
 compare(eqvar = mod_eqvar, eqmeans = eqmeans3)
 
 # Still questionable.. Let's look at the mean differences:
-mod_eqvar \%>\% getmatrix("tau_eta")
+mod_eqvar \%>\% getmatrix("nu_eta")
 
 # Looks like people over 30 like the prequels better and the other two trilogies less!
 }

@@ -50,7 +50,7 @@ latentgrowth <- function(
   }
   
   # Form model:
-  mod <- lvm(lambda=Lambda, vars = allVars, latents = latNames, identify = FALSE, tau = rep(0,length(allVars)),...)
+  mod <- lvm(lambda=Lambda, vars = allVars, latents = latNames, identify = FALSE, nu = rep(0,length(allVars)),...)
 
   
   # Constrain factor loadings:
