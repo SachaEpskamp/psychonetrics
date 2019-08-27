@@ -20,11 +20,14 @@ using namespace arma;
 List covPrepare_cpp(
     NumericMatrix data, // Data as data frame
     LogicalVector isOrdered,
-    double tol = 0.000001
+    double tol = 0.000001,
+    bool WLSweights = true
 ) { 
   // Iterators:
-  int i, j, p;
+  int i, j, k, p;
   int nCase = data.nrow();
+  int nUsed;
+  double D1, D2;
   
   // Number of variables:
   int nVar = data.ncol();
@@ -145,10 +148,9 @@ List covPrepare_cpp(
         } else {
           covMat(i,j) = covMat(j,i) = pearsonCov(DataList[i], DataList[j], meansAndThresholds[i], meansAndThresholds[j]);
         }
-       }
+      }
     }
   }
-  
   
   // Output list:
   List Result;
@@ -164,6 +166,203 @@ List covPrepare_cpp(
   
   // Add var-cov matrix:
   Result["covmat"] = covMat;
+  
+  int nElements = 0;
+  
+  if (WLSweights){
+    // Make the parameter vector { mean / threhsolds ; lower tri covariances }
+    // First let's count how many elements I need:
+  
+    for (j=0;j<nVar;j++){
+      
+      if (isOrdered[j]){
+        // Add thresholds
+        nElements += nMeans_Thresh[j];
+      } else {
+        // Add one mean:
+        nElements += 1;
+      }
+      // 
+      // Var/cov:
+      for(i=j;i<nVar;i++){
+        if (i == j && !isOrdered[i]){
+          nElements++;
+        }
+
+        if (i != j){
+          nElements++;
+        }
+      }
+    }
+  
+    // Parameter vector:
+    NumericVector parVector(nElements, 0.0);
+
+
+    // Integer vector to store which variable belongs to each element. -1 in var2 indicates a mean or threshold:
+    IntegerVector var1(nElements);
+    IntegerVector var2(nElements);
+    // And a vector storing which threshold an element indicates:
+    IntegerVector whichPar(nElements, 0);
+    
+    int curPar = 0;
+    for (i=0;i<nVar;i++){
+      for (j=0;j<nMeans_Thresh[i];j++){
+        whichPar[curPar] = j;
+        var1[curPar] = i;
+        var2[curPar] = -1;
+        curPar++;
+      }
+    }
+    for (j=0;j<nVar;j++){
+      for(i=j;i<nVar;i++){
+        if (i == j && !isOrdered[i]){
+          var1[curPar] = j;
+          var2[curPar] = i;
+          curPar++;
+        }
+        
+        if (i != j){
+          var1[curPar] = j;
+          var2[curPar] = i;
+          curPar++;
+        }
+      }
+    }
+    
+    // Following Muthen 1984, I need two matrices:
+    // DD: An outer product of the derivative vectors
+    // B: A block matrix with elements of DD
+    arma::mat B(nElements, nElements); // <- FIXME: I know B is SPARSE, but can't get it's inverse...
+    arma::mat DD(nElements, nElements);
+    
+    bool var1mt = true;
+    bool var2mt = true;
+    
+    
+    // Fill the matrices:
+    for (i=0;i<nElements;i++){
+      for (j=0;j<=i;j++){
+        var1mt = var2[i] == -1;
+        var2mt = var2[j] == -1;
+        DD(i,j) = DD(j,i) = 0.0;
+        
+        // Both a mean or threshold?
+        if (var1mt && var2mt){
+          // Missing patterns:
+          LogicalVector mis1 = MissingList[var1[i]];
+          LogicalVector mis2 = MissingList[var1[j]];
+          nUsed = sum(!mis1 * !mis2);
+          
+        
+          // For every subject:
+          for (p=0; p<nCase; p++){
+
+            if (!mis1[p] && !mis2[p]){
+
+              // Var 1:
+              if (isOrdered[var1[i]]){
+                D1 = threshold_grad_singlesubject(((IntegerVector)DataList[var1[i]])[p], whichPar[i], meansAndThresholds[var1[i]]);
+              } else {
+                Rf_error("Only ordinal data supported now...");
+              }
+
+              // Var 2:
+              if (isOrdered[var1[j]]){
+                D2 = threshold_grad_singlesubject(((IntegerVector)DataList[var1[j]])[p], whichPar[j], meansAndThresholds[var1[j]]);
+              } else {
+                Rf_error("Only ordinal data supported now...");
+              }
+        
+              
+              // Fill in matrices:
+              DD(i,j) = DD(j,i) = DD(i,j) + (-2.0/(double)nUsed) * D1 * D2;
+              if (var1[i] == var1[j]){
+                B(i,j) = B(j,i) = DD(i,j);
+              }
+            }
+          }
+        }
+        
+        
+        
+        // Both a (co)variance?
+        if (!var1mt && !var2mt){
+          // Missing patterns:
+          LogicalVector mis1a = MissingList[var1[i]];
+          LogicalVector mis1b = MissingList[var2[i]];
+          LogicalVector mis2a = MissingList[var1[j]];
+          LogicalVector mis2b = MissingList[var2[j]];
+        
+          nUsed = sum(!mis1a * !mis1a * !mis2a * !mis2b);
+          Rf_PrintValue(wrap(i));
+          Rf_PrintValue(wrap(j));
+          
+          // For every subject:
+          for (p=0; p<nCase; p++){
+            Rf_PrintValue(wrap(p));
+            if (!mis1a[p] * !mis1a[p] * !mis2a[p] * !mis2b[p]){
+              
+              // part 1:
+              if (isOrdered[var1[i]] && isOrdered[var2[i]]){
+                D1 = polychor_grad_singlesubject(
+                  ((IntegerVector)DataList[var1[i]])[p], 
+                  ((IntegerVector)DataList[var2[i]])[p],
+                  covMat(var1[i],var2[i]),
+                  meansAndThresholds[var1[i]],
+                  meansAndThresholds[var2[i]]);
+              } else {
+                Rf_error("Only ordinal data supported now...");
+              }
+              
+              // part 2:
+              if (isOrdered[var1[j]] && isOrdered[var2[j]]){
+                D2 = polychor_grad_singlesubject(
+                  ((IntegerVector)DataList[var1[j]])[p], 
+                 ((IntegerVector)DataList[var2[j]])[p],
+                 covMat(var1[j],var2[j]),
+                 meansAndThresholds[var1[j]],
+                meansAndThresholds[var2[j]]);
+              } else {
+                Rf_error("Only ordinal data supported now...");
+              }
+              
+              
+              // Fill in matrices:
+              DD(i,j) = DD(j,i) = DD(i,j) + (-2.0/(double)nUsed) * D1 * D2;
+              if (i == j){
+                B(i,j) = B(j,i) = DD(i,j);
+              }
+            }
+          }
+        }
+        
+        // Dummy for now:
+        // if (i == j && var2[i] > -1 && var2[j] > -1){
+        //   DD(i,j) = 1.0;
+        //   B(i,j) = 1.0;
+        // }
+      }
+    }
+    
+    
+    Rf_PrintValue(wrap(B));
+    Rf_PrintValue(wrap(DD));
+    
+    // Compute the final matrix:
+    arma::mat Binv = inv(B);
+    // sp_mat I = diag_ones(nElements);
+    // arma::sp_mat Binv = spsolve( B, I );
+    arma::mat WLS_V = Binv * DD * Binv;
+    
+
+    // Store in output:
+    Result["parameter_vector"] = parVector;
+    Result["parameter_index"] = whichPar;
+    Result["pars_var1"] = var1;
+    Result["pars_var2"] = var2;
+    Result["WLS_V"] = WLS_V;
+  }
   
   // Return output:
   return(Result);
