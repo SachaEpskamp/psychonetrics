@@ -15,6 +15,21 @@ using namespace arma;
 // FIXME: I want to put all these functions nicely in seperate files, but can't figure out how and get weird errors.
 // So my solution is that I put all helper functions in this file. 
 
+
+// Silly wrapper for bivariate distribution to return 0 / 1 when needed:
+double mypbinorm(double u1,double u2,double rho){
+  double res = 0.0;
+  if (u1 > -50 && u2 > -50){
+    if (u1 > 50 && u2 > 50){
+      res = 1.0;
+    } else {
+      res = pbv::pbv_rcpp_pbvnorm0(u1,u2,rho);      
+    }
+  }
+  
+  return(res);
+}
+
 // Silly function to compute the mean as well:
 // [[Rcpp::export]]
 double computeMean(
@@ -245,12 +260,12 @@ double polychoric_fit_summary(double rho, NumericMatrix tab, NumericVector t1, N
   NumericVector t2_aug(nLevels2 + 1);
   
   // Fill first with -Inf:
-  t1_aug[0] = -9999; // R_NegInf;
-  t2_aug[0] = -9999; // R_NegInf;
+  t1_aug[0] = -99; // R_NegInf;
+  t2_aug[0] = -99; // R_NegInf;
   
   // Fill last with Inf:
-  t1_aug[nLevels1] = 9999; // R_PosInf;
-  t2_aug[nLevels2] = 9999; // R_PosInf;
+  t1_aug[nLevels1] = 99; // R_PosInf;
+  t2_aug[nLevels2] = 99; // R_PosInf;
   
   // Fill rest with thresholds:
   for (i=1;i<nLevels1;i++){
@@ -279,17 +294,17 @@ double polychoric_fit_summary(double rho, NumericMatrix tab, NumericVector t1, N
       
       
       // Probabiliy:
-      pi = pbv::pbv_rcpp_pbvnorm0(t1_aug[i+1],t2_aug[j+1], rho) - 
-        pbv::pbv_rcpp_pbvnorm0(t1_aug[i],t2_aug[j+1], rho) -
-        pbv::pbv_rcpp_pbvnorm0(t1_aug[i+1],t2_aug[j], rho) + 
-        pbv::pbv_rcpp_pbvnorm0(t1_aug[i],t2_aug[j], rho);
+      pi = mypbinorm(t1_aug[i+1],t2_aug[j+1], rho) - 
+        mypbinorm(t1_aug[i],t2_aug[j+1], rho) -
+        mypbinorm(t1_aug[i+1],t2_aug[j], rho) + 
+        mypbinorm(t1_aug[i],t2_aug[j], rho);
       
       
       // Adjust table to 0.5 if it is zero:
       // if (tab(i,j) == 0 && nLevels1 == 2 && nLevels2 == 2){
       //   tabmult = 1.0;
       // } else {
-        tabmult = (double)tab(i,j);
+      tabmult = (double)tab(i,j);
       // }
       
       curL +=  tabmult * log(pi);
@@ -340,12 +355,12 @@ double polychoric_grad_summary(double rho, NumericMatrix tab, NumericVector t1, 
   NumericVector t2_aug(nLevels2 + 1);
   
   // Fill first with -Inf:
-  t1_aug[0] = -9999; // R_NegInf;
-  t2_aug[0] = -9999; // R_NegInf;
+  t1_aug[0] = -99; // R_NegInf;
+  t2_aug[0] = -99; // R_NegInf;
   
   // Fill last with Inf:
-  t1_aug[nLevels1] = 9999; // R_PosInf;
-  t2_aug[nLevels2] = 9999; // R_PosInf;
+  t1_aug[nLevels1] = 99; // R_PosInf;
+  t2_aug[nLevels2] = 99; // R_PosInf;
   
   // Fill rest with thresholds:
   for (i=1;i<nLevels1;i++){
@@ -379,10 +394,10 @@ double polychoric_grad_summary(double rho, NumericMatrix tab, NumericVector t1, 
         binormal_density(t1_aug[i],t2_aug[j], rho);
       
       // Denominator:
-      pi = pbv::pbv_rcpp_pbvnorm0(t1_aug[i+1],t2_aug[j+1], rho) - 
-        pbv::pbv_rcpp_pbvnorm0(t1_aug[i],t2_aug[j+1], rho) -
-        pbv::pbv_rcpp_pbvnorm0(t1_aug[i+1],t2_aug[j], rho) + 
-        pbv::pbv_rcpp_pbvnorm0(t1_aug[i],t2_aug[j], rho);
+      pi = mypbinorm(t1_aug[i+1],t2_aug[j+1], rho) - 
+        mypbinorm(t1_aug[i],t2_aug[j+1], rho) -
+        mypbinorm(t1_aug[i+1],t2_aug[j], rho) + 
+        mypbinorm(t1_aug[i],t2_aug[j], rho);
       
       // Adjust table to 0.5 if it is zero:
       // if (tab(i,j) == 0 && nLevels1 == 2 && nLevels2 == 2){
@@ -506,7 +521,7 @@ double estimate_polychoric(IntegerVector y1, IntegerVector y2, NumericVector t1,
       tabNumeric(i,j) = (double)tab(i,j);
     }  
   }
-
+  
   
   // For a 2x2 table with zero margins, adjust:
   // From https://github.com/yrosseel/lavaan/blob/master/R/lav_polychor.R#L327-L336
@@ -529,23 +544,29 @@ double estimate_polychoric(IntegerVector y1, IntegerVector y2, NumericVector t1,
   int curIt = 0;
   // Start value:
   double rho = 0.0;
-
+  
   // Some doubles I'll need:
-  double curFit, newFit, curGrad, newGrad, delta, curStep;
+  double curFit, newFit, curGrad, newGrad, delta;
   
   double gamma = stepsize;
-
+  
   curFit = newFit = polychoric_fit_summary(rho, tabNumeric, t1, t2);
   curGrad = newGrad = polychoric_grad_summary(rho, tabNumeric, t1, t2);
-
+  
   // Start iterating:
   do {
     curIt++;
     curFit = newFit;
     curGrad = newGrad;
-
+    
     // Gradient descent step:
     delta = -1.0 *  gamma * curGrad;
+    
+    // Check if out of bounds, and make smaller step if needed:
+    while (rho + delta < -1 || rho + delta > 1){
+      delta *= 0.5;
+    }
+    
     rho += delta;
     
     // Update fit:
@@ -555,39 +576,39 @@ double estimate_polychoric(IntegerVector y1, IntegerVector y2, NumericVector t1,
     newGrad = polychoric_grad_summary(rho, tabNumeric, t1, t2);
     
     // Update step size:
-
+    
     gamma = abs(delta * (newGrad - curGrad)) / pow(newGrad - curGrad, 2.0);
     
-  } while (curIt < maxIt && abs(newGrad) > tol);
-
+  } while (curIt < maxIt && abs(newGrad) > tol && rho > -1.0 && rho < 1.0);
+  
   if (curIt >= maxIt){
     Rf_error("Polychoric correlation estimator did not converge.");
   }
-
+  
   return(rho);
 }
 
 // Gradient of fit to threshold for a single subject
 // [[Rcpp::export]]
-double threshold_grad_singlesubject(int y, int j, NumericVector t){
-
+double threshold_grad_singlesubject(int y, int j, NumericVector t_aug){
+  
   double res = 0;
-  int nThresh = t.length();
-  
-  // Make augmented thresholds:
-  NumericVector t_aug(nThresh + 2);
-  
-  // Fill first with -Inf:
-  t_aug[0] = -9999; // R_NegInf;
- 
-  // Fill last with Inf:
-  t_aug[nThresh + 1] = 9999; // R_PosInf;
-  
-  // FILL THE REST TOO
-  for (int i = 0; i < nThresh; i++){
-    t_aug[i+1] = t[i];
-  }
-  
+  // int nThresh = t.length();
+  // 
+  // // Make augmented thresholds:
+  // NumericVector t_aug(nThresh + 2);
+  // 
+  // // Fill first with -Inf:
+  // t_aug[0] = -99; // R_NegInf;
+  // 
+  // // Fill last with Inf:
+  // t_aug[nThresh + 1] = 99; // R_PosInf;
+  // 
+  // // FILL THE REST TOO
+  // for (int i = 0; i < nThresh; i++){
+  //   t_aug[i+1] = t[i];
+  // }
+  // 
   double t_0 = t_aug[y];
   double t_1 = t_aug[y+1];
   
@@ -602,33 +623,33 @@ double threshold_grad_singlesubject(int y, int j, NumericVector t){
 
 // Gradient of fit to polychoric correlation for a single subject
 // [[Rcpp::export]]
-double polychor_grad_singlesubject(int y1, int y2, double rho, NumericVector t1, NumericVector t2){
+double polychor_grad_singlesubject(int y1, int y2, double rho, NumericVector t_aug1, NumericVector t_aug2){
   
   double res = 0;
-  int nThresh1 = t1.length();
-  int nThresh2 = t2.length();
-  
-  // Make augmented thresholds:
-  NumericVector t_aug1(nThresh1 + 2);
-  NumericVector t_aug2(nThresh2 + 2);
-  
-    
-  // Fill first with -Inf:
-  t_aug1[0] = -9999; // R_NegInf;
-  t_aug2[0] = -9999; // R_NegInf;
-  
-  // Fill last with Inf:
-  t_aug1[nThresh1 + 1] = 9999; // R_PosInf;
-  t_aug2[nThresh2 + 1] = 9999; // R_PosInf;
-  
-  // FILL THE REST TOO
-  for (int i = 0; i < nThresh1; i++){
-    t_aug1[i+1] = t1[i];
-  }
-  for (int i = 0; i < nThresh2; i++){
-    t_aug2[i+1] = t2[i];
-  }
-  
+  // int nThresh1 = t1.length();
+  // int nThresh2 = t2.length();
+  // 
+  // // Make augmented thresholds:
+  // NumericVector t_aug1(nThresh1 + 2);
+  // NumericVector t_aug2(nThresh2 + 2);
+  // 
+  // 
+  // // Fill first with -Inf:
+  // t_aug1[0] = -99; // R_NegInf;
+  // t_aug2[0] = -99; // R_NegInf;
+  // 
+  // // Fill last with Inf:
+  // t_aug1[nThresh1 + 1] = 99; // R_PosInf;
+  // t_aug2[nThresh2 + 1] = 99; // R_PosInf;
+  // 
+  // // FILL THE REST TOO
+  // for (int i = 0; i < nThresh1; i++){
+  //   t_aug1[i+1] = t1[i];
+  // }
+  // for (int i = 0; i < nThresh2; i++){
+  //   t_aug2[i+1] = t2[i];
+  // }
+  // 
   double t_01 = t_aug1[y1];
   double t_11 = t_aug1[y1+1];
   double t_02 = t_aug2[y2];
@@ -642,14 +663,59 @@ double polychor_grad_singlesubject(int y1, int y2, double rho, NumericVector t1,
     binormal_density(t_01,t_02, rho);
   
   // Denominator:
-  double pi = pbv::pbv_rcpp_pbvnorm0(t_11,t_12, rho) - 
-    pbv::pbv_rcpp_pbvnorm0(t_01,t_12, rho) -
-    pbv::pbv_rcpp_pbvnorm0(t_11,t_02, rho) + 
-    pbv::pbv_rcpp_pbvnorm0(t_01,t_02, rho);
+  double pi = mypbinorm(t_11,t_12, rho) - 
+    mypbinorm(t_01,t_12, rho) -
+    mypbinorm(t_11,t_02, rho) + 
+    mypbinorm(t_01,t_02, rho);
+  
   
   res = num / pi;
   
   return res;
+}
+
+
+// Gradient of BIVARIATE fit to threshold (t1) for a single subject
+// [[Rcpp::export]]
+double bthreshold_grad_singlesubject(int y1, int y2, double rho, int tIndex, NumericVector t_aug1, NumericVector t_aug2){
+  
+  // Empty Gradient:
+  double grad = 0.0;
+  
+  // The gradient will only be nonzero if y1 == tIndex (y is below) or y1 == tIndex + 1 (above):
+  if (y1 != tIndex && y1 != tIndex + 1){
+    return(grad);
+  } else {
+    
+    double t_01 = t_aug1[y1];
+    double t_11 = t_aug1[y1+1];
+    double t_02 = t_aug2[y2];
+    double t_12 = t_aug2[y2+1];
+
+    double pi = mypbinorm(t_11,t_12, rho) - 
+      mypbinorm(t_01,t_12, rho) -
+      mypbinorm(t_11,t_02, rho) + 
+      mypbinorm(t_01,t_02, rho);
+    
+    double rhopart = std::pow(1.0 - std::pow(rho, 2.0), 0.5);
+    
+    // If tIndex == y1 (y is below), the gradient becomes:
+    if (y1 == tIndex){
+      grad = 1.0/pi * R::dnorm(t_11,0.0,1.0,0) * (
+        R::pnorm((t_12 - rho * t_11) / rhopart,0.0,1.0,1,0) - 
+          R::pnorm((t_02 - rho * t_11) / rhopart,0.0,1.0,1,0)
+      );      
+    }
+    
+    if (y1 == tIndex+1){
+      grad = 1.0/pi * R::dnorm(t_01,0.0,1.0,0) * ( -1.0 *
+        R::pnorm((t_12 - rho * t_01) / rhopart,0.0,1.0,1,0) +
+          R::pnorm((t_02 - rho * t_01) / rhopart,0.0,1.0,1,0)
+      );
+    }
+    return(grad);
+  }
+  
 }
 
 // 
