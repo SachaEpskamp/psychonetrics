@@ -233,30 +233,46 @@ BEGIN_RCPP
 END_RCPP
 }
 // threshold_grad_singlesubject
-double threshold_grad_singlesubject(int y, int j, NumericVector t);
-RcppExport SEXP _psychonetrics_threshold_grad_singlesubject(SEXP ySEXP, SEXP jSEXP, SEXP tSEXP) {
+double threshold_grad_singlesubject(int y, int j, NumericVector t_aug);
+RcppExport SEXP _psychonetrics_threshold_grad_singlesubject(SEXP ySEXP, SEXP jSEXP, SEXP t_augSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< int >::type y(ySEXP);
     Rcpp::traits::input_parameter< int >::type j(jSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type t(tSEXP);
-    rcpp_result_gen = Rcpp::wrap(threshold_grad_singlesubject(y, j, t));
+    Rcpp::traits::input_parameter< NumericVector >::type t_aug(t_augSEXP);
+    rcpp_result_gen = Rcpp::wrap(threshold_grad_singlesubject(y, j, t_aug));
     return rcpp_result_gen;
 END_RCPP
 }
 // polychor_grad_singlesubject
-double polychor_grad_singlesubject(int y1, int y2, double rho, NumericVector t1, NumericVector t2);
-RcppExport SEXP _psychonetrics_polychor_grad_singlesubject(SEXP y1SEXP, SEXP y2SEXP, SEXP rhoSEXP, SEXP t1SEXP, SEXP t2SEXP) {
+double polychor_grad_singlesubject(int y1, int y2, double rho, NumericVector t_aug1, NumericVector t_aug2);
+RcppExport SEXP _psychonetrics_polychor_grad_singlesubject(SEXP y1SEXP, SEXP y2SEXP, SEXP rhoSEXP, SEXP t_aug1SEXP, SEXP t_aug2SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< int >::type y1(y1SEXP);
     Rcpp::traits::input_parameter< int >::type y2(y2SEXP);
     Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type t1(t1SEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type t2(t2SEXP);
-    rcpp_result_gen = Rcpp::wrap(polychor_grad_singlesubject(y1, y2, rho, t1, t2));
+    Rcpp::traits::input_parameter< NumericVector >::type t_aug1(t_aug1SEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type t_aug2(t_aug2SEXP);
+    rcpp_result_gen = Rcpp::wrap(polychor_grad_singlesubject(y1, y2, rho, t_aug1, t_aug2));
+    return rcpp_result_gen;
+END_RCPP
+}
+// bthreshold_grad_singlesubject
+double bthreshold_grad_singlesubject(int y1, int y2, double rho, int tIndex, NumericVector t_aug1, NumericVector t_aug2);
+RcppExport SEXP _psychonetrics_bthreshold_grad_singlesubject(SEXP y1SEXP, SEXP y2SEXP, SEXP rhoSEXP, SEXP tIndexSEXP, SEXP t_aug1SEXP, SEXP t_aug2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type y1(y1SEXP);
+    Rcpp::traits::input_parameter< int >::type y2(y2SEXP);
+    Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
+    Rcpp::traits::input_parameter< int >::type tIndex(tIndexSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type t_aug1(t_aug1SEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type t_aug2(t_aug2SEXP);
+    rcpp_result_gen = Rcpp::wrap(bthreshold_grad_singlesubject(y1, y2, rho, tIndex, t_aug1, t_aug2));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -280,6 +296,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_estimate_polychoric", (DL_FUNC) &_psychonetrics_estimate_polychoric, 8},
     {"_psychonetrics_threshold_grad_singlesubject", (DL_FUNC) &_psychonetrics_threshold_grad_singlesubject, 3},
     {"_psychonetrics_polychor_grad_singlesubject", (DL_FUNC) &_psychonetrics_polychor_grad_singlesubject, 5},
+    {"_psychonetrics_bthreshold_grad_singlesubject", (DL_FUNC) &_psychonetrics_bthreshold_grad_singlesubject, 6},
     {NULL, NULL, 0}
 };
 

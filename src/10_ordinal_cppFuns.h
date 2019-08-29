@@ -36,6 +36,8 @@ double threshold_grad_singlesubject(int y, int j, NumericVector t);
 
 double polychor_grad_singlesubject(int y1, int y2, double rho, NumericVector t1, NumericVector t2);
 
+
+double bthreshold_grad_singlesubject(int y1, int y2, double rho, int tIndex, NumericVector t1, NumericVector t2);
 // sp_mat diag_ones(int n);
 
 #endif

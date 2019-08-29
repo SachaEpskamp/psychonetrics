@@ -65,11 +65,15 @@ estimate_polychoric <- function(y1, y2, t1, t2, tol = 0.000001, stepsize = 1, ma
     .Call(`_psychonetrics_estimate_polychoric`, y1, y2, t1, t2, tol, stepsize, maxIt, zeroAdd)
 }
 
-threshold_grad_singlesubject <- function(y, j, t) {
-    .Call(`_psychonetrics_threshold_grad_singlesubject`, y, j, t)
+threshold_grad_singlesubject <- function(y, j, t_aug) {
+    .Call(`_psychonetrics_threshold_grad_singlesubject`, y, j, t_aug)
 }
 
-polychor_grad_singlesubject <- function(y1, y2, rho, t1, t2) {
-    .Call(`_psychonetrics_polychor_grad_singlesubject`, y1, y2, rho, t1, t2)
+polychor_grad_singlesubject <- function(y1, y2, rho, t_aug1, t_aug2) {
+    .Call(`_psychonetrics_polychor_grad_singlesubject`, y1, y2, rho, t_aug1, t_aug2)
+}
+
+bthreshold_grad_singlesubject <- function(y1, y2, rho, tIndex, t_aug1, t_aug2) {
+    .Call(`_psychonetrics_bthreshold_grad_singlesubject`, y1, y2, rho, tIndex, t_aug1, t_aug2)
 }
 
