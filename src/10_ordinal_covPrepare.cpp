@@ -93,7 +93,7 @@ List covPrepare_cpp(
       // DataList[i] = ordinalVar;
       
       DataList[i] = toOrdinal(curVar);
-        
+          
       int nLevelCur = maxInt(DataList[i]) + 1;
       
       // Number of thresholds:
