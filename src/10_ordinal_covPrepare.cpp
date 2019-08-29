@@ -93,6 +93,7 @@ List covPrepare_cpp(
       // DataList[i] = ordinalVar;
       
       DataList[i] = toOrdinal(curVar);
+        
       int nLevelCur = maxInt(DataList[i]) + 1;
       
       // Number of thresholds:
@@ -123,6 +124,7 @@ List covPrepare_cpp(
     }
   }
   
+
   // Covariance matrix:
   NumericMatrix covMat(nVar, nVar);
   
@@ -352,30 +354,33 @@ List covPrepare_cpp(
       // FIXME: Long and ugly loop... sorry...
       for (j=0;j<ntotalMT;j++){
         for (i=ntotalMT;i<nElements;i++){
-          if (var1[j] == var1[i]){
-            D2 = bthreshold_grad_singlesubject(
-              ((IntegerVector)DataList[var1[j]])[p],
-              ((IntegerVector)DataList[var2[i]])[p],
-              covMat(var1[j],var2[i]),
-              whichPar[j],
-              meansAndThresholds_aug[var1[j]],
-              meansAndThresholds_aug[var2[i]]);
-            B(i,j) +=  D[i] * D2; 
-          }
-          
-          if (var1[j] == var2[i]){
-            D2 = bthreshold_grad_singlesubject(
-              ((IntegerVector)DataList[var1[j]])[p],
-              ((IntegerVector)DataList[var1[i]])[p],
-              covMat(var1[j],var1[i]),
-              whichPar[j],
-              meansAndThresholds_aug[var1[j]],
-              meansAndThresholds_aug[var1[i]]);
+          if ( !Missings(p,var1[i]) && !Missings(p,var2[i])){
+            if (var1[j] == var1[i]){
+              D2 = bthreshold_grad_singlesubject(
+                ((IntegerVector)DataList[var1[j]])[p],
+                ((IntegerVector)DataList[var2[i]])[p],
+                covMat(var1[j],var2[i]),
+                whichPar[j],
+                meansAndThresholds_aug[var1[j]],
+                meansAndThresholds_aug[var2[i]]);
+              B(i,j) +=  D[i] * D2; 
+            }
+            
+            if (var1[j] == var2[i]){
+              D2 = bthreshold_grad_singlesubject(
+                ((IntegerVector)DataList[var1[j]])[p],
+                ((IntegerVector)DataList[var1[i]])[p],
+               covMat(var1[j],var1[i]),
+                whichPar[j],
+                 meansAndThresholds_aug[var1[j]],
+                  meansAndThresholds_aug[var1[i]]);
               
               
-            B(i,j) +=  D[i] * D2;
+              B(i,j) +=  D[i] * D2;
+            }
+            
           }
-         
+
           
         }
       }

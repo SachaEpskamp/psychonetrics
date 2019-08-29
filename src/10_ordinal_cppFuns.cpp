@@ -61,7 +61,6 @@ NumericVector computeThresholds(
 ) { 
   // Remove NA:
   y = y[!is_na(y)];
-  
   int nSample = y.length();
   int maxLevel = max(y);
   int i, j;
