@@ -358,6 +358,7 @@ List covPrepare_cpp(
                 meansAndThresholds_aug[var2[i]],
                 bivariatLikelihood(var1[i],var2[i]));
 
+              
             } else {
               Rf_error("Only ordinal data supported now...");
             }         

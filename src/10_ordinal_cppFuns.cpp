@@ -5,6 +5,7 @@
 #include <math.h>
 #include <vector>
 #include <pbv.h>
+#include <cmath>
 
 
 // [[Rcpp::depends(RcppArmadillo)]]
@@ -19,14 +20,30 @@ using namespace arma;
 // Silly wrapper for bivariate distribution to return 0 / 1 when needed:
 double mypbinorm(double u1,double u2,double rho){
   double res = 0.0;
-  if (u1 > -50 && u2 > -50){
-    if (u1 > 50 && u2 > 50){
-      res = 1.0;
-    } else {
-      res = pbv::pbv_rcpp_pbvnorm0(u1,u2,rho);      
-    }
+  
+  // Special cases:
+  // One is < -50 (basically -Inf), just return 0
+  if (u1 < -50 || u2 < -50){
+    return(0.0);
   }
   
+  // If both are above 50, return 1:
+  if (u1 > 50 && u2 > 50){
+    return(1.0);
+  }
+  
+  // If u1 > 50, just do univariate
+  if (u1 > 50){
+    return(R::pnorm(u2,0.0,1.0,1,0));
+  }
+  
+  // If u2 > 50, just do univariate
+  if (u2 > 50){
+    return(R::pnorm(u1,0.0,1.0,1,0));
+  }
+  
+  // Finally, return the bivariate one if needed:
+  res = pbv::pbv_rcpp_pbvnorm0(u1,u2,rho);      
   return(res);
 }
 
@@ -733,6 +750,9 @@ double ordered_bivariate_likelihood(int y1, int y2, double rho, NumericVector t_
     mypbinorm(t_01,t_02, rho);
   
 
+  // To prevent numerical issues, set pi to be at minimum a very small number:
+  pi = std::max(pi, 0.000001);
+  
   return pi;
 }
 
