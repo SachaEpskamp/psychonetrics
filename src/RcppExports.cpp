@@ -96,8 +96,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // covPrepare_cpp
-List covPrepare_cpp(NumericMatrix data, LogicalVector isOrdered, double tol, bool WLSweights);
-RcppExport SEXP _psychonetrics_covPrepare_cpp(SEXP dataSEXP, SEXP isOrderedSEXP, SEXP tolSEXP, SEXP WLSweightsSEXP) {
+List covPrepare_cpp(NumericMatrix data, LogicalVector isOrdered, double tol, bool WLSweights, bool verbose);
+RcppExport SEXP _psychonetrics_covPrepare_cpp(SEXP dataSEXP, SEXP isOrderedSEXP, SEXP tolSEXP, SEXP WLSweightsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -105,7 +105,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< LogicalVector >::type isOrdered(isOrderedSEXP);
     Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
     Rcpp::traits::input_parameter< bool >::type WLSweights(WLSweightsSEXP);
-    rcpp_result_gen = Rcpp::wrap(covPrepare_cpp(data, isOrdered, tol, WLSweights));
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(covPrepare_cpp(data, isOrdered, tol, WLSweights, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -246,8 +247,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // polychor_grad_singlesubject
-double polychor_grad_singlesubject(int y1, int y2, double rho, NumericVector t_aug1, NumericVector t_aug2);
-RcppExport SEXP _psychonetrics_polychor_grad_singlesubject(SEXP y1SEXP, SEXP y2SEXP, SEXP rhoSEXP, SEXP t_aug1SEXP, SEXP t_aug2SEXP) {
+double polychor_grad_singlesubject(int y1, int y2, double rho, NumericVector t_aug1, NumericVector t_aug2, double pi);
+RcppExport SEXP _psychonetrics_polychor_grad_singlesubject(SEXP y1SEXP, SEXP y2SEXP, SEXP rhoSEXP, SEXP t_aug1SEXP, SEXP t_aug2SEXP, SEXP piSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -256,13 +257,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type t_aug1(t_aug1SEXP);
     Rcpp::traits::input_parameter< NumericVector >::type t_aug2(t_aug2SEXP);
-    rcpp_result_gen = Rcpp::wrap(polychor_grad_singlesubject(y1, y2, rho, t_aug1, t_aug2));
+    Rcpp::traits::input_parameter< double >::type pi(piSEXP);
+    rcpp_result_gen = Rcpp::wrap(polychor_grad_singlesubject(y1, y2, rho, t_aug1, t_aug2, pi));
     return rcpp_result_gen;
 END_RCPP
 }
 // bthreshold_grad_singlesubject
-double bthreshold_grad_singlesubject(int y1, int y2, double rho, int tIndex, NumericVector t_aug1, NumericVector t_aug2);
-RcppExport SEXP _psychonetrics_bthreshold_grad_singlesubject(SEXP y1SEXP, SEXP y2SEXP, SEXP rhoSEXP, SEXP tIndexSEXP, SEXP t_aug1SEXP, SEXP t_aug2SEXP) {
+double bthreshold_grad_singlesubject(int y1, int y2, double rho, int tIndex, NumericVector t_aug1, NumericVector t_aug2, double pi);
+RcppExport SEXP _psychonetrics_bthreshold_grad_singlesubject(SEXP y1SEXP, SEXP y2SEXP, SEXP rhoSEXP, SEXP tIndexSEXP, SEXP t_aug1SEXP, SEXP t_aug2SEXP, SEXP piSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -272,7 +274,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type tIndex(tIndexSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type t_aug1(t_aug1SEXP);
     Rcpp::traits::input_parameter< NumericVector >::type t_aug2(t_aug2SEXP);
-    rcpp_result_gen = Rcpp::wrap(bthreshold_grad_singlesubject(y1, y2, rho, tIndex, t_aug1, t_aug2));
+    Rcpp::traits::input_parameter< double >::type pi(piSEXP);
+    rcpp_result_gen = Rcpp::wrap(bthreshold_grad_singlesubject(y1, y2, rho, tIndex, t_aug1, t_aug2, pi));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -284,7 +287,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp, 5},
     {"_psychonetrics_fimlEstimator_Gauss_group_cpp", (DL_FUNC) &_psychonetrics_fimlEstimator_Gauss_group_cpp, 6},
     {"_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp", (DL_FUNC) &_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp, 5},
-    {"_psychonetrics_covPrepare_cpp", (DL_FUNC) &_psychonetrics_covPrepare_cpp, 4},
+    {"_psychonetrics_covPrepare_cpp", (DL_FUNC) &_psychonetrics_covPrepare_cpp, 5},
     {"_psychonetrics_computeMean", (DL_FUNC) &_psychonetrics_computeMean, 1},
     {"_psychonetrics_computeThresholds", (DL_FUNC) &_psychonetrics_computeThresholds, 1},
     {"_psychonetrics_pearsonCov", (DL_FUNC) &_psychonetrics_pearsonCov, 5},
@@ -295,8 +298,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_polychoric_grad_summary", (DL_FUNC) &_psychonetrics_polychoric_grad_summary, 4},
     {"_psychonetrics_estimate_polychoric", (DL_FUNC) &_psychonetrics_estimate_polychoric, 8},
     {"_psychonetrics_threshold_grad_singlesubject", (DL_FUNC) &_psychonetrics_threshold_grad_singlesubject, 3},
-    {"_psychonetrics_polychor_grad_singlesubject", (DL_FUNC) &_psychonetrics_polychor_grad_singlesubject, 5},
-    {"_psychonetrics_bthreshold_grad_singlesubject", (DL_FUNC) &_psychonetrics_bthreshold_grad_singlesubject, 6},
+    {"_psychonetrics_polychor_grad_singlesubject", (DL_FUNC) &_psychonetrics_polychor_grad_singlesubject, 6},
+    {"_psychonetrics_bthreshold_grad_singlesubject", (DL_FUNC) &_psychonetrics_bthreshold_grad_singlesubject, 7},
     {NULL, NULL, 0}
 };
 

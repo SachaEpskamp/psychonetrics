@@ -27,7 +27,8 @@ varcov <- function(
   WLS.V,
   sampleStats, # Leave to missing
   meanstructure, # Defaults to TRUE if data is used or means is used, FALSE otherwie
-  corinput # Defaults to TRUE if the input is detected to consist of correlation matrix/matrices, FALSE otherwise
+  corinput, # Defaults to TRUE if the input is detected to consist of correlation matrix/matrices, FALSE otherwise
+  verbose = TRUE
 ){
   rawts = FALSE
   if (rawts){
@@ -100,7 +101,8 @@ varcov <- function(
                                storedata = storedata,
                                weightsmatrix = WLS.V,
                                meanstructure = meanstructure,
-                               corinput = corinput)
+                               corinput = corinput,
+                               verbose=verbose)
   }
  
   # Overwrite corinput:

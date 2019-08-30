@@ -80,6 +80,11 @@ samplestats_norawts <- function(
       data <- data[rowSums(is.na(data[,c(vars)])) == 0,]
     }
     
+    # If ordered is TRUE, set all to ordered:
+    if (isTRUE(ordered)){
+      ordered <- vars
+    }
+    
     # Check if none or all are ordered:
     # FIXME: ADD POLYSERIALS LATER!!!
     
@@ -103,7 +108,8 @@ samplestats_norawts <- function(
         prepRes <- covPrepare_cpp(
           as.matrix(data[,vars]),
           vars %in% ordered,
-          WLSweights = needWLSV
+          WLSweights = needWLSV,
+          verbose = verbose
         )
         
         # Obtain results:

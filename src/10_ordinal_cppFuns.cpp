@@ -622,7 +622,7 @@ double threshold_grad_singlesubject(int y, int j, NumericVector t_aug){
 
 // Gradient of fit to polychoric correlation for a single subject
 // [[Rcpp::export]]
-double polychor_grad_singlesubject(int y1, int y2, double rho, NumericVector t_aug1, NumericVector t_aug2){
+double polychor_grad_singlesubject(int y1, int y2, double rho, NumericVector t_aug1, NumericVector t_aug2, double pi){
   
   double res = 0;
   // int nThresh1 = t1.length();
@@ -661,11 +661,11 @@ double polychor_grad_singlesubject(int y1, int y2, double rho, NumericVector t_a
     binormal_density(t_11,t_02, rho) + 
     binormal_density(t_01,t_02, rho);
   
-  // Denominator:
-  double pi = mypbinorm(t_11,t_12, rho) - 
-    mypbinorm(t_01,t_12, rho) -
-    mypbinorm(t_11,t_02, rho) + 
-    mypbinorm(t_01,t_02, rho);
+  // // Denominator:
+  // double pi = mypbinorm(t_11,t_12, rho) - 
+  //   mypbinorm(t_01,t_12, rho) -
+  //   mypbinorm(t_11,t_02, rho) + 
+  //   mypbinorm(t_01,t_02, rho);
   
   
   res = num / pi;
@@ -676,7 +676,7 @@ double polychor_grad_singlesubject(int y1, int y2, double rho, NumericVector t_a
 
 // Gradient of BIVARIATE fit to threshold (t1) for a single subject
 // [[Rcpp::export]]
-double bthreshold_grad_singlesubject(int y1, int y2, double rho, int tIndex, NumericVector t_aug1, NumericVector t_aug2){
+double bthreshold_grad_singlesubject(int y1, int y2, double rho, int tIndex, NumericVector t_aug1, NumericVector t_aug2, double pi){
   
   // Empty Gradient:
   double grad = 0.0;
@@ -691,11 +691,11 @@ double bthreshold_grad_singlesubject(int y1, int y2, double rho, int tIndex, Num
     double t_02 = t_aug2[y2];
     double t_12 = t_aug2[y2+1];
 
-    double pi = mypbinorm(t_11,t_12, rho) - 
-      mypbinorm(t_01,t_12, rho) -
-      mypbinorm(t_11,t_02, rho) + 
-      mypbinorm(t_01,t_02, rho);
-    
+    // double pi = mypbinorm(t_11,t_12, rho) - 
+    //   mypbinorm(t_01,t_12, rho) -
+    //   mypbinorm(t_11,t_02, rho) + 
+    //   mypbinorm(t_01,t_02, rho);
+    // 
     double rhopart = std::pow(1.0 - std::pow(rho, 2.0), 0.5);
     
     // If tIndex == y1 (y is below), the gradient becomes:
@@ -717,11 +717,24 @@ double bthreshold_grad_singlesubject(int y1, int y2, double rho, int tIndex, Num
   
 }
 
-// 
-// // Identity matrix:
-// sp_mat diag_ones(int n) {
-//   sp_mat X(n);
-//   X.diag().ones();
-//   return X;
-// }
+
+// Function to compute the bivariate likelihood for an ORDINAL variable:
+double ordered_bivariate_likelihood(int y1, int y2, double rho, NumericVector t_aug1, NumericVector t_aug2){
+  
+  double t_01 = t_aug1[y1];
+  double t_11 = t_aug1[y1+1];
+  double t_02 = t_aug2[y2];
+  double t_12 = t_aug2[y2+1];
+  
+  double pi = mypbinorm(t_11,t_12, rho) - 
+    mypbinorm(t_01,t_12, rho) -
+    mypbinorm(t_11,t_02, rho) + 
+    mypbinorm(t_01,t_02, rho);
+  
+
+  return pi;
+}
+
+
+
 
