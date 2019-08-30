@@ -25,8 +25,8 @@ jacobian_fiml_gaussian_subgroup_sigma_cpp <- function(sigma, kappa, mu, fimldata
     .Call(`_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp`, sigma, kappa, mu, fimldata, epsilon)
 }
 
-covPrepare_cpp <- function(data, isOrdered, tol = 0.000001, WLSweights = TRUE) {
-    .Call(`_psychonetrics_covPrepare_cpp`, data, isOrdered, tol, WLSweights)
+covPrepare_cpp <- function(data, isOrdered, tol = 0.000001, WLSweights = TRUE, verbose = TRUE) {
+    .Call(`_psychonetrics_covPrepare_cpp`, data, isOrdered, tol, WLSweights, verbose)
 }
 
 computeMean <- function(y) {
@@ -69,11 +69,11 @@ threshold_grad_singlesubject <- function(y, j, t_aug) {
     .Call(`_psychonetrics_threshold_grad_singlesubject`, y, j, t_aug)
 }
 
-polychor_grad_singlesubject <- function(y1, y2, rho, t_aug1, t_aug2) {
-    .Call(`_psychonetrics_polychor_grad_singlesubject`, y1, y2, rho, t_aug1, t_aug2)
+polychor_grad_singlesubject <- function(y1, y2, rho, t_aug1, t_aug2, pi) {
+    .Call(`_psychonetrics_polychor_grad_singlesubject`, y1, y2, rho, t_aug1, t_aug2, pi)
 }
 
-bthreshold_grad_singlesubject <- function(y1, y2, rho, tIndex, t_aug1, t_aug2) {
-    .Call(`_psychonetrics_bthreshold_grad_singlesubject`, y1, y2, rho, tIndex, t_aug1, t_aug2)
+bthreshold_grad_singlesubject <- function(y1, y2, rho, tIndex, t_aug1, t_aug2, pi) {
+    .Call(`_psychonetrics_bthreshold_grad_singlesubject`, y1, y2, rho, tIndex, t_aug1, t_aug2, pi)
 }
 

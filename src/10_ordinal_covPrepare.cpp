@@ -11,7 +11,6 @@
 using namespace Rcpp;
 using namespace arma;
 
-
 // General function to do the following:
 // 1. Compute means for continuous variables, thresholds for ordinal
 // 2. Compute Pearson/polychoric/polyserial correlations/covariances
@@ -21,7 +20,8 @@ List covPrepare_cpp(
     NumericMatrix data, // Data as data frame
     LogicalVector isOrdered,
     double tol = 0.000001,
-    bool WLSweights = true
+    bool WLSweights = true,
+    bool verbose = true
 ) { 
   // Iterators:
   int i, j, k, p;
@@ -46,8 +46,15 @@ List covPrepare_cpp(
   // Integer that stores how many means or thresholds are stored per variable:
   IntegerVector nMeans_Thresh(nVar);
   
+  
+  // List that wil store a mean for every continuous variable or thresholds for every ordered variable:
+  List meansAndThresholds(nVar);
+  
   // Fill the list (copying contiuous vectors as I don't want to mess with the input data):
   for (i=0;i<nVar;i++){
+
+      
+    
     // Dummy numeric:
     NumericVector curVar(nCase);
     
@@ -105,14 +112,13 @@ List covPrepare_cpp(
       // Number of means (1):
       nMeans_Thresh[i] = 1;
     }
-  }
+  // }
   
-  // List that wil store a mean for every continuous variable or thresholds for every ordered variable:
-  List meansAndThresholds(nVar);
+
   
   // FIXME: Maybe put this in the same loop as above?
   // Fill the list:
-  for (i=0;i<nVar;i++){
+  // for (i=0;i<nVar;i++){
     if (isOrdered[i] == false){
       // Compute mean:
       meansAndThresholds[i] = computeMean(DataList[i]);
@@ -122,15 +128,19 @@ List covPrepare_cpp(
       meansAndThresholds[i] = computeThresholds(DataList[i]);
       
     }
+   
   }
   
 
   // Covariance matrix:
   NumericMatrix covMat(nVar, nVar);
   
+
   // Fill lower triangle columwise:
   for (j=0;j<nVar;j++){
     for(i=j;i<nVar;i++){
+      
+      
       // Variance?
       if (i == j){
         if (isOrdered[i]){
@@ -153,6 +163,7 @@ List covPrepare_cpp(
           covMat(i,j) = covMat(j,i) = pearsonCov(DataList[i], DataList[j], meansAndThresholds[i], meansAndThresholds[j]);
         }
       }
+
     }
   }
   
@@ -279,12 +290,17 @@ List covPrepare_cpp(
     arma::vec D(nElements);
     
     
+    // I also want to compute the bivariate likelihood per subject only once, as this is costly. This matrix will store the bivariate probabilities:
+    NumericMatrix bivariatLikelihood(nVar, nVar);
+    
+    
     // bool var1mt = true;
     // bool var2mt = true;
     bool mis1, mis2;
     
     // Loop over all subjects to fill matrices:
     for (p=0; p<nCase;p++){
+
       // Reset D:
       D.zeros();
       
@@ -325,13 +341,22 @@ List covPrepare_cpp(
 
             // Variance or covariance:
             if (isOrdered[var1[i]] & isOrdered[var2[i]]){
-          
+            
+              // Compute pi:
+              bivariatLikelihood(var1[i],var2[i]) = bivariatLikelihood(var2[i],var1[i]) = 
+                ordered_bivariate_likelihood(((IntegerVector)DataList[var1[i]])[p], 
+                                             ((IntegerVector)DataList[var2[i]])[p],
+                                             covMat(var1[i],var2[i]),
+                                              meansAndThresholds_aug[var1[i]],
+                                             meansAndThresholds_aug[var2[i]]);
+            
               D[i] = polychor_grad_singlesubject(
                 ((IntegerVector)DataList[var1[i]])[p], 
                 ((IntegerVector)DataList[var2[i]])[p],
                 covMat(var1[i],var2[i]),
                 meansAndThresholds_aug[var1[i]],
-                meansAndThresholds_aug[var2[i]]);
+                meansAndThresholds_aug[var2[i]],
+                bivariatLikelihood(var1[i],var2[i]));
 
             } else {
               Rf_error("Only ordinal data supported now...");
@@ -362,7 +387,8 @@ List covPrepare_cpp(
                 covMat(var1[j],var2[i]),
                 whichPar[j],
                 meansAndThresholds_aug[var1[j]],
-                meansAndThresholds_aug[var2[i]]);
+                meansAndThresholds_aug[var2[i]],
+               bivariatLikelihood(var1[j],var2[i]));
               B(i,j) +=  D[i] * D2; 
             }
             
@@ -373,7 +399,8 @@ List covPrepare_cpp(
                covMat(var1[j],var1[i]),
                 whichPar[j],
                  meansAndThresholds_aug[var1[j]],
-                  meansAndThresholds_aug[var1[i]]);
+                  meansAndThresholds_aug[var1[i]],
+                  bivariatLikelihood(var1[j],var1[i]));
               
               
               B(i,j) +=  D[i] * D2;
@@ -385,8 +412,6 @@ List covPrepare_cpp(
         }
       }
       
-      
-      // 
   
     }
     

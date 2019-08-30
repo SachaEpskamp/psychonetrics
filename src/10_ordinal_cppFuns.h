@@ -34,10 +34,12 @@ double estimate_polychoric(IntegerVector y1, IntegerVector y2, NumericVector t1,
 
 double threshold_grad_singlesubject(int y, int j, NumericVector t);
 
-double polychor_grad_singlesubject(int y1, int y2, double rho, NumericVector t1, NumericVector t2);
+double polychor_grad_singlesubject(int y1, int y2, double rho, NumericVector t1, NumericVector t2, double pi);
 
 
-double bthreshold_grad_singlesubject(int y1, int y2, double rho, int tIndex, NumericVector t1, NumericVector t2);
-// sp_mat diag_ones(int n);
+double bthreshold_grad_singlesubject(int y1, int y2, double rho, int tIndex, NumericVector t1, NumericVector t2, double pi);
+
+double ordered_bivariate_likelihood(int y1, int y2, double rho, NumericVector t_aug1, NumericVector t_aug2);
+
 
 #endif
