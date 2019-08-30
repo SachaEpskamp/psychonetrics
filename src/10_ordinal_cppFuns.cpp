@@ -403,7 +403,9 @@ double polychoric_grad_summary(double rho, NumericMatrix tab, NumericVector t1, 
       //   tabmult = 1.0;
       // } else {
       tabmult = (double)tab(i,j);
-      // }
+      
+      // To prevent numerical issues, set pi to be at minimum a very small number:
+      pi = std::max(pi, 0.000001);
       
       curGrad +=  tabmult * num / pi;
     }
@@ -524,7 +526,7 @@ double estimate_polychoric(IntegerVector y1, IntegerVector y2, NumericVector t1,
   
   // For a 2x2 table with zero margins, adjust:
   // From https://github.com/yrosseel/lavaan/blob/master/R/lav_polychor.R#L327-L336
-  if (zeroMargin = true && n1 == 2 && n2 == 2){
+  if (zeroMargin == true && n1 == 2 && n2 == 2){
     if (tab(0,0) == 0 || tab(1,1) == 0){
       tabNumeric(0,0) += zeroAdd;
       tabNumeric(1,1) += zeroAdd;
@@ -565,7 +567,7 @@ double estimate_polychoric(IntegerVector y1, IntegerVector y2, NumericVector t1,
     while (rho + delta < -1 || rho + delta > 1){
       delta *= 0.5;
     }
-    
+
     rho += delta;
     
     // Update fit:
@@ -575,10 +577,9 @@ double estimate_polychoric(IntegerVector y1, IntegerVector y2, NumericVector t1,
     newGrad = polychoric_grad_summary(rho, tabNumeric, t1, t2);
     
     // Update step size:
+    gamma = std::abs(delta * (newGrad - curGrad)) / std::pow(newGrad - curGrad, 2.0);
     
-    gamma = abs(delta * (newGrad - curGrad)) / pow(newGrad - curGrad, 2.0);
-    
-  } while (curIt < maxIt && abs(newGrad) > tol && rho > -1.0 && rho < 1.0);
+  } while (curIt < maxIt && std::abs(newGrad) > tol && rho > -1.0 && rho < 1.0);
   
   if (curIt >= maxIt){
     Rf_error("Polychoric correlation estimator did not converge.");
