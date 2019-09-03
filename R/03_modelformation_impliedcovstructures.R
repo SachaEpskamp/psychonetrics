@@ -67,11 +67,14 @@ impliedcovstructures <- function(
 
       }
     } else if (type == "ggm"){
-      IminO_dummy <-  as(solve_symmetric(Diagonal(ncol(x[[g]][[omega]])) - x[[g]][[omega]]), "Matrix")
-      
       # First check if the delta Matrix is present (it is ignored when corinput = TRUE only, so don't need to know that that argument was used):
       if (is.null(x[[g]][[delta]])){
+        # FIXME: non positive definite matrices are even worse here... So I am trying to solve this with a spectral shift for now:
+        IminO_dummy <-  as(solve_symmetric(spectralshift(Diagonal(ncol(x[[g]][[omega]])) - x[[g]][[omega]])), "Matrix")
         x[[g]][[delta]] <- Diagonal(x = diag(IminO_dummy)^(-0.5))
+      } else {
+        IminO_dummy <-  as(solve_symmetric(Diagonal(ncol(x[[g]][[omega]])) - x[[g]][[omega]]), "Matrix")
+        
       }
       
       

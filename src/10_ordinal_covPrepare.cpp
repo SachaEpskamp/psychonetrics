@@ -280,8 +280,8 @@ List covPrepare_cpp(
     
     // I also want to store the effictive N per element:
     // IntegerMatrix effectiveSampleSize(nElements, nElements);
-    arma::mat effectiveSampleSize(nElements, nElements);
-    effectiveSampleSize.zeros();
+    // arma::mat effectiveSampleSize(nElements, nElements);
+    // effectiveSampleSize.zeros();
     
     // I also need a vector per subject:
     arma::vec obsElement(nElements);
@@ -371,7 +371,7 @@ List covPrepare_cpp(
       DD += D * D.t();
       
       // Also update sample size:
-      effectiveSampleSize += obsElement * obsElement.t();
+      // effectiveSampleSize += obsElement * obsElement.t();
       
      
       
@@ -444,8 +444,11 @@ List covPrepare_cpp(
     
     
     // Finally, adjust for effective sample size:
-    B = B % pow(effectiveSampleSize, -1.0);
-    DD = DD % pow(effectiveSampleSize, -1.0);
+    // B = B % pow(effectiveSampleSize, -1.0);
+    // DD = DD % pow(effectiveSampleSize, -1.0);
+    // 
+    B = B * pow((double)nCase, -1.0);
+    DD = DD * pow((double)nCase, -1.0);
     
     // 
     // 
@@ -687,7 +690,7 @@ List covPrepare_cpp(
     Result["WLS_V"] = WLS_V;
     Result["DD"] = DD;
     Result["B"] = B;
-    Result["effectiveSampleSize"] = effectiveSampleSize;
+    // Result["effectiveSampleSize"] = effectiveSampleSize;
   }
   
   // Return output:

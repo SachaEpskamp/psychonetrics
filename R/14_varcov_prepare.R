@@ -39,7 +39,7 @@ prepare_varcov <- function(x, model){
     groupModels[[g]]$meanstructure <- model@meanstructure
     groupModels[[g]]$thresholds <- thresholds[[g]]
   }
-  
+
   # Return
   return(list(
     nPerGroup = nPerGroup,
