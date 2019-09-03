@@ -35,6 +35,11 @@ varcov <- function(
     warning("'rawts' is only included for testing purposes. Please do not use!")
   }
   
+  # Reset ordered if needed:
+  if (identical(ordered, FALSE)){
+    ordered <- character(0)
+  }
+  
   if (estimator == "default"){
     if (length(ordered) > 0){
       estimator <- "WLS"
