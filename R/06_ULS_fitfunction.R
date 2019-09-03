@@ -13,6 +13,7 @@ ULSestimator <- function(x, model){
 
 # Fit function for Gauss ML: -2n* log likelihood
 ULS_Gauss <- function(x, model){
+
   # Prepare
   prep <- prepareModel(x, model)
 
@@ -28,7 +29,6 @@ ULS_Gauss_pergroup <- function(means,S,tau,mu,sigma,WLS.V,estimator,thresholds, 
   if (estimator == "DWLS"){
      WLS.V <- Diagonal(x = diag(WLS.V))
   }
-  
   
   # Include means:
   # FIXME: old code I am not messing with now
