@@ -447,9 +447,9 @@ List covPrepare_cpp(
     // B = B % pow(effectiveSampleSize, -1.0);
     // DD = DD % pow(effectiveSampleSize, -1.0);
     // 
-    B = B * pow((double)nCase, -1.0);
-    DD = DD * pow((double)nCase, -1.0);
-    
+    // B = B * pow((double)nCase, -1.0);
+    // DD = DD * pow((double)nCase, -1.0);
+    // 
     // 
     // 
     // // Fill the matrices:
@@ -677,13 +677,9 @@ List covPrepare_cpp(
 
     // Compute the final matrix:
     arma::mat Binv = inv(B);
-    
-    // sp_mat I = diag_ones(nElements);
-    // arma::sp_mat Binv = spsolve( B, I );
-    arma::mat WLS_V = inv(Binv * DD * Binv.t());
+    arma::mat WLS_V = pow((double)nCase, -1.0) * inv(Binv * DD * Binv.t());
     
     // Store in output:
-    // Result["parameter_vector"] = parVector;
     Result["parameter_index"] = whichPar;
     Result["pars_var1"] = var1;
     Result["pars_var2"] = var2;
