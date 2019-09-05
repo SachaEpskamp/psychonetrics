@@ -9,6 +9,7 @@ Changes in version 0.3.4:
   o The WLS estimator will now not investigate means when meanstructure is ignored, and variances when a correlaton matrix is used as input.
     - The WLS weights matrix must be of the appropriate dimensions!
     - The WLS.V matrix will no longer be adjusted for missing means.
+    - Added 'startEPC' argument to stepup and freepar
 
 Changes in version 0.3.3:
   o prune() now removes diagonal values of temporal effects

@@ -9,6 +9,7 @@ freepar <- function(
   verbose = TRUE,
   log = TRUE,
   runmodel = FALSE,
+  startEPC = TRUE,
   ...){
 
   if (missing(matrix)){
@@ -68,8 +69,15 @@ freepar <- function(
   if (!missing(start)){
     x@parameters$est[whichFree] <- start  
   } else {
-    # Set to EPC:
-    x@parameters$est[whichFree][!is.na(x@parameters$epc[whichFree])] <- x@parameters$epc[whichFree][!is.na(x@parameters$epc[whichFree])] 
+    expected <-  x@parameters$est[whichFree][!is.na(x@parameters$epc[whichFree])]      +  x@parameters$epc[whichFree][!is.na(x@parameters$epc[whichFree])]    
+    if (startEPC){
+      # Set to EPC:
+      x@parameters$est[whichFree][!is.na(x@parameters$epc[whichFree])] <-   expected
+    } else {
+      # Set to EPC:
+      x@parameters$est[whichFree][!is.na(x@parameters$epc[whichFree])] <- 0.001*sign(expected)
+    }
+
     
   }
   # x@parameters$std[whichFree] <- NA
