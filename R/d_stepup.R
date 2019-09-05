@@ -11,7 +11,8 @@ stepup <- function(
   verbose = TRUE,
   checkinformation = TRUE,
   singularinformation = c("tryfix","skip","continue","stop"), # tryfix = try to fix by adjusting starting values (once), skip = go to next parameter, continue = continue search, stop = stop and return current and previous model
-  # maxtry = 0,
+  startEPC = TRUE,
+    # maxtry = 0,
   ... # Fit arguments
 ){
   maxtry <- 1
@@ -145,7 +146,7 @@ stepup <- function(
         if (x@parameters$matrix[best] %in% x@equal){
           x <- freepar(x, matrix = x@parameters$matrix[best],row = x@parameters$row[best],
                        col = x@parameters$col[best], 
-                       verbose = FALSE, log = FALSE)
+                       verbose = FALSE, log = FALSE, startEPC=startEPC)
           x <- groupequal(x, matrix = x@parameters$matrix[best],row = x@parameters$row[best],
                           col = x@parameters$col[best],verbose = FALSE, log = FALSE)
           
@@ -155,7 +156,7 @@ stepup <- function(
         } else {
           x <- freepar(x, matrix = x@parameters$matrix[best],row = x@parameters$row[best],
                        col = x@parameters$col[best], group = x@parameters$group_id[best],
-                       verbose = FALSE, log = FALSE)
+                       verbose = FALSE, log = FALSE, startEPC=startEPC)
           
           if (verbose){
             if (nrow(x@sample@groups) == 1){
