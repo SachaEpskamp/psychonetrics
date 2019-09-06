@@ -18,7 +18,6 @@ jacobian_fiml_gaussian_subgroup_sigma <- function(dat,sigma,kappa,mu,...){
 
 # jacobian function per group
 jacobian_fiml_gaussian_group_sigma <- function(fimldata,fulln,sigma,kappa,mu,means, meanstructure = TRUE, corinput = FALSE,...){
-  
   # Subgroup models:
   Jac <- 1/fulln * Reduce("+", lapply(fimldata,jacobian_fiml_gaussian_subgroup_sigma,sigma=sigma,kappa=kappa,mu=mu))
   
@@ -70,7 +69,6 @@ jacobian_fiml_gaussian_group_sigma_cpp_outer <- function(fimldata,fulln,sigma,ka
 # Now for all groups:
 jacobian_fiml_gaussian_sigma <- function(prep){
   # model is already prepared!
-  
   # d_phi_theta per group:
   if (prep$cpp){
     g_per_group <- lapply(prep$groupModels,do.call,what=jacobian_fiml_gaussian_group_sigma_cpp_outer)  

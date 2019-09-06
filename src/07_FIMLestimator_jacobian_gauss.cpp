@@ -1,22 +1,9 @@
-// -*- mode: C++; c-indent-level: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*-
-
-// we only include RcppArmadillo.h which pulls Rcpp.h in for us
 #include <RcppArmadillo.h>
 #include <math.h>
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 using namespace arma;
-
-
-// mat test(
-//   mat X,
-//   mat Y,
-//   uvec ind
-// ){
-//   X(ind,ind) += Y;
-//   return X;
-// }
 
 
 // [[Rcpp::export]]
@@ -27,11 +14,9 @@ arma::mat jacobian_fiml_gaussian_subgroup_sigma_cpp(
     Rcpp::List fimldata,
     double epsilon) {
   
-  // double result = 0;
-  // double logdet = 0;
+
   double n_part;
-  // double log2pi = log(2*M_PI);
-  
+
   // Number of parameters
   int nmeans = mu.size();
   int nvars = nmeans * (nmeans + 1) / 2;
@@ -42,12 +27,9 @@ arma::mat jacobian_fiml_gaussian_subgroup_sigma_cpp(
   // Integers
   int i;
   int j;
-  // int ii;
-  // int jj;
-  
+
   // Loop over groups
   for ( i = 0; i < fimldata.size(); i++){
-    
     // Obtain list:
     Rcpp::List dat = fimldata[i];
     
@@ -68,7 +50,6 @@ arma::mat jacobian_fiml_gaussian_subgroup_sigma_cpp(
     arma::mat kappa_p(sigma_p);
     arma::vec mu_p = mu(inds);
     
-    // int nvar = mu_p.size();
     
     // Observed values:
     arma::mat S = dat["S"];
@@ -85,37 +66,23 @@ arma::mat jacobian_fiml_gaussian_subgroup_sigma_cpp(
     }
     if (ispos){
       kappa_p = inv(sigma_p);
-      // logdet = log(det(kappa_p));
     } else {
       kappa_p = pinv(sigma_p);
-      // logdet = log(epsilon);
     }
     
-// Mean part:
-  arma::mat meanpart = -2 * (means - mu_p).t() * kappa_p;
-// Sigma part:
-  arma::mat matpart = kappa_p * (S + (means - mu_p) * (means - mu_p).t() - sigma_p) * kappa_p;
-  
-  //Vectorize:
-  // arma::vec vecpart(pow(nvar,2));
-  // for (ii=0;ii<nvar;ii++){
-  //   for (jj=0;jj<nvar;jj++){
-  //     vecpart(ii*nvar + jj) = matpart(ii,jj);
-  //   }
-  // }
-  arma::vec vecpart = vectorise(matpart);
-  
-  arma::mat sigmapart = -1.0 * (D.t() * vecpart).t();
-    // 
-    // Rf_PrintValue(wrap(meanpart));
-    // Rf_PrintValue(wrap(sigmapart));
+    // Mean part:
+    arma::mat meanpart = -2 * (means - mu_p).t() * kappa_p;
+    // Sigma part:
+    arma::mat matpart = kappa_p * (S + (means - mu_p) * (means - mu_p).t() - sigma_p) * kappa_p;
+    
+    //Vectorize:
+    arma::vec vecpart = vectorise(matpart);
+    arma::mat sigmapart = -1.0 * (D.t() * vecpart).t();
     
     // Join:
-  Jac += n_part * join_rows(meanpart, sigmapart) * L;
-    // nvar <- ncol(kappa)
-    // res <-  attr(kappa, "logdet") - nvar * log((2*pi)) - sum(diag(SK)) - t(means - mu) %*% kappa %*% (means - mu)
+    Jac += n_part * join_rows(meanpart, sigmapart) * L;
+    
   }
-  
   
   // Return
   return Jac;

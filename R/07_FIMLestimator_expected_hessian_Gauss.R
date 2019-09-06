@@ -68,7 +68,6 @@ expected_hessian_fiml_Gaussian_group_cpp_outer <- function(fimldata,fulln,sigma,
 # Total:
 expected_hessian_fiml_Gaussian <- function(prep){
   # model is already prepared!
-  
   # d_phi_theta per group:
   if (prep$cpp){
     exph_per_group <- lapply(prep$groupModels,do.call,what=expected_hessian_fiml_Gaussian_group_cpp_outer)
