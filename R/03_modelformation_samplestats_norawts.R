@@ -112,6 +112,10 @@ samplestats_norawts <- function(
           verbose = verbose
         )
         
+        if (any(eigen(prepRes$covmat)$values < 0)){
+          stop("Correlation matrix is not positive semi-definite.")
+          }
+        
         # Obtain results:
         covs <- list(as(prepRes$covmat, "Matrix"))
         cors <- list(as(cov2cor(prepRes$covmat), "Matrix"))
@@ -165,6 +169,10 @@ samplestats_norawts <- function(
             vars %in% ordered,
             WLSweights = needWLSV
           )
+          
+          if (any(eigen(prepRes$covmat)$values < 0)){
+            stop("Correlation matrix is not positive semi-definite.")
+          }
           
           # Obtain results:
           covs[[g]] <- as(prepRes$covmat, "Matrix")

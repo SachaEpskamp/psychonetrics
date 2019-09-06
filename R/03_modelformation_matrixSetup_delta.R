@@ -22,7 +22,7 @@ matrixsetup_delta <- function(
     # FIXME: This is already done in omega computation, but I am lazy....
     zeroes <- which(deltaStart[,,g]==0 & t(deltaStart[,,g])==0 & diag(nNode) != 1,arr.ind=TRUE)
     if (nrow(zeroes) == 0){
-      wi <- solve_symmetric(covest)
+      wi <- solve_symmetric(spectralshift(covest))
     } else {
       glas <- glasso(as.matrix(covest),
                      rho = 1e-10, zero = zeroes)

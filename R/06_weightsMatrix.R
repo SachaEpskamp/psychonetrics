@@ -6,13 +6,13 @@ LS_weightsmat <- function(dat, type = c("full","diagonal"), meanstructure = TRUE
   if (type == "full"){
     Wmat <- WLS_wmat(
       as.matrix(dat),
-      colMeans(dat),
+      colMeans(dat, na.rm = TRUE),
       ncase,
       nvar)    
   } else if (type == "diagonal"){
     Wmat <- DWLS_wmat(
       as.matrix(dat),
-      colMeans(dat),
+      colMeans(dat, na.rm = TRUE),
       ncase,
       nvar)  
   }
