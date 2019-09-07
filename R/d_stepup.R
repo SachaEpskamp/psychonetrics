@@ -247,6 +247,17 @@ stepup <- function(
             break
           }
         }
+        
+        # Check if fit actually improved:
+        compare <- compare(old = oldMod, new = x)
+        if (!compare$p_value[2] < alpha){
+          if (verbose){
+            message(paste("Model did not improve at given alpha, returning previous model."))
+          }
+          x <- oldMod
+          break
+        }
+        
         # Check criterion:
         if (criterion != "none"){
           if (!criterion %in% names(oldMod@fitmeasures)){
@@ -321,6 +332,17 @@ stepup <- function(
           
         }
         
+        # Check if fit actually improved:
+        compare <- compare(old = oldMod, new = x)
+        if (!compare$p_value[2] < alpha){
+          if (verbose){
+            message(paste("Model did not improve at given alpha, returning previous model."))
+          }
+          x <- oldMod
+          break
+        }
+      
+      
         # Check criterion:
         if (criterion != "none"){
           if (!criterion %in% names(oldMod@fitmeasures)){
