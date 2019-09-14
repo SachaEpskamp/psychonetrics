@@ -207,7 +207,8 @@ stepup <- function(
               
               if (singularinformation == "tryfix"){
                 if (triedfixing){
-                  stop("Could not repair identification issue. Aborting search.")
+                  message("Could not repair identification issue. Aborting search and returning previous model.")
+                  return(oldMod)
                 }
                 
                 triedfixing <- TRUE
