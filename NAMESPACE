@@ -1,6 +1,8 @@
 ### Dynlib ###
 useDynLib(psychonetrics, .registration = TRUE)
 
+importFrom(metaSEM, asyCov)
+
 # Crayon:
 import(crayon)
 
