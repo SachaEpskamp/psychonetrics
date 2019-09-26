@@ -4,18 +4,18 @@ meta_varcov <- function(
   nobs, # vector of sample sizes as input
   
   Vmats, # Optional list of V matrices for each group. Will be averaged. 
-  Vmethod = c("default","psychonetrics_individual", "psychonetrics_pooled", "metaSEM_individual","metaSEM_weighted"), # How to obtain V matrices if Vmats is not supplied?
+  Vmethod = c("default","individual","psychonetrics_individual", "psychonetrics_pooled", "metaSEM_individual","metaSEM_weighted"), # How to obtain V matrices if Vmats is not supplied?
   
   # Model setup:
   type = c("cor", "ggm"), # Same as in varcov. Currently only cor and ggm are supported.
-  sigma = "full", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
-  kappa = "full", # Precision
+  sigma_y = "full", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
+  kappa_y = "full", # Precision
   # rho = "full", # Correlations
-  omega = "full", # Partial correlations
-  lowertri = "full", # Cholesky
-  delta = "full", # Used for both ggm and pcor
-  rho = "full", # Used for cor
-  SD = "full", # Used for cor
+  omega_y = "full", # Partial correlations
+  lowertri_y = "full", # Cholesky
+  delta_y = "full", # Used for both ggm and pcor
+  rho_y = "full", # Used for cor
+  SD_y = "full", # Used for cor
   
   # Random effects setup:
   randomEffects = c("cov","chol","prec","ggm","cor"),
@@ -33,18 +33,20 @@ meta_varcov <- function(
   # Some extra stuff:
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   optimizer = "default",
+  estimator = c("FIML","ML"),
   
   sampleStats, # Leave to missing
   verbose = TRUE
 ){
   # For now, I will always assume correlations were used in the input:
   corinput <- TRUE
+  estimator <- match.arg(estimator)
   
   randomEffects <- match.arg(randomEffects)
   type <- match.arg(type)
   Vmethod <- match.arg(Vmethod)
   if (Vmethod == "default"){
-    Vmethod <- "psychonetrics_individual"
+    Vmethod <- "individual"
     if (!missing(Vmats)){
       stop("'Vmats' must be missing if 'Vmethod' is not 'default'")
     }
@@ -89,7 +91,7 @@ meta_varcov <- function(
     sampleStats <- samplestats(data = data, 
                                vars = corvars, 
                                missing = "pairwise",
-                               fimldata = TRUE,
+                               fimldata = estimator == "FIML",
                                storedata = FALSE,
                                meanstructure = TRUE,
                                verbose=verbose)
@@ -104,7 +106,7 @@ meta_varcov <- function(
   
   # Generate model object:
   model <- generate_psychonetrics(model = "meta_varcov", sample = sampleStats, computed = FALSE, 
-                                  optimizer = optimizer, estimator = "FIML", distribution = "Gaussian",
+                                  optimizer = optimizer, estimator = estimator, distribution = "Gaussian",
                                   types = list(y = type, randomEffects = randomEffects),
                                   submodel = type, meanstructure = TRUE)
   
@@ -131,6 +133,22 @@ meta_varcov <- function(
     if (verbose){
       message("Computing sampling error approximation...")
     }
+    
+    
+    if (Vmethod == "individual"){
+      # For each group, make a model and obtain VCOV:
+      Vmats <- lapply(seq_along(cors),function(i){
+        cmat <- as(cors[[i]], "Matrix")
+        k <- solve(cmat)
+        D2 <- duplicationMatrix(nNode, FALSE)
+        v <- 0.5 * nobs[i] * t(D2) %*% (k %x% k) %*% D2
+        solve(v)
+      })
+      
+      avgVmat <- Reduce("+", Vmats) / length(Vmats)
+      
+    }
+    
     
     if (Vmethod == "psychonetrics_individual"){
       # For each group, make a model and obtain VCOV:
@@ -197,43 +215,47 @@ meta_varcov <- function(
       stop("Correlation matrix input is not supported for type = 'cov'. Use type = 'cor' or set corinput = FALSE")
     }
     
-    modMatrices$sigma <- matrixsetup_sigma(sigma, 
-                                           expcov=expCors,
+    modMatrices$sigma_y <- matrixsetup_sigma(sigma_y, 
+                                           expcov=list(expCors),
                                            nNode = nNode, 
                                            nGroup = nGroup, 
                                            labels = vars,
                                            equal = FALSE, 
-                                           sampletable = sampleStats)    
+                                           sampletable = sampleStats,
+                                           name = "sigma_y")    
   } else if (type == "chol"){
     if (corinput){
       stop("Correlation matrix input is not supported for type = 'chol'.")
     }
-    modMatrices$lowertri <- matrixsetup_lowertri(lowertri, 
-                                                 expcov=expCors,
+    modMatrices$lowertri_y <- matrixsetup_lowertri(lowertri_y, 
+                                                 expcov=list(expCors),
                                                  nNode = nNode, 
                                                  nGroup = nGroup, 
                                                  labels = vars,
                                                  equal = FALSE, 
-                                                 sampletable = sampleStats)
+                                                 sampletable = sampleStats,
+                                                 name = "lowertri_y")
   } else if (type == "ggm"){
     # Add omega matrix:
-    modMatrices$omega <- matrixsetup_omega(omega, 
-                                           expcov=expCors,
+    modMatrices$omega_y <- matrixsetup_omega(omega_y, 
+                                           expcov=list(expCors),
                                            nNode = nNode, 
                                            nGroup = nGroup, 
                                            labels = vars,
                                            equal = FALSE, 
-                                           sampletable = sampleStats)
+                                           sampletable = sampleStats,
+                                           name = "omega_y")
     
     if (!corinput){
       # Add delta matrix (ingored if corinput == TRUE):
-      modMatrices$delta <- matrixsetup_delta(delta, 
-                                             expcov=expCors,
+      modMatrices$delta_y <- matrixsetup_delta(delta_y, 
+                                             expcov=list(expCors),
                                              nNode = nNode, 
                                              nGroup = nGroup, 
                                              labels = vars,
                                              equal = FALSE, 
-                                             sampletable = sampleStats)       
+                                             sampletable = sampleStats,
+                                             name = "delta_y")       
     }
     
   } else if (type == "prec"){
@@ -242,32 +264,35 @@ meta_varcov <- function(
     }
     
     # Add omega matrix:
-    modMatrices$kappa <- matrixsetup_kappa(kappa, 
-                                           expcov=expCors,
+    modMatrices$kappa_y <- matrixsetup_kappa(kappa_y, 
+                                           expcov=list(expCors),
                                            nNode = nNode, 
                                            nGroup = nGroup, 
                                            labels = vars,
                                            equal = FALSE, 
-                                           sampletable = sampleStats)
+                                           sampletable = sampleStats,
+                                           name = "kappa_y")
   } else if (type == "cor"){
     # Add rho matrix:
-    modMatrices$rho <- matrixsetup_rho(rho, 
-                                       expcov=expCors,
+    modMatrices$rho_y <- matrixsetup_rho(rho_y, 
+                                       expcov=list(expCors),
                                        nNode = nNode, 
                                        nGroup = nGroup, 
                                        labels = vars,
                                        equal = FALSE, 
-                                       sampletable = sampleStats)
+                                       sampletable = sampleStats,
+                                       name = "rho_y")
     
     if (!corinput){
       # Add SD matrix (ignored if corinput == TRUE):
-      modMatrices$SD <- matrixsetup_SD(SD, 
-                                       expcov=expCors,
+      modMatrices$SD_y <- matrixsetup_SD(SD_y, 
+                                       expcov=list(expCors),
                                        nNode = nNode, 
                                        nGroup = nGroup, 
                                        labels = vars,
                                        equal = FALSE, 
-                                       sampletable = sampleStats) 
+                                       sampletable = sampleStats,
+                                       name = "rho_y") 
     }      
   }
   
@@ -285,8 +310,8 @@ meta_varcov <- function(
                                            labels = corvars,
                                            equal = FALSE, 
                                            sampletable = sampleStats, 
-                                           name = "randomEffects")    
-  } else if (randomEffects){
+                                           name = "sigma_randomEffects")    
+  } else if (randomEffects == "chol"){
    
     modMatrices$lowertri_randomEffects <- matrixsetup_lowertri(lowertri_randomEffects, 
                                                                expcov=list(expRanEffects),
@@ -295,7 +320,7 @@ meta_varcov <- function(
                                                                labels = corvars,
                                                  equal = FALSE, 
                                                  sampletable = sampleStats, 
-                                                 name = "randomEffects")
+                                                 name = "lowertri_randomEffects")
   } else if (randomEffects == "ggm"){
     # Add omega matrix:
     modMatrices$omega_randomEffects <- matrixsetup_omega(omega_randomEffects, 
@@ -305,7 +330,7 @@ meta_varcov <- function(
                                                          labels = corvars,
                                            equal = FALSE, 
                                            sampletable = sampleStats, 
-                                           name = "randomEffects")
+                                           name = "omega_randomEffects")
     
    
       # Add delta matrix (ingored if corinput == TRUE):
@@ -316,7 +341,7 @@ meta_varcov <- function(
                                                            labels = corvars,
                                              equal = FALSE, 
                                              sampletable = sampleStats, 
-                                             name = "randomEffects")       
+                                             name = "delta_randomEffects")       
 
     
   } else if (randomEffects == "prec"){
@@ -329,7 +354,7 @@ meta_varcov <- function(
                                                          labels = corvars,
                                            equal = FALSE, 
                                            sampletable = sampleStats, 
-                                           name = "randomEffects")
+                                           name = "kappa_randomEffects")
   } else if (randomEffects == "cor"){
     # Add rho matrix:
     modMatrices$rho_randomEffects <- matrixsetup_rho(rho_randomEffects, 
@@ -339,7 +364,7 @@ meta_varcov <- function(
                                                      labels = corvars,
                                        equal = FALSE, 
                                        sampletable = sampleStats, 
-                                       name = "randomEffects")
+                                       name = "rho_randomEffects")
     
 
       # Add SD matrix (ignored if corinput == TRUE):
@@ -350,14 +375,11 @@ meta_varcov <- function(
                                                      labels = corvars,
                                        equal = FALSE, 
                                        sampletable = sampleStats, 
-                                       name = "randomEffects") 
+                                       name = "SD_randomEffects") 
   }
   
   
-  ### UNTILLL HERE ###
-  browser()
-  
-  
+ 
   # Generate the full parameter table:
   pars <- do.call(generateAllParameterTables, modMatrices)
   
@@ -366,74 +388,55 @@ meta_varcov <- function(
   model@parameters <- pars$partable
   model@matrices <- pars$mattable
   
-  if (type == "cov" || type == "prec"){
-    model@extramatrices <- list(
-      D = psychonetrics::duplicationMatrix(nCor), # non-strict duplciation matrix
-      L = psychonetrics::eliminationMatrix(nCor), # Elinimation matrix
-      In = Diagonal(nCor) # Identity of dim n
-    )
-  } else if (type == "chol"){
-    model@extramatrices <- list(
-      D = psychonetrics::duplicationMatrix(nCor), # non-strict duplciation matrix
-      L = psychonetrics::eliminationMatrix(nCor), # Elinimation matrix
-      In = Diagonal(nCor), # Identity of dim n
-      C = as(lavaan::lav_matrix_commutation(nCor,nCor),"sparseMatrix")
-    )
-  } else if (type == "ggm" || type == "cor"){
-    model@extramatrices <- list(
-      D = psychonetrics::duplicationMatrix(nCor), # non-strict duplciation matrix
-      L = psychonetrics::eliminationMatrix(nCor), # Elinimation matrix
-      Dstar = psychonetrics::duplicationMatrix(nCor,diag = FALSE), # Strict duplicaton matrix
-      In = Diagonal(nCor), # Identity of dim n
-      A = psychonetrics::diagonalizationMatrix(nCor)
-    )
-  }
+  # Just add all the matrices
+  # FIXME: This stores some objects that may not be needed.
+  model@extramatrices <- list(
+    D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
+    L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
+    Lstar = psychonetrics::eliminationMatrix(nNode, diag=FALSE), # Elinimation matrix
+    Dstar = psychonetrics::duplicationMatrix(nNode,diag = FALSE), # Strict duplicaton matrix
+    In = Diagonal(nNode), # Identity of dim n
+    A = psychonetrics::diagonalizationMatrix(nNode),
+    C = as(lavaan::lav_matrix_commutation(nNode,nNode),"sparseMatrix"),
+    
+    # Random effects:
+    D_c = psychonetrics::duplicationMatrix(nCor), # non-strict duplciation matrix
+    L_c = psychonetrics::eliminationMatrix(nCor), # Elinimation matrix
+    Lstar_c = psychonetrics::eliminationMatrix(nCor, diag=FALSE), # Elinimation matrix
+    Dstar_c = psychonetrics::duplicationMatrix(nCor,diag = FALSE), # Strict duplicaton matrix
+    In_c = Diagonal(nCor), # Identity of dim n
+    A_c = psychonetrics::diagonalizationMatrix(nCor),
+    C_c = as(lavaan::lav_matrix_commutation(nCor,nCor),"sparseMatrix"),
+    
+    # Add the vmat:
+    V = avgVmat
+  )
+  
+  
   
   
   # Form the model matrices
   model@modelmatrices <- formModelMatrices(model)
   
-  
   ### Baseline model ###
   if (baseline_saturated){
     
+    # FIXME: Dummy sample stats:
+    sampleStats2 <- sampleStats
+    sampleStats2@corinput <- FALSE
+    
     # Form baseline model:
-    if ("omega" %in% equal | "sigma" %in% equal | "kappa" %in% equal){
-      equal <- c(equal,"lowertri")
-    }
-    if (!corinput){
+ 
+
       model@baseline_saturated$baseline <- varcov(data,
                                                   type = "chol",
                                                   lowertri = "empty",
                                                   vars = corvars,
-                                                  groups = groups,
-                                                  covs = covs,
-                                                  means = means,
-                                                  nobs = nobs,
                                                   missing = missing,
-                                                  equal = equal,
                                                   estimator = estimator,
-                                                  meanstructure=meanstructure,
-                                                  corinput = corinput,
-                                                  ordered = ordered,
-                                                  baseline_saturated = FALSE,sampleStats=sampleStats)
-    } else {
-      model@baseline_saturated$baseline <- varcov(data,
-                                                  type = "cor",
-                                                  lowertri = "empty",
-                                                  vars = corvars,
-                                                  groups = groups,
-                                                  covs = covs,
-                                                  means = means,
-                                                  nobs = nobs,
-                                                  missing = missing,
-                                                  equal = equal,
-                                                  estimator = estimator,
-                                                  meanstructure=meanstructure,
-                                                  corinput = corinput,
-                                                  ordered = ordered,
-                                                  baseline_saturated = FALSE,sampleStats=sampleStats)
-    }
+                                                  baseline_saturated = FALSE,
+                                                  sampleStats=sampleStats2)
+    
     
     
     # Add model:
@@ -441,39 +444,16 @@ meta_varcov <- function(
     
     
     ### Saturated model ###
-    if (!corinput){
+   
       model@baseline_saturated$saturated <- varcov(data,
                                                    type = "chol", 
                                                    lowertri = "full", 
-                                                   vars = vars,
-                                                   groups = groups,
-                                                   covs = covs,
-                                                   means = means,
-                                                   nobs = nobs,
+                                                   vars = corvars,
                                                    missing = missing,
-                                                   equal = equal,
                                                    estimator = estimator,
-                                                   meanstructure=meanstructure,
-                                                   corinput = corinput,
-                                                   ordered = ordered,
-                                                   baseline_saturated = FALSE,sampleStats=sampleStats)
-    } else {
-      model@baseline_saturated$saturated <- varcov(data,
-                                                   type = "cor", 
-                                                   lowertri = "full", 
-                                                   vars = vars,
-                                                   groups = groups,
-                                                   covs = covs,
-                                                   means = means,
-                                                   nobs = nobs,
-                                                   missing = missing,
-                                                   equal = equal,
-                                                   estimator = estimator,
-                                                   meanstructure=meanstructure,
-                                                   corinput = corinput,
-                                                   ordered = ordered,
-                                                   baseline_saturated = FALSE,sampleStats=sampleStats)
-    }
+                                                   baseline_saturated = FALSE,
+                                                   sampleStats=sampleStats2)
+    
     
     
     # if not FIML, Treat as computed:

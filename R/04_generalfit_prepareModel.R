@@ -13,7 +13,8 @@ prepareModel <- function(x, model){
         "var1" = prepare_var1,
         # "panelvar1" = prepare_panelvar1,
         "dlvm1" = prepare_dlvm1,
-        "tsdlvm1" = prepare_tsdlvm1
+        "tsdlvm1" = prepare_tsdlvm1,
+        "meta_varcov" = prepare_meta_varcov,
         # "cholesky" = prepare_cholesky
         )
 # prepare:
