@@ -37,6 +37,23 @@ stepup <- function(
       } else if (x@submodel == "cov"){
         matrices <- "sigma"
       } 
+    } else if (x@model == "meta_varcov"){
+      
+      matrices <- character(0)
+      if (x@types$y == "ggm"){
+        matrices <- c(matrices,"omega_y")
+      } else if (x@types$y == "prec"){
+        matrices <- c(matrices,"kappa_y") 
+      } 
+      
+      # Random effects:
+      if (x@types$randomEffects == "ggm"){
+        matrices <- c(matrices,"omega_randomEffects")
+      } else if (x@types$randomEffects == "prec"){
+        matrices <- c(matrices,"kappa_randomEffects") 
+      } 
+            
+      
     } else if (x@model == "lvm"){
       
       # Only add GGM structures to search:
