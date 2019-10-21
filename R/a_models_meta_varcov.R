@@ -75,6 +75,17 @@ meta_varcov <- function(
   # Number of nodes:
   nNode <- length(vars)
   
+  # Reorder correlation matrices and add NAs:
+  corsOld <- cors
+  cors <- list()
+  for (i in seq_along(corsOld)){
+    cors[[i]] <- matrix(NA,nrow=nNode, ncol = nNode)
+    rownames(cors[[i]]) <- colnames(cors[[i]]) <- vars
+    varsOfStudy <- colnames(corsOld[[i]])
+    matched <- match(varsOfStudy,vars)
+    cors[[i]][matched,matched] <- corsOld[[i]]
+  }
+  
   # Form the dataset from the lower triangles of cor matrices:
   data <- dplyr::bind_rows(lapply(cors,function(x){
     df <- as.data.frame(t(x[lower.tri(x)]))
@@ -134,21 +145,38 @@ meta_varcov <- function(
       message("Computing sampling error approximation...")
     }
     
+
+    # For the elimination matrix, I need this dummy matrix with indices:
+    dumSig <- matrix(0,nNode,nNode)
+    dumSig[lower.tri(dumSig,diag=FALSE)] <- seq_len(sum(lower.tri(dumSig,diag=FALSE)))
     
     if (Vmethod == "individual"){
       # For each group, make a model and obtain VCOV:
       Vmats <- lapply(seq_along(cors),function(i){
-        cmat <- as(cors[[i]], "Matrix")
+        # Find the missing nodes:
+        obs <- !apply(cors[[i]],2,function(x)all(is.na(x)))
+        
+        # Indices:
+        inds <- c(dumSig[obs,obs,drop=FALSE])
+        inds <- inds[inds!=0]
+        
+        # Elimintation matrix:
+        L <- sparseMatrix(i=seq_along(inds),j=inds,dims=c(length(inds),nNode*(nNode-1)/2))
+        
+        # Now obtain only the full subset correlation matrix:
+        cmat <- as(cors[[i]][obs,obs], "Matrix")
         k <- solve(cmat)
-        D2 <- duplicationMatrix(nNode, FALSE)
+        D2 <- duplicationMatrix(ncol(cmat), FALSE)
         v <- 0.5 * nobs[i] * t(D2) %*% (k %x% k) %*% D2
-        solve(v)
+        vcov <- solve(v)
+        
+        # Now expand using the elmination matrix:
+        t(L) %*% vcov %*% L
       })
       
       avgVmat <- Reduce("+", Vmats) / length(Vmats)
       
     }
-    
     
     if (Vmethod == "psychonetrics_individual"){
       # For each group, make a model and obtain VCOV:
