@@ -15,6 +15,7 @@ export(precision)
 export(cholesky)
 export(prec)
 export(corr)
+export(meta_varcov)
 
 # lvm models:
 export(lvm)
