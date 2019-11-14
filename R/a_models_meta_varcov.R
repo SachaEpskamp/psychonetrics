@@ -150,7 +150,7 @@ meta_varcov <- function(
     dumSig <- matrix(0,nNode,nNode)
     dumSig[lower.tri(dumSig,diag=FALSE)] <- seq_len(sum(lower.tri(dumSig,diag=FALSE)))
     
-    if (Vmethod == "individual"){
+    if (Vmethod == "individual"){ ### ONLY THIS SUPPORTS MISSING NODES NOW!
       # For each group, make a model and obtain VCOV:
       Vmats <- lapply(seq_along(cors),function(i){
         # Find the missing nodes:
@@ -174,8 +174,7 @@ meta_varcov <- function(
         t(L) %*% vcov %*% L
       })
       
-      avgVmat <- Reduce("+", Vmats) / length(Vmats)
-      
+      avgVmat <- Reduce("+", Vmats) / Reduce("+",lapply(Vmats,function(x)x!=0))
     }
     
     if (Vmethod == "psychonetrics_individual"){
