@@ -182,6 +182,7 @@ d_sigmak_sigma_zeta_between_dlvm1 <- function(lambda,D_eta,...){
 
 # Full jacobian of phi (distribution parameters) with respect to theta (model parameters) for a group
 d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent,between_residual,...){
+
   # Extract from dots things I need:
   dots <- list(...)
   design <- dots$design
