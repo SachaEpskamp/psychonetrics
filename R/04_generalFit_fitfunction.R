@@ -12,7 +12,7 @@ psychonetrics_fitfunction <- function(x, model){
     "WLS" = ULSestimator,
     "FIML" = fimlEstimator
   )
-  
+
   # Run and return:
   estFun(x, model)
 }
