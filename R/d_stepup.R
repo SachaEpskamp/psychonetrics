@@ -205,7 +205,7 @@ stepup <- function(
           
           # Check information:
           if (checkinformation){
-            if (any(eigen(newx@information)$values < 0)){
+            if (any(eigen(newx@information)$values < -sqrt(.Machine$double.eps))){
               # if (curtry < maxtry){
               #   if (verbose){
               #     message(paste("Model may not be identified, adjusting start values and trying again."))
@@ -325,7 +325,7 @@ stepup <- function(
           newx <- x %>% runmodel(...,log=FALSE) # %>% prune(alpha = alpha, adjust = greedyadjust)
           
           if (checkinformation){
-            if (any(eigen(x@information)$values < 0)){
+            if (any(eigen(x@information)$values < -sqrt(.Machine$double.eps))){
               if (curtry < maxtry){
                 if (verbose){
                   message(paste("Model may not be identified, adjusting start values and trying again."))
