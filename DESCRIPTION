@@ -8,8 +8,8 @@ Description: Multi-group (dynamical) structural equation models in combination w
 License: GPL-2
 LinkingTo: Rcpp (>= 0.11.3), RcppArmadillo, pbv
 Depends: R (>= 3.5.1)
-Imports: crayon, methods, qgraph, numDeriv, dplyr, abind, matrixcalc, Matrix, lavaan, corpcor, ucminf, glasso, mgcv, optimx, mvtnorm, VCA, pbapply, parallel, magrittr, pbv, metaSEM
-Suggests: psych, semPlot, graphicalVAR
+Imports: crayon, methods, qgraph, numDeriv, dplyr, abind, matrixcalc, Matrix, lavaan, corpcor, ucminf, glasso, mgcv, optimx, mvtnorm, VCA, pbapply, parallel, magrittr, pbv
+Suggests: psych, semPlot, graphicalVAR, metaSEM
 ByteCompile: true
 URL: http://psychonetrics.org/
 BugReports: https://github.com/SachaEpskamp/psychonetrics/issues
