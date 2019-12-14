@@ -233,7 +233,7 @@ stepup <- function(
                 if (verbose){
                   message("Model may not be identified. Adjusting starting values and trying again")
                 }
-                x <- emergencystart(x)
+                x <- runmodel(emergencystart(x))
                 
               } else if (singularinformation == "skip"){
                 if (verbose){
