@@ -261,7 +261,7 @@ prune <- function(
     
     # If not identified, try with emergency start:
     if (any(eigen(x@information)$values < -sqrt(.Machine$double.eps))){
-      cat("EMERGENCYSTART")
+      # cat("EMERGENCYSTART")
       x <- emergencystart(xOld) %>% runmodel(verbose=verbose,...)
     }
   }
