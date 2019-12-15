@@ -339,7 +339,7 @@ runmodel <- function(
   }
   # Add MIs:
   if (addMIs){
-    x <- addMIs(x,analyticFisher=analyticFisher) 
+    x <- addMIs(x,analyticFisher=analyticFisher, verbose = verbose) 
   }
   # Add SEs:
   if (addSEs){

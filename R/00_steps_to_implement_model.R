@@ -13,3 +13,4 @@
 # 9. Edit a nicer output in f_convenience_printMethod.R
 # 10. Edit d_stepup.R to add a default
 # 11. Edit e_modelmodifications_prune to add a default
+# 12. Edit h_modelsearch.R to add a default
