@@ -19,9 +19,9 @@ prune <- function(
   nCores <- 1
   bootstrap <- FALSE
   adjust <- match.arg(adjust)
-  # If not computed, nothing to do:
+  # If not run, run model:
   if (!x@computed){
-    stop("Model must have been computed first.")
+    x <- x %>% runmodel(..., verbose = verbose)
   }
   
   if (bootstrap && all(is.na(x@parameters$boot_p))){
