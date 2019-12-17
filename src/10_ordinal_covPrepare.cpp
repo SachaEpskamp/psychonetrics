@@ -152,8 +152,11 @@ List covPrepare_cpp(
         // Else covariance or correlation:  
         if (isOrdered[i] && isOrdered[j]){
           // Rf_error("Polychoric correlation not yet supported");
-          covMat(i,j) = covMat(j,i) = estimate_polychoric(DataList[i], DataList[j],  meansAndThresholds[i],  meansAndThresholds[j], tol = tol);
-          
+          covMat(i,j)  = estimate_polychoric(DataList[i], DataList[j],  meansAndThresholds[i],  meansAndThresholds[j], tol = tol);
+          if (i != j){
+            covMat(j,i) =  covMat(i,j);            
+          }
+
           
         } else if (isOrdered[i] && !isOrdered[j]){
           Rf_error("Polyserial correlation not yet supported");
