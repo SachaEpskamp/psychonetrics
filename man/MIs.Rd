@@ -43,7 +43,7 @@ Invisibly returns a relevant subset of the data frame containing all information
 }
 \examples{
 # Load bfi data from psych package:
-library("psych")
+library("psychTools")
 data(bfi)
 
 # Also load dplyr for the pipe operator:

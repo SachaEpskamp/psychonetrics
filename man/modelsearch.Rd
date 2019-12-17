@@ -8,7 +8,8 @@ Stepwise model search
 This function peforms stepwise model search to find an optimal model that (locally) minimzes some criterion (by default, the BIC). 
 }
 \usage{
-modelsearch(x, criterion = "bic", matrices, prunealpha = 0.001, addalpha = 0.05, verbose = TRUE, ...)
+modelsearch(x, criterion = "bic", matrices, prunealpha = 0.001, addalpha = 0.05, 
+  verbose = TRUE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -43,7 +44,7 @@ The full algorithm is as follows:
 
 3. Update the model to the model that improved the criterion the most
 
-4. Evaluate all other considered that improved the criterion 
+4. Evaluate all other considered models that improved the criterion 
 
 5. If none of these models improve the criterion, go to 1, else go to 3
 
@@ -62,8 +63,9 @@ Sacha Epskamp
 \code{\link{prune}}, \code{\link{stepup}}
 }
 \examples{
+\donttest{
 # Load bfi data from psych package:
-library("psych")
+library("psychTools")
 data(bfi)
 
 # Also load dplyr for the pipe operator:
@@ -85,4 +87,5 @@ mod <- mod \%>\% runmodel
 
 # Model search
 mod <- mod \%>\% prune(alpha= 0.01) \%>\% modelsearch
+}
 }

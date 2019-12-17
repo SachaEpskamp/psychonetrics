@@ -4,22 +4,29 @@
 \alias{precision}
 \alias{prec}
 \alias{ggm}
+\alias{corr}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 Variance-covariance family of psychonetrics models
 }
 \description{
-This is the family of models that models only a variance-covariance matrix with mean structure. The \code{type} argument can be used to define what model is used: \code{type = "cov"} (default) models a variance-covariance matrix directly, \code{type = "chol"} (alias: \code{cholesky()}) models a Cholesky decomposition, \code{type = "prec"} (alias: \code{precision()}) models a precision matrix, and \code{type = "ggm"} (alias: \code{ggm()}) models a Gaussian graphical model (Epskamp, Rhemtulla and Borsboom, 2017).
+This is the family of models that models only a variance-covariance matrix with mean structure. The \code{type} argument can be used to define what model is used: \code{type = "cov"} (default) models a variance-covariance matrix directly, \code{type = "chol"} (alias: \code{cholesky()}) models a Cholesky decomposition, \code{type = "prec"} (alias: \code{precision()}) models a precision matrix, \code{type = "ggm"} (alias: \code{ggm()}) models a Gaussian graphical model (Epskamp, Rhemtulla and Borsboom, 2017), and \code{type = "cor"} (alias: \code{corr()}) models a correlation matrix.
 }
 \usage{
-varcov(data, type = c("cov", "chol", "prec", "ggm"), sigma = "full", kappa = "full", 
-      omega = "full", lowertri = "full", delta = "full", mu, vars, groups, covs, means, 
-      nobs, missing = "listwise", equal = "none", baseline_saturated = TRUE, 
-      estimator = "ML", optimizer = "default", storedata = FALSE, WLS.V, sampleStats)
+varcov(data, type = c("cov", "chol", "prec", "ggm", "cor"),
+                 sigma = "full", kappa = "full", omega = "full",
+                 lowertri = "full", delta = "full", rho = "full", SD =
+                 "full", mu, tau, vars, ordered = character(0), groups,
+                 covs, means, nobs, missing = "listwise", equal =
+                 "none", baseline_saturated = TRUE, estimator =
+                 "default", optimizer = "default", storedata = FALSE,
+                 WLS.V, sampleStats, meanstructure, corinput, verbose =
+                 TRUE)
 cholesky(\dots)
 precision(\dots)
 prec(\dots)
 ggm(\dots)
+corr(\dots)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -44,8 +51,17 @@ Only used when \code{type = "chol"}. Either \code{"full"} to estimate every elem
 \item{delta}{
 Only used when \code{type = "ggm"}. Either \code{"full"} to estimate every element freely, \code{"empty"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
+\item{rho}{
+Only used when \code{type = "cor"}. Either \code{"full"} to estimate every element freely, \code{"empty"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+}
+\item{SD}{
+Only used when \code{type = "cor"}. Either \code{"full"} to estimate every element freely, \code{"empty"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+}
   \item{mu}{
 Optional vector encoding the mean structure. Set elements to 0 to indicate fixed to zero constrains, 1 to indicate free means, and higher integers to indicate equality constrains. For multiple groups, this argument can be a list or array with each element/column encoding such a vector.
+}
+  \item{tau}{
+Optional list encoding the thresholds per variable.
 }
   \item{vars}{
 An optional character vector encoding the variables used in the analyis. Must equal names of the dataset in \code{data}.
@@ -86,6 +102,18 @@ Optional WLS weights matrix.
   \item{sampleStats}{
 An optional sample statistics object. Mostly used internally. 
 }
+\item{ordered}{
+A vector with strings indicating the variables that are ordered catagorical, or set to \code{TRUE} to model all variables as ordered catagorical.
+}
+\item{meanstructure}{
+Logical, should the meanstructure be modeled explicitly?
+}
+\item{corinput}{
+Logical, is the input a correlation matrix?
+}
+  \item{verbose}{
+Logical, should messages be printed?
+}
 \item{\dots}{
 Arguments sent to \code{varcov}
 }
@@ -125,7 +153,7 @@ Sacha Epskamp
 }
 \examples{
 # Load bfi data from psych package:
-library("psych")
+library("psychTools")
 data(bfi)
 
 # Also load dplyr for the pipe operator:

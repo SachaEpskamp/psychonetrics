@@ -11,7 +11,7 @@ This function automatically peforms step-up search by adding the parameter with 
 stepup(x, alpha = 0.01, criterion = "bic", matrices, mi = c("mi", "mi_free", "mi_equal"), 
     greedyadjust = c("bonferroni", "none", "holm", "hochberg", "hommel", "fdr", "BH", 
     "BY"), stopif, greedy = FALSE, verbose = TRUE, checkinformation = TRUE, 
-    singularinformation = c("tryfix", "skip", "continue", "stop"), ...)
+    singularinformation = c("tryfix", "skip", "continue", "stop"), startEPC = TRUE,...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -51,6 +51,9 @@ will adjust starting values to try to fix the proble, \code{"skip"} will lead to
 to skip the current parameter, \code{"continue"} will ignore the situation, and \code{"stop"}
 will break the algorithm and return a list with the last two models.
 }
+\item{startEPC}{
+Logical, should the starting value be set at the expected parameter change?
+}
   \item{\dots}{
 Arguments sent to \code{\link{runmodel}}
 }
@@ -65,27 +68,32 @@ Sacha Epskamp
 \code{\link{prune}}
 }
 \examples{
+\donttest{
 # Load bfi data from psych package:
-library("psych")
+library("psychTools")
 data(bfi)
 
 # Also load dplyr for the pipe operator:
 library("dplyr")
 
 # Let's take the agreeableness items, and gender:
-ConsData <- bfi \%>\% 
-  select(A1:A5, gender) \%>\% 
+ConsData <- bfi \%>\%
+  select(A1:A5, gender) \%>\%
   na.omit # Let's remove missingness (otherwise use Estimator = "FIML)
 
 # Define variables:
 vars <- names(ConsData)[1:5]
 
 # Let's fit a full GGM:
-mod <- ggm(ConsData, vars = vars, omega = "empty")
+mod <- ggm(ConsData, vars = vars, omega = "full")
 
 # Run model:
-mod <- mod \%>\% runmodel
+mod <- mod \%>\%runmodel \%>\%prune(alpha = 0.05)
+
+# Remove an edge (example):
+mod <- mod \%>\%fixpar("omega",1,2) \%>\%runmodel
 
 # Stepup search
-mod <- mod \%>\% stepup(greedy = TRUE, greedyadjust = "fdr")
+mod <- mod \%>\%stepup(alpha = 0.05)
+}
 }

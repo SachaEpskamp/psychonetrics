@@ -1,5 +1,6 @@
-Changes in version 0.3.4:
+Changes in version 0.4:
   o type = "cor" is now supported in varcov, with rho representing the correlations and SD the diagonal standard deviations matrix.
+      o The 'corr' function is now implemented as shorthand for varcov(..., type = "cor")
   o The scale of the Fisher information matrix has been adjusted to portray unit information to be similar to Lavaan
   o The getVCOV function has been added to obtain the estimated asymptotic var-cov matrix of the parameters.
   o The meanstructure can now be ignored using meanstructure = TRUE in the following model families:
@@ -10,6 +11,8 @@ Changes in version 0.3.4:
     - The WLS weights matrix must be of the appropriate dimensions!
     - The WLS.V matrix will no longer be adjusted for missing means.
     - Added 'startEPC' argument to stepup and freepar
+  o Added the 'modelsearch' function for extensive stepwise model search
+  o Fixed several bugs and improved starting values in several models
 
 Changes in version 0.3.3:
   o prune() now removes diagonal values of temporal effects
