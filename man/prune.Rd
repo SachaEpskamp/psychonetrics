@@ -62,7 +62,7 @@ Sacha Epskamp
 }
 \examples{
 # Load bfi data from psych package:
-library("psych")
+library("psychTools")
 data(bfi)
 
 # Also load dplyr for the pipe operator:

@@ -20,6 +20,7 @@ Objects can be created by calls of the form \code{new("psychonetrics", ...)}.
     \item{\code{submodel}:}{Object of class \code{"character"} ~~ }
     \item{\code{parameters}:}{Object of class \code{"data.frame"} ~~ }
     \item{\code{matrices}:}{Object of class \code{"data.frame"} ~~ }
+    \item{\code{meanstructure}:}{Object of class \code{"logical"} ~~ }
     \item{\code{computed}:}{Object of class \code{"logical"} ~~ }
     \item{\code{sample}:}{Object of class \code{"psychonetrics_samplestats"} ~~ }
     \item{\code{modelmatrices}:}{Object of class \code{"list"} ~~ }

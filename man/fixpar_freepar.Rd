@@ -13,7 +13,7 @@ fixpar(x, matrix, row, col, value = 0, group, verbose = TRUE, log = TRUE,
       runmodel = FALSE, ...)
 
 freepar(x, matrix, row, col, start, group, verbose = TRUE, log = TRUE, 
-      runmodel = FALSE, ...)
+      runmodel = FALSE, startEPC = TRUE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -46,6 +46,9 @@ Logical, should the log be updated?
 }
   \item{runmodel}{
 Logical, should the model be updated?
+}
+\item{startEPC}{
+Logical, should the starting value be set at the expected parameter change?
 }
   \item{\dots}{
 Arguments sent to \code{runmodel}
