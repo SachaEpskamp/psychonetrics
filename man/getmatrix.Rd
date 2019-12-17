@@ -29,7 +29,7 @@ A matrix of parameter estimates, of a list of such matrices for multiple group m
 Sacha Epskamp
 }
 \examples{# Load bfi data from psych package:
-library("psych")
+library("psychTools")
 data(bfi)
 
 # Also load dplyr for the pipe operator:
