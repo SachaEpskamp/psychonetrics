@@ -30,7 +30,7 @@ jacobian_Ising_group <- function(omega,tau,beta,squares,means,responses,nobs,...
 
   # Compute summary statistics:
   # FIXME: Not nice, will make things double
-  v1 <- as.vector(means)
+  v1 <- as.vector(means * nobs)
   v2 <- as.matrix(squares)
 
   # Hamiltionian:  

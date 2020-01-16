@@ -52,7 +52,7 @@ logLikelihood_Ising_group_sumstat <- function(omega,tau,beta,squares,means,respo
   
   # Compute summary statistics:
   # FIXME: Not nice, will make things double
-  v1 <- as.vector(means)
+  v1 <- as.vector(means * nobs)
   v2 <- as.matrix(squares)
 
   
