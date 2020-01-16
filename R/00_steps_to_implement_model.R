@@ -3,7 +3,7 @@
 # 1. Make a model function, such as a_models_rnm.R (copy and adapt from previous model)
 # 2. Make a preperation function (12_rnm_prepare.R), this will require at some point 3
 # 3. Make a function that computes the implied model structures (12_rnm_implied.R)
-# 3b. Edit 04_generalfit_implied.R to link to the new implied function
+# 3b. Edit 04_generalfit_impliedModel.R to link to the new implied function
 # 4. Edit 04_generalit_prepareModel.R to link to the new model preperation function
 # 5. If identification is needed, create an identification function (e.g., 12_rnm_identify) and edit b_modelexpansions_identify to link to it
 # 5b. If identification is not needed, edit b_modelexpansions_identify to not result in an error

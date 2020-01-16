@@ -279,6 +279,39 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// expHcpp
+double expHcpp(arma::mat states, arma::vec probabilities, arma::mat omega, arma::vec tau, const int nstate, const int nvar);
+RcppExport SEXP _psychonetrics_expHcpp(SEXP statesSEXP, SEXP probabilitiesSEXP, SEXP omegaSEXP, SEXP tauSEXP, SEXP nstateSEXP, SEXP nvarSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type states(statesSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type probabilities(probabilitiesSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type omega(omegaSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< const int >::type nstate(nstateSEXP);
+    Rcpp::traits::input_parameter< const int >::type nvar(nvarSEXP);
+    rcpp_result_gen = Rcpp::wrap(expHcpp(states, probabilities, omega, tau, nstate, nvar));
+    return rcpp_result_gen;
+END_RCPP
+}
+// expHessianCpp
+arma::mat expHessianCpp(arma::mat states, arma::vec probabilities, arma::mat omega, arma::vec tau, double beta, const int nstate, const int nvar);
+RcppExport SEXP _psychonetrics_expHessianCpp(SEXP statesSEXP, SEXP probabilitiesSEXP, SEXP omegaSEXP, SEXP tauSEXP, SEXP betaSEXP, SEXP nstateSEXP, SEXP nvarSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type states(statesSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type probabilities(probabilitiesSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type omega(omegaSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< const int >::type nstate(nstateSEXP);
+    Rcpp::traits::input_parameter< const int >::type nvar(nvarSEXP);
+    rcpp_result_gen = Rcpp::wrap(expHessianCpp(states, probabilities, omega, tau, beta, nstate, nvar));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp, 5},
@@ -300,6 +333,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_threshold_grad_singlesubject", (DL_FUNC) &_psychonetrics_threshold_grad_singlesubject, 3},
     {"_psychonetrics_polychor_grad_singlesubject", (DL_FUNC) &_psychonetrics_polychor_grad_singlesubject, 6},
     {"_psychonetrics_bthreshold_grad_singlesubject", (DL_FUNC) &_psychonetrics_bthreshold_grad_singlesubject, 7},
+    {"_psychonetrics_expHcpp", (DL_FUNC) &_psychonetrics_expHcpp, 6},
+    {"_psychonetrics_expHessianCpp", (DL_FUNC) &_psychonetrics_expHessianCpp, 7},
     {NULL, NULL, 0}
 };
 

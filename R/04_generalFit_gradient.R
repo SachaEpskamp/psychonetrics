@@ -9,7 +9,8 @@ psychonetrics_gradient <- function(x, model){
   estimatorJacobian <- switch(
     model@estimator,
     "ML" = switch(model@distribution,
-                  "Gaussian" = jacobian_gaussian_sigma
+                  "Gaussian" = jacobian_gaussian_sigma,
+                  "Ising" = jacobian_Ising
     ),
     "ULS" = switch(model@distribution,
                 "Gaussian" = ULS_gradient_Gauss),
@@ -37,7 +38,8 @@ psychonetrics_gradient <- function(x, model){
     # "panelvar1" = d_phi_theta_panelvar1,
     "dlvm1" = d_phi_theta_dlvm1,
     "tsdlvm1" = d_phi_theta_tsdlvm1,
-    "meta_varcov" = d_phi_theta_meta_varcov
+    "meta_varcov" = d_phi_theta_meta_varcov,
+    "Ising" = d_phi_theta_Ising
     # "cholesky" = d_phi_theta_cholesky
   )
 

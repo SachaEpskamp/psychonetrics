@@ -32,6 +32,7 @@ var1 <- function(
   estimator = "ML",
   optimizer = "default", # ucminf
   storedata = FALSE,
+  covtype = c("choose","ML","UB"),
   sampleStats
 ){
   contemporaneous <- match.arg(contemporaneous)
@@ -72,6 +73,7 @@ var1 <- function(
                                missing  = ifelse(estimator == "FIML","pairwise",missing),
                                fimldata = estimator == "FIML",
                                storedata = storedata,
+                               covtype=covtype,
                                weightsmatrix = ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
                                                       switch(estimator,
                                                         "WLS" = "full",

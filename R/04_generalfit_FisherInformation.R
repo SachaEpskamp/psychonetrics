@@ -29,7 +29,8 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
   estimatorHessian <- switch(
     model@estimator,
     "ML" = switch(model@distribution,
-                  "Gaussian" = expected_hessian_Gaussian
+                  "Gaussian" = expected_hessian_Gaussian,
+                  "Ising" = expected_hessian_Ising
     ),
     "ULS" = switch(model@distribution,
                   "Gaussian" = expected_hessian_ULS_Gaussian
@@ -59,7 +60,8 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
     # "panelvar1" = d_phi_theta_panelvar1,
     "dlvm1" = d_phi_theta_dlvm1,
     "tsdlvm1" = d_phi_theta_tsdlvm1,
-    "meta_varcov" = d_phi_theta_meta_varcov
+    "meta_varcov" = d_phi_theta_meta_varcov,
+    "Ising" = d_phi_theta_Ising
     # "cholesky" = d_phi_theta_cholesky
   )
   modelPart <- modelJacobian(prep)

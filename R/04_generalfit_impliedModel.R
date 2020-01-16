@@ -11,7 +11,8 @@ impliedModel <- function(model, types, all = FALSE){
         # "panelvar1" = implied_panelvar1,
         "dlvm1" = implied_dlvm1,
         "tsdlvm1" = implied_tsdlvm1,
-        "meta_varcov" = implied_meta_varcov
+        "meta_varcov" = implied_meta_varcov,
+        "Ising" = implied_Ising
         )
   
 # implied:

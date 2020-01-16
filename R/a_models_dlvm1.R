@@ -70,6 +70,7 @@ dlvm1 <- function(
   estimator = "ML",
   optimizer = "default",
   storedata = FALSE,
+  covtype = c("choose","ML","UB"),
   sampleStats
 ){
   # Check for missing:
@@ -123,6 +124,7 @@ dlvm1 <- function(
                                missing  = ifelse(estimator == "FIML","pairwise",missing),
                                fimldata = estimator == "FIML",
                                storedata = storedata,
+                               covtype=covtype,
                                weightsmatrix = ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
                                                       switch(estimator,
                                                         "WLS" = "full",

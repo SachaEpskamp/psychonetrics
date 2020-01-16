@@ -6,7 +6,8 @@ psychonetrics_logLikelihood <- function(model){
   # Obtain log likelihood:
   loglikFun <- switch(
     distribution,
-    "Gaussian" = logLikelihood_gaussian
+    "Gaussian" = logLikelihood_gaussian,
+    "Ising" = logLikelihood_Ising
   )
   
   # Run and return:
