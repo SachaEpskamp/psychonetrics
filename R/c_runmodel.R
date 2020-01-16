@@ -33,7 +33,7 @@ runmodel <- function(
   # Default:
   if (optimizer == "default"){
     # if (x@model %in% c("varcov","lvm") && any(grepl("omega",x@parameters$matrix))){
-    if (any(grepl("omega",x@parameters$matrix))){
+    if (x@distribution == "Gaussian" && any(grepl("omega",x@parameters$matrix))){
       optimizer <- "nlminb"      
     } else {
       optimizer <- "ucminf"

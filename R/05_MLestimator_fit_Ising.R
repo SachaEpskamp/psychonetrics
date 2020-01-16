@@ -10,9 +10,9 @@ maxLikEstimator_Ising_group <- function(omega,tau,beta,squares,means,responses,n
   
   # Compute summary statistics:
   # FIXME: Not nice, will make things double
-  v1 <- as.vector(means)
+  v1 <- as.vector(means * nobs)
   v2 <- as.matrix(squares)
-  
+
   
   H <-  (
     - sum(thresholds * v1) - 
@@ -21,6 +21,7 @@ maxLikEstimator_Ising_group <- function(omega,tau,beta,squares,means,responses,n
   
   # Fml
   Fml <- 2 * log(Z) + 2 * beta * H / nobs
+  
   
   # Return:
   return(Fml)
