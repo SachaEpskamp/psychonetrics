@@ -54,6 +54,7 @@ tsdlvm1 <- function(
   optimizer = "default", # ucminf
   storedata = FALSE,
   sampleStats,
+  covtype = c("choose","ML","UB"),
   centerWithin = FALSE
 ){
   contemporaneous <- match.arg(contemporaneous)
@@ -96,6 +97,7 @@ tsdlvm1 <- function(
                                missing  = ifelse(estimator == "FIML","pairwise",missing),
                                fimldata = estimator == "FIML",
                                storedata = storedata,
+                               covtype=covtype,
                                weightsmatrix = ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
                                                       switch(estimator,
                                                         "WLS" = "full",

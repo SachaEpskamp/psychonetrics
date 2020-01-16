@@ -26,7 +26,7 @@ List covPrepare_cpp(
   // Iterators:
   int i, j, k, p;
   int nCase = data.nrow();
-  int nUsed;
+  // int nUsed;
   double D2;
   
   // Number of variables:
@@ -152,7 +152,7 @@ List covPrepare_cpp(
         // Else covariance or correlation:  
         if (isOrdered[i] && isOrdered[j]){
           // Rf_error("Polychoric correlation not yet supported");
-          covMat(i,j)  = estimate_polychoric(DataList[i], DataList[j],  meansAndThresholds[i],  meansAndThresholds[j], tol = tol);
+          covMat(i,j)  = estimate_polychoric(DataList[i], DataList[j],  meansAndThresholds[i],  meansAndThresholds[j], tol);
           if (i != j){
             covMat(j,i) =  covMat(i,j);            
           }

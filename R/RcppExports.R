@@ -77,3 +77,11 @@ bthreshold_grad_singlesubject <- function(y1, y2, rho, tIndex, t_aug1, t_aug2, p
     .Call(`_psychonetrics_bthreshold_grad_singlesubject`, y1, y2, rho, tIndex, t_aug1, t_aug2, pi)
 }
 
+expHcpp <- function(states, probabilities, omega, tau, nstate, nvar) {
+    .Call(`_psychonetrics_expHcpp`, states, probabilities, omega, tau, nstate, nvar)
+}
+
+expHessianCpp <- function(states, probabilities, omega, tau, beta, nstate, nvar) {
+    .Call(`_psychonetrics_expHessianCpp`, states, probabilities, omega, tau, beta, nstate, nvar)
+}
+

@@ -13,9 +13,11 @@ samplestats_norawts <- function(
   storedata = FALSE,
   weightsmatrix = "none", #c("none","identity","full","diag")
   meanstructure = TRUE,
+  covtype = c("choose","ML","UB"),
   corinput
 ){
   missing <- match.arg(missing)
+  covtype <- match.arg(covtype)
   # weightsmatrix <- match.arg(weightsmatrix)
   
   # Check data:
@@ -114,7 +116,7 @@ samplestats_norawts <- function(
         
         if (any(eigen(prepRes$covmat)$values < 0)){
           stop("Correlation matrix is not positive semi-definite.")
-          }
+        }
         
         # Obtain results:
         covs <- list(as(prepRes$covmat, "Matrix"))
@@ -131,6 +133,8 @@ samplestats_norawts <- function(
         if (needWLSV){
           weightsmatrix[[1]] <- prepRes$WLS_V
         }
+        squares <- list(as(matrix(NA,nrow(prepRes$covmat),ncol(prepRes$covmat)), "Matrix"))
+        
         
       } else {
         
@@ -144,6 +148,11 @@ samplestats_norawts <- function(
         } else {
           cors <- list()
         }
+        
+        dataMat <- as.matrix(data[,c(vars)])
+        squares <- list(as(t(dataMat) %*% dataMat,"Matrix"))
+        rm(dataMat)
+        
         # cors <- list(new("corMatrix", cov2cor(cov), sd = diag(cov)))
         means <- list(colMeans(data[,c(vars)], na.rm = TRUE))
         
@@ -156,6 +165,7 @@ samplestats_norawts <- function(
       covs <- list()
       cors <- list()
       means <- list()
+      squares <- list()
       thresholds <- lapply(1:nGroup,function(x)list())
       # groupNames <- unique(data[[groups]])
       
@@ -204,11 +214,15 @@ samplestats_norawts <- function(
           covs[[g]] <- as(cov,"dsyMatrix")
           
           if (!any(is.na(cov))){
+
             cors[[g]] <- new("corMatrix", cov2cor(cov), sd = diag(cov))          
           } else {
             cors[[g]] <- NA
           }
-          
+ 
+          subData <- as.matrix(subData)
+          squares[[g]] <- as(t(subData) %*% subData,"Matrix")
+
           means[[g]] <- colMeans(subData, na.rm = TRUE)
           
         }
@@ -269,10 +283,14 @@ samplestats_norawts <- function(
     if (length(nobs) != nGroup){
       stop("'nobs' must be a vector with sample size per group")
     }
-    
+
     # Check if covs is array:
     if (!is.array(covs)){
       if (!is.list(covs)){
+   
+        
+        
+        
         class(covs) <- "matrix"
         covs <- list(as(covs,"dpoMatrix"))        
         # cors <- list(new("corMatrix", cov2cor(covs), sd = diag(covs)))
@@ -341,6 +359,53 @@ samplestats_norawts <- function(
     if (!is.list(means)){
       means <-lapply(1:nGroup,function(x)means)  
     }
+    
+    # Determine squares and covtype:
+    # Maximum likelihood:
+    if (covtype %in% c("ML","choose")){
+      MLsquares <- list()
+      for (i in seq_along(covs)){
+        MLsquares[[i]] <- nobs[i] * (covs[[i]] + means[[i]] %*% t(means[[i]]))
+      }
+    }
+    
+    # Unbiased:
+    if (covtype %in% c("UB","choose")){
+      UBsquares <- list()
+      for (i in seq_along(covs)){
+        UBsquares[[i]] <- nobs[i] * (covUBtoML(covs[[i]],nobs[i]) + means[[i]] %*% t(means[[i]]))
+      }
+    }
+    
+    # If we need to choose, pick the one that looks the most like integers:
+    if (covtype == "choose"){
+      MLrest <- mean(round(unlist(lapply(MLsquares,as.matrix)),10) %% 1)
+      UBrest <- mean(round(unlist(lapply(UBsquares,as.matrix)),10) %% 1)
+      
+      if (MLrest < UBrest){
+        if (verbose){
+          message("Assuming denominator n was used in covariance computation.")
+        }
+        squares <- MLsquares
+      } else {
+        if (verbose){
+          message("Assuming denominator n-1 was used in covariance computation.")
+        }
+        squares <- UBsquares
+      }
+    } else if (covtype == "ML"){
+      squares <- MLsquares
+    } else {
+      squares <- UBsquares
+    }
+    
+    
+    # Transform covs if needed:
+    if (covtype == "UB"){
+      for (i in seq_along(covs)){
+        covs[[i]] <- as(covUBtoML(as.matrix(covs[[i]]), nobs[i]), "dsyMatrix")
+      }
+    }
   }
   
   # Check if cov is dpoMatrix:
@@ -349,6 +414,10 @@ samplestats_norawts <- function(
       covs[[i]] <- as(covs[[i]], "dsyMatrix")
     }
   }
+  
+
+  
+ 
   
   # Set names:
   names(covs) <- groupNames
@@ -369,7 +438,7 @@ samplestats_norawts <- function(
   }
   
   # Generate samplestats object:
-  object <- generate_psychonetrics_samplestats(covs = covs, cors = cors, means = means, corinput = corinput, thresholds = thresholds)
+  object <- generate_psychonetrics_samplestats(covs = covs, cors = cors, means = means, corinput = corinput, thresholds = thresholds, squares = squares)
   
   # Fill groups:
   object@groups <- data.frame(

@@ -175,7 +175,10 @@ prune <- function(
         matrices <- c(matrices,"omega_epsilon")
       }
       
-    } else stop("No default argument for 'matrices' for current model.")
+    }  else if (x@model == "Ising"){
+      matrices <- c("omega")
+      
+    }  else stop("No default argument for 'matrices' for current model.")
   }
   
   # Which parameters to test:

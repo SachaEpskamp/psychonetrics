@@ -28,7 +28,8 @@ varcov <- function(
   sampleStats, # Leave to missing
   meanstructure, # Defaults to TRUE if data is used or means is used, FALSE otherwie
   corinput, # Defaults to TRUE if the input is detected to consist of correlation matrix/matrices, FALSE otherwise
-  verbose = TRUE
+  verbose = TRUE,
+  covtype = c("choose","ML","UB")
 ){
   rawts = FALSE
   if (rawts){
@@ -107,6 +108,7 @@ varcov <- function(
                                weightsmatrix = WLS.V,
                                meanstructure = meanstructure,
                                corinput = corinput,
+                               covtype=covtype,
                                verbose=verbose)
   }
  

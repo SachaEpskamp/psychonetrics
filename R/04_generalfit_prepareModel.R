@@ -15,6 +15,7 @@ prepareModel <- function(x, model){
         "dlvm1" = prepare_dlvm1,
         "tsdlvm1" = prepare_tsdlvm1,
         "meta_varcov" = prepare_meta_varcov,
+        "Ising" = prepare_Ising
         # "cholesky" = prepare_cholesky
         )
 # prepare:

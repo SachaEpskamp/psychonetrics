@@ -132,6 +132,9 @@ modelsearch <- function(x,
         matrices <- c(matrices,"omega_epsilon")
       }
       
+    }  else if (x@model == "Ising"){
+      matrices <- c("omega")
+      
     }  else stop("No default argument for 'matrices' for current model.")
   }
   

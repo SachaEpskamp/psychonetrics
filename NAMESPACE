@@ -3,12 +3,17 @@ useDynLib(psychonetrics, .registration = TRUE)
 
 # importFrom(metaSEM, asyCov)
 
+import(IsingSampler)
+
 # Crayon:
 import(crayon)
 
 ### Exports ###
 # exportPattern("^[[:alpha:]]+")
 #  varcov models:
+export(covML)
+export(covMLtoUB)
+export(covUBtoML)
 export(varcov)
 export(ggm)
 export(precision)
@@ -17,6 +22,9 @@ export(prec)
 export(corr)
 # export(meta_varcov)
 export(modelsearch)
+
+# Ising models:
+export(Ising)
 
 # lvm models:
 export(lvm)

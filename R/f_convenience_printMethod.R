@@ -40,7 +40,8 @@ definition = function(object){
     "panelvar1" = "Lag-1 panel vector auto-regression (panelvar1)",
     "dlvm1" = "Lag-1 dynamic latent variable model for panel data (dlvm1)",
     "tsdlvm1" = "Lag-1 dynamic latent variable model for time-series data (tsdlvm1)",
-    "meta_varcov" = "Variance-covariance matrix meta analysis"
+    "meta_varcov" = "Variance-covariance matrix meta analysis",
+    "Ising" = "Ising model"
   )
   
   submod <- switch(
@@ -56,6 +57,9 @@ definition = function(object){
     "gvar" = "Graphical vector-autoregression (GVAR)",
     "var" = "Vector-autoregression (VAR)"
   )
+  if (is.null(submod)){
+    submod <- object@submodel
+  }
   
   cat("\n\nModel:",
       "\n\t- Model used:",mod,

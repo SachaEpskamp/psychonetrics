@@ -44,6 +44,7 @@ lvm <- function(
   optimizer = "default",
   storedata = FALSE,
   WLS.V,
+  covtype = c("choose","ML","UB"),
   sampleStats
 ){
   rawts = FALSE
@@ -80,6 +81,7 @@ lvm <- function(
                                rawts = rawts,
                                fimldata = estimator == "FIML",
                                storedata = storedata,
+                               covtype=covtype,
                                weightsmatrix = WLS.V)
   }
 
