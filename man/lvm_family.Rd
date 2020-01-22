@@ -12,14 +12,19 @@ Continuous latent variable family of psychonetrics models
 This is the family of models that models the data as a structural equation model (SEM), allowing the latent and residual variance-covariance matrices to be further modeled as networks. The \code{latent} and \code{residual} arguments can be used to define what latent and residual models are used respectively: \code{"cov"} (default) models a variance-covariance matrix directly, \code{"chol"} models a Cholesky decomposition, \code{"prec"} models a precision matrix, and \code{"ggm"} models a Gaussian graphical model (Epskamp, Rhemtulla and Borsboom, 2017). The wrapper \code{lnm()} sets \code{latent = "ggm"} for the latent network model (LNM), the wrapper  \code{rnm()} sets \code{residual = "ggm"} for the residual network model (RNM), and the wrapper  \code{lrnm()} combines the LNM and RNM.
 }
 \usage{
-lvm(data, lambda, latent = c("cov", "chol", "prec", "ggm"), residual = c("cov", "chol", 
-      "prec", "ggm"), sigma_zeta = "full", kappa_zeta = "full", omega_zeta = "full", 
-      lowertri_zeta = "full", delta_zeta = "full", sigma_epsilon = "empty", kappa_epsilon 
-      = "empty", omega_epsilon = "empty", lowertri_epsilon = "empty", delta_epsilon = 
-      "empty", beta = "empty", nu, nu_eta, identify = TRUE, identification = 
-      c("loadings", "variance"), vars, latents, groups, covs, means, nobs, missing = 
-      "listwise", equal = "none", baseline_saturated = TRUE, estimator = "ML", 
-      optimizer = "default", storedata = FALSE, WLS.V, sampleStats)
+lvm(data, lambda, latent = c("cov", "chol", "prec",
+                    "ggm"), residual = c("cov", "chol", "prec", "ggm"),
+                    sigma_zeta = "full", kappa_zeta = "full", omega_zeta =
+                    "full", lowertri_zeta = "full", delta_zeta = "full",
+                    sigma_epsilon = "empty", kappa_epsilon = "empty",
+                    omega_epsilon = "empty", lowertri_epsilon = "empty",
+                    delta_epsilon = "empty", beta = "empty", nu, nu_eta,
+                    identify = TRUE, identification = c("loadings",
+                    "variance"), vars, latents, groups, covs, means, nobs,
+                    missing = "listwise", equal = "none",
+                    baseline_saturated = TRUE, estimator = "ML", optimizer
+                    = "default", storedata = FALSE, WLS.V, covtype =
+                    c("choose", "ML", "UB"), sampleStats)
 
 lnm(\dots)
 rnm(\dots)
@@ -94,7 +99,7 @@ An optional character vector with names of the latent variables.
 An optional string indicating the name of the group variable in \code{data}.
 }
   \item{covs}{
-A sample variance--covariance matrix, or a list/array of such matrices for multiple groups. IMPORTANT NOTE: psychonetrics expects the maximum likelihood (ML) covariance matrix, which is NOT obtained from \code{\link{cov}} directly. Manually rescale the result of \code{\link{cov}} with \code{(nobs - 1)/nobs} to obtain the ML covariance matrix.
+A sample variance--covariance matrix, or a list/array of such matrices for multiple groups. Make sure \code{covtype} argument is set correctly to the type of covariances used. 
 }
   \item{means}{
 A vector of sample means, or a list/matrix containing such vectors for multiple groups.
@@ -125,6 +130,9 @@ The weights matrix used in WLS estimation (experimental)
 }
   \item{sampleStats}{
 An optional sample statistics object. Mostly used internally. 
+}
+\item{covtype}{
+  If 'covs' is used, this is the type of covariance (maximum likelihood or unbiased) the input covariance matrix represents. Set to \code{"ML"} for maximum likelihood estimates (denominator n) and \code{"UB"} to unbiased estimates (denominator n-1). The default will try to find the type used, by investigating which is most likely to result from integer valued datasets.
 }
 \item{\dots}{
 Arguments sent to \code{varcov}

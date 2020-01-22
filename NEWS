@@ -1,9 +1,10 @@
-Changes in version 0.4.2:
+Changes in version 0.5.0:
   o The Ising model is now supported (only ML estimation) through the Ising() model function
+  o Added the covtype option to several models, controlling if maximum likelihood or unbiased estimates are used for the input covariances
+  o Added the function 'covML' for maximum likelihood covariance estimates
 
 Changes in version 0.4.1:
   o Small fix for CRAN checks
-
 
 Changes in version 0.4:
   o type = "cor" is now supported in varcov, with rho representing the correlations and SD the diagonal standard deviations matrix.

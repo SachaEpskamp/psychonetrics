@@ -14,14 +14,14 @@ This is the family of models that models only a variance-covariance matrix with 
 }
 \usage{
 varcov(data, type = c("cov", "chol", "prec", "ggm", "cor"),
-                 sigma = "full", kappa = "full", omega = "full",
-                 lowertri = "full", delta = "full", rho = "full", SD =
-                 "full", mu, tau, vars, ordered = character(0), groups,
-                 covs, means, nobs, missing = "listwise", equal =
-                 "none", baseline_saturated = TRUE, estimator =
-                 "default", optimizer = "default", storedata = FALSE,
-                 WLS.V, sampleStats, meanstructure, corinput, verbose =
-                 TRUE)
+                   sigma = "full", kappa = "full", omega = "full",
+                   lowertri = "full", delta = "full", rho = "full", SD =
+                   "full", mu, tau, vars, ordered = character(0), groups,
+                   covs, means, nobs, missing = "listwise", equal =
+                   "none", baseline_saturated = TRUE, estimator =
+                   "default", optimizer = "default", storedata = FALSE,
+                   WLS.V, sampleStats, meanstructure, corinput, verbose =
+                   TRUE, covtype = c("choose", "ML", "UB"))
 cholesky(\dots)
 precision(\dots)
 prec(\dots)
@@ -70,13 +70,16 @@ An optional character vector encoding the variables used in the analyis. Must eq
 An optional string indicating the name of the group variable in \code{data}.
 }
   \item{covs}{
-A sample variance--covariance matrix, or a list/array of such matrices for multiple groups. IMPORTANT NOTE: psychonetrics expects the maximum likelihood (ML) covariance matrix, which is NOT obtained from \code{\link{cov}} directly. Manually rescale the result of \code{\link{cov}} with \code{(nobs - 1)/nobs} to obtain the ML covariance matrix.
+A sample variance--covariance matrix, or a list/array of such matrices for multiple groups. Make sure \code{covtype} argument is set correctly to the type of covariances used. 
 }
   \item{means}{
 A vector of sample means, or a list/matrix containing such vectors for multiple groups.
 }
   \item{nobs}{
 The number of observations used in \code{covs} and \code{means}, or a vector of such numbers of observations for multiple groups.
+}
+\item{covtype}{
+  If 'covs' is used, this is the type of covariance (maximum likelihood or unbiased) the input covariance matrix represents. Set to \code{"ML"} for maximum likelihood estimates (denominator n) and \code{"UB"} to unbiased estimates (denominator n-1). The default will try to find the type used, by investigating which is most likely to result from integer valued datasets.
 }
   \item{missing}{
 How should missingness be handled in computing the sample covariances and number of observations when \code{data} is used. Can be \code{"listwise"} for listwise deletion, or \code{"pairwise"} for pairwise deletion.
@@ -178,10 +181,10 @@ mod0 <- mod0 \%>\% runmodel
 mod0 \%>\% MIs
 
 # To automatically add along modification indices, we can use stepup:
-mod1 <- mod0 \%>\% stepup(greedy = TRUE, alpha = 0.005, greedyadjust = "fdr")
+mod1 <- mod0 \%>\% stepup
 
 # Let's also prune all non-significant edges to finish:
-mod1 <- mod1 \%>\% prune(alpha = 0.005)
+mod1 <- mod1 \%>\% prune
 
 # Look at the fit:
 mod1 \%>\% fit
@@ -194,30 +197,5 @@ mod1 \%>\% parameters
 
 # Or obtain the network as follows:
 getmatrix(mod1, "omega")
-
-# We may also be interested in the stability of our search algorithm.
-# We can bootstrap our data and repeat the search as follows:
-mod_boot <- ggm(ConsData, vars = vars, omega = "empty", storedata = TRUE) \%>\%
-  bootstrap \%>\% # bootstrap data
-  runmodel \%>\% # Run model
-  stepup(greedy = TRUE, alpha = 0.005, greedyadjust = "fdr") \%>\% # Search algorithm 1
-  prune(alpha = 0.005) # Search algorithm 2
-
-# Which may give some different results:
-getmatrix(mod_boot, "omega")
-
-# This can be repeated (ideally 100 - 1000 times):
-bootstraps <- replicate(10,simplify = FALSE,expr = {
-  mod_boot <- ggm(ConsData, vars = vars, omega = "empty", storedata = TRUE) \%>\%
-    bootstrap \%>\% # bootstrap data
-    runmodel \%>\% # Run model
-    stepup(greedy = TRUE, alpha = 0.005, greedyadjust = "fdr") \%>\% # Search algorithm 1
-    prune(alpha = 0.005) # Search algorithm 2
-  getmatrix(mod_boot, "omega")
-})
-
-# Now we can look at, for example, the inclusion probability:
-inclusionProportion <- 1/length(bootstraps) * Reduce("+",lapply(bootstraps,function(x)1*(x!=0)))
-inclusionProportion
 }
 }

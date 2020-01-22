@@ -118,7 +118,7 @@ importFrom(qgraph,qgraph,wi2net)
 importFrom("graphics", "abline", "par")
   importFrom("methods", "as", "is", "new")
   importFrom("stats", "nlminb", "pchisq", "pnorm", "qchisq", "runif",
-             "uniroot")
+             "uniroot","cov")
   importFrom("utils", "sessionInfo")
 
 importFrom("mgcv","uniquecombs")
