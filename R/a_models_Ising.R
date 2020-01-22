@@ -9,6 +9,7 @@ Ising <- function(
   covs, # alternative covs (array nvar * nvar * ngroup)
   means, # alternative means (matrix nvar * ngroup)
   nobs, # Alternative if data is missing (length ngroup)
+  covtype = c("choose","ML","UB"),
   responses, # May not be missing if data is missing
   missing = "listwise",
   equal = "none", # Can also be any of the matrices
@@ -22,6 +23,7 @@ Ising <- function(
   verbose = TRUE,
   maxNodes = 20
 ){
+  covtype <- match.arg(covtype)
   
   if (missing(data) && missing(responses)){
     stop("'responses' argument may not be missing if 'data' is missing.")
@@ -77,8 +79,8 @@ Ising <- function(
                                fimldata = estimator == "FIML",
                                storedata = storedata,
                                weightsmatrix = WLS.V,
-                               meanstructure = meanstructure,
                                # corinput = corinput,
+                               covtype=covtype,
                                verbose=verbose)
   }
  

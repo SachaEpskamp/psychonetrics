@@ -9,15 +9,20 @@ Lag-1 dynamic latent variable model family of psychonetrics models for time-seri
 This is the family of models that models a dynamic factor model on time-series. There are two covariance structures that can be modeled in different ways: \code{contemporaneous} for the contemporaneous model and \code{residual} for the residual model. These can be set to \code{"cov"} for covariances, \code{"prec"} for a precision matrix, \code{"ggm"} for a Gaussian graphical model and \code{"chol"} for a Cholesky decomposition. The \code{ts_lvgvar} wrapper function sets \code{contemporaneous = "ggm"} for the graphical VAR model.
 }
 \usage{
-tsdlvm1(data, lambda, contemporaneous = c("cov", "chol", "prec", "ggm"), 
-        residual = c("cov", "chol", "prec", "ggm"), beta = "full", omega_zeta = "full", 
-        delta_zeta = "full", kappa_zeta = "full", sigma_zeta = "full", 
-        lowertri_zeta = "full", omega_epsilon = "empty", delta_epsilon = "empty", 
-        kappa_epsilon = "empty", sigma_epsilon = "empty", lowertri_epsilon = "empty", 
-        nu, mu_eta, identify = TRUE, identification = c("loadings", "variance"), 
-        latents, beepvar, dayvar, idvar, vars, groups, covs, means, nobs, missing = 
-        "listwise", equal = "none", baseline_saturated = TRUE, estimator = "ML", 
-        optimizer = "default", storedata = FALSE, sampleStats, centerWithin = FALSE)
+tsdlvm1(data, lambda, contemporaneous = c("cov", "chol",
+                    "prec", "ggm"), residual = c("cov", "chol", "prec",
+                    "ggm"), beta = "full", omega_zeta = "full", delta_zeta
+                    = "full", kappa_zeta = "full", sigma_zeta = "full",
+                    lowertri_zeta = "full", omega_epsilon = "empty",
+                    delta_epsilon = "empty", kappa_epsilon = "empty",
+                    sigma_epsilon = "empty", lowertri_epsilon = "empty",
+                    nu, mu_eta, identify = TRUE, identification =
+                    c("loadings", "variance"), latents, beepvar, dayvar,
+                    idvar, vars, groups, covs, means, nobs, missing =
+                    "listwise", equal = "none", baseline_saturated = TRUE,
+                    estimator = "ML", optimizer = "default", storedata =
+                    FALSE, sampleStats, covtype = c("choose", "ML", "UB"),
+                    centerWithin = FALSE)
 
 ts_lvgvar(...)
 }
@@ -99,7 +104,7 @@ An optional character vector encoding the variables used in the analyis. Must eq
 An optional string indicating the name of the group variable in \code{data}.
 }
   \item{covs}{
-A sample variance--covariance matrix, or a list/array of such matrices for multiple groups. IMPORTANT NOTE: psychonetrics expects the maximum likelihood (ML) covariance matrix, which is NOT obtained from \code{\link{cov}} directly. Manually rescale the result of \code{\link{cov}} with \code{(nobs - 1)/nobs} to obtain the ML covariance matrix.
+A sample variance--covariance matrix, or a list/array of such matrices for multiple groups. Make sure \code{covtype} argument is set correctly to the type of covariances used. 
 }
   \item{means}{
 A vector of sample means, or a list/matrix containing such vectors for multiple groups.
@@ -130,6 +135,9 @@ An optional sample statistics object. Mostly used internally.
 }
   \item{centerWithin}{
 Logical, should data be within-person centered?
+}
+\item{covtype}{
+  If 'covs' is used, this is the type of covariance (maximum likelihood or unbiased) the input covariance matrix represents. Set to \code{"ML"} for maximum likelihood estimates (denominator n) and \code{"UB"} to unbiased estimates (denominator n-1). The default will try to find the type used, by investigating which is most likely to result from integer valued datasets.
 }
 \item{\dots}{
 Arguments sent to \code{tsdlvm1}

@@ -11,21 +11,30 @@ Lag-1 dynamic latent variable model family of psychonetrics models for panel dat
 This is the family of models that models a dynamic factor model on panel data. There are four covariance structures that can be modeled in different ways: \code{within_latent}, \code{between_latent} for the within-person and between-person latent (contemporaneous) models respectively, and \code{within_residual}, \code{between_residual} for the within-person and between-person residual models respectively. The \code{panelgvar} wrapper function sets the \code{lambda} to an identity matrix, all residual variances to zero, and models within-person and between-person latent (contemporaneous) models as GGMs. The \code{panelvar} wrapper does the same but models contemporaneous relations as a variance-covariance matrix. Finally, the \code{panel_lvgvar} wrapper automatically models all latent networks as GGMs.
 }
 \usage{
-dlvm1(data, vars, lambda, within_latent = c("cov", "chol", "prec", "ggm"), 
-      within_residual = c("cov", "chol", "prec", "ggm"), between_latent = c("cov", 
-      "chol", "prec", "ggm"), between_residual = c("cov", "chol", "prec", "ggm"), 
-      beta = "full", omega_zeta_within = "full", delta_zeta_within = "full", 
-      kappa_zeta_within = "full", sigma_zeta_within = "full", lowertri_zeta_within = 
-      "full", omega_epsilon_within = "empty", delta_epsilon_within = "empty", 
-      kappa_epsilon_within = "empty", sigma_epsilon_within = "empty", 
-      lowertri_epsilon_within = "empty", omega_zeta_between = "full", 
-      delta_zeta_between = "full", kappa_zeta_between = "full", sigma_zeta_between = 
-      "full", lowertri_zeta_between = "full", omega_epsilon_between = "empty", 
-      delta_epsilon_between = "empty", kappa_epsilon_between = "empty", 
-      sigma_epsilon_between = "empty", lowertri_epsilon_between = "empty", nu, mu_eta, 
-      identify = TRUE, identification = c("loadings", "variance"), latents, groups, covs, 
-      means, nobs, missing = "listwise", equal = "none", baseline_saturated = TRUE, 
-      estimator = "ML", optimizer = "default", storedata = FALSE, sampleStats)
+dlvm1(data, vars, lambda, within_latent = c("cov", "chol",
+                    "prec", "ggm"), within_residual = c("cov", "chol",
+                    "prec", "ggm"), between_latent = c("cov", "chol",
+                    "prec", "ggm"), between_residual = c("cov", "chol",
+                    "prec", "ggm"), beta = "full", omega_zeta_within =
+                    "full", delta_zeta_within = "full", kappa_zeta_within
+                    = "full", sigma_zeta_within = "full",
+                    lowertri_zeta_within = "full", omega_epsilon_within =
+                    "empty", delta_epsilon_within = "empty",
+                    kappa_epsilon_within = "empty", sigma_epsilon_within =
+                    "empty", lowertri_epsilon_within = "empty",
+                    omega_zeta_between = "full", delta_zeta_between =
+                    "full", kappa_zeta_between = "full",
+                    sigma_zeta_between = "full", lowertri_zeta_between =
+                    "full", omega_epsilon_between = "empty",
+                    delta_epsilon_between = "empty", kappa_epsilon_between
+                    = "empty", sigma_epsilon_between = "empty",
+                    lowertri_epsilon_between = "empty", nu, mu_eta,
+                    identify = TRUE, identification = c("loadings",
+                    "variance"), latents, groups, covs, means, nobs,
+                    covtype = c("choose", "ML", "UB"), missing =
+                    "listwise", equal = "none", baseline_saturated = TRUE,
+                    estimator = "ML", optimizer = "default", storedata =
+                    FALSE, sampleStats)
 
 panelgvar(data, vars, ...)
 
@@ -166,6 +175,9 @@ Logical, should the raw data be stored? Needed for bootstrapping (see \code{\lin
 }
   \item{sampleStats}{
 An optional sample statistics object. Mostly used internally. 
+}
+\item{covtype}{
+  If 'covs' is used, this is the type of covariance (maximum likelihood or unbiased) the input covariance matrix represents. Set to \code{"ML"} for maximum likelihood estimates (denominator n) and \code{"UB"} to unbiased estimates (denominator n-1). The default will try to find the type used, by investigating which is most likely to result from integer valued datasets.
 }
 \item{\dots}{
 Arguments sent to \code{dlvm1}.

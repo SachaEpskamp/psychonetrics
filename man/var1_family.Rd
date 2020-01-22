@@ -9,11 +9,14 @@ Lag-1 vector autoregression family of psychonetrics models
 This is the family of models that models time-series data using a lag-1 vector autoregressive model (VAR; Epskamp,Waldorp, Mottus, Borsboom, 2018). The model is fitted to the Toeplitz matrix, but unlike typical SEM software the block of covariances of the lagged variables is not used in estimating the temporal and contemporaneous relationships (the block is modeled completely separately using a cholesky decomposition, and does not enter the model elsewise). The \code{contemporaneous} argument can be used to define what contemporaneous model is used: \code{contemporaneous = "cov"} (default) models a variance-covariance matrix, \code{contemporaneous = "chol"} models a Cholesky decomposition, \code{contemporaneous = "prec"} models a precision matrix, and \code{contemporaneous = "ggm"} (alias: \code{gvar()}) models a Gaussian graphical model, also then known as a graphical VAR model.
 }
 \usage{
-var1(data, contemporaneous = c("cov", "chol", "prec", "ggm"), beta = "full", omega_zeta = 
-    "full", delta_zeta = "full", kappa_zeta = "full", sigma_zeta = "full", 
-    lowertri_zeta = "full", mu, beepvar, dayvar, idvar, vars, groups, covs, means, nobs, 
-    missing = "listwise", equal = "none", baseline_saturated = TRUE, estimator = "ML", 
-    optimizer = "default", storedata = FALSE, sampleStats)
+var1(data, contemporaneous = c("cov", "chol", "prec",
+                    "ggm"), beta = "full", omega_zeta = "full", delta_zeta
+                    = "full", kappa_zeta = "full", sigma_zeta = "full",
+                    lowertri_zeta = "full", mu, beepvar, dayvar, idvar,
+                    vars, groups, covs, means, nobs, missing = "listwise",
+                    equal = "none", baseline_saturated = TRUE, estimator =
+                    "ML", optimizer = "default", storedata = FALSE,
+                    covtype = c("choose", "ML", "UB"), sampleStats)
 
 gvar(...)
 }
@@ -62,7 +65,7 @@ An optional character vector encoding the variables used in the analyis. Must eq
 An optional string indicating the name of the group variable in \code{data}.
 }
   \item{covs}{
-A sample variance--covariance matrix, or a list/array of such matrices for multiple groups. IMPORTANT NOTE: psychonetrics expects the maximum likelihood (ML) covariance matrix, which is NOT obtained from \code{\link{cov}} directly. Manually rescale the result of \code{\link{cov}} with \code{(nobs - 1)/nobs} to obtain the ML covariance matrix.
+A sample variance--covariance matrix, or a list/array of such matrices for multiple groups. Make sure \code{covtype} argument is set correctly to the type of covariances used. 
 }
   \item{means}{
 A vector of sample means, or a list/matrix containing such vectors for multiple groups.
@@ -90,6 +93,9 @@ Logical, should the raw data be stored? Needed for bootstrapping (see \code{boot
 }
   \item{sampleStats}{
 An optional sample statistics object. Mostly used internally. 
+}
+\item{covtype}{
+  If 'covs' is used, this is the type of covariance (maximum likelihood or unbiased) the input covariance matrix represents. Set to \code{"ML"} for maximum likelihood estimates (denominator n) and \code{"UB"} to unbiased estimates (denominator n-1). The default will try to find the type used, by investigating which is most likely to result from integer valued datasets.
 }
 \item{\dots}{
 Arguments sent to \code{var1}
