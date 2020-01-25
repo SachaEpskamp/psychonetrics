@@ -86,11 +86,11 @@ The maximum number of nodes allowed in the analysis. This function will stop wit
 \details{
 The Ising Model takes the following form:
 
-\eqn{\Pr(\pmb{Y} = \pmb{y})  =  \frac{\exp\left( -\beta H\left(\pmb{y}; \pmb{\tau}, \pmb{\Omega}\right)\right)}{Z(\pmb{\tau}, \pmb{\Omega})}}{P(Y=y) = 1/Z exp(-beta H(y))}
+\eqn{\Pr(\boldsymbol{Y} = \boldsymbol{y})  =  \frac{\exp\left( -\beta H\left(\boldsymbol{y}; \boldsymbol{\tau}, \boldsymbol{\Omega}\right)\right)}{Z(\boldsymbol{\tau}, \boldsymbol{\Omega})}}{P(Y=y) = 1/Z exp(-beta H(y))}
 
 With Hamiltonian:
 
-\eqn{H\left(\pmb{y}; \pmb{\tau}, \pmb{\Omega}\right) = -\sum_{i=1}^{m} \tau_i y_{i} - \sum_{i=2}^{m} \sum_{j=1}^{i-1} \omega_{ij} y_i y_j.}{
+\eqn{H\left(\boldsymbol{y}; \boldsymbol{\tau}, \boldsymbol{\Omega}\right) = -\sum_{i=1}^{m} \tau_i y_{i} - \sum_{i=2}^{m} \sum_{j=1}^{i-1} \omega_{ij} y_i y_j.}{
 H(y) = - sum_i tau_i y_i - sum_<i,j> omega_ij y_i y_j
 }
 
