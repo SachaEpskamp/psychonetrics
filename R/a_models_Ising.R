@@ -24,7 +24,7 @@ Ising <- function(
   maxNodes = 20
 ){
   covtype <- match.arg(covtype)
-  
+
   if (missing(data) && missing(responses)){
     stop("'responses' argument may not be missing if 'data' is missing.")
   }
@@ -170,6 +170,7 @@ Ising <- function(
                                                   missing = missing,
                                                   equal = equal,
                                                   estimator = estimator,
+                                                  responses = responses,
                                                   baseline_saturated = FALSE,sampleStats=sampleStats)
     
     # Identify model:
@@ -192,6 +193,7 @@ Ising <- function(
                                                missing = missing,
                                                equal = equal,
                                                estimator = estimator,
+                                               responses = responses,
                                                baseline_saturated = FALSE,sampleStats=sampleStats)
     # Identify model:
     if (identify){
