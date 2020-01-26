@@ -1,3 +1,8 @@
+Changes in version 0.5.1:
+  o Fixed a bug with responses being missing when summary statistics are used in Ising()
+  o Fixed a bug with covtype sometimes being set to UB when corinput = TRUE
+  o Added DOI to description field
+
 Changes in version 0.5.0:
   o The Ising model is now supported (only ML estimation) through the Ising() model function
   o Added the covtype option to several models, controlling if maximum likelihood or unbiased estimates are used for the input covariances

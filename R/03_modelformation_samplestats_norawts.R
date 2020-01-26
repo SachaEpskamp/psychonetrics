@@ -18,6 +18,16 @@ samplestats_norawts <- function(
 ){
   missing <- match.arg(missing)
   covtype <- match.arg(covtype)
+  
+  # For corinput, set covtype to ML:
+  if (!missing(corinput)){
+    if (isTRUE(corinput)){
+      if (covtype == "UB"){
+        warning("Setting covtype = 'ML' because corinput = TRUE")
+      }
+      covtype <- "ML"
+    }
+  }
   # weightsmatrix <- match.arg(weightsmatrix)
   
   # Check data:
