@@ -89,9 +89,18 @@ implied_dlvm1 <- function(model,all = FALSE){
       x[[g]]$sigma_within <- x[[g]]$lambda %*% allSigmas_within[[1]] %*% t(x[[g]]$lambda) + x[[g]]$sigma_epsilon_between
       x[[g]]$sigma_between <- x[[g]]$lambda %*% x[[g]]$sigma_zeta_between %*% t(x[[g]]$lambda) + x[[g]]$sigma_epsilon_between
       x[[g]]$sigma_within_full <- fullSigma_within
+      x[[g]]$sigma_eta_within <- allSigmas_within[[1]]
+      x[[g]]$sigma_eta_within_lag1 <- allSigmas_within[[2]]
 
       # Add PDC:
-      x[[g]]$PDC <- computePDC(x[[g]]$beta,x[[g]]$kappa_zeta_within)
+      # FIXME: This should not be needed?
+      if (!is.null(x[[g]]$kappa_zeta_within)){
+        x[[g]]$PDC <- computePDC(x[[g]]$beta,x[[g]]$kappa_zeta_within)  
+      } else {
+        x[[g]]$PDC <- t(x[[g]]$beta)
+        x[[g]]$PDC[] <- 0
+      }
+      
     }
     
   }

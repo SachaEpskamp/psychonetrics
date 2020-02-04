@@ -3,10 +3,21 @@ useDynLib(psychonetrics, .registration = TRUE)
 
 # importFrom(metaSEM, asyCov)
 
+# Ergodic:
+export(esa)
+export(esa_manual)
+import(ggplot2)
+
+S3method(plot, esa)
+S3method(plot, esa_manual)
+
+S3method(print, esa)
+S3method(print, esa_manual)
+
 import(IsingSampler)
 
 # Crayon:
-import(crayon)
+# import(crayon)
 
 ### Exports ###
 # exportPattern("^[[:alpha:]]+")
