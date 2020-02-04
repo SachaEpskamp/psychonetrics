@@ -51,8 +51,8 @@ esa_manual <- function(sigma_wp, sigma_bp, cutoff = 0.1){
 
 # Ergodic subspace analysis
 # von Oertzen, T., Schmiedek, F., & Voelkle, M. C. (2020). Ergodic Subspace Analysis. Journal of Intelligence, 8(1), 3.
-esa <- function(x, cutoff = 0.1){
-  
+esa <- function(x, cutoff = 0.1, between = c("crosssection","between")){
+  between <- match.arg(between)
   if (x@model != "dlvm1"){
     stop("Only implemented for 'dlvm1' model family")
   }
@@ -67,7 +67,12 @@ esa <- function(x, cutoff = 0.1){
     sigma_wp <- x@modelmatrices[[g]]$sigma_within
     
     # Between matrix:
-    sigma_bp <- x@modelmatrices[[g]]$sigma_between
+    if (between == "crosssection"){
+      sigma_bp <- x@modelmatrices[[g]]$sigma_crosssection
+    } else {
+      sigma_bp <- x@modelmatrices[[g]]$sigma_between
+    }
+    
     
     # Result:
     esa_manual(sigma_wp, sigma_bp, cutoff = cutoff)

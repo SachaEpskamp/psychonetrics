@@ -91,6 +91,8 @@ implied_dlvm1 <- function(model,all = FALSE){
       x[[g]]$sigma_within_full <- fullSigma_within
       x[[g]]$sigma_eta_within <- allSigmas_within[[1]]
       x[[g]]$sigma_eta_within_lag1 <- allSigmas_within[[2]]
+      x[[g]]$sigma_crosssection <- x[[g]]$sigma_within  + x[[g]]$sigma_between
+      
 
       # Add PDC:
       # FIXME: This should not be needed?
