@@ -165,8 +165,8 @@ plot.esa_manual <- function(x){
   
   g <- ggplot(df, aes(x = ev, y = ergodicity)) + 
     geom_line(lwd = 1.5) + geom_point(cex = 3) + ylim(-1,1) + 
-    geom_text(aes(x=mean(seq_along(erg)), y = 1, label = "Dominantly between-subject"), colour = "black") + 
-    geom_text(aes(x=mean(seq_along(erg)), y = -1, label = "Dominantly Within-subject"), colour = "black") + 
+    geom_text(aes(x=mean(seq_along(x$ergodicity)), y = 1, label = "Dominantly between-subject"), colour = "black") + 
+    geom_text(aes(x=mean(seq_along(x$ergodicity)), y = -1, label = "Dominantly Within-subject"), colour = "black") + 
     geom_text(aes(x=1.5, y = -0, label = "Ergodic"), colour = "black") + 
     theme_bw() + 
     ylab("") + xlab("Component") +
