@@ -14,10 +14,12 @@ samplestats_norawts <- function(
   weightsmatrix = "none", #c("none","identity","full","diag")
   meanstructure = TRUE,
   covtype = c("choose","ML","UB"),
-  corinput
+  corinput,
+  standardize = c("none","z","quantile")
 ){
   missing <- match.arg(missing)
   covtype <- match.arg(covtype)
+  standardize <- match.arg(standardize)
   
   # For corinput, set covtype to ML:
   if (!missing(corinput)){
@@ -81,6 +83,17 @@ samplestats_norawts <- function(
     
     # Remove all rows with full missing:
     data <- data[rowSums(is.na(data[,vars])) < nVars,]
+    
+    # Standardize the data:
+    if (standardize == "z"){
+      for (v in seq_along(vars)){
+        data[,vars[v]] <- (data[,vars[v]] - mean(data[,vars[v]],na.rm=TRUE)) / sd(data[,vars[v]],na.rm=TRUE)
+      }
+    } else if (standardize == "quantile"){
+      for (v in seq_along(vars)){
+        data[,vars[v]] <- quantiletransform(data[,vars[v]])
+      }
+    }
     
     # Estimate covariances:
     # lavOut <- lavaan::lavCor(data[,c(vars,groups)], missing = missing,output = "lavaan", group = groups, 
@@ -262,6 +275,8 @@ samplestats_norawts <- function(
     nobs <- as.vector(tapply(data[[groups]],data[[groups]],length))
   } else {
     thresholds <- list()
+    
+    if (standardize != "none") warning("'standardize' ignored when raw data is not used.")
     
     ### Input via matrices ###
     # Check groups:

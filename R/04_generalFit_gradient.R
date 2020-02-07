@@ -39,7 +39,8 @@ psychonetrics_gradient <- function(x, model){
     "dlvm1" = d_phi_theta_dlvm1,
     "tsdlvm1" = d_phi_theta_tsdlvm1,
     "meta_varcov" = d_phi_theta_meta_varcov,
-    "Ising" = d_phi_theta_Ising
+    "Ising" = d_phi_theta_Ising,
+    "ml_lvm" = d_phi_theta_ml_lvm
     # "cholesky" = d_phi_theta_cholesky
   )
 

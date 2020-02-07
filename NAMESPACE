@@ -3,6 +3,13 @@ useDynLib(psychonetrics, .registration = TRUE)
 
 # importFrom(metaSEM, asyCov)
 
+export(simplestructure)
+
+# Multi-level models:
+export(ml_tsdlvm1)
+export(ml_ts_lvgvar)
+export(ml_lvm)
+
 # Ergodic:
 export(esa)
 export(esa_manual)

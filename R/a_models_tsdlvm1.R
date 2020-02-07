@@ -55,7 +55,8 @@ tsdlvm1 <- function(
   storedata = FALSE,
   sampleStats,
   covtype = c("choose","ML","UB"),
-  centerWithin = FALSE
+  centerWithin = FALSE,
+  standardize = c("none","z","quantile")
 ){
   contemporaneous <- match.arg(contemporaneous)
   residual <- match.arg(residual)
@@ -98,6 +99,7 @@ tsdlvm1 <- function(
                                fimldata = estimator == "FIML",
                                storedata = storedata,
                                covtype=covtype,
+                               standardize=standardize,
                                weightsmatrix = ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
                                                       switch(estimator,
                                                         "WLS" = "full",
