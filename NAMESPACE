@@ -9,6 +9,9 @@ export(simplestructure)
 export(ml_tsdlvm1)
 export(ml_ts_lvgvar)
 export(ml_lvm)
+export(ml_lnm)
+export(ml_rnm)
+export(ml_lrnm)
 
 # Ergodic:
 export(esa)
