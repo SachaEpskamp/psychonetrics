@@ -1,10 +1,10 @@
 # Latent network model creator
-dlvm1 <- function(
+ml_lvm <- function(
   data, # Dataset
-  vars, # Must be a matrix!
   
   # Factor loadings:
   lambda, # May not be missing
+  clusters, # Cluster variable, may not be missing
   # lambda_within, # May not be missing
   # lambda_between, # May not be missing
   
@@ -14,8 +14,9 @@ dlvm1 <- function(
   between_latent = c("cov","chol","prec","ggm"), 
   between_residual = c("cov","chol","prec","ggm"), 
   
-  # Temporal effects:
-  beta = "full",
+  # Beta:
+  beta_within = "empty",
+  beta_between = "empty",
   
   # Contemporaneous latent effects within:
   omega_zeta_within = "full", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
@@ -47,104 +48,63 @@ dlvm1 <- function(
   
   # Mean structure:
   nu,
-  mu_eta,
+  nu_eta,
   
   # Identification:
   identify = TRUE,
   identification = c("loadings","variance"),
   
-  # Latents:
-  # latents,
-  # latents,
+  vars, # character indicating the variables Extracted if missing from data - group variable
+  
   latents,
   
   # The rest:
   groups, # ignored if missing. Can be character indicating groupvar, or vector with names of groups
-  covs, # alternative covs (array nvar * nvar * ngroup)
-  means, # alternative means (matrix nvar * ngroup)
-  nobs, # Alternative if data is missing (length ngroup)
-  covtype = c("choose","ML","UB"),
-  missing = "listwise",
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   # fitfunctions, # Leave empty
-  estimator = "ML",
+  estimator = c("FIML","MUML"),
   optimizer = "default",
   storedata = FALSE,
   verbose = TRUE,
+  standardize = c("none","z","quantile"),
   sampleStats
 ){
-  covtype <- match.arg(covtype)
-  # Check for missing:
-  # if (missing(lambda_within)){
-  #   stop("'lambda_within' may not be missing")
-  # }
-  # if (is.character(lambda_within)){
-  #   stop("'lambda_within' may not be a string")
-  # }
-  # if (missing(lambda_between)){
-  #   stop("'lambda_between' may not be missing")
-  # }
-  # if (is.character(lambda_between)){
-  #   stop("'lambda_between' may not be a string")
-  # }
-  # 
-  # if (missing(lambda)){
-  #   stop("'lambda' may not be missing")
-  # }
-  # if (is.character(lambda)){
-  #   stop("'lambda' may not be a string")
-  # }
-  
-  
+  # Check input:
   # Match args:
+  standardize <- match.arg(standardize)
   within_latent <- match.arg(within_latent)
   between_latent <- match.arg(between_latent)
   within_residual <- match.arg(within_residual)
   between_residual <- match.arg(between_residual)
   identification <- match.arg(identification)
+  estimator <- match.arg(estimator)
+  if (estimator != "FIML") stop("Only FIML supported.")
   
-  # Extract var names:
+  # Check clusters:
+  if (missing(clusters)){
+    stop("'clusters' may not be missing (use lvm family instead).")
+  }
+  
+  # Check if data is data frame:
+  if (is.matrix(data)) data <- as.data.frame(data)
+  if (!is.data.frame(data)) stop("'data' must be a data frame")
+  
+  # Check vars:
   if (missing(vars)){
-    stop("'vars' argument may not be missing")
+    if (is.null(names(data))){
+      stop("Dataset contains no column names.")
+    }
+    vars <- names(data)
+    vars <- vars[vars!=clusters]
+  } else {
+    if (is.null(names(data))){
+      stop("Dataset contains no column names.")
+    }
   }
-  if (!is.matrix(vars)){
-    stop("'vars' must be a design matrix, with rows indicating variables and columns indicating measurements.")
-  }
-  
-  # List all variables to use, in order:
-  allVars <- na.omit(as.vector(vars))
-  
-  # Obtain sample stats:
-  if (missing(sampleStats)){
-    sampleStats <- samplestats(data = data, 
-                               vars = allVars, 
-                               groups = groups,
-                               covs = covs, 
-                               means = means, 
-                               nobs = nobs, 
-                               missing  = ifelse(estimator == "FIML","pairwise",missing),
-                               fimldata = estimator == "FIML",
-                               storedata = storedata,
-                               covtype=covtype,
-                               weightsmatrix = ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
-                                                      switch(estimator,
-                                                        "WLS" = "full",
-                                                        "ULS" = "identity",
-                                                        "DWLS" = "diag"
-                                                      )))
-  }
-  
-  
-  # Design matrix:
-  design <- as(1*(!is.na(vars)),"sparseMatrix")
-  
-  # time per var:
-  timePerVar <- as.vector(design * row(design))
-  timePerVar <- timePerVar[timePerVar!=0]
   
   # Number of variables:
-  nVar <- nrow(vars)
+  nVar <- length(vars)
   
   # Check lambda:
   if (missing(lambda)){
@@ -167,29 +127,124 @@ dlvm1 <- function(
     lowertri_epsilon_between <- O
   }
   
-  # Number of measurements:
-  nTime <- ncol(vars)
-  
   # Number of latents:
   nLat <- ncol(lambda)
   
-  # Number of latents at within level:
-  # nLat <- ncol(lambda_within)
+  # Number of clusters:
+  if (!clusters %in% names(data)){
+    stop("'clusters' argument does not correspond to column name of 'data'")
+  }
   
-  # Number of latents at between level:
-  # nLat <- ncol(lambda_between)
+  # Remove data with NA cluster:
+  if (any(is.na(data[[clusters]]))){
+    warning("Rows with NA cluster removed.")
+    data <- data[!is.na(data[[clusters]]),]
+  }
+  
+  # Number of clusters:
+  nCluster <- length(unique(data[[idvar]]))
+  
+  # Add a column with ID in cluster:
+  data[['CLUSTERID']] <- unlist(tapply(data[[clusters]],data[[clusters]],seq_along))
+  
+  # Add group:
+  if (missing(groups)){
+    groups <- "GROUPID"
+    data[[groups]] <- "fullsample"
+  }
+  
+  # Max in cluster:
+  maxInCluster <- max(data[['CLUSTERID']])
+  
+  
+  # Standardize the data:
+  if (standardize == "z"){
+    for (v in seq_along(vars)){
+      data[,vars[v]] <- (data[,vars[v]] - mean(data[,vars[v]],na.rm=TRUE)) / sd(data[,vars[v]],na.rm=TRUE)
+    }
+  } else if (standardize == "quantile"){
+    for (v in seq_along(vars)){
+      data[,vars[v]] <- quantiletransform(data[,vars[v]])
+    }
+  }
+  
+  ### For start values, compute pairwise covs of sample means and deviations from means ###
+  
+  # Mean dataset:
+  data_means <- data %>% group_by(!!as.name(clusters),!!as.name(groups)) %>% summarize_at(.vars=vars,funs(mean(.,na.rm=TRUE)))
+  
+  # Within person dataset:
+  data_centered <- data %>% group_by(!!as.name(clusters),!!as.name(groups)) %>% 
+    mutate_at(.vars=vars,funs(scale(.,scale = FALSE)))
+  
+  
+  start_between_covs <- list()
+  start_within_covs <- list()
+  start_covs <- list()
+  
+  allGroups <- unique(data[[groups]])
+  for (i in seq_along(allGroups)){
+    start_between_covs[[i]] <- cov(data_means[data_means[[groups]] == allGroups[i],vars],use="pairwise.complete.obs")
+    start_within_covs[[i]] <- cov(data_centered[data_centered[[groups]] == allGroups[i],vars],use="pairwise.complete.obs")
+    start_covs[[i]] <- cov(data[,vars],use="pairwise.complete.obs")
+  }
+  
+  ###
+  
+  # To long format:
+  datalong <- tidyr::gather(data,variable,value,vars)
+  
+  # Transform data to wide format:
+  datawide <- tidyr::pivot_wider(datalong, id_cols = c(clusters,groups),  values_from = "value", names_from = c("variable","CLUSTERID"))
+  
+  # Now make a design matrix:
+  rowVars <- vars
+  colVars <- as.character(seq(maxInCluster))
+  design <- matrix(NA, length(rowVars), length(colVars))
+  for (i in seq_along(rowVars)){
+    for (j in seq_along(colVars)){
+      varName <- paste0("^",rowVars[i],"_",colVars[j],"$")
+      whichVar <- which(grepl(varName, names(datawide)))
+      if (length(whichVar) == 1){
+        design[i,j] <- paste0(rowVars[i],"_",colVars[j])
+      }
+    }
+  }
+  
+  
+  # List all variables to use, in order:
+  allVars <- na.omit(as.vector(design))
+  
+  # Obtain sample stats:
+  if (missing(sampleStats)){
+    sampleStats <- samplestats(data = datawide, 
+                               vars = allVars, 
+                               groups = groups,
+                               fimldata = estimator == "FIML",
+                               storedata = storedata)
+  }
+  
+  
+  
+  # designPattern matrix:
+  designPattern <- as(1*(!is.na(design)),"sparseMatrix")
+  
+  # cases per var:
+  casesPerVar <- as.vector(designPattern * row(designPattern))
+  casesPerVar <- casesPerVar[casesPerVar!=0]
+  
   
   # row names:
-  if (is.null(rownames(vars))){
-    rownames(vars) <- paste0("V",seq_len(nrow(vars)))
+  if (is.null(rownames(design))){
+    rownames(design) <- paste0("V",seq_len(nrow(design)))
   }
-  varnames <- rownames(vars)
+  varnames <- rownames(design)
   
   # col names:
-  if (is.null(colnames(vars))){
-    colnames(vars) <- paste0("T",seq_len(ncol(vars)))
+  if (is.null(colnames(design))){
+    colnames(design) <- paste0("C",seq_len(ncol(design)))
   }
-  timenames <- colnames(vars)
+  casenames <- colnames(design)
   
   # Latents:
   # if (missing(latents)){
@@ -212,7 +267,7 @@ dlvm1 <- function(
   }
   
   # Generate model object:
-  model <- generate_psychonetrics(model = "dlvm1", 
+  model <- generate_psychonetrics(model = "ml_lvm", 
                                   types = list(
                                     within_latent = within_latent, between_latent = between_latent,
                                     within_residual = within_residual, between_residual = between_residual
@@ -225,6 +280,7 @@ dlvm1 <- function(
   # Number of groups:
   nGroup <- nrow(model@sample@groups)
   
+  # Number of total vars:
   nAllVar <- length(allVars)
   
   # Add number of observations:
@@ -236,49 +292,29 @@ dlvm1 <- function(
   modMatrices <- list()
   
   # Expected means:
-  expMeans <- lapply(model@sample@means, function(x)tapply(x,timePerVar,mean,na.rm=TRUE))
+  expMeans <- lapply(model@sample@means, function(x)tapply(x,casesPerVar,mean,na.rm=TRUE))
   
   # Fix nu
   modMatrices$nu <- matrixsetup_mu(nu,nNode = nVar, nGroup = nGroup, labels = varnames,equal = "nu" %in% equal,
-                                    expmeans = expMeans, sampletable = sampleStats, name = "nu")
+                                   expmeans = expMeans, sampletable = sampleStats, name = "nu")
   
   # Fix between-subject means:
-  modMatrices$mu_eta <- matrixsetup_mu(mu_eta,nNode = nLat, nGroup = nGroup, labels = latents, equal = "mu_eta" %in% equal,
-                                       expmeans = lapply(1:nGroup,function(x)rep(0, nLat)), sampletable = sampleStats, name = "mu_eta")
+  modMatrices$nu_eta <- matrixsetup_mu(nu_eta,nNode = nLat, nGroup = nGroup, labels = latents, equal = "nu_eta" %in% equal,
+                                       expmeans = lapply(1:nGroup,function(x)rep(0, nLat)), sampletable = sampleStats, name = "nu_eta")
   
-  # FIXME: simple start values for now...
-  
-  # T=1 cov structure:
-  firstVars <- apply(vars,1,function(x)na.omit(x)[1])
-  secondVars <- apply(vars,1,function(x)na.omit(x)[2])
-  firstSigma0 <- lapply(sampleStats@covs,function(x)spectralshift(x[firstVars,firstVars]))
-  firstSigma1 <- lapply(sampleStats@covs,function(x)spectralshift(x[secondVars,firstVars]))
   
   # Setup lambda:
-  modMatrices$lambda <- matrixsetup_lambda(lambda, expcov=firstSigma0, nGroup = nGroup, observednames = varnames, latentnames = latents,
+  modMatrices$lambda <- matrixsetup_lambda(lambda, expcov=start_covs, nGroup = nGroup, 
+                                           observednames = varnames, latentnames = latents,
                                            sampletable = sampleStats, name = "lambda")
   
-  # If beta = 0, these sort of estimate the within and between subject covs:
-  prior_bet_cov <- lapply(firstSigma1,function(x)spectralshift(0.5*(x+t(x))))
-  prior_wit_cov <- lapply(seq_along(firstSigma1),function(i)spectralshift(firstSigma0[[i]] - prior_bet_cov[[i]]))
+  #### Within-person model ####
+  # Setup beta:
+  modMatrices$beta_within <- matrixsetup_beta(beta_within,name = "beta_within", nNode = nLat, nGroup = nGroup, labels = latents, sampletable = sampleStats)
   
   
-  # # Setup lambda_within:
-  # modMatrices$lambda_within <- matrixsetup_lambda(lambda_within, expcov=prior_wit_cov, nGroup = nGroup, observednames = sampleStats@variables$label, latentnames = latents,
-  #                                          sampletable = sampleStats, name = "lambda_within")
-  
-  
-  # Quick and dirty sigma_zeta_within estimate:
-  prior_sig_zeta_within <- lapply(seq_along(firstSigma1),function(i){
-    # Let's take a pseudoinverse:
-    curLam <- Matrix(as.vector(modMatrices$lambda$start[,,i,drop=FALSE]),nVar,nLat)
-    
-    inv <- corpcor::pseudoinverse(as.matrix(kronecker(curLam,curLam)))
-    
-    # And obtain psi estimate:
-    matrix(inv %*% as.vector(prior_wit_cov[[i]])/2,nLat,nLat)
-  })
-  
+  ## Prior guesses for latent and residual variances:
+  priorsWithin <- expected_latent_residual_covs(start_within_covs, modMatrices$lambda$start)
   
   # Setup latent varcov:
   modMatrices <- c(modMatrices,
@@ -288,18 +324,11 @@ dlvm1 <- function(
                                        sampleStats= sampleStats,
                                        equal = equal,
                                        nNode = nLat,
-                                       expCov = prior_sig_zeta_within,
+                                       expCov = priorsWithin$latent,
                                        nGroup = nGroup,
                                        labels = latents
                    ))
   
-  # Setup Beta:
-  modMatrices$beta <- matrixsetup_beta(beta, 
-                                       name = "beta",
-                                       nNode = nLat, 
-                                       nGroup = nGroup, 
-                                       labels = latents,
-                                       equal = "beta" %in% equal, sampletable = sampleStats)
   
   
   # Setup residuals:
@@ -310,29 +339,18 @@ dlvm1 <- function(
                                        sampleStats= sampleStats,
                                        equal = equal,
                                        nNode = nVar,
-                                       expCov = lapply(1:nGroup,function(x)diag(0.5,nVar)),
+                                       expCov = priorsWithin$residual,
                                        nGroup = nGroup,
                                        labels = varnames
                    ))
   
-  # Between-case effects:
-  # Setup lambda_between:
-  # modMatrices$lambda_between <- matrixsetup_lambda(lambda_between, expcov=prior_bet_cov, nGroup = nGroup, observednames = sampleStats@variables$label, latentnames = latents,
-  #                                                 sampletable = sampleStats, name = "lambda_between")
-  # 
   
+  #### Between-person model ####
+  # Setup beta:
+  modMatrices$beta_between <- matrixsetup_beta(beta_between,name = "beta_between", nNode = nLat, nGroup = nGroup, labels = latents, sampletable = sampleStats)
   
-  # Quick and dirty sigma_zeta_between estimate:
-  prior_sig_zeta_between <- lapply(seq_along(firstSigma1),function(i){
-    # Let's take a pseudoinverse:
-    curLam <- Matrix(as.vector(modMatrices$lambda$start[,,i,drop=FALSE]),nVar,nLat)
-    
-    inv <- corpcor::pseudoinverse(as.matrix(kronecker(curLam,curLam)))
-    
-    # And obtain psi estimate:
-    matrix(inv %*% as.vector(prior_bet_cov[[i]])/2,nLat,nLat)
-  })
-  
+  ## Prior guesses for latent and residual variances:
+  priorsBetween <- expected_latent_residual_covs(start_between_covs, modMatrices$lambda$start)
   
   # Setup latent varcov:
   modMatrices <- c(modMatrices,
@@ -342,7 +360,7 @@ dlvm1 <- function(
                                        sampleStats= sampleStats,
                                        equal = equal,
                                        nNode = nLat,
-                                       expCov = prior_sig_zeta_between,
+                                       expCov = priorsBetween$latent,
                                        nGroup = nGroup,
                                        labels = latents
                    ))
@@ -355,7 +373,7 @@ dlvm1 <- function(
                                        sampleStats= sampleStats,
                                        equal = equal,
                                        nNode = nVar,
-                                       expCov = lapply(1:nGroup,function(x)diag(0.5,nVar)),
+                                       expCov = priorsBetween$residual,
                                        nGroup = nGroup,
                                        labels = varnames
                    ))
@@ -413,14 +431,13 @@ dlvm1 <- function(
     # L_within = psychonetrics::eliminationMatrix(nLat),
     # L_between = psychonetrics::eliminationMatrix(nLat),
     
-    design = design
+    designPattern = designPattern
   )
-  
-  
+
   # Come up with P...
   # Dummy matrix to contain indices:
   # Dummy matrices with indices:
-  muDummy <- matrix(rep(1:nVar,nTime))
+  muDummy <- matrix(rep(1:nVar,maxInCluster))
   sigDummy <- matrix(0,nVar,nVar)
   sigDummy[lower.tri(sigDummy,diag=TRUE)] <- max(muDummy) + seq_len(nVar*(nVar+1)/2)
   sigDummy[upper.tri(sigDummy)] <- t(sigDummy)[upper.tri(sigDummy)]
@@ -428,9 +445,10 @@ dlvm1 <- function(
   U <- list(sigDummy)
   # Now make all lag-k blocks...
   # Form blocks:
-  for (i in 1:(nTime-1)){
-    U[[length(U) + 1]] <- matrix(max(unlist(U)) + seq_len(nVar^2), nVar, nVar)
+  if (maxInCluster > 1){
+    U <- c(U,lapply(seq_len(maxInCluster-1),function(x)matrix(max(sigDummy) + seq_len(nVar^2), nVar, nVar)))
   }
+  
   
   allSigmas <- blockToeplitz(U)
   
@@ -438,8 +456,8 @@ dlvm1 <- function(
   totElements <- max(allSigmas)
   
   # Now subset with only observed:
-  subMu <- muDummy[as.vector(design==1),,drop=FALSE]
-  subSigmas <- allSigmas[as.vector(design==1),as.vector(design==1)]
+  subMu <- muDummy[as.vector(designPattern==1),,drop=FALSE]
+  subSigmas <- allSigmas[as.vector(designPattern==1),as.vector(designPattern==1)]
   
   inds <- c(as.vector(subMu),subSigmas[lower.tri(subSigmas,diag=TRUE)])
   
@@ -467,15 +485,37 @@ dlvm1 <- function(
   } else if (isTRUE(baseline_saturated)){
     
     # Form baseline model:
-    model@baseline_saturated$baseline <- varcov(data,
-                                                type = "chol",
-                                                lowertri = "empty",
-                                                vars = allVars,
+    # model@baseline_saturated$baseline <- varcov(data,
+    #                                             type = "chol",
+    #                                             lowertri = "empty",
+    #                                             vars = allVars,
+    #                                             groups = groups,
+    #                                             covs = covs,
+    #                                             means = means,
+    #                                             nobs = nobs,
+    #                                             missing = missing,
+    #                                             equal = equal,
+    #                                             estimator = estimator,
+    #                                             baseline_saturated = FALSE,
+    #                                             sampleStats = sampleStats)
+    # within_latent = c("cov","chol","prec","ggm"), 
+    # within_residual = c("cov","chol","prec","ggm"), 
+    # between_latent = c("cov","chol","prec","ggm"), 
+    # between_residual = c("cov","chol","prec","ggm"), 
+    # 
+    I <- diag(nVar)
+    O <- matrix(0, nVar, nVar)
+    model@baseline_saturated$baseline <- ml_lvm(data,
+                                                within_latent = "chol",
+                                                sigma_zeta_within = "empty",
+                                                between_latent = "chol",
+                                                sigma_zeta_between = "empty",
+                                                lowertri_epsilon_within = O,
+                                                lowertri_epsilon_between = O,
+                                                lambda = I,
+                                                vars = vars,
+                                                clusters = clusters,
                                                 groups = groups,
-                                                covs = covs,
-                                                means = means,
-                                                nobs = nobs,
-                                                missing = missing,
                                                 equal = equal,
                                                 estimator = estimator,
                                                 baseline_saturated = FALSE,
@@ -486,19 +526,36 @@ dlvm1 <- function(
     
     
     ### Saturated model ###
-    model@baseline_saturated$saturated <- varcov(data,
-                                                 type = "chol", 
-                                                 lowertri = "full", 
-                                                 vars = allVars,
+    model@baseline_saturated$saturated <- ml_lvm(data,
+                                                 within_latent = "chol",
+                                                 sigma_zeta_within = "full",
+                                                 between_latent = "chol",
+                                                 sigma_zeta_between = "full",
+                                                 lowertri_epsilon_within = O,
+                                                 lowertri_epsilon_between = O,
+                                                 lambda = I,
+                                                 vars = vars,
+                                                 clusters = clusters,
                                                  groups = groups,
-                                                 covs = covs,
-                                                 means = means,
-                                                 nobs = nobs,
-                                                 missing = missing,
                                                  equal = equal,
                                                  estimator = estimator,
                                                  baseline_saturated = FALSE,
                                                  sampleStats = sampleStats)
+    
+    
+    # model@baseline_saturated$saturated <- varcov(data,
+    #                                              type = "chol", 
+    #                                              lowertri = "full", 
+    #                                              vars = allVars,
+    #                                              groups = groups,
+    #                                              covs = covs,
+    #                                              means = means,
+    #                                              nobs = nobs,
+    #                                              missing = missing,
+    #                                              equal = equal,
+    #                                              estimator = estimator,
+    #                                              baseline_saturated = FALSE,
+    #                                              sampleStats = sampleStats)
     
     # if not FIML, Treat as computed:
     if (estimator != "FIML"){

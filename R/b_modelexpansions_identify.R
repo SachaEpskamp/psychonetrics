@@ -24,7 +24,11 @@ identify <- function(x){
   } else if (x@model == "Ising"){
     x <- identify_Ising(x)
     return(x)
+  } else if (x@model == "ml_lvm"){
+    x <- identify_ml_lvm(x)
+    return(x)
   }
+  
   
   
   stop("Model not supported...")

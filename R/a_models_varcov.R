@@ -29,7 +29,8 @@ varcov <- function(
   meanstructure, # Defaults to TRUE if data is used or means is used, FALSE otherwie
   corinput, # Defaults to TRUE if the input is detected to consist of correlation matrix/matrices, FALSE otherwise
   verbose = TRUE,
-  covtype = c("choose","ML","UB")
+  covtype = c("choose","ML","UB"),
+  standardize = c("none","z","quantile")
 ){
   rawts = FALSE
   if (rawts){
@@ -109,7 +110,8 @@ varcov <- function(
                                meanstructure = meanstructure,
                                corinput = corinput,
                                covtype=covtype,
-                               verbose=verbose)
+                               verbose=verbose,
+                               standardize=standardize)
   }
  
   # Overwrite corinput:

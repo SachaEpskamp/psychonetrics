@@ -33,6 +33,7 @@ var1 <- function(
   optimizer = "default", # ucminf
   storedata = FALSE,
   covtype = c("choose","ML","UB"),
+  standardize = c("none","z","quantile"),
   sampleStats
 ){
   contemporaneous <- match.arg(contemporaneous)
@@ -74,6 +75,7 @@ var1 <- function(
                                fimldata = estimator == "FIML",
                                storedata = storedata,
                                covtype=covtype,
+                               standardize = standardize,
                                weightsmatrix = ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
                                                       switch(estimator,
                                                         "WLS" = "full",

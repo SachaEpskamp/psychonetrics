@@ -99,8 +99,12 @@ stepup <- function(
         matrices <- c(matrices,"omega_mu")
       }
       
-    } else if (x@model == "dlvm1"){
-      matrices <- c("beta")
+    } else if (x@model %in% c("ml_lvm","dlvm1")){
+      if (x@model == "dlvm1") {
+        matrices <- c("beta")
+      } else {
+        matrices <- character(0)
+      }
       if (x@types$within_latent == "prec"){
         matrices <- c(matrices,"kappa_zeta_within")
       } else if (x@types$within_latent == "ggm"){

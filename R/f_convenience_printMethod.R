@@ -41,7 +41,8 @@ definition = function(object){
     "dlvm1" = "Lag-1 dynamic latent variable model for panel data (dlvm1)",
     "tsdlvm1" = "Lag-1 dynamic latent variable model for time-series data (tsdlvm1)",
     "meta_varcov" = "Variance-covariance matrix meta analysis",
-    "Ising" = "Ising model"
+    "Ising" = "Ising model",
+    "ml_lvm" = "Multi-level latent variable model"
   )
   
   submod <- switch(
@@ -55,7 +56,9 @@ definition = function(object){
     "sem" = "Structural equation model (SEM)",
     "lrnm" = "Latent & residual network model (LRNM)",
     "gvar" = "Graphical vector-autoregression (GVAR)",
-    "var" = "Vector-autoregression (VAR)"
+    "var" = "Vector-autoregression (VAR)",
+    "ml_lnm" = "Multi-level latent network model",
+    "ml_rnm" = "Multi-level residual network model"
   )
   if (is.null(submod)){
     submod <- object@submodel
