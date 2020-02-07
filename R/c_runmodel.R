@@ -48,9 +48,15 @@ runmodel <- function(
     stop("input is not a 'psychonetrics' object")
   }
   
+  # Check if model happens to be baseline model:
+  isBaseline <- all(x@baseline_saturated$baseline@parameters$par == x@parameters$par)
+  
+  # Check if model happens to be saturated model:
+  isSaturated <- all(x@baseline_saturated$saturated@parameters$par == x@parameters$par)
+  
   
   # Evaluate baseline model:
-  if (!is.null(x@baseline_saturated$baseline) && !x@baseline_saturated$baseline@computed){
+  if (!isBaseline && !is.null(x@baseline_saturated$baseline) && !x@baseline_saturated$baseline@computed){
     if (verbose) message("Estimating baseline model...")
     # Run:
     
@@ -59,7 +65,7 @@ runmodel <- function(
   
   # Evaluate saturated model:
   
-  if (!is.null(x@baseline_saturated$saturated) && !x@baseline_saturated$saturated@computed){
+  if (!isSaturated && !is.null(x@baseline_saturated$saturated) && !x@baseline_saturated$saturated@computed){
     if (verbose) message("Estimating saturated model...")
     # Run:
     x@baseline_saturated$saturated <- runmodel(x@baseline_saturated$saturated, addfit = FALSE, addMIs = FALSE, verbose = FALSE,addSEs=FALSE, addInformation = FALSE, analyticFisher = FALSE)
@@ -345,6 +351,14 @@ runmodel <- function(
   # Add SEs:
   if (addSEs){
     x <- addSEs(x)
+  }
+  
+  # Add baseline or saturated if needed:
+  if (isBaseline){
+    x@baseline_saturated$baseline <- x
+  }
+  if (isSaturated){
+    x@baseline_saturated$saturated <- x
   }
   
   if (log){

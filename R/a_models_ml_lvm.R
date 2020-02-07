@@ -507,9 +507,9 @@ ml_lvm <- function(
     O <- matrix(0, nVar, nVar)
     model@baseline_saturated$baseline <- ml_lvm(data,
                                                 within_latent = "chol",
-                                                sigma_zeta_within = "empty",
+                                                lowertri_zeta_within = "empty",
                                                 between_latent = "chol",
-                                                sigma_zeta_between = "empty",
+                                                lowertri_zeta_between = "empty",
                                                 lowertri_epsilon_within = O,
                                                 lowertri_epsilon_between = O,
                                                 lambda = I,
