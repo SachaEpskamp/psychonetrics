@@ -38,7 +38,7 @@ runmodel <- function(
     } else {
       optimizer <- "ucminf"
     }
-
+    
   }
   
   
@@ -48,12 +48,20 @@ runmodel <- function(
     stop("input is not a 'psychonetrics' object")
   }
   
-  # Check if model happens to be baseline model:
-  isBaseline <- all(x@baseline_saturated$baseline@parameters$par == x@parameters$par)
   
-  # Check if model happens to be saturated model:
-  isSaturated <- all(x@baseline_saturated$saturated@parameters$par == x@parameters$par)
+  if (!is.null(x@baseline_saturated$baseline)){
+    # Check if model happens to be baseline model:
+    isBaseline <- identical(x@baseline_saturated$baseline@parameters$par, x@parameters$par)    
+  } else {
+    isBaseline <- FALSE
+  }
   
+  if (!is.null(x@baseline_saturated$saturated)){
+    # Check if model happens to be saturated model:
+    isSaturated <- identical(x@baseline_saturated$saturated@parameters$par, x@parameters$par)
+  } else {
+    isSaturated <- FALSE
+  }
   
   # Evaluate baseline model:
   if (!isBaseline && !is.null(x@baseline_saturated$baseline) && !x@baseline_saturated$baseline@computed){
@@ -157,7 +165,7 @@ runmodel <- function(
   
   # Add bounds:
   if (optimizer %in% c("nlminb","L-BFGS-B","lbfgs")){
-
+    
     optim.control$lower <- lower
     optim.control$upper <- upper
   }
@@ -168,22 +176,22 @@ runmodel <- function(
   if (optimizer == "nlminb"){
     if (is.null(optim.control$control)){
       optim.control$control<- list(eval.max=20000L,
-                                     iter.max=10000L,
-                                     trace=0L,
-                                     #abs.tol=1e-20, ### important!! fx never negative
-                                     abs.tol=(.Machine$double.eps * 10),
-                                     # rel.tol=1e-10,
-                                     rel.tol=1e-5,
-                                     #step.min=2.2e-14, # in =< 0.5-12
-                                     step.min=1.0, # 1.0 in < 0.5-21
-                                     step.max=1.0,
-                                     x.tol=1.5e-8,
-                                     xf.tol=2.2e-14)
+                                   iter.max=10000L,
+                                   trace=0L,
+                                   #abs.tol=1e-20, ### important!! fx never negative
+                                   abs.tol=(.Machine$double.eps * 10),
+                                   # rel.tol=1e-10,
+                                   rel.tol=1e-5,
+                                   #step.min=2.2e-14, # in =< 0.5-12
+                                   step.min=1.0, # 1.0 in < 0.5-21
+                                   step.max=1.0,
+                                   x.tol=1.5e-8,
+                                   xf.tol=2.2e-14)
     }
   }
- 
   
-    repeat{
+  
+  repeat{
     tryres <- try({
       optim.out <- do.call(optimr,optim.control)
     }, silent = TRUE)    
@@ -207,7 +215,7 @@ runmodel <- function(
       }
     }
   }
-
+  
   # optim.out <- do.call(optimr,optim.control)
   
   # Update model:
@@ -337,8 +345,8 @@ runmodel <- function(
       warning("Information matrix is not positive semi-definite. Model might not be identified.")
     }    
   }
-
-
+  
+  
   # }
   # Add fit:
   if (addfit){
