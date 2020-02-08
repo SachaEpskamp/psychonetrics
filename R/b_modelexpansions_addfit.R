@@ -56,7 +56,10 @@ addfit <- function(
   fitMeasures$npar <- max(x@parameters$par)
   
   # Degrees of freedom:
-  fitMeasures$df <- fitMeasures$nobs - fitMeasures$npar
+  fitMeasures$df <- fitMeasures$nobs - fitMeasures$npar    
+  if (!is.null(x@baseline_saturated$saturated)){
+    fitMeasures$df <- fitMeasures$df  - (x@baseline_saturated$saturated@sample@nobs - max(x@baseline_saturated$saturated@parameters$par))
+  } 
 
   # Compute Fmin:
   fitMeasures$objective <- x@objective
