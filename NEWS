@@ -5,6 +5,7 @@ Changes in version 0.5.2:
   o Most model families now support the 'standardized' argument, which can be set to 'z' for z-scores (helps convergence) or 'quantile' for a semiparametric transformation
   o Added the ml_lvm family for two-level random intercept latent variable models
   o Added the simplestructure function to easily make a lambda matrix
+  o addalpha in modelsearch now works as expected
 
 Changes in version 0.5.1:
   o Fixed a bug with responses being missing when summary statistics are used in Ising()
