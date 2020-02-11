@@ -158,7 +158,7 @@ modelsearch <- function(x,
       (!x@parameters$fixed[ind]  & x@parameters$p[ind] > prunealpha) |
         
         # Significant edges to add?
-        (x@parameters$fixed[ind]  & x@parameters[[pmi]][ind] < prunealpha)
+        (x@parameters$fixed[ind]  & x@parameters[[pmi]][ind] < addalpha)
       ]
     
  
