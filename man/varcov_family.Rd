@@ -112,9 +112,6 @@ An optional sample statistics object. Mostly used internally.
   \item{verbose}{
 Logical, should progress be printed to the console?
 }
-  \item{standardize}{
-Which standardization method should be used? \code{"none"} (default) for no standardization, \code{"z"} for z-scores, and \code{"quantile"} for a non-parametric transformation to the quantiles of the marginal standard normal distribution.
-}
 \item{ordered}{
 A vector with strings indicating the variables that are ordered catagorical, or set to \code{TRUE} to model all variables as ordered catagorical.
 }
@@ -124,9 +121,7 @@ Logical, should the meanstructure be modeled explicitly?
 \item{corinput}{
 Logical, is the input a correlation matrix?
 }
-  \item{verbose}{
-Logical, should messages be printed?
-}
+
 \item{\dots}{
 Arguments sent to \code{varcov}
 }

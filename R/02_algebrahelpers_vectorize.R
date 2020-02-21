@@ -4,7 +4,7 @@ Vec <- function(x){
     return(Matrix(x,1,1))
   }
   
-  if (class(x)=="matrix"){
+  if (is(x,"matrix")){
     return(matrix(c(x)))
   } else {
     # Assume Matrix package
@@ -22,7 +22,7 @@ Vec <- function(x){
 }
 
 Vech <- function(x,diag=TRUE){
-  if (class(x)!="matrix"){
+  if (!is(x,"matrix")){
     x <- as.matrix(x)
   }
   return(x[lower.tri(x,diag=diag)])

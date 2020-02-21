@@ -46,7 +46,8 @@ lvm <- function(
   WLS.V,
   covtype = c("choose","ML","UB"),
   standardize = c("none","z","quantile"),
-  sampleStats
+  sampleStats,
+  verbose=TRUE
 ){
   rawts = FALSE
   if (rawts){
@@ -84,6 +85,7 @@ lvm <- function(
                                storedata = storedata,
                                covtype=covtype,
                                weightsmatrix = WLS.V,
+                               verbose=verbose,
                                standardize=standardize)
   }
 
