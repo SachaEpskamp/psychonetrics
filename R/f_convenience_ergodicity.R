@@ -154,36 +154,35 @@ print.esa <- function(x, printref = TRUE, ...){
 }
 
 # Plot method:
-plot.esa_manual <- function(x){
+plot.esa_manual <- function(x,...){
   # Scree plots:
   df <- data.frame(
     ev = seq_along(x$ergodicity),
     ergodicity = x$ergodicity
   )
   
-  library("ggplot2")
   
-  g <- ggplot(df, aes(x = ev, y = ergodicity)) + 
-    geom_line(lwd = 1.5) + geom_point(cex = 3) + ylim(-1,1) + 
-    geom_text(aes(x=mean(seq_along(x$ergodicity)), y = 1, label = "Dominantly between-subject"), colour = "black") + 
-    geom_text(aes(x=mean(seq_along(x$ergodicity)), y = -1, label = "Dominantly Within-subject"), colour = "black") + 
-    geom_text(aes(x=1.5, y = -0, label = "Ergodic"), colour = "black") + 
-    theme_bw() + 
-    ylab("") + xlab("Component") +
-    geom_hline(yintercept = -0.1, lwd = 0.5) + 
-    geom_hline(yintercept = 0.1, lwd = 0.5) +
-    theme(
+  g <- ggplot2::ggplot(df, ggplot2::aes_string(x = "ev", y = "ergodicity")) + 
+    ggplot2::geom_line(lwd = 1.5) + ggplot2::geom_point(cex = 3) + ggplot2::ylim(-1,1) + 
+    ggplot2::geom_text(aes(x=mean(seq_along(x$ergodicity)), y = 1, label = "Dominantly between-subject"), colour = "black") + 
+    ggplot2::geom_text(aes(x=mean(seq_along(x$ergodicity)), y = -1, label = "Dominantly Within-subject"), colour = "black") + 
+    ggplot2::geom_text(aes(x=1.5, y = -0, label = "Ergodic"), colour = "black") + 
+    ggplot2::theme_bw() + 
+    ggplot2::ylab("") + ggplot2::xlab("Component") +
+    ggplot2::geom_hline(yintercept = -0.1, lwd = 0.5) + 
+    ggplot2::geom_hline(yintercept = 0.1, lwd = 0.5) +
+    ggplot2::theme(
       legend.position = c(.95, .95),
       legend.justification = c("right", "top"),
       legend.box.just = "right",
       legend.margin = margin(6, 6, 6, 6)
     ) + 
-    scale_color_discrete("")
+    ggplot2::scale_color_discrete("")
   
   return(g) 
 }
 
-plot.esa <- function(x, plot = c("observed","latent")){
+plot.esa <- function(x, plot = c("observed","latent"),...){
   plot <- match.arg(plot)
   nGroups <- length(x$observed)
   
@@ -194,30 +193,32 @@ plot.esa <- function(x, plot = c("observed","latent")){
       ergodicity = x[[plot]][[g]]$ergodicity,
       group = names(x[[plot]])[g]
     ) }))
+  
+  erg <- df$ergodicity
     
     # Create base plot:
     if (nGroups == 1){
-      g <- ggplot(df, aes(x = ev, y = ergodicity))
+      g <- ggplot2::ggplot(df, aes_string(x = "ev", y = "ergodicity"))
     } else {
-      g <- ggplot(df, aes(x = ev, y = ergodicity, colour = factor(group)))
+      g <- ggplot2::ggplot(df, aes_string(x = "ev", y = "ergodicity", colour = "factor(group)"))
     }
     
     g <- g + 
-      geom_line(lwd = 1.5) + geom_point(cex = 3) + ylim(-1,1) + 
-      geom_text(aes(x=mean(seq_along(erg)), y = 1, label = "Dominantly between-subject"), colour = "black") + 
-      geom_text(aes(x=mean(seq_along(erg)), y = -1, label = "Dominantly Within-subject"), colour = "black") + 
-      geom_text(aes(x=1.5, y = -0, label = "Ergodic"), colour = "black") + 
-      theme_bw() + 
-      ylab("") + xlab("Component") +
-      geom_hline(yintercept = -0.1, lwd = 0.5) + 
-      geom_hline(yintercept = 0.1, lwd = 0.5) +
-      theme(
+      ggplot2::geom_line(lwd = 1.5) + ggplot2::geom_point(cex = 3) + ggplot2::ylim(-1,1) + 
+      ggplot2::geom_text(aes(x=mean(seq_along(erg)), y = 1, label = "Dominantly between-subject"), colour = "black") + 
+      ggplot2::geom_text(aes(x=mean(seq_along(erg)), y = -1, label = "Dominantly Within-subject"), colour = "black") + 
+      ggplot2::geom_text(aes(x=1.5, y = -0, label = "Ergodic"), colour = "black") + 
+      ggplot2::theme_bw() + 
+      ggplot2::ylab("") + ggplot2::xlab("Component") +
+      ggplot2::geom_hline(yintercept = -0.1, lwd = 0.5) + 
+      ggplot2::geom_hline(yintercept = 0.1, lwd = 0.5) +
+      ggplot2::theme(
         legend.position = c(.95, .95),
         legend.justification = c("right", "top"),
         legend.box.just = "right",
         legend.margin = margin(6, 6, 6, 6)
       ) + 
-      scale_color_discrete("")
+      ggplot2::scale_color_discrete("")
     
     return(g) 
 }

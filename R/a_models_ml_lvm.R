@@ -70,6 +70,11 @@ ml_lvm <- function(
   standardize = c("none","z","quantile"),
   sampleStats
 ){
+  # CRAN Check workarounds (sorry):
+  . <- NULL
+  variable <- NULL
+  value <- NULL
+  
   # Check input:
   # Match args:
   standardize <- match.arg(standardize)
@@ -142,7 +147,7 @@ ml_lvm <- function(
   }
   
   # Number of clusters:
-  nCluster <- length(unique(data[[idvar]]))
+  nCluster <- length(unique(data[[clusters]]))
   
   # Add a column with ID in cluster:
   data[['CLUSTERID']] <- unlist(tapply(data[[clusters]],data[[clusters]],seq_along))

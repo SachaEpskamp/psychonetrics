@@ -13,10 +13,13 @@ export(ml_lnm)
 export(ml_rnm)
 export(ml_lrnm)
 
+export(meta_varcov)
+
 # Ergodic:
 export(esa)
 export(esa_manual)
 import(ggplot2)
+import(tidyr)
 
 S3method(plot, esa)
 S3method(plot, esa_manual)
@@ -153,3 +156,5 @@ import(magrittr)
 
   importFrom("stats", "na.omit", "p.adjust", "rnorm", "sd")
      importFrom("utils", "setTxtProgressBar", "txtProgressBar")
+     
+     importFrom("stats", "qnorm")

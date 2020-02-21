@@ -6,7 +6,7 @@ prune <- function(
   adjust = c( "none", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr"),
   matrices, # Automatically chosen
   runmodel = TRUE,
-  recursive = TRUE,
+  recursive = FALSE,
   verbose = TRUE,
   log = TRUE,
   identify = TRUE,

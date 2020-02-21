@@ -16,7 +16,8 @@ var1(data, contemporaneous = c("cov", "chol", "prec",
                     vars, groups, covs, means, nobs, missing = "listwise",
                     equal = "none", baseline_saturated = TRUE, estimator =
                     "ML", optimizer = "default", storedata = FALSE,
-                    covtype = c("choose", "ML", "UB"), sampleStats)
+                    covtype = c("choose", "ML", "UB"), standardize =
+                    c("none", "z", "quantile"), sampleStats)
 
 gvar(...)
 }
@@ -90,6 +91,9 @@ The optimizer to be used. Usually either \code{"nlminb"} (with box constrains) o
 }
   \item{storedata}{
 Logical, should the raw data be stored? Needed for bootstrapping (see \code{bootstrap}).
+}
+  \item{standardize}{
+Which standardization method should be used? \code{"none"} (default) for no standardization, \code{"z"} for z-scores, and \code{"quantile"} for a non-parametric transformation to the quantiles of the marginal standard normal distribution.
 }
   \item{sampleStats}{
 An optional sample statistics object. Mostly used internally. 

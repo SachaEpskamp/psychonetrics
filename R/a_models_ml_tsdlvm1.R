@@ -10,6 +10,11 @@ ml_tsdlvm1 <- function(
   standardize = c("none","z","quantile"),
   ...
 ){
+  # CRAN Check workarounds (sorry):
+  . <- NULL
+  variable <- NULL
+  value <- NULL
+  
   standardize <- match.arg(standardize)
   
   if (estimator != "FIML") stop("Only 'FIML' supported currently.")

@@ -14,14 +14,15 @@ This is the family of models that models only a variance-covariance matrix with 
 }
 \usage{
 varcov(data, type = c("cov", "chol", "prec", "ggm", "cor"),
-                   sigma = "full", kappa = "full", omega = "full",
-                   lowertri = "full", delta = "full", rho = "full", SD =
-                   "full", mu, tau, vars, ordered = character(0), groups,
-                   covs, means, nobs, missing = "listwise", equal =
-                   "none", baseline_saturated = TRUE, estimator =
-                   "default", optimizer = "default", storedata = FALSE,
-                   WLS.V, sampleStats, meanstructure, corinput, verbose =
-                   TRUE, covtype = c("choose", "ML", "UB"))
+                    sigma = "full", kappa = "full", omega = "full",
+                    lowertri = "full", delta = "full", rho = "full", SD =
+                    "full", mu, tau, vars, ordered = character(0), groups,
+                    covs, means, nobs, missing = "listwise", equal =
+                    "none", baseline_saturated = TRUE, estimator =
+                    "default", optimizer = "default", storedata = FALSE,
+                    WLS.V, sampleStats, meanstructure, corinput, verbose =
+                    TRUE, covtype = c("choose", "ML", "UB"), standardize =
+                    c("none", "z", "quantile"))
 cholesky(\dots)
 precision(\dots)
 prec(\dots)
@@ -99,11 +100,20 @@ The optimizer to be used. Usually either \code{"nlminb"} (with box constrains) o
   \item{storedata}{
 Logical, should the raw data be stored? Needed for bootstrapping (see \code{bootstrap}).
 }
+  \item{standardize}{
+Which standardization method should be used? \code{"none"} (default) for no standardization, \code{"z"} for z-scores, and \code{"quantile"} for a non-parametric transformation to the quantiles of the marginal standard normal distribution.
+}
 \item{WLS.V}{
 Optional WLS weights matrix.
 }
   \item{sampleStats}{
 An optional sample statistics object. Mostly used internally. 
+}
+  \item{verbose}{
+Logical, should progress be printed to the console?
+}
+  \item{standardize}{
+Which standardization method should be used? \code{"none"} (default) for no standardization, \code{"z"} for z-scores, and \code{"quantile"} for a non-parametric transformation to the quantiles of the marginal standard normal distribution.
 }
 \item{ordered}{
 A vector with strings indicating the variables that are ordered catagorical, or set to \code{TRUE} to model all variables as ordered catagorical.

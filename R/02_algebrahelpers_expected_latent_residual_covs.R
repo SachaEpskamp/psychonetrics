@@ -4,6 +4,7 @@ expected_latent_residual_covs <- function(
 ){
   nGroup <- length(covs)
   nLatent <- ncol(lambda)
+  nNode <- nrow(lambda)
   
   # Compute the expected latent and residual cov matrices:
   expLatSigma <- lapply(1:nGroup,function(x)matrix(0,nLatent,nLatent))
