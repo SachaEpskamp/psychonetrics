@@ -1,14 +1,14 @@
 Package: psychonetrics
 Type: Package
 Title: Structural Equation Modeling and Confirmatory Network Analysis
-Version: 0.5.2
+Version: 0.6
 Author: Sacha Epskamp
 Maintainer: Sacha Epskamp <mail@sachaepskamp.com>
 Description: Multi-group (dynamical) structural equation models in combination with confirmatory network models from cross-sectional, time-series and panel data <doi:10.31234/osf.io/8ha93>. Allows for confirmatory testing and fit as well as exploratory model search.
 License: GPL-2
 LinkingTo: Rcpp (>= 0.11.3), RcppArmadillo, pbv
 Depends: R (>= 3.5)
-Imports: methods, qgraph, numDeriv, dplyr, abind, matrixcalc, Matrix, lavaan, corpcor, ucminf, glasso, mgcv, optimx, mvtnorm, VCA, pbapply, parallel, magrittr, pbv, IsingSampler, ggplot2
+Imports: methods, qgraph, numDeriv, dplyr, abind, matrixcalc, Matrix, lavaan, corpcor, ucminf, glasso, mgcv, optimx, mvtnorm, VCA, pbapply, parallel, magrittr, pbv, IsingSampler, ggplot2, tidyr
 Suggests: psychTools, semPlot, graphicalVAR, metaSEM
 ByteCompile: true
 URL: http://psychonetrics.org/

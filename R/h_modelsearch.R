@@ -2,8 +2,8 @@
 modelsearch <- function(x,
                         criterion = "bic", # Stop when criterion is no longer improved. Can also be none to ignore
                         matrices, # Matrices to search
-                        prunealpha = 0.001, # Minimum p-value for edges tested to be removed
-                        addalpha = 0.05, # Maximum p-value for edges tested to be added
+                        prunealpha = 0.01, # Minimum p-value for edges tested to be removed
+                        addalpha = 0.01, # Maximum p-value for edges tested to be added
                         verbose = TRUE,
                         ...
 ){

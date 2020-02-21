@@ -24,7 +24,8 @@ lvm(data, lambda, latent = c("cov", "chol", "prec",
                     missing = "listwise", equal = "none",
                     baseline_saturated = TRUE, estimator = "ML", optimizer
                     = "default", storedata = FALSE, WLS.V, covtype =
-                    c("choose", "ML", "UB"), sampleStats)
+                    c("choose", "ML", "UB"), standardize = c("none", "z",
+                    "quantile"), sampleStats)
 
 lnm(\dots)
 rnm(\dots)
@@ -124,6 +125,9 @@ The optimizer to be used. Usually either \code{"nlminb"} (with box constrains) o
 }
   \item{storedata}{
 Logical, should the raw data be stored? Needed for bootstrapping (see \code{\link{bootstrap}}).
+}
+  \item{verbose}{
+Logical, should progress be printed to the console?
 }
   \item{WLS.V}{
 The weights matrix used in WLS estimation (experimental)

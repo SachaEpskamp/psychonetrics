@@ -15,7 +15,8 @@ Ergodic Subspace Analysis
 These functions implement Ergodic Subspace Analysis by von Oertzen, Schmiedek \& Voelkle (2020). The functions can be used on the output of a \code{\link{dlvm1}} model, or manually by supplying a within persons and between persons variance-covariance matrix.
 }
 \usage{
-esa(x, cutoff = 0.1)
+esa(x, cutoff = 0.1,
+    between = c("crosssection", "between"))
 esa_manual(sigma_wp, sigma_bp, cutoff = 0.1)
 \method{print}{esa}(x, printref = TRUE, ...)
 \method{print}{esa_manual}(x, printref = TRUE, ...)
@@ -27,6 +28,12 @@ esa_manual(sigma_wp, sigma_bp, cutoff = 0.1)
   \item{x}{
 Output of a \code{\link{dlvm1}} model
 }
+\item{sigma_wp}{
+Manual within-person variance-covariance matrix
+}
+\item{sigma_bp}{
+Manual between-person variance-covariance matrix
+}
   \item{cutoff}{
 Cutoff used to determine ergodicity
 }
@@ -35,6 +42,9 @@ Logical, should the reference be printed?
 }
 \item{plot}{
 Should ergodicity of observed or latent variables be plotted?
+}
+\item{between}{
+Should the between-persons variance-covariance matrix be based on exected cross-sectional or between-person relations
 }
  \item{\dots}{
 Not used
