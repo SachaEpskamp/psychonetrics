@@ -7,7 +7,8 @@ matrixsetup_delta <- function(
   equal = FALSE,
   sampletable,
   name = "delta",
-  onlyStartSign = FALSE
+  onlyStartSign = FALSE,
+  omegaStart
 ){
   # Fix lower tri:
   delta <- fixAdj(delta,nGroup,nNode,equal,diagonal=TRUE)
@@ -15,12 +16,18 @@ matrixsetup_delta <- function(
   
   # For each group, form starting values:
   deltaStart <- delta
+  
+  # OmegaStart:
+  if (missing(omegaStart)){
+    omegaStart <- array(1,c(nNode,nNode,nGroup))
+  }
+  
   for (g in 1:nGroup){
     # Current estimate:
     covest <- as.matrix(spectralshift(expcov[[g]]))
     
     # FIXME: This is already done in omega computation, but I am lazy....
-    zeroes <- which(deltaStart[,,g]==0 & t(deltaStart[,,g])==0 & diag(nNode) != 1,arr.ind=TRUE)
+    zeroes <- which(omegaStart[,,g]==0 & t(omegaStart[,,g])==0 & diag(nNode) != 1,arr.ind=TRUE)
     if (nrow(zeroes) == 0){
       wi <- solve_symmetric(spectralshift(covest))
     } else {
@@ -36,6 +43,7 @@ matrixsetup_delta <- function(
       deltaStart[,,g] <- ifelse(deltaStart[,,g]!=0,sign(deltaStart[,,g]), 0)
     }
   }
+  
   
   # Form the model matrix part:
 

@@ -154,6 +154,8 @@ modelsearch <- function(x,
     ind <- which(x@parameters$matrix %in% matrices & !x@parameters$identified)
     
     allParsToConsider <- ind[
+      !is.na(x@parameters$fixed[ind]) &
+        
       # Non significant edges to remove?
       (!x@parameters$fixed[ind]  & x@parameters$p[ind] > prunealpha) |
         
@@ -213,24 +215,30 @@ modelsearch <- function(x,
             try <- 1
             repeat{
               if (try == 1){
-                # First try, 0.5 * EPC:
+                # First try, EPC:
+                propMods[[i]] <- x %>% freepar(matrix = x@parameters$matrix[curpar], row = x@parameters$row[curpar], col = x@parameters$col[curpar], 
+                                               group = x@parameters$group_id[curpar],
+                                               start = x@parameters$epc[curpar], verbose = FALSE)
+                
+              } else if (try == 2){
+                # Second try, 0.5 * EPC:
                 propMods[[i]] <- x %>% freepar(matrix = x@parameters$matrix[curpar], row = x@parameters$row[curpar], col = x@parameters$col[curpar], 
                                                group = x@parameters$group_id[curpar],
                                                start = 0.5 * x@parameters$epc[curpar], verbose = FALSE)
                 
-              } else if (try == 2){
-                # Second try, 0.0001 * sign(EPC):
+              } else if (try == 3){
+                # Third try, 0.0001 * sign(EPC):
                 propMods[[i]] <- x %>% freepar(matrix = x@parameters$matrix[curpar], row = x@parameters$row[curpar], col = x@parameters$col[curpar], 
                                                group = x@parameters$group_id[curpar],
                                                start = 0.0001 * sign(x@parameters$epc[curpar]), verbose = FALSE)
                 
-              } else if (try == 3){
+              } else if (try == 4){
                 # Final try, emergency start:
                 propMods[[i]] <- x %>% freepar(matrix = x@parameters$matrix[curpar], row = x@parameters$row[curpar], col = x@parameters$col[curpar], 
                                                group = x@parameters$group_id[curpar],
                                                start = x@parameters$epc[curpar], verbose = FALSE) %>% emergencystart
                 
-              } else if (try > 3){
+              } else if (try > 4){
                 
                 # Give up:
                 propMods[[i]] <- x
