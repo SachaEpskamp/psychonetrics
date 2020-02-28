@@ -1,3 +1,7 @@
+Changes in version 0.6.1:
+  o Fixed a bug in Delta starting values
+  o Fixed a bug causing modelsearch to occasionally crash
+
 Changes in version 0.6:
   o The 'dlvm1' model family now also returns the implied latent variance-covarriance matrix as 'sigma_eta_within'
       o The latent lag-1 matrix is also returned as 'sigma_eta_within_lag1'

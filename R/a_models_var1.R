@@ -161,6 +161,7 @@ var1 <- function(
   contCovEst <- lapply(1:nGroup, function(g) spectralshift(S0est[[g]] - S1est[[g]] %*% S0inv[[g]] %*% t(S1est[[g]])))
   # contCovEst <- lapply(1:nGroup, function(g) spectralshift(exoCovs[[g]] - t(S1est[[g]]) %*% S0inv[[g]] %*% S1est[[g]]))
   
+
   # Fill in:
   if (contemporaneous == "cov"){
     modMatrices$sigma_zeta <- matrixsetup_sigma(sigma_zeta, name = "sigma_zeta",
@@ -193,7 +194,8 @@ var1 <- function(
                                                 nGroup = nGroup, 
                                                 labels = sampleStats@variables$label[-(1:nNode)],
                                                 equal = "delta_zeta" %in% equal, sampletable = sampleStats,
-                                                onlyStartSign = FALSE) 
+                                                onlyStartSign = FALSE,
+                                                omegaStart =  modMatrices$omega_zeta$start) 
   } else if (contemporaneous == "prec"){
     
     # Add omega matrix:
@@ -204,6 +206,7 @@ var1 <- function(
                                                 labels = sampleStats@variables$label[-(1:nNode)],
                                                 equal = "kappa_zeta" %in% equal, sampletable = sampleStats)
   }
+  
   
   # Generate the full parameter table:
   pars <- do.call(generateAllParameterTables, modMatrices)

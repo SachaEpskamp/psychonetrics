@@ -285,7 +285,8 @@ meta_varcov <- function(
                                              labels = vars,
                                              equal = FALSE,
                                              sampletable = sampleStats,
-                                             name = "delta_y")
+                                             name = "delta_y",
+                                             omegaStart =  modMatrices$omega_y$start)
     }
 
   } else if (type == "prec"){
@@ -371,7 +372,8 @@ meta_varcov <- function(
                                                            labels = corvars,
                                              equal = FALSE,
                                              sampletable = sampleStats,
-                                             name = "delta_randomEffects")
+                                             name = "delta_randomEffects",
+                                             omegaStart =  modMatrices$omega_randomEffects$start)
 
 
   } else if (randomEffects == "prec"){

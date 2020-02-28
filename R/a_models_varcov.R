@@ -210,7 +210,8 @@ varcov <- function(
                                              nNode = nNode, 
                                              nGroup = nGroup, 
                                              labels = sampleStats@variables$label,
-                                             equal = "delta" %in% equal, sampletable = sampleStats)       
+                                             equal = "delta" %in% equal, sampletable = sampleStats,
+                                             omegaStart =  modMatrices$omega$start)       
     }
     
   } else if (type == "prec"){

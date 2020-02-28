@@ -246,7 +246,8 @@ lvm <- function(
                                                 nNode = nLatent, 
                                                 nGroup = nGroup, 
                                                 labels = latents,
-                                           equal = "delta_zeta" %in% equal, sampletable = sampleStats) 
+                                           equal = "delta_zeta" %in% equal, sampletable = sampleStats,
+                                           omegaStart =  modMatrices$delta_zeta$start) 
   } else if (latent == "prec"){
     
     # Add omega matrix:
@@ -294,7 +295,8 @@ lvm <- function(
                                                 nNode = nNode, 
                                                 nGroup = nGroup, 
                                                 labels = sampleStats@variables$label,
-                                                equal = "delta_epsilon" %in% equal, sampletable = sampleStats) 
+                                                equal = "delta_epsilon" %in% equal, sampletable = sampleStats,
+                                                omegaStart =  modMatrices$delta_epsilon$start) 
   } else if (residual == "prec"){
     
     # Add omega matrix:
