@@ -86,7 +86,7 @@ meta_varcov <- function(
     rownames(cors[[i]]) <- colnames(cors[[i]]) <- vars
     varsOfStudy <- colnames(corsOld[[i]])
     matched <- match(varsOfStudy,vars)
-    cors[[i]][matched,matched] <- corsOld[[i]]
+    cors[[i]][matched,matched] <- as.matrix(corsOld[[i]])
   }
 
   # Form the dataset from the lower triangles of cor matrices:
