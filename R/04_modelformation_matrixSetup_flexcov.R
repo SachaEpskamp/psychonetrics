@@ -44,12 +44,12 @@ matrixsetup_flexcov <- function(
     # Add delta matrix:
     matDelta <- paste0("delta_",name)
     modMatrices[[matDelta]] <- matrixsetup_delta(delta, 
-                                                name = mat,
+                                                name = matDelta,
                                                 expcov=expCov,
                                                 nNode = nNode, 
                                                 nGroup = nGroup, 
                                                 labels = labels,
-                                                equal = mat %in% equal, sampletable = sampleStats,
+                                                equal = matDelta %in% equal, sampletable = sampleStats,
                                             omegaStart =  modMatrices[[mat]]$start) 
   } else if (type == "prec"){
     mat <- paste0("kappa_",name)
