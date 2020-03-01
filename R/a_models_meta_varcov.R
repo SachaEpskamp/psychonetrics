@@ -4,7 +4,8 @@ meta_varcov <- function(
   nobs, # vector of sample sizes as input
   
   Vmats, # Optional list of V matrices for each group. Will be averaged.
-  Vmethod = c("default","individual","psychonetrics_individual", "psychonetrics_pooled", "metaSEM_individual","metaSEM_weighted"), # How to obtain V matrices if Vmats is not supplied?
+  Vmethod = c("default","individual","weighted","psychonetrics_individual", "psychonetrics_weighted", "psychonetrics_pooled", "metaSEM_individual","metaSEM_weighted"), # How to obtain V matrices if Vmats is not supplied?
+  Vestimation = c("averaged","per_study"),
   
   # Model setup:
   type = c("cor", "ggm"), # Same as in varcov. Currently only cor and ggm are supported.
@@ -54,6 +55,7 @@ meta_varcov <- function(
       stop("'Vmats' must be missing if 'Vmethod' is not 'default'")
     }
   }
+  Vestimation <- match.arg(Vestimation)
   
   # set the labels:
   if (missing(vars)){
@@ -153,7 +155,9 @@ meta_varcov <- function(
     dumSig <- matrix(0,nNode,nNode)
     dumSig[lower.tri(dumSig,diag=FALSE)] <- seq_len(sum(lower.tri(dumSig,diag=FALSE)))
     
-    if (Vmethod == "individual"){ ### ONLY THIS SUPPORTS MISSING NODES NOW!
+    # Every method should give Vmats and avgVmat...
+    
+    if (Vmethod == "individual"){ 
       # For each group, make a model and obtain VCOV:
       Vmats <- lapply(seq_along(cors),function(i){
         # Find the missing nodes:
@@ -183,49 +187,135 @@ meta_varcov <- function(
       avgVmat <- Reduce("+", Vmats) / Reduce("+",lapply(Vmats,function(x)x!=0))
     }
     
+    
+    if (Vmethod %in% c("weighted","psychonetrics_weighted")){
+      
+      # Make an average correlation matrix, weighted per sample size:
+      avgCormat <- diag(1, nNode)
+      for (i in 2:nNode){
+        for (j in 1:(i-1)){
+          avgCormat[i,j] <- avgCormat[j,i] <- weighted.mean(sapply(cors,'[',i,j), nobs, na.rm = TRUE)
+        }
+      }
+      avgN <- mean(nobs,na.rm=TRUE)
+    }
+    
+   
+    if (Vmethod == "weighted"){
+      
+      k <- solve(avgCormat)
+      D2 <- duplicationMatrix(ncol(avgCormat), FALSE)
+      v <- 0.5 * avgN * t(D2) %*% (k %x% k) %*% D2
+      avgVmat <- solve(v)
+      
+      # Compute Vmat per dataset:
+      Vmats <- lapply(nobs,function(n) mean(nobs)/n * avgVmat)
+    }
+    
+    if (Vmethod == "psychonetrics_weighted"){
+      
+      mod <- varcov(covs=avgCormat,nobs=avgN, corinput = TRUE, type = "cor", baseline_saturated = FALSE, verbose = FALSE)
+      mod <- runmodel(mod, addfit = FALSE, addMIs = FALSE, addSEs = FALSE, verbose = FALSE)
+      avgVmat <- getVCOV(mod)
+      
+      
+      # Compute Vmat per dataset:
+      Vmats <- lapply(nobs,function(n) mean(nobs)/n * avgVmat)
+    }
+    
     if (Vmethod == "psychonetrics_individual"){
+      
       # For each group, make a model and obtain VCOV:
       Vmats <- lapply(seq_along(cors),function(i){
-        mod <- varcov(covs=cors[[i]],nobs=sampleSizes[i], corinput = TRUE, type = "cor", baseline_saturated = FALSE, verbose = FALSE)
+        
+        # Find the missing nodes:
+        obs <- !apply(cors[[i]],2,function(x)all(is.na(x)))
+        
+        # Indices:
+        inds <- c(dumSig[obs,obs,drop=FALSE])
+        inds <- inds[inds!=0]
+        
+        # Elimintation matrix:
+        L <- sparseMatrix(i=seq_along(inds),j=inds,dims=c(length(inds),nNode*(nNode-1)/2))
+        
+        # Now obtain only the full subset correlation matrix:
+        cmat <- as(cors[[i]][obs,obs], "matrix")
+        
+        # Now run psychonetrics:
+        mod <- varcov(covs=cmat,nobs=sampleSizes[i], corinput = TRUE, type = "cor", baseline_saturated = FALSE, verbose = FALSE)
         mod <- runmodel(mod, addfit = FALSE, addMIs = FALSE, addSEs = FALSE, verbose = FALSE)
-        getVCOV(mod)
+        vcov <- getVCOV(mod)
+        
+        # Now expand using the elmination matrix:
+        t(L) %*% vcov %*% L
+        
+        
+        
       })
       
-      avgVmat <- Reduce("+", Vmats) / length(Vmats)
+      avgVmat <- Reduce("+", Vmats) / Reduce("+",lapply(Vmats,function(x)x!=0))
       
     }
     
     
     if (Vmethod == "psychonetrics_pooled"){
-      # Single multi-group model:
-      mod <- varcov(covs=cors,nobs=sampleSizes, corinput = TRUE, type =  "cor", equal = "rho", baseline_saturated = FALSE, verbose = FALSE)
-      mod <- runmodel(mod, addfit = FALSE, addMIs = FALSE, addSEs = FALSE, verbose = FALSE)
-      acov <- getVCOV(mod)
-      avgVmat <- acov * length(cors)
+      
+      
+      # If there are any NAs, use covariance input to compute model using FIML:
+      if(any(is.na(unlist(lapply(cors,as.vector))))){
+        # Single multi-group model:
+        mod <- varcov(covs=cors,nobs=sampleSizes, corinput = FALSE, type =  "cor", equal = c("SD","rho","mu"), baseline_saturated = FALSE, verbose = FALSE,
+                      estimator = "FIML", covtype = "ML", meanstructure = TRUE)
+        mod <- runmodel(mod, addfit = FALSE, addMIs = FALSE, addSEs = FALSE, verbose = FALSE)
+        acov <- getVCOV(mod)
+        
+        ind <- which(mod@parameters$matrix[match(seq_len(max(mod@parameters$par)),mod@parameters$par)] == "rho")
+        avgVmat <- acov[ind,ind] * length(cors)
+        
+      } else {
+        mod <- varcov(covs=cors,nobs=sampleSizes, corinput = TRUE, type =  "cor", equal = "rho", baseline_saturated = FALSE, verbose = FALSE)        
+        mod <- runmodel(mod, addfit = FALSE, addMIs = FALSE, addSEs = FALSE, verbose = FALSE)
+        acov <- getVCOV(mod)
+        avgVmat <- acov * length(cors)
+      }
+      
+      # Compute Vmat per dataset:
+      Vmats <- lapply(nobs,function(n) mean(nobs)/n * avgVmat)
+      
+      # 
+      # # mod <- varcov(covs=cors,nobs=sampleSizes, corinput = TRUE, type =  "cor", equal = "rho", baseline_saturated = FALSE, verbose = FALSE,
+      #               # estimator = "FIML")
+      # mod <- runmodel(mod, addfit = FALSE, addMIs = FALSE, addSEs = FALSE, verbose = FALSE)
+      # acov <- getVCOV(mod)
+      # avgVmat <- acov * length(cors)
     }
     
     if (Vmethod == "metaSEM_individual"){
+      
       acovs <- metaSEM::asyCov(cors, sampleSizes, acov = "individual")
-      vMats <- list()
+      acovs[is.na(acovs)] <- 0
+      Vmats <- list()
       for (i in seq_len(nrow(acovs))){
-        vMats[[i]] <- matrix(0, nCor, nCor)
-        vMats[[i]][lower.tri(vMats[[i]],diag=TRUE)] <- acovs[i,]
-        vMats[[i]][upper.tri(vMats[[i]],diag=TRUE)] <- t(vMats)[[i]][upper.tri(vMats[[i]],diag=TRUE)]
+        Vmats[[i]] <- matrix(0, nCor, nCor)
+        Vmats[[i]][lower.tri(Vmats[[i]],diag=TRUE)] <- acovs[i,]
+        Vmats[[i]][upper.tri(Vmats[[i]],diag=TRUE)] <- t(Vmats[[i]])[upper.tri(Vmats[[i]],diag=TRUE)]
       }
-      avgVmat <- Reduce("+", Vmats) / length(Vmats)
+      avgVmat <- Reduce("+", Vmats) / Reduce("+",lapply(Vmats,function(x)x!=0))
+      
     }
     
     
     
     if (Vmethod == "metaSEM_weighted"){
       acovs <- metaSEM::asyCov(cors, sampleSizes, acov = "weighted")
-      vMats <- list()
+      acovs[is.na(acovs)] <- 0
+      Vmats <- list()
       for (i in seq_len(nrow(acovs))){
-        vMats[[i]] <- matrix(0, nCor, nCor)
-        vMats[[i]][lower.tri(vMats[[i]],diag=TRUE)] <- acovs[i,]
-        vMats[[i]][upper.tri(vMats[[i]],diag=TRUE)] <- t(vMats)[[i]][upper.tri(vMats[[i]],diag=TRUE)]
+        Vmats[[i]] <- matrix(0, nCor, nCor)
+        Vmats[[i]][lower.tri(Vmats[[i]],diag=TRUE)] <- acovs[i,]
+        Vmats[[i]][upper.tri(Vmats[[i]],diag=TRUE)] <- t(Vmats[[i]])[upper.tri(Vmats[[i]],diag=TRUE)]
       }
-      avgVmat <- Reduce("+", Vmats) / length(Vmats)
+      avgVmat <- Reduce("+", Vmats) / Reduce("+",lapply(Vmats,function(x)x!=0))
     }
   }
   
@@ -444,7 +534,9 @@ meta_varcov <- function(
     C_c = as(lavaan::lav_matrix_commutation(nCor,nCor),"sparseMatrix"),
     
     # Add the vmat:
-    V = avgVmat
+    V = avgVmat,
+    Vall = Vmats,
+    Vestimation = Vestimation # FIXME: This is nicer somewhere else...
   )
   
   

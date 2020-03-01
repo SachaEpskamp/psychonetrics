@@ -19,24 +19,24 @@ using namespace arma;
 // }
 
 
+// innner function
 // [[Rcpp::export]]
-double logLikelihood_gaussian_subgroup_fiml_cpp(
+double logLikelihood_gaussian_subgroup_fiml_cpp_inner(
     arma::mat sigma, 
     arma::mat kappa,
     arma::vec mu,
-    Rcpp::List fimldata,
+    Rcpp::List dat,
     double epsilon) {
+  // Rf_PrintValue(wrap("USED"));
   
-  double result = 0;
-  double logdet = 0;
+    double logdet = 0;
   double n_part;
   double log2pi = log(2*M_PI);
   
   // Loop over groups
-  for (int i = 0; i < fimldata.size(); i++){
-  
+
     // Obtain list:
-    Rcpp::List dat = fimldata[i];
+    // Rcpp::List dat = fimldata[i];
     
     // Observed indices:
     vec obs = dat["obs"];
@@ -75,13 +75,77 @@ double logLikelihood_gaussian_subgroup_fiml_cpp(
     }
     
     // Likelihood:
-    result += n_part * (
+    double result = n_part * (
       logdet - nvar * log2pi - trace(S * kappa_p) -
         dot((means - mu_p).t(), kappa_p * (means - mu_p))
     );
     
     // nvar <- ncol(kappa)
       // res <-  attr(kappa, "logdet") - nvar * log((2*pi)) - sum(diag(SK)) - t(means - mu) %*% kappa %*% (means - mu)
+
+  // Return
+  return result;
+}
+
+
+// Outer function
+// [[Rcpp::export]]
+double logLikelihood_gaussian_subgroup_fiml_cpp(
+    arma::mat sigma, 
+    arma::mat kappa,
+    arma::vec mu,
+    Rcpp::List fimldata,
+    double epsilon) {
+  
+  double result = 0;
+  
+  // Loop over groups
+  for (int i = 0; i < fimldata.size(); i++){
+    
+
+    // Likelihood:
+    result += logLikelihood_gaussian_subgroup_fiml_cpp_inner(
+      sigma, 
+      kappa,
+      mu,
+      fimldata[i],
+      epsilon) ;
+    
+    // nvar <- ncol(kappa)
+    // res <-  attr(kappa, "logdet") - nvar * log((2*pi)) - sum(diag(SK)) - t(means - mu) %*% kappa %*% (means - mu)
+  }
+  
+  
+  // Return
+  return result;
+}
+
+
+// Outer function PER GORUP
+// [[Rcpp::export]]
+double logLikelihood_gaussian_subgroup_fiml_cpp_perGroup(
+    Rcpp::List sigma, 
+    Rcpp::List kappa,
+    Rcpp::List mu,
+    Rcpp::List fimldata,
+    double epsilon) {
+  
+  double result = 0;
+  
+  // Loop over groups
+  for (int i = 0; i < fimldata.size(); i++){
+    
+    
+    // Likelihood:
+    result += logLikelihood_gaussian_subgroup_fiml_cpp_inner(
+      sigma[i], 
+      kappa[i],
+      mu[i],
+      fimldata[i],
+              epsilon) ;
+    
+    // nvar <- ncol(kappa)
+    // res <-  attr(kappa, "logdet") - nvar * log((2*pi)) - sum(diag(SK)) - t(means - mu) %*% kappa %*% (means - mu)
   }
   
   
