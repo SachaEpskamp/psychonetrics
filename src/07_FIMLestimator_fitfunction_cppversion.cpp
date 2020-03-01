@@ -108,7 +108,7 @@ double fimlEstimator_Gauss_group_cpp(
 
 // Outer function PER GROUP:
 // [[Rcpp::export]] 
-double fimlEstimator_Gauss_group_cpp_perGroup(
+double fimlEstimator_Gauss_group_cpp_fullFIML(
     Rcpp::List sigma, 
     Rcpp::List kappa,
     Rcpp::List mu,

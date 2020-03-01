@@ -12,6 +12,7 @@ generate_psychonetrics_samplestats <- setClass("psychonetrics_samplestats",  slo
   # missingness = "list", # Missing patterns, only used when rawts = TRUE
   # data = "list" # Raw data, used only with fimldata
   fimldata = "list",
+  fullFIML = "logical",
   WLS.V = "list", # List with weights matrix per group
   rawdata = "data.frame" # For bootstrapping!
 ), prototype = list(groups = data.frame(
@@ -25,7 +26,8 @@ variables = data.frame(
   id = integer(0),
   ordered = logical(0)
 ),
-corinput = FALSE
+corinput = FALSE,
+fullFIML = FALSE
 ))
 
 # Timestamp:

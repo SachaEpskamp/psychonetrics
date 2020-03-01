@@ -123,12 +123,13 @@ double logLikelihood_gaussian_subgroup_fiml_cpp(
 
 // Outer function PER GORUP
 // [[Rcpp::export]]
-double logLikelihood_gaussian_subgroup_fiml_cpp_perGroup(
+double logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML(
     Rcpp::List sigma, 
     Rcpp::List kappa,
     Rcpp::List mu,
     Rcpp::List fimldata,
     double epsilon) {
+  
   
   double result = 0;
   

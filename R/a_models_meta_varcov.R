@@ -110,7 +110,8 @@ meta_varcov <- function(
                                fimldata = estimator == "FIML",
                                storedata = FALSE,
                                meanstructure = TRUE,
-                               verbose=verbose)
+                               verbose=verbose,
+                               fullFIML = (Vestimation == "per_study"))
   }
   
   # Overwrite corInput:

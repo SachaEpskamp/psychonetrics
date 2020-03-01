@@ -39,6 +39,9 @@ prepareModel <- function(x, model){
   # FIXME: Add Cpp to prep model:
   prep$cpp <- model@cpp
   
+  # FIXME: Add fullFIML to the prep model:
+  prep$fullFIML <- model@sample@fullFIML
+  
   # FIXME Add WLS.V:
   if (model@estimator %in%  c("WLS","DWLS","ULS")){
     for (g in seq_along(prep$groupModels)){

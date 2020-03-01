@@ -36,9 +36,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// logLikelihood_gaussian_subgroup_fiml_cpp_perGroup
-double logLikelihood_gaussian_subgroup_fiml_cpp_perGroup(Rcpp::List sigma, Rcpp::List kappa, Rcpp::List mu, Rcpp::List fimldata, double epsilon);
-RcppExport SEXP _psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_perGroup(SEXP sigmaSEXP, SEXP kappaSEXP, SEXP muSEXP, SEXP fimldataSEXP, SEXP epsilonSEXP) {
+// logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML
+double logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML(Rcpp::List sigma, Rcpp::List kappa, Rcpp::List mu, Rcpp::List fimldata, double epsilon);
+RcppExport SEXP _psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML(SEXP sigmaSEXP, SEXP kappaSEXP, SEXP muSEXP, SEXP fimldataSEXP, SEXP epsilonSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -47,7 +47,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::List >::type mu(muSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type fimldata(fimldataSEXP);
     Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
-    rcpp_result_gen = Rcpp::wrap(logLikelihood_gaussian_subgroup_fiml_cpp_perGroup(sigma, kappa, mu, fimldata, epsilon));
+    rcpp_result_gen = Rcpp::wrap(logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML(sigma, kappa, mu, fimldata, epsilon));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -109,9 +109,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// expected_hessian_fiml_Gaussian_group_cpp_perGroup
-arma::mat expected_hessian_fiml_Gaussian_group_cpp_perGroup(Rcpp::List sigma, Rcpp::List kappa, Rcpp::List mu, Rcpp::List fimldata, double epsilon);
-RcppExport SEXP _psychonetrics_expected_hessian_fiml_Gaussian_group_cpp_perGroup(SEXP sigmaSEXP, SEXP kappaSEXP, SEXP muSEXP, SEXP fimldataSEXP, SEXP epsilonSEXP) {
+// expected_hessian_fiml_Gaussian_group_cpp_fullFIML
+arma::mat expected_hessian_fiml_Gaussian_group_cpp_fullFIML(Rcpp::List sigma, Rcpp::List kappa, Rcpp::List mu, Rcpp::List fimldata, double epsilon);
+RcppExport SEXP _psychonetrics_expected_hessian_fiml_Gaussian_group_cpp_fullFIML(SEXP sigmaSEXP, SEXP kappaSEXP, SEXP muSEXP, SEXP fimldataSEXP, SEXP epsilonSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -120,7 +120,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::List >::type mu(muSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type fimldata(fimldataSEXP);
     Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
-    rcpp_result_gen = Rcpp::wrap(expected_hessian_fiml_Gaussian_group_cpp_perGroup(sigma, kappa, mu, fimldata, epsilon));
+    rcpp_result_gen = Rcpp::wrap(expected_hessian_fiml_Gaussian_group_cpp_fullFIML(sigma, kappa, mu, fimldata, epsilon));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -156,9 +156,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// fimlEstimator_Gauss_group_cpp_perGroup
-double fimlEstimator_Gauss_group_cpp_perGroup(Rcpp::List sigma, Rcpp::List kappa, Rcpp::List mu, Rcpp::List fimldata, double epsilon, double n);
-RcppExport SEXP _psychonetrics_fimlEstimator_Gauss_group_cpp_perGroup(SEXP sigmaSEXP, SEXP kappaSEXP, SEXP muSEXP, SEXP fimldataSEXP, SEXP epsilonSEXP, SEXP nSEXP) {
+// fimlEstimator_Gauss_group_cpp_fullFIML
+double fimlEstimator_Gauss_group_cpp_fullFIML(Rcpp::List sigma, Rcpp::List kappa, Rcpp::List mu, Rcpp::List fimldata, double epsilon, double n);
+RcppExport SEXP _psychonetrics_fimlEstimator_Gauss_group_cpp_fullFIML(SEXP sigmaSEXP, SEXP kappaSEXP, SEXP muSEXP, SEXP fimldataSEXP, SEXP epsilonSEXP, SEXP nSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -168,7 +168,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::List >::type fimldata(fimldataSEXP);
     Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
     Rcpp::traits::input_parameter< double >::type n(nSEXP);
-    rcpp_result_gen = Rcpp::wrap(fimlEstimator_Gauss_group_cpp_perGroup(sigma, kappa, mu, fimldata, epsilon, n));
+    rcpp_result_gen = Rcpp::wrap(fimlEstimator_Gauss_group_cpp_fullFIML(sigma, kappa, mu, fimldata, epsilon, n));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -202,9 +202,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// jacobian_fiml_gaussian_subgroup_sigma_cpp_perGroup
-arma::mat jacobian_fiml_gaussian_subgroup_sigma_cpp_perGroup(Rcpp::List sigma, Rcpp::List kappa, Rcpp::List mu, Rcpp::List fimldata, double epsilon);
-RcppExport SEXP _psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp_perGroup(SEXP sigmaSEXP, SEXP kappaSEXP, SEXP muSEXP, SEXP fimldataSEXP, SEXP epsilonSEXP) {
+// jacobian_fiml_gaussian_subgroup_sigma_cpp_fullFIML
+arma::mat jacobian_fiml_gaussian_subgroup_sigma_cpp_fullFIML(Rcpp::List sigma, Rcpp::List kappa, Rcpp::List mu, Rcpp::List fimldata, double epsilon);
+RcppExport SEXP _psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp_fullFIML(SEXP sigmaSEXP, SEXP kappaSEXP, SEXP muSEXP, SEXP fimldataSEXP, SEXP epsilonSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -213,7 +213,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::List >::type mu(muSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type fimldata(fimldataSEXP);
     Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
-    rcpp_result_gen = Rcpp::wrap(jacobian_fiml_gaussian_subgroup_sigma_cpp_perGroup(sigma, kappa, mu, fimldata, epsilon));
+    rcpp_result_gen = Rcpp::wrap(jacobian_fiml_gaussian_subgroup_sigma_cpp_fullFIML(sigma, kappa, mu, fimldata, epsilon));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -438,18 +438,18 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_inner", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_inner, 5},
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp, 5},
-    {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_perGroup", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_perGroup, 5},
+    {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML, 5},
     {"_psychonetrics_DWLS_wmat", (DL_FUNC) &_psychonetrics_DWLS_wmat, 4},
     {"_psychonetrics_WLS_wmat", (DL_FUNC) &_psychonetrics_WLS_wmat, 4},
     {"_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp_inner", (DL_FUNC) &_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp_inner, 5},
     {"_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp, 5},
-    {"_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp_perGroup", (DL_FUNC) &_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp_perGroup, 5},
+    {"_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp_fullFIML", (DL_FUNC) &_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp_fullFIML, 5},
     {"_psychonetrics_fimlEstimator_Gauss_group_cpp_inner", (DL_FUNC) &_psychonetrics_fimlEstimator_Gauss_group_cpp_inner, 6},
     {"_psychonetrics_fimlEstimator_Gauss_group_cpp", (DL_FUNC) &_psychonetrics_fimlEstimator_Gauss_group_cpp, 6},
-    {"_psychonetrics_fimlEstimator_Gauss_group_cpp_perGroup", (DL_FUNC) &_psychonetrics_fimlEstimator_Gauss_group_cpp_perGroup, 6},
+    {"_psychonetrics_fimlEstimator_Gauss_group_cpp_fullFIML", (DL_FUNC) &_psychonetrics_fimlEstimator_Gauss_group_cpp_fullFIML, 6},
     {"_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp_inner", (DL_FUNC) &_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp_inner, 5},
     {"_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp", (DL_FUNC) &_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp, 5},
-    {"_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp_perGroup", (DL_FUNC) &_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp_perGroup, 5},
+    {"_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp_fullFIML", (DL_FUNC) &_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp_fullFIML, 5},
     {"_psychonetrics_covPrepare_cpp", (DL_FUNC) &_psychonetrics_covPrepare_cpp, 5},
     {"_psychonetrics_computeMean", (DL_FUNC) &_psychonetrics_computeMean, 1},
     {"_psychonetrics_computeThresholds", (DL_FUNC) &_psychonetrics_computeThresholds, 1},

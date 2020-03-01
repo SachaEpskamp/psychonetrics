@@ -55,6 +55,53 @@ jacobian_fiml_gaussian_group_sigma_cpp_outer <- function(fimldata,fulln,sigma,ka
   return(Jac)
 }
 
+# full FIML version:
+jacobian_fiml_gaussian_group_sigma_cpp_outer_fullFIML <- function(fimldata,fulln,sigma,kappa,mu,means, meanstructure = TRUE, corinput = FALSE,...){
+  
+  nDat <- length(fimldata)
+  
+  # Some checks:
+  if (!is.list(sigma)){
+    sigma <- lapply(seq_len(nDat), function(x) as.matrix(sigma))
+  } else {
+    if (length(sigma) != nDat){
+      stop("Number of 'sigma' matrices must equal number of rows in data.")
+    }  
+  }
+  
+  if (!is.list(mu)){
+    mu <- lapply(seq_len(nDat), function(x) as.vector(mu))
+  } else {
+    if (length(mu) != nDat){
+      stop("Number of 'mu' vectors must equal number of rows in data.")
+    }  
+  }
+  
+  if (!is.list(kappa)){
+    kappa <- lapply(seq_len(nDat), function(x) as.matrix(kappa))
+  } else {
+    if (length(kappa) != nDat){
+      stop("Number of 'kappa' matrices must equal number of rows in data.")
+    }  
+  }
+  
+  # Subgroup models:
+  Jac <- 1/fulln * jacobian_fiml_gaussian_subgroup_sigma_cpp_fullFIML(fimldata=fimldata,sigma=sigma,kappa=kappa,mu=mu, epsilon = .Machine$double.eps)
+  
+  # Cut out the rows not needed
+  # FIXME: Nicer to not have to compute these in the first place...
+  nvar <- ncol(sigma)
+  if (corinput){
+    keep <- c(rep(TRUE,nvar),diag(nvar)[lower.tri(diag(nvar),diag=TRUE)]!=1)
+    Jac <- Jac[,keep]
+  }
+  if (!meanstructure){
+    Jac <- Jac[, -(seq_len(nvar))]
+  }
+  
+  return(Jac)
+}
+
 # 
 #   # Mean part:
 #   grad_mean <- jacobian_fiml_gaussian_group_sigmaVersion_meanPart(mu=mu,sigma=sigma,...)
@@ -70,11 +117,29 @@ jacobian_fiml_gaussian_group_sigma_cpp_outer <- function(fimldata,fulln,sigma,ka
 jacobian_fiml_gaussian_sigma <- function(prep){
   # model is already prepared!
   # d_phi_theta per group:
+  
+  # Use C++?
   if (prep$cpp){
-    g_per_group <- lapply(prep$groupModels,do.call,what=jacobian_fiml_gaussian_group_sigma_cpp_outer)  
+    if (prep$fullFIML){
+      # Fit function per group:
+      g_per_group <- lapply(prep$groupModels,do.call,what=jacobian_fiml_gaussian_group_sigma_cpp_outer_fullFIML)  
+      
+    } else {
+      # Fit function per group:
+      g_per_group <- lapply(prep$groupModels,do.call,what=jacobian_fiml_gaussian_group_sigma_cpp_outer)   
+    }
+    
   } else {
-    g_per_group <- lapply(prep$groupModels,do.call,what=jacobian_fiml_gaussian_group_sigma)
+    
+    if (model@sample@fullFIML){
+      stop("Full (rowwise) FIML only supported through C++")
+    } else {
+      # Fit function per group:
+      g_per_group <- lapply(prep$groupModels,do.call,what=jacobian_fiml_gaussian_group_sigma)
+    }
+    
   }
+  
   
   
   # Weight:
