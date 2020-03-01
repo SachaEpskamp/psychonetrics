@@ -30,7 +30,8 @@ varcov <- function(
   corinput, # Defaults to TRUE if the input is detected to consist of correlation matrix/matrices, FALSE otherwise
   verbose = TRUE,
   covtype = c("choose","ML","UB"),
-  standardize = c("none","z","quantile")
+  standardize = c("none","z","quantile"),
+  fullFIML=FALSE
 ){
   rawts = FALSE
   if (rawts){
@@ -111,7 +112,8 @@ varcov <- function(
                                corinput = corinput,
                                covtype=covtype,
                                verbose=verbose,
-                               standardize=standardize)
+                               standardize=standardize,
+                               fullFIML=fullFIML)
   }
  
   # Overwrite corinput:

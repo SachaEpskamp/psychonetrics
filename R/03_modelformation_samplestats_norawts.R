@@ -15,7 +15,8 @@ samplestats_norawts <- function(
   meanstructure = TRUE,
   covtype = c("choose","ML","UB"),
   corinput,
-  standardize = c("none","z","quantile")
+  standardize = c("none","z","quantile"),
+  fullFIML = FALSE # <- if estimator is FIML, do full FIML. Usually not needed...
 ){
   missing <- match.arg(missing)
   covtype <- match.arg(covtype)
@@ -463,7 +464,7 @@ samplestats_norawts <- function(
   }
   
   # Generate samplestats object:
-  object <- generate_psychonetrics_samplestats(covs = covs, cors = cors, means = means, corinput = corinput, thresholds = thresholds, squares = squares)
+  object <- generate_psychonetrics_samplestats(covs = covs, cors = cors, means = means, corinput = corinput, thresholds = thresholds, squares = squares, fullFIML=fullFIML)
   
   # Fill groups:
   object@groups <- data.frame(
@@ -485,7 +486,12 @@ samplestats_norawts <- function(
   if (fimldata){
     if (!missing(data)){
       object@fimldata <- lapply(seq_along(groupNames),function(x){
-        missingpatterns(data[data[[groups]] == x,vars],verbose=verbose)
+        if (fullFIML){
+          fullfimldata(data[data[[groups]] == x,vars],verbose=verbose)
+        } else {
+          missingpatterns(data[data[[groups]] == x,vars],verbose=verbose)  
+        }
+        
       })
     } else {
       object@fimldata <- lapply(seq_along(groupNames),function(x){

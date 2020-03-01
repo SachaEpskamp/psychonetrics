@@ -13,7 +13,7 @@ fimlEstimator_Gauss_subgroup <- function(dat,sigma,kappa,mu,...){
 # Fit function per group:
 fimlEstimator_Gauss_group <- function(fimldata,fulln,sigma,kappa,mu,...){
   
- # # 
+  # # 
   # Sigma <<- sigma
   # Kappa <<- kappa
   # Mu <<- mu
@@ -26,13 +26,45 @@ fimlEstimator_Gauss_group <- function(fimldata,fulln,sigma,kappa,mu,...){
 
 # C++ version:
 fimlEstimator_Gauss_group_cpp_outer<- function(fimldata,fulln,sigma,kappa,mu,...){
-  if (is.list(sigma)) {
-    fimlEstimator_Gauss_group_cpp_perGroup(sigma=sigma,mu=mu,kappa = kappa,fimldata = fimldata,epsilon = .Machine$double.eps, n = fulln) 
-  } else {
-    fimlEstimator_Gauss_group_cpp(sigma=as.matrix(sigma),mu=as.matrix(mu),kappa = as.matrix(kappa),fimldata = fimldata,epsilon = .Machine$double.eps, n = fulln)   
-  }
+  
+  fimlEstimator_Gauss_group_cpp(sigma=as.matrix(sigma),mu=as.matrix(mu),kappa = as.matrix(kappa),fimldata = fimldata,epsilon = .Machine$double.eps, n = fulln)   
   
 }
+
+# Full version:
+fimlEstimator_Gauss_group_cpp_outer_fullFIML <- function(fimldata,fulln,sigma,kappa,mu,...){
+  
+  nDat <- length(fimldata)
+  
+  # Some checks:
+  if (!is.list(sigma)){
+    sigma <- lapply(seq_len(nDat), function(x) as.matrix(sigma))
+  } else {
+    if (length(sigma) != nDat){
+      stop("Number of 'sigma' matrices must equal number of rows in data.")
+    }  
+  }
+  
+  if (!is.list(mu)){
+    mu <- lapply(seq_len(nDat), function(x) as.vector(mu))
+  } else {
+    if (length(mu) != nDat){
+      stop("Number of 'mu' vectors must equal number of rows in data.")
+    }  
+  }
+  
+  if (!is.list(kappa)){
+    kappa <- lapply(seq_len(nDat), function(x) as.matrix(kappa))
+  } else {
+    if (length(kappa) != nDat){
+      stop("Number of 'kappa' matrices must equal number of rows in data.")
+    }  
+  }
+  
+  fimlEstimator_Gauss_group_cpp_fullFIML(sigma=sigma,mu=mu,kappa = kappa,fimldata = fimldata,epsilon = .Machine$double.eps, n = fulln) 
+  
+}
+
 
 
 # Fit function for Gauss ML: -2n* log likelihood
@@ -42,13 +74,26 @@ fimlEstimator_Gauss <- function(x, model){
   
   # Use C++?
   if (model@cpp){
-    # Fit function per group:
-    fit_per_group <- prep$nPerGroup / prep$nTotal * sapply(prep$groupModels,do.call,what=fimlEstimator_Gauss_group_cpp_outer)
+    if (model@sample@fullFIML){
+      # Fit function per group:
+      fit_per_group <- prep$nPerGroup / prep$nTotal * sapply(prep$groupModels,do.call,what=fimlEstimator_Gauss_group_cpp_outer_fullFIML)      
+      
+    } else {
+      # Fit function per group:
+      fit_per_group <- prep$nPerGroup / prep$nTotal * sapply(prep$groupModels,do.call,what=fimlEstimator_Gauss_group_cpp_outer)      
+    }
+    
   } else {
-    # Fit function per group:
-    fit_per_group <- prep$nPerGroup / prep$nTotal * sapply(prep$groupModels,do.call,what=fimlEstimator_Gauss_group)    
+    
+    if (model@sample@fullFIML){
+      stop("Full (rowwise) FIML only supported through C++")
+    } else {
+      # Fit function per group:
+      fit_per_group <- prep$nPerGroup / prep$nTotal * sapply(prep$groupModels,do.call,what=fimlEstimator_Gauss_group)    
+    }
+    
   }
-
+  
   
   # Sum and return:
   sum(fit_per_group)

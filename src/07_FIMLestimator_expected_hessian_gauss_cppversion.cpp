@@ -165,7 +165,7 @@ arma::mat expected_hessian_fiml_Gaussian_group_cpp(
 
 // Outer function:
 // [[Rcpp::export]]
-arma::mat expected_hessian_fiml_Gaussian_group_cpp_perGroup(
+arma::mat expected_hessian_fiml_Gaussian_group_cpp_fullFIML(
     Rcpp::List sigma, 
     Rcpp::List kappa,
     Rcpp::List mu,
@@ -178,7 +178,8 @@ arma::mat expected_hessian_fiml_Gaussian_group_cpp_perGroup(
   // double log2pi = log(2*M_PI);
   
   // Number of parameters
-  int nmeans = mu.size();
+  arma::vec firstmu = mu[0];
+  int nmeans = firstmu.size();
   int nvars = nmeans * (nmeans + 1) / 2;
   
   // Empty Jacobian:

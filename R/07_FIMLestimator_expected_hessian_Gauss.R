@@ -53,6 +53,53 @@ expected_hessian_fiml_Gaussian_group_cpp_outer <- function(fimldata,fulln,sigma,
   return(Hes)
 }
 
+# Full FIML version:
+expected_hessian_fiml_Gaussian_group_cpp_outer_fullFIML <- function(fimldata,fulln,sigma,kappa,mu,means, meanstructure = TRUE, corinput = FALSE,...){
+  
+  nDat <- length(fimldata)
+  
+  # Some checks:
+  if (!is.list(sigma)){
+    sigma <- lapply(seq_len(nDat), function(x) as.matrix(sigma))
+  } else {
+    if (length(sigma) != nDat){
+      stop("Number of 'sigma' matrices must equal number of rows in data.")
+    }  
+  }
+  
+  if (!is.list(mu)){
+    mu <- lapply(seq_len(nDat), function(x) as.vector(mu))
+  } else {
+    if (length(mu) != nDat){
+      stop("Number of 'mu' vectors must equal number of rows in data.")
+    }  
+  }
+  
+  if (!is.list(kappa)){
+    kappa <- lapply(seq_len(nDat), function(x) as.matrix(kappa))
+  } else {
+    if (length(kappa) != nDat){
+      stop("Number of 'kappa' matrices must equal number of rows in data.")
+    }  
+  }
+  
+  # Subgroup models:
+  Hes <- 1/fulln * expected_hessian_fiml_Gaussian_group_cpp_fullFIML(fimldata=fimldata,sigma=sigma,kappa=kappa,mu=mu, epsilon = .Machine$double.eps)
+  
+  # Cut out the rows and columns not needed
+  # FIXME: Nicer to not have to compute these in the first place...
+  nvar <- ncol(sigma)
+  if (corinput){
+    keep <- c(rep(TRUE,nvar),diag(nvar)[lower.tri(diag(nvar),diag=TRUE)]!=1)
+    Hes <- Hes[keep,keep]
+  }
+  if (!meanstructure){
+    Hes <- Hes[-(seq_len(nvar)),-(seq_len(nvar))]
+  }
+  
+  return(Hes)
+}
+
 # expected_hessian_fiml_Gaussian_group <- function(...){
 # 
 #   # Mean part:
@@ -69,12 +116,29 @@ expected_hessian_fiml_Gaussian_group_cpp_outer <- function(fimldata,fulln,sigma,
 expected_hessian_fiml_Gaussian <- function(prep){
   # model is already prepared!
   # d_phi_theta per group:
+  
+  # Use C++?
   if (prep$cpp){
-    exph_per_group <- lapply(prep$groupModels,do.call,what=expected_hessian_fiml_Gaussian_group_cpp_outer)
+    if (prep$fullFIML){
+      # Fit function per group:
+      exph_per_group <- lapply(prep$groupModels,do.call,what=expected_hessian_fiml_Gaussian_group_cpp_outer_fullFIML)   
+      
+    } else {
+      # Fit function per group:
+      exph_per_group <- lapply(prep$groupModels,do.call,what=expected_hessian_fiml_Gaussian_group_cpp_outer)      
+    }
+    
   } else {
-    exph_per_group <- lapply(prep$groupModels,do.call,what=expected_hessian_fiml_Gaussian_group)    
+    
+    if (model@sample@fullFIML){
+      stop("Full (rowwise) FIML only supported through C++")
+    } else {
+      # Fit function per group:
+      exph_per_group <- lapply(prep$groupModels,do.call,what=expected_hessian_fiml_Gaussian_group)   
+    }
+    
   }
-
+  
   
   # Weight:
   for (i in 1:length(prep$groupModels)){

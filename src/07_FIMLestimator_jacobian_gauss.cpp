@@ -130,7 +130,7 @@ arma::mat jacobian_fiml_gaussian_subgroup_sigma_cpp(
 
 // Outer function
 // [[Rcpp::export]]
-arma::mat jacobian_fiml_gaussian_subgroup_sigma_cpp_perGroup(
+arma::mat jacobian_fiml_gaussian_subgroup_sigma_cpp_fullFIML(
     Rcpp::List sigma, 
     Rcpp::List kappa,
     Rcpp::List mu,
@@ -138,7 +138,8 @@ arma::mat jacobian_fiml_gaussian_subgroup_sigma_cpp_perGroup(
     double epsilon) {
   
   // Number of parameters
-  int nmeans = mu.size();
+  arma::vec firstmu = mu[0];
+  int nmeans = firstmu.size();
   int nvars = nmeans * (nmeans + 1) / 2;
   
   // Empty Jacobian:
@@ -150,7 +151,7 @@ arma::mat jacobian_fiml_gaussian_subgroup_sigma_cpp_perGroup(
   
   // Loop over groups
   for ( i = 0; i < fimldata.size(); i++){
-    
+   
     // Join:
     Jac += jacobian_fiml_gaussian_subgroup_sigma_cpp_inner(
       sigma[i], 

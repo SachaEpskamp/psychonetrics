@@ -7,13 +7,32 @@ logLikelihood_gaussian_group <- function(fimldata,...){
 }
 
 # FIML version:
-logLikelihood_gaussian_group_fiml <- function(fimldata,fulln,sigma,kappa,mu,cpp,...){
-  # Subgroup models:
-  if (!cpp){
-    1/fulln * Reduce("+", lapply(fimldata,logLikelihood_gaussian_subgroup_fiml,sigma=sigma,kappa=kappa,mu=mu))    
+logLikelihood_gaussian_group_fiml <- function(fimldata,fulln,sigma,kappa,mu,cpp,fullFIML,...){
+  
+  # Use C++?
+  if (cpp){
+    if (fullFIML){
+      # Fit function per group:
+      res <- 1/fulln * logLikelihood_gaussian_subgroup_fiml_cpp_outer_fullFIML(fimldata=fimldata,sigma=sigma,kappa=kappa,mu=mu)
+    } else {
+      # Fit function per group:
+      res <- 1/fulln * logLikelihood_gaussian_subgroup_fiml_cpp_outer(fimldata=fimldata,sigma=sigma,kappa=kappa,mu=mu)
+    }
+    
   } else {
-    1/fulln * logLikelihood_gaussian_subgroup_fiml_cpp_outer(fimldata=fimldata,sigma=sigma,kappa=kappa,mu=mu)
+    
+    if (model@sample@fullFIML){
+      stop("Full (rowwise) FIML only supported through C++")
+    } else {
+      # Fit function per group:
+      res <- 1/fulln * Reduce("+", lapply(fimldata,logLikelihood_gaussian_subgroup_fiml,sigma=sigma,kappa=kappa,mu=mu))    
+    }
+    
   }
+  
+  
+  
+  return(res)
 
 }
 
@@ -21,6 +40,40 @@ logLikelihood_gaussian_group_fiml <- function(fimldata,fulln,sigma,kappa,mu,cpp,
 logLikelihood_gaussian_subgroup_fiml_cpp_outer <- function(fimldata,sigma,kappa,mu,...){
  
   logLikelihood_gaussian_subgroup_fiml_cpp(sigma=as.matrix(sigma),mu=as.matrix(mu),kappa = as.matrix(kappa),fimldata = fimldata,epsilon = .Machine$double.eps) 
+}
+
+# CPP version fullFIML
+logLikelihood_gaussian_subgroup_fiml_cpp_outer_fullFIML <- function(fimldata,sigma,kappa,mu,...){
+  
+  nDat <- length(fimldata)
+  
+  # Some checks:
+  if (!is.list(sigma)){
+    sigma <- lapply(seq_len(nDat), function(x) as.matrix(sigma))
+  } else {
+    if (length(sigma) != nDat){
+      stop("Number of 'sigma' matrices must equal number of rows in data.")
+    }  
+  }
+  
+  if (!is.list(mu)){
+    mu <- lapply(seq_len(nDat), function(x) as.vector(mu))
+  } else {
+    if (length(mu) != nDat){
+      stop("Number of 'mu' vectors must equal number of rows in data.")
+    }  
+  }
+  
+  if (!is.list(kappa)){
+    kappa <- lapply(seq_len(nDat), function(x) as.matrix(kappa))
+  } else {
+    if (length(kappa) != nDat){
+      stop("Number of 'kappa' matrices must equal number of rows in data.")
+    }  
+  }
+  
+  
+  logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML(sigma=sigma,mu=mu,kappa = kappa,fimldata = fimldata,epsilon = .Machine$double.eps) 
 }
 
 
@@ -55,6 +108,7 @@ logLikelihood_gaussian <- function(model){
   # Add cpp:
   for (i in seq_along(prep$groupModels)){
     prep$groupModels[[i]]$cpp <- model@cpp
+    prep$groupModels[[i]]$fullFIML <- model@sample@fullFIML
   }
 
   # Fit function per group:

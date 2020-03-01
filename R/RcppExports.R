@@ -9,8 +9,8 @@ logLikelihood_gaussian_subgroup_fiml_cpp <- function(sigma, kappa, mu, fimldata,
     .Call(`_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp`, sigma, kappa, mu, fimldata, epsilon)
 }
 
-logLikelihood_gaussian_subgroup_fiml_cpp_perGroup <- function(sigma, kappa, mu, fimldata, epsilon) {
-    .Call(`_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_perGroup`, sigma, kappa, mu, fimldata, epsilon)
+logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML <- function(sigma, kappa, mu, fimldata, epsilon) {
+    .Call(`_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML`, sigma, kappa, mu, fimldata, epsilon)
 }
 
 DWLS_wmat <- function(data, means, ncase, nvar) {
@@ -29,8 +29,8 @@ expected_hessian_fiml_Gaussian_group_cpp <- function(sigma, kappa, mu, fimldata,
     .Call(`_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp`, sigma, kappa, mu, fimldata, epsilon)
 }
 
-expected_hessian_fiml_Gaussian_group_cpp_perGroup <- function(sigma, kappa, mu, fimldata, epsilon) {
-    .Call(`_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp_perGroup`, sigma, kappa, mu, fimldata, epsilon)
+expected_hessian_fiml_Gaussian_group_cpp_fullFIML <- function(sigma, kappa, mu, fimldata, epsilon) {
+    .Call(`_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp_fullFIML`, sigma, kappa, mu, fimldata, epsilon)
 }
 
 fimlEstimator_Gauss_group_cpp_inner <- function(sigma, kappa, mu, dat, epsilon, n) {
@@ -41,8 +41,8 @@ fimlEstimator_Gauss_group_cpp <- function(sigma, kappa, mu, fimldata, epsilon, n
     .Call(`_psychonetrics_fimlEstimator_Gauss_group_cpp`, sigma, kappa, mu, fimldata, epsilon, n)
 }
 
-fimlEstimator_Gauss_group_cpp_perGroup <- function(sigma, kappa, mu, fimldata, epsilon, n) {
-    .Call(`_psychonetrics_fimlEstimator_Gauss_group_cpp_perGroup`, sigma, kappa, mu, fimldata, epsilon, n)
+fimlEstimator_Gauss_group_cpp_fullFIML <- function(sigma, kappa, mu, fimldata, epsilon, n) {
+    .Call(`_psychonetrics_fimlEstimator_Gauss_group_cpp_fullFIML`, sigma, kappa, mu, fimldata, epsilon, n)
 }
 
 jacobian_fiml_gaussian_subgroup_sigma_cpp_inner <- function(sigma, kappa, mu, dat, epsilon) {
@@ -53,8 +53,8 @@ jacobian_fiml_gaussian_subgroup_sigma_cpp <- function(sigma, kappa, mu, fimldata
     .Call(`_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp`, sigma, kappa, mu, fimldata, epsilon)
 }
 
-jacobian_fiml_gaussian_subgroup_sigma_cpp_perGroup <- function(sigma, kappa, mu, fimldata, epsilon) {
-    .Call(`_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp_perGroup`, sigma, kappa, mu, fimldata, epsilon)
+jacobian_fiml_gaussian_subgroup_sigma_cpp_fullFIML <- function(sigma, kappa, mu, fimldata, epsilon) {
+    .Call(`_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp_fullFIML`, sigma, kappa, mu, fimldata, epsilon)
 }
 
 covPrepare_cpp <- function(data, isOrdered, tol = 0.000001, WLSweights = TRUE, verbose = TRUE) {

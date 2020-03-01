@@ -11,7 +11,7 @@ implied_meta_varcov <- function(model, all = FALSE){
     
     est <- model@extramatrices$Vestimation
     
-    if (est == "individual"){
+    if (est == "averaged"){
       # the 'meanstructure' is the varcov structure:
       sigma_y <- x[[g]]$sigma_y
       if (model@sample@corinput){
