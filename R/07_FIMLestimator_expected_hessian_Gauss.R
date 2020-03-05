@@ -130,7 +130,7 @@ expected_hessian_fiml_Gaussian <- function(prep){
     
   } else {
     
-    if (model@sample@fullFIML){
+    if (prep$fullFIML){
       stop("Full (rowwise) FIML only supported through C++")
     } else {
       # Fit function per group:

@@ -1,28 +1,19 @@
 # Cholesky derivative:
 d_sigma_cholesky <- function(lowertri,L,C,In,...){
+
+  res <- L %*% ((In %x% In) + C) %*% ((lowertri %x% In) %*% t(L))
   
-  # library(microbenchmark)
-  # microbenchmark(
-  #   L %*% (
-  #     ( In %x% lowertri) %*% C %*% t(L) + 
-  #       (lowertri %x% In) %*% t(L)
-  #   ),
-  #   L %*% ((In %x% In) + C) %*% ((lowertri %x% In) %*% t(L))
-  # )
-  # a <- L %*% (
-  #    ( In %x% lowertri) %*% C %*% t(L) + 
-  #      (lowertri %x% In) %*% t(L)
-  #  )
-  
-  L %*% ((In %x% In) + C) %*% ((lowertri %x% In) %*% t(L))
+  as.matrix(res)
 }
 
 # Derivative of scaling matrix:
 d_sigma_delta <- function(L,delta_IminOinv,In,A,delta,...){
-  L %*% (
+  res <- L %*% (
     (delta_IminOinv%x% In) + 
       (In %x% delta_IminOinv)
   ) %*% A
+  
+  as.matrix(res)
 }
 
 # Derivative of network matrix:
@@ -30,27 +21,31 @@ d_sigma_omega <- function(L,delta_IminOinv,A,delta,Dstar,...){
   # L %*% (delta %x% delta) %*% (IminOinv %x% IminOinv) %*% Dstar
   
   # delta_IminOinv <- delta %*% IminOinv
-  L %*% (delta_IminOinv %x% delta_IminOinv) %*% Dstar
+  res <- L %*% (delta_IminOinv %x% delta_IminOinv) %*% Dstar
   
   # all(a == b)
+  as.matrix(res)
 }
 
 # Derivative of precision matrix:
 d_sigma_kappa <- function(L,D,sigma,...){
-  - L %*% (sigma %x% sigma) %*% D
+  res <- - L %*% (sigma %x% sigma) %*% D
+  as.matrix(res)
 }
 
 # Derivative of rho:
 d_sigma_rho <- function(L,SD,A,delta,Dstar,...){
-  L %*% (SD %x% SD) %*% Dstar
+  res <- L %*% (SD %x% SD) %*% Dstar
+  as.matrix(res)
 }
 
 # Derivative of SDs:
 d_sigma_SD <- function(L,SD_IplusRho,In,A,...){
-  L %*% (
+  res <- L %*% (
     (SD_IplusRho%x% In) + 
       (In %x% SD_IplusRho)
   ) %*% A
+  as.matrix(res)
 }
 
 # Derivative of omega to covariances in the corinput = TRUE setting:
@@ -58,17 +53,20 @@ d_sigma_omega_corinput <- function(L,delta_IminOinv,A,delta,Dstar,IminOinv,In,..
   # L %*% (delta %x% delta) %*% (IminOinv %x% IminOinv) %*% Dstar
   
   # delta_IminOinv <- delta %*% IminOinv
-  L %*% (
+  res <- L %*% (
     (delta_IminOinv %x% delta_IminOinv) -
       1/2 *  ((delta_IminOinv %x% In) + (In %x% delta_IminOinv)) %*% A %*% 
       Diagonal(x = diag(IminOinv)^(-1.5)) %*% t(A) %*% (IminOinv %x% IminOinv)
   ) %*% Dstar
+  as.matrix(res)
 }
 
 
 
 # Full jacobian of phi (distribution parameters) with respect to theta (model parameters) for a group
-d_phi_theta_varcov_group <- function(sigma,y,corinput,meanstructure,tau,mu,...){
+d_phi_theta_varcov_group <- function(cpp, sigma,y,corinput,meanstructure,tau,mu,...){
+  
+  dots <- list(...)
   
   # Number of variables:
   nvar <- nrow(sigma)
@@ -100,21 +98,26 @@ d_phi_theta_varcov_group <- function(sigma,y,corinput,meanstructure,tau,mu,...){
   varPartPars <- meanstructure * max(meanPart) + nThresh +  seq_len(nvar*(nvar+1)/2)    
   
   # Empty Jacobian:
-  Jac <- Matrix(0, nobs, npars, sparse = FALSE)
+  Jac <- matrix(0, nobs, npars)
   
   if (meanstructure || nThresh > 0){
     # Fill mean part with diagonal:
-    Jac[meanPart,meanPart] <- Diagonal(nMean_Thresh)    
+    Jac[meanPart,meanPart] <- as.matrix(Diagonal(nMean_Thresh))
   }
-  
-  
+
   # Now fill the sigma part:
   if (y == "cov"){
     # Regular covs:
-    Jac[varPart,varPartPars] <- Diagonal(nvar*(nvar+1)/2)
+    Jac[varPart,varPartPars] <- as.matrix(Diagonal(nvar*(nvar+1)/2))
   } else if (y == "chol"){
-    # Cholesky decomposition:
-    Jac[varPart,varPartPars] <- d_sigma_cholesky(...)
+    if (cpp){
+      # Cholesky decomposition:
+      Jac[varPart,varPartPars] <- d_sigma_cholesky_cpp(lowertri = dots$lowertri, L = dots$L, C = dots$C, In = dots$In)
+    } else {
+      # Cholesky decomposition:
+      Jac[varPart,varPartPars] <- d_sigma_cholesky(...)      
+    }
+
   } else if (y == "ggm"){
     
     # Gaussian graphical model:
@@ -123,25 +126,58 @@ d_phi_theta_varcov_group <- function(sigma,y,corinput,meanstructure,tau,mu,...){
     
     if (corinput){
       
-      Jac[varPart,netPart] <- d_sigma_omega_corinput(...)
+      
+      if (cpp){
+        Jac[varPart,netPart] <- d_sigma_omega_corinput_cpp(L = dots$L, delta_IminOinv = dots$delta_IminOinv, 
+                                                           A = dots$A, 
+                                                           delta = dots$delta,
+                                                           Dstar = dots$Dstar,
+                                                           IminOinv = dots$IminOinv,
+                                                           In = dots$In)
+      } else {
+        Jac[varPart,netPart] <- d_sigma_omega_corinput(...)
+      }
+
       
     } else {
-     
-      Jac[varPart,netPart] <- d_sigma_omega(...)
-      Jac[varPart,scalingPart] <- d_sigma_delta(...)
+     if (cpp){
+       Jac[varPart,netPart] <- d_sigma_omega_cpp(L = dots$L,delta_IminOinv = dots$delta_IminOinv,A = dots$A,delta = dots$delta,Dstar = dots$Dstar)
+       Jac[varPart,scalingPart] <- d_sigma_delta_cpp(L = dots$L, delta_IminOinv = dots$delta_IminOinv, In = dots$In,A = dots$A,delta = dots$delta)
+     } else {
+       Jac[varPart,netPart] <- d_sigma_omega(...)
+       Jac[varPart,scalingPart] <- d_sigma_delta(...)       
+     }
+
       
     }
     
   } else  if (y == "prec"){
-    Jac[varPart,varPartPars] <- d_sigma_kappa(sigma=sigma,...)
+    if (cpp){
+      Jac[varPart,varPartPars] <- d_sigma_kappa_cpp(sigma=sigma,L = dots$L, D = dots$D)
+    } else {
+      Jac[varPart,varPartPars] <- d_sigma_kappa(sigma=sigma,...)      
+    }
+
   } else if (y == "cor"){
     # Corelation matrix:
     corPart <- meanstructure*max(meanPart) + nThresh +  seq_len(nvar*(nvar-1)/2)
-    Jac[varPart,corPart] <- d_sigma_rho(...)
+    
+    if  (cpp){
+      Jac[varPart,corPart] <- d_sigma_rho_cpp(L = dots$L, SD = dots$SD, A = dots$A, delta = dots$delta, Dstar = dots$Dstar)
+    } else {
+      Jac[varPart,corPart] <- d_sigma_rho(...)      
+    }
+
     
     if (!corinput){
       sdPart <- max(corPart) + seq_len(nvar)  
-      Jac[varPart,sdPart] <- d_sigma_SD(...)
+      
+      if (cpp){
+        Jac[varPart,sdPart] <- d_sigma_SD_cpp(L = dots$L, SD_IplusRho = dots$SD_IplusRho,In = dots$In, A = dots$A)
+      } else {
+        Jac[varPart,sdPart] <- d_sigma_SD(...)        
+      }
+
     }
   }
   
@@ -158,7 +194,7 @@ d_phi_theta_varcov_group <- function(sigma,y,corinput,meanstructure,tau,mu,...){
   }
 
   # Make sparse if needed:
-  Jac <- as(Jac, "Matrix")
+  Jac <- sparseordense(Jac)
 
   # Return jacobian:
   return(Jac)
@@ -173,7 +209,7 @@ d_phi_theta_varcov <- function(prep){
   
   # FIXME: Computationall it is nicer to make the whole object first then fill it
   # Bind by colum and return: 
-  Reduce("bdiag",d_per_group)
+  sparseordense(Reduce("bdiag",d_per_group))
 }
 
 

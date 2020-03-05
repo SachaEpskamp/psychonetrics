@@ -22,7 +22,7 @@ implied_dlvm1 <- function(model,all = FALSE){
   
   for (g in 1:nGroup){
     # Beta star:
-    BetaStar <- as(solve(I_eta %x% I_eta - (x[[g]]$beta %x% x[[g]]$beta)),"Matrix")
+    BetaStar <- sparseordense(solve(I_eta %x% I_eta - (x[[g]]$beta %x% x[[g]]$beta)))
     
     # Implied mean vector:
     impMu <- x[[g]]$nu + x[[g]]$lambda %*% x[[g]]$mu_eta
@@ -35,7 +35,7 @@ implied_dlvm1 <- function(model,all = FALSE){
     nLatent <- ncol(x[[g]]$lambda)
     
     allSigmas_within <- list()
-    allSigmas_within[[1]] <- Matrix(as.vector(BetaStar %*% Vec(x[[g]]$sigma_zeta_within)), nLatent, nLatent)
+    allSigmas_within[[1]] <- matrix(as.vector(BetaStar %*% Vec(x[[g]]$sigma_zeta_within)), nLatent, nLatent)
     
     # Fill implied:
     if (nTime > 1){
@@ -45,7 +45,7 @@ implied_dlvm1 <- function(model,all = FALSE){
     }
     
     # Create the block Toeplitz:
-    fullSigma_within_latent  <- as(blockToeplitz(lapply(allSigmas_within,as.matrix)), "Matrix")
+    fullSigma_within_latent  <- sparseordense(blockToeplitz(lapply(allSigmas_within,as.matrix)))
     
     # Full within-subject cov matrix:
     fullSigma_within <- (Diagonal(nTime) %x% x[[g]]$lambda) %*% fullSigma_within_latent %*% (Diagonal(nTime) %x% t(x[[g]]$lambda)) + (Diagonal(nTime) %x% x[[g]]$sigma_epsilon_within)

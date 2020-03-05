@@ -1,5 +1,14 @@
 # Form the model matrix M :
 Mmatrix <- function(x){
-  M <- sparseMatrix(i = seq_len(nrow(x))[x$par!=0], j = x$par[x$par!=0], dims = c(nrow(x),max(x$par)))
-  M
+  rows <- seq_len(nrow(x))[x$par!=0]
+  cols <- x$par[x$par!=0]
+  dims <- c(nrow(x),max(x$par))
+  # Check for diagonal matrix:
+  if (all(rows == cols) && dims[1] == dims[2]){
+    M <- Diagonal(dims[1]) # Diagonal matrix
+  } else {
+    M <- sparseMatrix(i = rows, j = cols, dims = dims)
+    M <- as(M, "dgCMatrix")
+  }
+  return(M)
 }

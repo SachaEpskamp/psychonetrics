@@ -61,7 +61,7 @@ tsdlvm1 <- function(
   contemporaneous <- match.arg(contemporaneous)
   residual <- match.arg(residual)
   identification <- match.arg(identification)
-
+  
   # FIXME: Not sure why needed...
   if (missing(vars)) vars2 <- NULL else vars2 <- vars
   if (missing(idvar)) idvar <- NULL
@@ -102,12 +102,12 @@ tsdlvm1 <- function(
                                standardize=standardize,
                                weightsmatrix = ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
                                                       switch(estimator,
-                                                        "WLS" = "full",
-                                                        "ULS" = "identity",
-                                                        "DWLS" = "diag"
+                                                             "WLS" = "full",
+                                                             "ULS" = "identity",
+                                                             "DWLS" = "diag"
                                                       )))    
   }
-
+  
   
   # Check if number of variables is an even number:
   if ( nrow(sampleStats@variables) %% 2 != 0){
@@ -161,12 +161,12 @@ tsdlvm1 <- function(
   
   # Fix exo means
   modMatrices$exo_means <- matrixsetup_mu(, nNode = nNode, nGroup = nGroup, labels = varnames, equal = "exo_means" %in% equal,
-                expmeans = expMeans1, sampletable = sampleStats, name = "exo_means")
+                                          expmeans = expMeans1, sampletable = sampleStats, name = "exo_means")
   
   
   # Fix nu
   modMatrices$nu <- matrixsetup_mu(nu, nNode = nNode, nGroup = nGroup, labels = varnames,equal = "nu" %in% equal,
-                                    expmeans = expMeans2, sampletable = sampleStats, name = "nu")
+                                   expmeans = expMeans2, sampletable = sampleStats, name = "nu")
   
   # Fix between-subject means:
   modMatrices$mu_eta <- matrixsetup_mu(mu_eta,nNode = nLat, nGroup = nGroup, labels = latents, equal = "mu_eta" %in% equal,
@@ -199,11 +199,11 @@ tsdlvm1 <- function(
   modMatrices$lambda <- matrixsetup_lambda(lambda, expcov=S0est, nGroup = nGroup, observednames = varnames, latentnames = latents,
                                            sampletable = sampleStats, name = "lambda", equal = "lambda" %in% equal)
   
-
+  
   # Quick and dirty sigma_zeta estimate:
   prior_sig_zeta <- lapply(seq_along(S0est),function(i){
     # Let's take a pseudoinverse:
-    curLam <- Matrix(as.vector(modMatrices$lambda$start[,,i,drop=FALSE]),nNode,nLat)
+    curLam <- matrix(as.vector(modMatrices$lambda$start[,,i,drop=FALSE]),nNode,nLat)
     
     inv <- corpcor::pseudoinverse(as.matrix(kronecker(curLam,curLam)))
     
@@ -253,19 +253,19 @@ tsdlvm1 <- function(
   # Store in model:
   model@parameters <- pars$partable
   model@matrices <- pars$mattable
-# 
-#   model@extramatrices <- list(
-#     D =  psychonetrics::duplicationMatrix(nNode*2), # Toeplitz matrix D 
-#     D2 = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
-#     L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
-#     Dstar = psychonetrics::duplicationMatrix(nNode,diag = FALSE), # Strict duplicaton matrix
-#     In = Diagonal(nNode), # Identity of dim n
-#     In2 = Diagonal(nNode), # Identity of dim n^2
-#     A = psychonetrics::diagonalizationMatrix(nNode),
-#     C = as(lavaan::lav_matrix_commutation(nNode,nNode),"sparseMatrix")
-#     # P=P # Permutation matrix
-#   )
-#   
+  # 
+  #   model@extramatrices <- list(
+  #     D =  psychonetrics::duplicationMatrix(nNode*2), # Toeplitz matrix D 
+  #     D2 = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
+  #     L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
+  #     Dstar = psychonetrics::duplicationMatrix(nNode,diag = FALSE), # Strict duplicaton matrix
+  #     In = Diagonal(nNode), # Identity of dim n
+  #     In2 = Diagonal(nNode), # Identity of dim n^2
+  #     A = psychonetrics::diagonalizationMatrix(nNode),
+  #     C = as(lavaan::lav_matrix_commutation(nNode,nNode),"sparseMatrix")
+  #     # P=P # Permutation matrix
+  #   )
+  #   
   
   model@extramatrices <- list(
     # Entire duplication matrix needed for likelihood:
@@ -296,9 +296,9 @@ tsdlvm1 <- function(
     # A_between = psychonetrics::diagonalizationMatrix(nLat),
     
     # Commutation matrices:
-    C_y_y = as(lavaan::lav_matrix_commutation(nNode, nNode),"sparseMatrix"),
-    C_y_eta = as(lavaan::lav_matrix_commutation(nNode, nLat),"sparseMatrix"),
-    C_eta_eta = as(lavaan::lav_matrix_commutation(nLat, nLat),"sparseMatrix"),
+    C_y_y = as(lavaan::lav_matrix_commutation(nNode, nNode),"pMatrix"),
+    C_y_eta = as(lavaan::lav_matrix_commutation(nNode, nLat),"dgCMatrix"),
+    C_eta_eta = as(lavaan::lav_matrix_commutation(nLat, nLat),"pMatrix"),
     
     # 
     # C_y_within = as(lavaan::lav_matrix_commutation(nVar, nLat),"sparseMatrix"),
@@ -311,19 +311,19 @@ tsdlvm1 <- function(
     L_eta = psychonetrics::eliminationMatrix(nLat)
   )
   
-    # Come up with P...
-    # Dummy matrix to contain indices:
-    dummySigma <- matrix(0,nNode*2,nNode*2)
-    smallMat <- matrix(0,nNode,nNode)
-    dummySigma[1:nNode,1:nNode][lower.tri(smallMat,diag=TRUE)] <- seq_len(nNode*(nNode+1)/2)
-    dummySigma[nNode + (1:nNode),nNode + (1:nNode)][lower.tri(smallMat,diag=TRUE)] <- max(dummySigma) + seq_len(nNode*(nNode+1)/2)
-    dummySigma[nNode + (1:nNode),1:nNode] <- max(dummySigma) + seq_len(nNode^2)
-    inds <- dummySigma[lower.tri(dummySigma,diag=TRUE)]
-    
-    # P matrix:
-    # P <- bdiag(Diagonal(nNode*2),sparseMatrix(j=seq_along(inds),i=inds))
-    model@extramatrices$P <- bdiag(Diagonal(nNode*2),sparseMatrix(j=seq_along(inds),i=order(inds)))
-
+  # Come up with P...
+  # Dummy matrix to contain indices:
+  dummySigma <- matrix(0,nNode*2,nNode*2)
+  smallMat <- matrix(0,nNode,nNode)
+  dummySigma[1:nNode,1:nNode][lower.tri(smallMat,diag=TRUE)] <- seq_len(nNode*(nNode+1)/2)
+  dummySigma[nNode + (1:nNode),nNode + (1:nNode)][lower.tri(smallMat,diag=TRUE)] <- max(dummySigma) + seq_len(nNode*(nNode+1)/2)
+  dummySigma[nNode + (1:nNode),1:nNode] <- max(dummySigma) + seq_len(nNode^2)
+  inds <- dummySigma[lower.tri(dummySigma,diag=TRUE)]
+  
+  # P matrix:
+  # P <- bdiag(Diagonal(nNode*2),sparseMatrix(j=seq_along(inds),i=inds))
+  model@extramatrices$P <- bdiag(Diagonal(nNode*2),sparseMatrix(j=seq_along(inds),i=order(inds)))
+  dgCMatrix <- as(dgCMatrix, "dgCMatrix")
   
   # Form the model matrices
   model@modelmatrices <- formModelMatrices(model)

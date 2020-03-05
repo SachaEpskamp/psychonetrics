@@ -9,7 +9,7 @@ missingpatterns <- function(dat, verbose = TRUE){
   
   
   # Create a dummy dataset with only missings:
-  mis <- as(is.na(dat),"sparseMatrix")
+  mis <- as(is.na(dat),"dgCMatrix")
   
   # Unique patterns:
   unMis <- mgcv::uniquecombs(mis)
@@ -50,15 +50,16 @@ missingpatterns <- function(dat, verbose = TRUE){
     
     # Elimintation matrix:
     patterns[[i]]$L <- sparseMatrix(i=seq_along(inds),j=inds,dims=c(length(inds),nvar + nvar*(nvar+1)/2))
-
+    patterns[[i]]$L <- as(patterns[[i]]$L, "indMatrix")
     
     # Duplication matrix: 
     patterns[[i]]$D <- duplicationMatrix(sum(obs))
     
     
     # Stuff that Armadillo understands:
-    patterns[[i]]$L <- as( patterns[[i]]$L , "dgCMatrix")
-    patterns[[i]]$D <- as( patterns[[i]]$D , "dgCMatrix")
+    # Not needed, Arma already understands!
+    # patterns[[i]]$L <- as( patterns[[i]]$L , "dgCMatrix")
+    # patterns[[i]]$D <- as( patterns[[i]]$D , "dgCMatrix")
     
     # patterns[[i]]$Lmu <- sparseMatrix(i=seq_along(inds),j=inds,dims=c(length(inds),ncol(dat)))
     

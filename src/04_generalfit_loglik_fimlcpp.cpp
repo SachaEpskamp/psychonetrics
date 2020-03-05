@@ -22,9 +22,9 @@ using namespace arma;
 // innner function
 // [[Rcpp::export]]
 double logLikelihood_gaussian_subgroup_fiml_cpp_inner(
-    arma::mat sigma, 
-    arma::mat kappa,
-    arma::vec mu,
+    const arma::mat& sigma, 
+    const arma::mat& kappa,
+    const arma::vec& mu,
     Rcpp::List dat,
     double epsilon) {
   // Rf_PrintValue(wrap("USED"));
@@ -91,9 +91,9 @@ double logLikelihood_gaussian_subgroup_fiml_cpp_inner(
 // Outer function
 // [[Rcpp::export]]
 double logLikelihood_gaussian_subgroup_fiml_cpp(
-    arma::mat sigma, 
-    arma::mat kappa,
-    arma::vec mu,
+    const arma::mat& sigma, 
+    const arma::mat& kappa,
+    const arma::vec& mu,
     Rcpp::List fimldata,
     double epsilon) {
   

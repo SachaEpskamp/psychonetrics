@@ -51,6 +51,7 @@ meta_varcov <- function(
   Vmethod <- match.arg(Vmethod)
   if (Vmethod == "default"){
     Vmethod <- "individual"
+    # Vmethod <- 'psychonetrics_individual'
     if (!missing(Vmats)){
       stop("'Vmats' must be missing if 'Vmethod' is not 'default'")
     }
@@ -170,9 +171,10 @@ meta_varcov <- function(
         
         # Elimintation matrix:
         L <- sparseMatrix(i=seq_along(inds),j=inds,dims=c(length(inds),nNode*(nNode-1)/2))
+        L <- as(L, "indMatrix")
         
         # Now obtain only the full subset correlation matrix:
-        cmat <- as(cors[[i]][obs,obs], "Matrix")
+        cmat <- as(cors[[i]][obs,obs], "matrix")
         
         k <- solve(cmat)
         D2 <- duplicationMatrix(ncol(cmat), FALSE)
@@ -238,6 +240,7 @@ meta_varcov <- function(
         
         # Elimintation matrix:
         L <- sparseMatrix(i=seq_along(inds),j=inds,dims=c(length(inds),nNode*(nNode-1)/2))
+        L <- as(L, "indMatrix")
         
         # Now obtain only the full subset correlation matrix:
         cmat <- as(cors[[i]][obs,obs], "matrix")
@@ -265,7 +268,7 @@ meta_varcov <- function(
       # If there are any NAs, use covariance input to compute model using FIML:
       if(any(is.na(unlist(lapply(cors,as.vector))))){
         # Single multi-group model:
-        mod <- varcov(covs=cors,nobs=sampleSizes, corinput = FALSE, type =  "cor", equal = c("SD","rho","mu"), baseline_saturated = FALSE, verbose = FALSE,
+        mod <- varcov(covs=cors,nobs=sampleSizes, corinput = TRUE, type =  "cor", equal = c("SD","rho","mu"), baseline_saturated = FALSE, verbose = FALSE,
                       estimator = "FIML", covtype = "ML", meanstructure = TRUE)
         mod <- runmodel(mod, addfit = FALSE, addMIs = FALSE, addSEs = FALSE, verbose = FALSE)
         acov <- getVCOV(mod)
@@ -523,7 +526,7 @@ meta_varcov <- function(
     Dstar = psychonetrics::duplicationMatrix(nNode,diag = FALSE), # Strict duplicaton matrix
     In = Diagonal(nNode), # Identity of dim n
     A = psychonetrics::diagonalizationMatrix(nNode),
-    C = as(lavaan::lav_matrix_commutation(nNode,nNode),"sparseMatrix"),
+    C = as(lavaan::lav_matrix_commutation(nNode,nNode),"pMatrix"),
     
     # Random effects:
     D_c = psychonetrics::duplicationMatrix(nCor), # non-strict duplciation matrix
@@ -532,7 +535,7 @@ meta_varcov <- function(
     Dstar_c = psychonetrics::duplicationMatrix(nCor,diag = FALSE), # Strict duplicaton matrix
     In_c = Diagonal(nCor), # Identity of dim n
     A_c = psychonetrics::diagonalizationMatrix(nCor),
-    C_c = as(lavaan::lav_matrix_commutation(nCor,nCor),"sparseMatrix"),
+    C_c = as(lavaan::lav_matrix_commutation(nCor,nCor),"pMatrix"),
     
     # Add the vmat:
     V = avgVmat,

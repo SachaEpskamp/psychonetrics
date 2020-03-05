@@ -17,10 +17,10 @@ spectralshift <- function(x){
   
   # If all eigenvalues are good, stop:
   if (!any(Re(eigen(x)$values) < 0)){
-    return(as(x,"Matrix"))
+    return(as.matrix(x))
   }
   
   # Spectral shift and return:
   x <- x - (Diagonal(n=nrow(x)) * (min(Re(eigen(x)$values)))-0.001)
-  return(as(x,"Matrix"))
+  return(as.matrix(x))
 }

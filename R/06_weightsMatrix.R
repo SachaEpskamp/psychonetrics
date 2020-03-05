@@ -34,6 +34,6 @@ LS_weightsmat <- function(dat, type = c("full","diagonal"), meanstructure = TRUE
     Wmat <- Wmat[-inds,-inds]
   }
   
-  WmatInv <- as(solve_symmetric(as(Wmat,"Matrix")),"Matrix")
+  WmatInv <- as(solve_symmetric(as(Wmat,"matrix")),"matrix")
   WmatInv
 }

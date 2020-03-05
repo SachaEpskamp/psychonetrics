@@ -232,7 +232,7 @@ ml_lvm <- function(
   
   
   # designPattern matrix:
-  designPattern <- as(1*(!is.na(design)),"sparseMatrix")
+  designPattern <- as(1*(!is.na(design)),"dgCMatrix")
   
   # cases per var:
   casesPerVar <- as.vector(designPattern * row(designPattern))
@@ -419,9 +419,9 @@ ml_lvm <- function(
     # A_between = psychonetrics::diagonalizationMatrix(nLat),
     
     # Commutation matrices:
-    C_y_y = as(lavaan::lav_matrix_commutation(nVar, nVar),"sparseMatrix"),
-    C_y_eta = as(lavaan::lav_matrix_commutation(nVar, nLat),"sparseMatrix"),
-    C_eta_eta = as(lavaan::lav_matrix_commutation(nLat, nLat),"sparseMatrix"),
+    C_y_y = as(lavaan::lav_matrix_commutation(nVar, nVar),"pMatrix"),
+    C_y_eta = as(lavaan::lav_matrix_commutation(nVar, nLat),"dgCMatrix"),
+    C_eta_eta = as(lavaan::lav_matrix_commutation(nLat, nLat),"pMatrix"),
     
     # 
     # C_y_within = as(lavaan::lav_matrix_commutation(nVar, nLat),"sparseMatrix"),
@@ -477,6 +477,7 @@ ml_lvm <- function(
   model@extramatrices$P <- sparseMatrix(
     i = distVecrawts, j = distVec, dims = c(nTotal, totElements)
   )
+  P <- as(P, "dgCMatrix")
   # model@extramatrices$P <- sparseMatrix(j=seq_along(inds),i=order(inds))
   
   

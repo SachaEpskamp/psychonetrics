@@ -22,8 +22,8 @@ implied_ml_lvm <- function(model,all = FALSE){
   
   for (g in 1:nGroup){
     # Beta star within:
-    BetaStar_within <- as(solve(Diagonal(nrow(x[[g]]$beta_within)) - x[[g]]$beta_within),"Matrix")
-    BetaStar_between <- as(solve(Diagonal(nrow(x[[g]]$beta_between)) - x[[g]]$beta_between),"Matrix")
+    BetaStar_within <- sparseordense(solve(Diagonal(nrow(x[[g]]$beta_within)) - x[[g]]$beta_within))
+    BetaStar_between <- sparseordense(solve(Diagonal(nrow(x[[g]]$beta_between)) - x[[g]]$beta_between))
     
     Betasta_sigmaZeta_within <- BetaStar_within %*% x[[g]]$sigma_zeta_within
     Betasta_sigmaZeta_between <- BetaStar_between %*% x[[g]]$sigma_zeta_between

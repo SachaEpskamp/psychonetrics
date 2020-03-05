@@ -50,8 +50,19 @@ psychonetrics_gradient <- function(x, model){
   # Manual part:
   manualPart <- Mmatrix(model@parameters)
 
-  # Full Jacobian:
-  Jac <- estimatorPart %*% modelPart %*% manualPart
+  # FIXME: partial cpp
+  if (model@cpp){
+    if (is(modelPart, "sparseMatrix")){
+      Jac <- gradient_inner_cpp_DSS(estimatorPart, modelPart, manualPart)
+    } else {
+      Jac <- gradient_inner_cpp_DDS(estimatorPart, modelPart, manualPart)
+    }
+    
+  } else {
+    # Full Jacobian:
+    Jac <- estimatorPart %*% modelPart %*% manualPart    
+  }
+
 
   # Return:
   return(as.vector(Jac))

@@ -1,17 +1,22 @@
 solve_symmetric <- function(x, logdet = FALSE){
   # SYMMETRIC AND TO S4:
-  x <- as((x + t(x))/2.0, "Matrix")
+  # x <- as((x + t(x))/2.0, "Matrix")
+  # Force symmetric:
+  x <- as.matrix((x + t(x))/2.0)
   
   # Eigen-values:
   ev <- eigen(x, symmetric=TRUE, only.values=TRUE)$values
   
   # Check pos-def:
   if(any(ev < sqrt(.Machine$double.eps)) || sum(ev) == 0) {
-    inv <-  as(MPinv(x),"Matrix")
-    
+    # inv <-  MPinv(x),"Matrix")
+    inv <-  MPinv(x)
+
     # Make sparse:
     inv[abs(inv) < sqrt(.Machine$double.eps)] <- 0
-    inv <- as(inv, "Matrix")
+    # inv <- as(inv, "Matrix")
+    inv <- inv
+    
     
     # Add log determinant:
     if (logdet){
@@ -27,7 +32,10 @@ solve_symmetric <- function(x, logdet = FALSE){
   
   # Make Matrix:
   # inv <- as(inv, "Matrix")
+  # Sparse or dense:
   
+  inv <- sparseordense(inv)
+
   return(inv)
   # 
   # # Try spectral shift:

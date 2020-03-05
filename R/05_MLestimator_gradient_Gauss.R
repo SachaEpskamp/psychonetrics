@@ -18,7 +18,7 @@ jacobian_gaussian_group_sigmaVersion_sigmaPart <- function(S,means,mu,sigma,D,ka
   mat <- S + (means - mu) %*% t(means - mu) - sigma
   grad_sigma <- t(-t(D) %*% Vec(kappa %*% mat %*% kappa))
 
-  grad_sigma
+  as.matrix(grad_sigma)
 }
 
 
@@ -33,7 +33,7 @@ jacobian_gaussian_group_sigma <- function(...,Drawts,mu,sigma, meanstructure = T
   # Cut out variances if needed:
   if (corinput){
     keep <- diag(ncol(sigma))[lower.tri(diag(ncol(sigma)),diag=TRUE)] != 1
-    grad_sigma <- as(grad_sigma[,keep, drop=FALSE], "Matrix")
+    grad_sigma <- as(grad_sigma[,keep, drop=FALSE], "matrix")
   }
   
   # Cut out means if needed:
@@ -47,12 +47,12 @@ jacobian_gaussian_group_sigma <- function(...,Drawts,mu,sigma, meanstructure = T
     Out <- grad_sigma
   }
   
-  if (missing(Drawts)){
-    Drawts <- Diagonal(ncol(Out))
-  }
+  # if (missing(Drawts)){
+  #   Drawts <- Diagonal(ncol(Out))
+  # }
   
   # Combine and return:
-  Out %*% Drawts
+  Out# %*% Drawts
 }
 
 # Now for all groups:

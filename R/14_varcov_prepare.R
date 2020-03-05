@@ -37,6 +37,7 @@ prepare_varcov <- function(x, model){
     groupModels[[g]]$means <- means[[g]]
     groupModels[[g]]$corinput <- model@sample@corinput
     groupModels[[g]]$meanstructure <- model@meanstructure
+    groupModels[[g]]$cpp <- model@cpp
   
     if (length(thresholds) > 0){
       groupModels[[g]]$thresholds <- thresholds[[g]]      
