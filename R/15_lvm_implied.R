@@ -14,7 +14,7 @@ implied_lvm <- function(model, all = FALSE){
 
     
     # Matrices I need in every model framework when estimating:
-      BetaStar <- sparseordense(solve(Diagonal(nrow(x[[g]]$beta)) - x[[g]]$beta))
+      BetaStar <- as.matrix(solve(Diagonal(nrow(x[[g]]$beta)) - x[[g]]$beta))
       Lambda_BetaStar <- x[[g]]$lambda %*%  BetaStar 
       Betasta_sigmaZeta <- BetaStar %*% x[[g]]$sigma_zeta
       tBetakronBeta <- t(BetaStar) %x% BetaStar      
@@ -41,6 +41,11 @@ implied_lvm <- function(model, all = FALSE){
       
       # FIXME: forcing symmetric, but not sure why this is needed...
       # x[[g]]$kappa <- 0.5*(x[[g]]$kappa + t(x[[g]]$kappa))
+      
+      # # Kappa, sigma and mu never sparse:
+      # x[[g]]$mu <- as.matrix(x[[g]]$mu)
+      # x[[g]]$kappa <- as.matrix(x[[g]]$kappa)
+      # x[[g]]$sigma <- as.matrix(x[[g]]$sigma)
   }
   
   return(x)

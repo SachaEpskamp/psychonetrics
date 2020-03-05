@@ -289,7 +289,6 @@ varcov <- function(
   # Form the model matrices
   model@modelmatrices <- formModelMatrices(model)
   
-  
   ### Baseline model ###
   if (baseline_saturated){
     
@@ -316,7 +315,7 @@ varcov <- function(
     } else {
       model@baseline_saturated$baseline <- varcov(data,
                                                   type = "cor",
-                                                  lowertri = "empty",
+                                                  rho = "empty",
                                                   vars = vars,
                                                   groups = groups,
                                                   covs = covs,

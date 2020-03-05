@@ -104,12 +104,14 @@ d_phi_theta_varcov_group <- function(cpp, sigma,y,corinput,meanstructure,tau,mu,
     # Fill mean part with diagonal:
     Jac[meanPart,meanPart] <- as.matrix(Diagonal(nMean_Thresh))
   }
+  
 
   # Now fill the sigma part:
   if (y == "cov"){
     # Regular covs:
     Jac[varPart,varPartPars] <- as.matrix(Diagonal(nvar*(nvar+1)/2))
   } else if (y == "chol"){
+  
     if (cpp){
       # Cholesky decomposition:
       Jac[varPart,varPartPars] <- d_sigma_cholesky_cpp(lowertri = dots$lowertri, L = dots$L, C = dots$C, In = dots$In)
@@ -128,7 +130,8 @@ d_phi_theta_varcov_group <- function(cpp, sigma,y,corinput,meanstructure,tau,mu,
       
       
       if (cpp){
-        Jac[varPart,netPart] <- d_sigma_omega_corinput_cpp(L = dots$L, delta_IminOinv = dots$delta_IminOinv, 
+        Jac[varPart,netPart] <- d_sigma_omega_corinput_cpp(L = dots$L, 
+                                                           delta_IminOinv = dots$delta_IminOinv, 
                                                            A = dots$A, 
                                                            delta = dots$delta,
                                                            Dstar = dots$Dstar,

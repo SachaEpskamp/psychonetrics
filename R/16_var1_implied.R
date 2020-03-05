@@ -18,7 +18,7 @@ implied_var1 <- function(model,all = FALSE){
     
     # Implied stationary distribution (vectorized)
     vecSigma <- BetaStar %*% sigmaZetaVec
-    Sigma0 <- Matrix(as.vector(vecSigma),nrow = nrow(exoCov), ncol = ncol(exoCov))
+    Sigma0 <- matrix(as.vector(vecSigma),nrow = nrow(exoCov), ncol = ncol(exoCov))
     
     # Implied lag-1:
     Sigma1 <- x[[g]]$beta %*% Sigma0
@@ -49,6 +49,11 @@ implied_var1 <- function(model,all = FALSE){
       # Add PDC:
       x[[g]]$PDC <- computePDC(x[[g]]$beta,x[[g]]$kappa_zeta)
     }
+    
+    # # Kappa, sigma and mu never sparse:
+    # x[[g]]$mu <- as.matrix(x[[g]]$mu)
+    # x[[g]]$kappa <- as.matrix(x[[g]]$kappa)
+    # x[[g]]$sigma <- as.matrix(x[[g]]$sigma)
     
   }
 

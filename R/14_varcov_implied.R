@@ -10,7 +10,7 @@ implied_varcov <- function(model, all = FALSE){
     if (is.null(x[[g]]$mu)){
       x[[g]]$mu <- model@sample@means[[g]]
     }
-    
+
     # Check kappa
     if (is.null(x[[g]]$kappa)){
       x[[g]]$kappa <- solve_symmetric(x[[g]]$sigma, logdet = TRUE)
@@ -26,7 +26,10 @@ implied_varcov <- function(model, all = FALSE){
           attr(x[[g]]$kappa, "logdet") <- log(det(x[[g]]$kappa))
         }
       }
+    
     }
+    
+
   }
  
   

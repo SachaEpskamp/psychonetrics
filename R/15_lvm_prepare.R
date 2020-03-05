@@ -48,7 +48,7 @@ prepare_lvm <- function(x, model){
     groupModels[[g]] <- c(imp[[g]], mMat, model@extramatrices, model@types) # FIXME: This will lead to extra matrices to be stored?
     groupModels[[g]]$S <- S[[g]]
     groupModels[[g]]$means <- means[[g]]
-    groupModels[[g]]$thresholds <- thresholds[[g]]
+    # groupModels[[g]]$thresholds <- thresholds[[g]]
   }
   
   

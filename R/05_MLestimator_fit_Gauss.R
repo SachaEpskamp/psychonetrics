@@ -1,7 +1,7 @@
 # Fit function per group:
 maxLikEstimator_Gauss_group <- function(S,kappa,means,mu,sigma,...){
 
-  # nvar <- ncol(kappa) 
+    # nvar <- ncol(kappa) 
   res <-  sum(diag(S %*% kappa)) + t(means - mu) %*% kappa %*% (means - mu)  - attr(kappa, "logdet")
   
   as.numeric(res)

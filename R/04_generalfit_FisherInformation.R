@@ -76,10 +76,11 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
 
   # Unit information instead:
   if (model@cpp){
+   
     if (is(modelPart, "sparseMatrix")){
-      Fisher <- FisherInformation_inner_cpp_DSS(estimatorPart, modelPart, manualPart)
+      Fisher <- FisherInformation_inner_cpp_DSS(as.matrix(estimatorPart), modelPart, manualPart)
     } else {
-      Fisher <- FisherInformation_inner_cpp_DSS(estimatorPart, modelPart, manualPart)
+      Fisher <- FisherInformation_inner_cpp_DDS(as.matrix(estimatorPart), as.matrix(modelPart), manualPart)
     }
     
   } else {

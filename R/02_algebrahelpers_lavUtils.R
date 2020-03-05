@@ -13,7 +13,7 @@ inv.chol <- function(S, logdet=FALSE) {
   
   # Make sparse:
   S.inv[abs(S.inv) < sqrt(.Machine$double.eps)] <- 0
-  S.inv <- as(S.inv, "Matrix")
+  S.inv <- as(S.inv, "matrix")
   
   if(logdet) {
     diag.cS <- diag(cS)

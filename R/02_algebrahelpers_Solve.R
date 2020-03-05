@@ -24,7 +24,8 @@ solve_symmetric <- function(x, logdet = FALSE){
     }
     
   } else {
-    # If pos-def, continue as usual:
+
+        # If pos-def, continue as usual:
     inv <- inv.chol(x, logdet = logdet)
   }
   
@@ -34,7 +35,7 @@ solve_symmetric <- function(x, logdet = FALSE){
   # inv <- as(inv, "Matrix")
   # Sparse or dense:
   
-  inv <- sparseordense(inv)
+  # inv <- sparseordense(inv)
 
   return(inv)
   # 

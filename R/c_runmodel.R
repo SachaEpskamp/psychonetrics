@@ -48,7 +48,7 @@ runmodel <- function(
     stop("input is not a 'psychonetrics' object")
   }
   
-  
+
   if (!is.null(x@baseline_saturated$baseline)){
     # Check if model happens to be baseline model:
     isBaseline <- identical(x@baseline_saturated$baseline@parameters$par, x@parameters$par)    
