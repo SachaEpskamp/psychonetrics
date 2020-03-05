@@ -19,12 +19,12 @@ implied_tsdlvm1 <- function(model,all = FALSE){
   
   for (g in 1:nGroup){
     # Beta star:
-    BetaStar <- as(solve(I_eta %x% I_eta - (x[[g]]$beta %x% x[[g]]$beta)),"Matrix")
+    BetaStar <- sparseordense(solve(I_eta %x% I_eta - (x[[g]]$beta %x% x[[g]]$beta)))
     
     # Implied mean vector:
     impMu <- x[[g]]$nu + x[[g]]$lambda %*% x[[g]]$mu_eta
     
-    fullMu <- as(rbind(x[[g]]$exo_means,impMu), "Matrix")
+    fullMu <- sparseordense(rbind(x[[g]]$exo_means,impMu))
     
     # Exogenous cov part:
     exoCov <- x[[g]]$exo_cholesky %*% t( x[[g]]$exo_cholesky)

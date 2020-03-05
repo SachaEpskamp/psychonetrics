@@ -137,7 +137,7 @@ dlvm1 <- function(
   
   
   # Design matrix:
-  design <- as(1*(!is.na(vars)),"sparseMatrix")
+  design <- as(1*(!is.na(vars)),"dgCMatrix")
   
   # time per var:
   timePerVar <- as.vector(design * row(design))
@@ -271,7 +271,7 @@ dlvm1 <- function(
   # Quick and dirty sigma_zeta_within estimate:
   prior_sig_zeta_within <- lapply(seq_along(firstSigma1),function(i){
     # Let's take a pseudoinverse:
-    curLam <- Matrix(as.vector(modMatrices$lambda$start[,,i,drop=FALSE]),nVar,nLat)
+    curLam <- matrix(as.vector(modMatrices$lambda$start[,,i,drop=FALSE]),nVar,nLat)
     
     inv <- corpcor::pseudoinverse(as.matrix(kronecker(curLam,curLam)))
     
@@ -325,7 +325,7 @@ dlvm1 <- function(
   # Quick and dirty sigma_zeta_between estimate:
   prior_sig_zeta_between <- lapply(seq_along(firstSigma1),function(i){
     # Let's take a pseudoinverse:
-    curLam <- Matrix(as.vector(modMatrices$lambda$start[,,i,drop=FALSE]),nVar,nLat)
+    curLam <- matrix(as.vector(modMatrices$lambda$start[,,i,drop=FALSE]),nVar,nLat)
     
     inv <- corpcor::pseudoinverse(as.matrix(kronecker(curLam,curLam)))
     
@@ -396,9 +396,9 @@ dlvm1 <- function(
     # A_between = psychonetrics::diagonalizationMatrix(nLat),
     
     # Commutation matrices:
-    C_y_y = as(lavaan::lav_matrix_commutation(nVar, nVar),"sparseMatrix"),
-    C_y_eta = as(lavaan::lav_matrix_commutation(nVar, nLat),"sparseMatrix"),
-    C_eta_eta = as(lavaan::lav_matrix_commutation(nLat, nLat),"sparseMatrix"),
+    C_y_y = as(lavaan::lav_matrix_commutation(nVar, nVar),"pMatrix"),
+    C_y_eta = as(lavaan::lav_matrix_commutation(nVar, nLat),"dgCMatrix"),
+    C_eta_eta = as(lavaan::lav_matrix_commutation(nLat, nLat),"pMatrix"),
     
     # 
     # C_y_within = as(lavaan::lav_matrix_commutation(nVar, nLat),"sparseMatrix"),

@@ -131,7 +131,7 @@ jacobian_fiml_gaussian_sigma <- function(prep){
     
   } else {
     
-    if (model@sample@fullFIML){
+    if (prep$fullFIML){
       stop("Full (rowwise) FIML only supported through C++")
     } else {
       # Fit function per group:

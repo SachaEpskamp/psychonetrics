@@ -1,4 +1,4 @@
-# General function that forms the model matrices
+ # General function that forms the model matrices
 formModelMatrices <- function(x){
   # x is the model:
   pars <- x@parameters
@@ -43,7 +43,26 @@ formModelMatrices <- function(x){
       # } else {
       #   mat <- as(mat, "dgeMatrix")
       # }
-      mat <- as(mat, "Matrix")
+      
+      # if (mats$diagonal[i]){
+      #   mat <- Diagonal(x=diag(mat))
+      # } else if (mats$sparse[i]){
+      # 
+      #   if (mats$symmetrical[i]){
+      #     mat <- as(mat, "dsCMatrix") # symmetric column-oriented numeric sparse matrix
+      #   } else {
+      #     mat <- as(mat, "dgCMatrix") #  general column-oriented numeric sparse matrix          
+      #   }
+      # 
+      # }
+      if (mats$diagonal[i]){
+        mat <- Diagonal(x=diag(mat))
+      } else {
+        mat <- sparseordense(mat)
+      }
+      
+      
+      # mat <- as(mat, "Matrix")
       
       mat
     })

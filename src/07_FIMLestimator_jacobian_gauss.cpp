@@ -9,9 +9,9 @@ using namespace arma;
 // Inner function
 // [[Rcpp::export]]
 arma::mat jacobian_fiml_gaussian_subgroup_sigma_cpp_inner(
-    arma::mat sigma, 
-    arma::mat kappa,
-    arma::vec mu,
+    const arma::mat& sigma, 
+    const arma::mat& kappa,
+    const arma::vec& mu,
     Rcpp::List dat,
     double epsilon) {
   // Rf_PrintValue(wrap("USED"));

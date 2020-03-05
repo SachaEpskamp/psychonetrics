@@ -21,9 +21,9 @@ using namespace arma;
 // Inner function:
 // [[Rcpp::export]]
 arma::mat expected_hessian_fiml_Gaussian_group_cpp_inner(
-    arma::mat sigma, 
-    arma::mat kappa,
-    arma::vec mu,
+    const arma::mat& sigma, 
+    const arma::mat& kappa,
+    const arma::vec& mu,
     Rcpp::List dat,
     double epsilon) {
   
@@ -121,9 +121,9 @@ arma::mat expected_hessian_fiml_Gaussian_group_cpp_inner(
 // Outer function:
 // [[Rcpp::export]]
 arma::mat expected_hessian_fiml_Gaussian_group_cpp(
-    arma::mat sigma, 
-    arma::mat kappa,
-    arma::vec mu,
+    const arma::mat& sigma, 
+    const arma::mat& kappa,
+    const arma::vec& mu,
     Rcpp::List fimldata,
     double epsilon) {
   

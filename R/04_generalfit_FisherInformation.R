@@ -45,7 +45,8 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
                    "Gaussian" = expected_hessian_fiml_Gaussian
     )
   )
-  estimatorPartHessian <- estimatorHessian(prep)
+
+  estimatorPart <- estimatorHessian(prep)
   
   # model part:
   modelJacobian <- switch(
@@ -74,7 +75,17 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
   # Fisher <- 2 * prep$nTotal * t(manualPart) %*% t(modelPart) %*% estimatorPartHessian %*% modelPart %*% manualPart
 
   # Unit information instead:
-  Fisher <- 0.5 * t(manualPart) %*% t(modelPart) %*% estimatorPartHessian %*% modelPart %*% manualPart
+  if (model@cpp){
+    if (is(modelPart, "sparseMatrix")){
+      Fisher <- FisherInformation_inner_cpp_DSS(estimatorPart, modelPart, manualPart)
+    } else {
+      Fisher <- FisherInformation_inner_cpp_DSS(estimatorPart, modelPart, manualPart)
+    }
+    
+  } else {
+    Fisher <- 0.5 * t(manualPart) %*% t(modelPart) %*% estimatorPart %*% modelPart %*% manualPart
+  }
+  
   
   as.matrix(Fisher)
 }

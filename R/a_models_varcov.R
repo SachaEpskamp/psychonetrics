@@ -79,7 +79,7 @@ varcov <- function(
   }
   
   # Check FIML:
-  if (!meanstructure && estimator == "FIML"){
+  if (!missing(data) && !meanstructure && estimator == "FIML"){
     stop("meanstructure = FALSE is not yet supported for 'FIML' estimator")
   }
   
@@ -272,7 +272,8 @@ varcov <- function(
       D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
       L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
       In = Diagonal(nNode), # Identity of dim n
-      C = as(lavaan::lav_matrix_commutation(nNode,nNode),"sparseMatrix")
+      # C = as(lavaan::lav_matrix_commutation(nNode,nNode),"sparseMatrix")
+      C = as(lavaan::lav_matrix_commutation(nNode,nNode),"pMatrix")
     )
   } else if (type == "ggm" || type == "cor"){
     model@extramatrices <- list(

@@ -9,7 +9,7 @@ Vec <- function(x){
   } else {
     # Assume Matrix package
     if (is(x,"sparseMatrix")){
-      as(c(as.matrix(x)), "Matrix") # FIXME: This should be better...
+      return(c(as.matrix(x))) # FIXME: This should be better...
       # if (length(x@x) == 0){
       #   return(Matrix(0, nrow=nrow(x)*ncol(x),ncol=1))
       # } else {
