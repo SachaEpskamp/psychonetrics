@@ -9,6 +9,10 @@ kronecker_X_I <- function(X, n) {
     .Call(`_psychonetrics_kronecker_X_I`, X, n)
 }
 
+kronecker_diag <- function(X) {
+    .Call(`_psychonetrics_kronecker_diag`, X)
+}
+
 FisherInformation_inner_cpp_DSS <- function(estimator, model, manual) {
     .Call(`_psychonetrics_FisherInformation_inner_cpp_DSS`, estimator, model, manual)
 }

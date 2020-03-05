@@ -58,7 +58,7 @@ formModelMatrices <- function(x){
       if (mats$diagonal[i]){
         mat <- Diagonal(x=diag(mat))
       } else {
-        mat <- sparseordense(mat)
+        mat <- as.matrix(mat)
       }
       
       

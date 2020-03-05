@@ -41,6 +41,11 @@ implied_meta_varcov <- function(model, all = FALSE){
       x[[g]]$kappa <- lapply(x[[g]]$sigma,solve_symmetric,logdet=TRUE)
       x[[g]]$kappa <- lapply( x[[g]]$kappa, as.matrix)
     }
+    
+    # # Kappa, sigma and mu never sparse:
+    # x[[g]]$mu <- as.matrix(x[[g]]$mu)
+    # x[[g]]$kappa <- as.matrix(x[[g]]$kappa)
+    # x[[g]]$sigma <- as.matrix(x[[g]]$sigma)
 
   }
  

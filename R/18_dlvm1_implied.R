@@ -104,7 +104,11 @@ implied_dlvm1 <- function(model,all = FALSE){
       }
       
     }
-    
+    # 
+    # # Kappa, sigma and mu never sparse:
+    # x[[g]]$mu <- as.matrix(x[[g]]$mu)
+    # x[[g]]$kappa <- as.matrix(x[[g]]$kappa)
+    # x[[g]]$sigma <- as.matrix(x[[g]]$sigma) 
   }
   
   x

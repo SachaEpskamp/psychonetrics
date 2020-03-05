@@ -2,6 +2,8 @@ Changes in version 0.6.1:
   o Fixed a bug in Delta starting values
   o Fixed a bug causing modelsearch to occasionally crash
   o Added function 'fullFIML' to use true FIML computing the likelihood per row
+  o Large internal restructure to support RcppArmadillo
+  o Fixed a bug with Cov input not working for lvm models
 
 Changes in version 0.6:
   o The 'dlvm1' model family now also returns the implied latent variance-covarriance matrix as 'sigma_eta_within'

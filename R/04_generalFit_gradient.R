@@ -53,9 +53,9 @@ psychonetrics_gradient <- function(x, model){
   # FIXME: partial cpp
   if (model@cpp){
     if (is(modelPart, "sparseMatrix")){
-      Jac <- gradient_inner_cpp_DSS(estimatorPart, modelPart, manualPart)
+      Jac <- gradient_inner_cpp_DSS(as.matrix(estimatorPart), modelPart, manualPart)
     } else {
-      Jac <- gradient_inner_cpp_DDS(estimatorPart, modelPart, manualPart)
+      Jac <- gradient_inner_cpp_DDS(as.matrix(estimatorPart), as.matrix(modelPart), manualPart)
     }
     
   } else {

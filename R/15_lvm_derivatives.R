@@ -176,7 +176,7 @@ d_phi_theta_lvm_group <- function(lambda,latent,residual,...){
   # # Fill residual scaling part:
   # Jac[sigmaInds,deltainds] <- d_sigma_delta_epsilon_lvm(...)
   # Make sparse if needed:
-  Jac <- as(Jac, "Matrix")
+  Jac <- as(Jac, "matrix")
   
   # Return jacobian:
   return(Jac)

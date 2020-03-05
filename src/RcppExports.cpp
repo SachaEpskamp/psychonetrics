@@ -30,6 +30,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// kronecker_diag
+arma::sp_mat kronecker_diag(arma::sp_mat X);
+RcppExport SEXP _psychonetrics_kronecker_diag(SEXP XSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::sp_mat >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(kronecker_diag(X));
+    return rcpp_result_gen;
+END_RCPP
+}
 // FisherInformation_inner_cpp_DSS
 arma::mat FisherInformation_inner_cpp_DSS(const arma::mat& estimator, const arma::sp_mat& model, const arma::sp_mat& manual);
 RcppExport SEXP _psychonetrics_FisherInformation_inner_cpp_DSS(SEXP estimatorSEXP, SEXP modelSEXP, SEXP manualSEXP) {
@@ -617,6 +628,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_kronecker_I_X", (DL_FUNC) &_psychonetrics_kronecker_I_X, 2},
     {"_psychonetrics_kronecker_X_I", (DL_FUNC) &_psychonetrics_kronecker_X_I, 2},
+    {"_psychonetrics_kronecker_diag", (DL_FUNC) &_psychonetrics_kronecker_diag, 1},
     {"_psychonetrics_FisherInformation_inner_cpp_DSS", (DL_FUNC) &_psychonetrics_FisherInformation_inner_cpp_DSS, 3},
     {"_psychonetrics_FisherInformation_inner_cpp_DDS", (DL_FUNC) &_psychonetrics_FisherInformation_inner_cpp_DDS, 3},
     {"_psychonetrics_gradient_inner_cpp_DSS", (DL_FUNC) &_psychonetrics_gradient_inner_cpp_DSS, 3},
