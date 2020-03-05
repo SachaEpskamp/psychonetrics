@@ -9,7 +9,7 @@ missingpatterns <- function(dat, verbose = TRUE){
   
   
   # Create a dummy dataset with only missings:
-  mis <- as(is.na(dat),"dgCMatrix")
+  mis <- as(is.na(dat),"matrix")
   
   # Unique patterns:
   unMis <- mgcv::uniquecombs(mis)
@@ -22,6 +22,7 @@ missingpatterns <- function(dat, verbose = TRUE){
   nvar <- ncol(dat)
   dumSig <- matrix(0,nvar,nvar)
   dumSig[lower.tri(dumSig,diag=TRUE)] <- nvar + seq_len(sum(lower.tri(dumSig,diag=TRUE)))
+  browser
   patterns <- vector("list",nrow(unMis))
   
   if (verbose){
@@ -91,7 +92,7 @@ fullfimldata <- function(dat, verbose = TRUE){
   
   
   # Create a dummy dataset with only missings:
-  mis <- as(is.na(dat),"sparseMatrix")
+  mis <- as(is.na(dat),"dgCMatrix")
   
   # DUmmy sigma for indices:
   nvar <- ncol(dat)
@@ -131,10 +132,10 @@ fullfimldata <- function(dat, verbose = TRUE){
     # Duplication matrix: 
     patterns[[i]]$D <- duplicationMatrix(sum(obs))
     
-    
+  
     # Stuff that Armadillo understands:
     patterns[[i]]$L <- as( patterns[[i]]$L , "dgCMatrix")
-    patterns[[i]]$D <- as( patterns[[i]]$D , "dgCMatrix")
+    # patterns[[i]]$D <- as( patterns[[i]]$D , "dgCMatrix")
     
     # patterns[[i]]$Lmu <- sparseMatrix(i=seq_along(inds),j=inds,dims=c(length(inds),ncol(dat)))
     
