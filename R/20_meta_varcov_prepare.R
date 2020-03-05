@@ -36,6 +36,7 @@ prepare_meta_varcov <- function(x, model){
     groupModels[[g]]$means <- means[[g]]
     groupModels[[g]]$corinput <- FALSE
     groupModels[[g]]$metacor <-  model@sample@corinput
+    groupModels[[g]]$cpp <- model@cpp
   }
 
   # Return

@@ -55,7 +55,7 @@
 
 
 # Full jacobian of phi (distribution parameters) with respect to theta (model parameters) for a group
-d_phi_theta_meta_varcov_group <- function(y,randomEffects,metacor,...){
+d_phi_theta_meta_varcov_group <- function(y,randomEffects,metacor,cpp,...){
   
   # Dots:
   dots <- list(...)
@@ -72,7 +72,7 @@ d_phi_theta_meta_varcov_group <- function(y,randomEffects,metacor,...){
   # Number of observations:
   nobs <- nmod + # correlations
     nmod * (nmod+1) / 2 # Random effects
-
+  
   # Mean part:
   meanPart <- seq_len(nmod)
   
@@ -80,7 +80,7 @@ d_phi_theta_meta_varcov_group <- function(y,randomEffects,metacor,...){
   varPart <- max(meanPart) + seq_len(nmod*(nmod+1)/2)    
   
   # Empty Jacobian:
-  Jac <- Matrix(0, nobs, nobs, sparse = FALSE)
+  Jac <- matrix(0, nobs, nobs)
   
   
   
@@ -93,57 +93,101 @@ d_phi_theta_meta_varcov_group <- function(y,randomEffects,metacor,...){
   
   if (y == "cov"){
     # Regular covs:
-    Jac[meanPart,meanPart] <- Diagonal(nmod)
+    Jac[meanPart,meanPart] <- as.matrix(Diagonal(nmod))
   } else if (y == "chol"){
     # Cholesky decomposition:
-    Jac[meanPart,meanPart] <- d_sigma_cholesky(lowertri = dots$lowertri_y,L = Lmat, C = dots$C, In = dots$In )
+    if (cpp){
+      Jac[meanPart,meanPart] <- d_sigma_cholesky_cpp(lowertri = dots$lowertri_y,L = Lmat, C = dots$C, In = dots$In )      
+    } else {
+      Jac[meanPart,meanPart] <- d_sigma_cholesky(lowertri = dots$lowertri_y,L = Lmat, C = dots$C, In = dots$In )      
+    }
+    
   } else if (y == "ggm"){
-  
+    
     # Gaussian graphical model:
     netPart <- seq_len(nvar*(nvar-1)/2)
     scalingPart <- max(netPart) + seq_len(nvar)
     
     if (metacor){
+      if (cpp){
+        Jac[meanPart,netPart] <- d_sigma_omega_corinput_cpp(delta_IminOinv = dots$delta_IminOinv_y, 
+                                                            L = Lmat, A = dots$A, delta = dots$delta_y,
+                                                            Dstar = dots$Dstar, IminOinv = dots$IminOinv_y, 
+                                                            In = dots$In)        
+      } else {
+        Jac[meanPart,netPart] <- d_sigma_omega_corinput(delta_IminOinv = dots$delta_IminOinv_y, 
+                                                        L = Lmat, A = dots$A, delta = dots$delta_y,
+                                                        Dstar = dots$Dstar, IminOinv = dots$IminOinv_y, 
+                                                        In = dots$In)
+      }
       
-      Jac[meanPart,netPart] <- d_sigma_omega_corinput(delta_IminOinv = dots$delta_IminOinv_y, 
-                                                     L = Lmat, A = dots$A, delta = dots$delta_y,
-                                                     Dstar = dots$Dstar, IminOinv = dots$IminOinv_y, 
-                                                     In = dots$In)
       
     } else {
-     
-      Jac[meanPart,netPart] <- d_sigma_omega(L = Lmat, delta_IminOinv = dots$delta_IminOinv_y,
-                                            A = dots$A, delta = dots$delta_y, Dstar = dots$Dstar)
-      Jac[meanPart,scalingPart] <- d_sigma_delta(L = Lmat, delta_IminOinv = dots$delta_IminOinv_y,
-                                                In = dots$In, A = dots$A, delta = dots$delta_y)
+      if (cpp){
+        Jac[meanPart,netPart] <- d_sigma_omega_cpp(L = Lmat, delta_IminOinv = dots$delta_IminOinv_y,
+                                                   A = dots$A, delta = dots$delta_y, Dstar = dots$Dstar)
+        Jac[meanPart,scalingPart] <- d_sigma_delta_cpp(L = Lmat, delta_IminOinv = dots$delta_IminOinv_y,
+                                                       In = dots$In, A = dots$A, delta = dots$delta_y)
+      } else {
+        Jac[meanPart,netPart] <- d_sigma_omega(L = Lmat, delta_IminOinv = dots$delta_IminOinv_y,
+                                               A = dots$A, delta = dots$delta_y, Dstar = dots$Dstar)
+        Jac[meanPart,scalingPart] <- d_sigma_delta(L = Lmat, delta_IminOinv = dots$delta_IminOinv_y,
+                                                   In = dots$In, A = dots$A, delta = dots$delta_y)       
+      }
+      
       
     }
     
   } else  if (y == "prec"){
     
-    Jac[meanPart,meanPart] <- d_sigma_kappa(L = Lmat, D = dots$D, sigma = dots$sigma_y)
+    if (cpp){
+      Jac[meanPart,meanPart] <- d_sigma_kappa_cpp(L = Lmat, D = dots$D, sigma = dots$sigma_y)
+    } else {
+      Jac[meanPart,meanPart] <- d_sigma_kappa(L = Lmat, D = dots$D, sigma = dots$sigma_y)      
+    }
+    
     
   } else if (y == "cor"){
     # Corelation matrix:
     corPart <- seq_len(nvar*(nvar-1)/2)
-    Jac[meanPart,corPart] <- d_sigma_rho(L = Lmat, SD = dots$SD_y, A = dots$A, Dstar = dots$Dstar)
+    
+    if (cpp){
+      Jac[meanPart,corPart] <- d_sigma_rho_cpp(L = Lmat, SD = dots$SD_y, A = dots$A, Dstar = dots$Dstar)
+    } else {
+      Jac[meanPart,corPart] <- d_sigma_rho(L = Lmat, SD = dots$SD_y, A = dots$A, Dstar = dots$Dstar)      
+    }
+    
     
     if (!metacor){
       sdPart <- max(corPart) + seq_len(nvar)  
-      Jac[meanPart,sdPart] <- d_sigma_SD(L = Lmat, SD_IplusRho = dots$SD_IplusRho_y, In = dots$In, A = dots$A)
+      
+      if (cpp){
+        Jac[meanPart,sdPart] <- d_sigma_SD_cpp(L = Lmat, SD_IplusRho = dots$SD_IplusRho_y, In = dots$In, A = dots$A)
+      } else {
+        Jac[meanPart,sdPart] <- d_sigma_SD(L = Lmat, SD_IplusRho = dots$SD_IplusRho_y, In = dots$In, A = dots$A)
+      }
+      
     }
   }
   
-
+  
   ### Add random effects (mostly same code):
   nEl <- nmod * (nmod+1) / 2
   if (randomEffects == "cov"){
     # Regular covs:
-    Jac[varPart,varPart] <- Diagonal(nEl)
+    Jac[varPart,varPart] <- as.matrix(Diagonal(nEl))
+    
   } else if (y == "chol"){
-    # Cholesky decomposition:
-    Jac[varPart,varPart] <- d_sigma_cholesky(lowertri = dots$lowertri_randomEffects,L = dots$L_c, C = dots$C_c, 
-                                             In = dots$In_c)
+    if (cpp){
+      # Cholesky decomposition:
+      Jac[varPart,varPart] <- d_sigma_cholesky_cpp(lowertri = dots$lowertri_randomEffects,L = dots$L_c, C = dots$C_c, 
+                                                   In = dots$In_c)
+    } else {
+      # Cholesky decomposition:
+      Jac[varPart,varPart] <- d_sigma_cholesky(lowertri = dots$lowertri_randomEffects,L = dots$L_c, C = dots$C_c, 
+                                               In = dots$In_c)      
+    }
+    
   } else if (y == "ggm"){
     
     # Gaussian graphical model:
@@ -152,33 +196,65 @@ d_phi_theta_meta_varcov_group <- function(y,randomEffects,metacor,...){
     
     if (metacor){
       
-      Jac[varPart,netPart] <- d_sigma_omega_corinput(delta_IminOinv = dots$delta_IminOinv_randomEffects, 
-                                                      L = dots$L_c, A = dots$A_c, delta = dots$delta_randomEffects,
-                                                      Dstar = dots$Dstar_c, IminOinv = dots$IminOinv_randomEffects, 
-                                                      In = dots$In_c)
+      if (cpp){
+        Jac[varPart,netPart] <- d_sigma_omega_corinput_cpp(delta_IminOinv = dots$delta_IminOinv_randomEffects, 
+                                                           L = dots$L_c, A = dots$A_c, delta = dots$delta_randomEffects,
+                                                           Dstar = dots$Dstar_c, IminOinv = dots$IminOinv_randomEffects, 
+                                                           In = dots$In_c)
+      } else {
+        Jac[varPart,netPart] <- d_sigma_omega_corinput(delta_IminOinv = dots$delta_IminOinv_randomEffects, 
+                                                       L = dots$L_c, A = dots$A_c, delta = dots$delta_randomEffects,
+                                                       Dstar = dots$Dstar_c, IminOinv = dots$IminOinv_randomEffects, 
+                                                       In = dots$In_c)
+      }
       
     } else {
-      
-      Jac[varPart,netPart] <- d_sigma_omega(L = dots$L_c, delta_IminOinv = dots$delta_IminOinv_randomEffects,
-                                             A = dots$A_c, delta = dots$delta_randomEffects, Dstar = dots$Dstar_c)
-      Jac[varPart,scalingPart] <- d_sigma_delta(L = dots$L_c, delta_IminOinv = dots$delta_IminOinv_randomEffects,
-                                                 In = dots$In_c, A = dots$A_c, delta = dots$delta_randomEffects)
+      if (cpp){
+        Jac[varPart,netPart] <- d_sigma_omega_cpp(L = dots$L_c, delta_IminOinv = dots$delta_IminOinv_randomEffects,
+                                                  A = dots$A_c, delta = dots$delta_randomEffects, Dstar = dots$Dstar_c)
+        Jac[varPart,scalingPart] <- d_sigma_delta_cpp(L = dots$L_c, delta_IminOinv = dots$delta_IminOinv_randomEffects,
+                                                      In = dots$In_c, A = dots$A_c, delta = dots$delta_randomEffects)
+        
+      } else {
+        Jac[varPart,netPart] <- d_sigma_omega(L = dots$L_c, delta_IminOinv = dots$delta_IminOinv_randomEffects,
+                                              A = dots$A_c, delta = dots$delta_randomEffects, Dstar = dots$Dstar_c)
+        Jac[varPart,scalingPart] <- d_sigma_delta(L = dots$L_c, delta_IminOinv = dots$delta_IminOinv_randomEffects,
+                                                  In = dots$In_c, A = dots$A_c, delta = dots$delta_randomEffects)
+        
+      }
       
     }
     
   } else  if (y == "prec"){
     
-    Jac[varPart,varPart] <- d_sigma_kappa(L = dots$L_c, D = dots$D_c, sigma = dots$sigma_randomEffects)
+    if (cpp){
+      Jac[varPart,varPart] <- d_sigma_kappa_cpp(L = dots$L_c, D = dots$D_c, sigma = dots$sigma_randomEffects)
+    } else {
+      Jac[varPart,varPart] <- d_sigma_kappa(L = dots$L_c, D = dots$D_c, sigma = dots$sigma_randomEffects)
+    }
     
   } else if (y == "cor"){
     # Corelation matrix:
     corPart <- seq_len(nmod*(nmod-1)/2)
-    Jac[varPart,corPart] <- d_sigma_rho(L = dots$L_c, SD = dots$SD_randomEffects, A = dots$A_c, Dstar = dots$Dstar_c)
+    
+    if (cpp){
+      Jac[varPart,corPart] <- d_sigma_rho_cpp(L = dots$L_c, SD = dots$SD_randomEffects, A = dots$A_c, Dstar = dots$Dstar_c)
+    } else {
+      Jac[varPart,corPart] <- d_sigma_rho(L = dots$L_c, SD = dots$SD_randomEffects, A = dots$A_c, Dstar = dots$Dstar_c)      
+    }
+
     
     if (!metacor){
-      sdPart <- max(corPart) + seq_len(nmod)  
-      Jac[varPart,sdPart] <- d_sigma_SD(L = dots$L_c, SD_IplusRho = dots$SD_IplusRho_randomEffects, In = dots$In_c, 
-                                        A = dots$A_c)
+      sdPart <- max(corPart) + seq_len(nmod) 
+      
+      if (cpp){
+        Jac[varPart,sdPart] <- d_sigma_SD_cpp(L = dots$L_c, SD_IplusRho = dots$SD_IplusRho_randomEffects, In = dots$In_c, 
+                                          A = dots$A_c)
+      } else {
+        Jac[varPart,sdPart] <- d_sigma_SD(L = dots$L_c, SD_IplusRho = dots$SD_IplusRho_randomEffects, In = dots$In_c, 
+                                          A = dots$A_c)        
+      }
+
     }
   }
   
@@ -186,7 +262,7 @@ d_phi_theta_meta_varcov_group <- function(y,randomEffects,metacor,...){
   
   # Make sparse if needed:
   Jac <- as(Jac, "Matrix")
-
+  
   # Return jacobian:
   return(Jac)
 }
