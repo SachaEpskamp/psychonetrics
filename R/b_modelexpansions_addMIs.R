@@ -124,7 +124,7 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
   nTotal <- sum(x@sample@groups$nobs)
   
   # FIXME: 4 * n could be nicer here probably
-  H <- 4 * nTotal * as(psychonetrics_FisherInformation(modCopy, analyticFisher), "Matrix")
+  H <- 4 * nTotal * as(psychonetrics_FisherInformation(modCopy, analyticFisher), "matrix")
   
   # For every new parameter:
   curMax <- max(x@parameters$par)

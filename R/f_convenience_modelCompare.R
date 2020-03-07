@@ -61,8 +61,12 @@ compare <- function(...){
 # Nice print function:
 print.psychonetrics_compare <- function(x){
 
+  x$AIC <- goodNum2(x$AIC)
+  x$BIC <- goodNum2(x$BIC)
+  
+  
   # Make all numbers nicer
-  for (i in 3:ncol(x)){
+  for (i in 5:ncol(x)){
     x[,i] <- goodNum(x[,i])
   }
   
