@@ -23,8 +23,9 @@ implied_meta_varcov <- function(model, all = FALSE){
         x[[g]]$mu <- Vech(sigma_y, TRUE)
       }
       
+
       # Form the var-cov matrix:
-      x[[g]]$sigma <- x[[g]]$sigma_randomEffects + model@extramatrices$Vall
+      x[[g]]$sigma <- x[[g]]$sigma_randomEffects + model@extramatrices[['V']]
       x[[g]]$kappa <- solve_symmetric(x[[g]]$sigma, logdet = TRUE)
     } else {
       nStudy <- model@sample@groups$nobs[g]
