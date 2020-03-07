@@ -65,7 +65,6 @@ d_sigma_omega_corinput <- function(L,delta_IminOinv,A,delta,Dstar,IminOinv,In,..
 
 # Full jacobian of phi (distribution parameters) with respect to theta (model parameters) for a group
 d_phi_theta_varcov_group <- function(cpp, sigma,y,corinput,meanstructure,tau,mu,...){
-  
   dots <- list(...)
   
   # Number of variables:
@@ -166,7 +165,7 @@ d_phi_theta_varcov_group <- function(cpp, sigma,y,corinput,meanstructure,tau,mu,
     corPart <- meanstructure*max(meanPart) + nThresh +  seq_len(nvar*(nvar-1)/2)
     
     if  (cpp){
-      Jac[varPart,corPart] <- d_sigma_rho_cpp(L = dots$L, SD = dots$SD, A = dots$A, delta = dots$delta, Dstar = dots$Dstar)
+      Jac[varPart,corPart] <- d_sigma_rho_cpp(L = dots$L, SD = dots$SD, A = dots$A, Dstar = dots$Dstar)
     } else {
       Jac[varPart,corPart] <- d_sigma_rho(...)      
     }
