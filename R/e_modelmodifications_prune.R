@@ -267,7 +267,8 @@ prune <- function(
     suppressWarnings(x <- x %>% runmodel(verbose=verbose,...))
     
     # If not identified, try with emergency start:
-    if (any(eigen(x@information)$values < -sqrt(.Machine$double.eps))){
+    # if (any(eigen(x@information)$values < -sqrt(.Machine$double.eps))){
+    if (!sympd_cpp(x@information)){
       # cat("EMERGENCYSTART")
       x <- emergencystart(xOld) %>% runmodel(verbose=verbose,...)
     }
