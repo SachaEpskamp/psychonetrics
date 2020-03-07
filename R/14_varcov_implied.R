@@ -16,12 +16,12 @@ implied_varcov <- function(model, all = FALSE){
       x[[g]]$kappa <- solve_symmetric(x[[g]]$sigma, logdet = TRUE)
     } else {
       if (is.null(attr(x[[g]]$kappa, "logdet"))){
-        ev <- eigen(x[[g]]$kappa, symmetric=TRUE, only.values=TRUE)$values
+        # ev <- eigen(x[[g]]$kappa, symmetric=TRUE, only.values=TRUE)$values
         
         # Check pos-def:
-        if(any(ev < sqrt(.Machine$double.eps)) || sum(ev) == 0) {
+        # if(any(ev < sqrt(.Machine$double.eps)) || sum(ev) == 0) {
+        if (!sympd_cpp(x[[g]]$kappa)){
             attr(x[[g]]$kappa, "logdet") <- log(.Machine$double.eps)  
-          
         } else {
           attr(x[[g]]$kappa, "logdet") <- log(det(x[[g]]$kappa))
         }
