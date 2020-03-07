@@ -76,16 +76,18 @@ arma::mat expected_hessian_fiml_Gaussian_group_cpp_inner(
   arma::vec means = dat["means"];
   
   // inverse:
-  arma::vec ev = arma::eig_sym(sigma_p);
-  bool ispos = true;
-  for ( j = 0; j < ev.size(); j++){
-    if (ev[j] < sqrt(epsilon)){
-      ispos = false;
-      break;
-    }
-  }
+  // arma::vec ev = arma::eig_sym(sigma_p);
+  // bool ispos = true;
+  // for ( j = 0; j < ev.size(); j++){
+  //   if (ev[j] < sqrt(epsilon)){
+  //     ispos = false;
+  //     break;
+  //   }
+  // }
+  bool ispos = sigma_p.is_sympd();
+  
   if (ispos){
-    kappa_p = inv(sigma_p);
+    kappa_p = inv_sympd(sigma_p);
     // logdet = log(det(kappa_p));
   } else {
     kappa_p = pinv(sigma_p);

@@ -208,10 +208,11 @@ modelsearch <- function(x,
           propMods[[i]] <- propMods[[i]] %>% runmodel(verbose = FALSE, addMIs = FALSE, ...)
           
           # Fisher information ok?
-          ev <- eigen(propMods[[i]]@information)$values
+          # ev <- eigen(propMods[[i]]@information)$values
           
           # If not, try again with different starts:
-          if (any(ev < -sqrt(.Machine$double.eps))){
+          # if (any(ev < -sqrt(.Machine$double.eps))){
+          if (!sympd_cpp(propMods[[i]]@information)){
             try <- 1
             repeat{
               if (try == 1){
@@ -251,9 +252,10 @@ modelsearch <- function(x,
               propMods[[i]] <- propMods[[i]] %>% runmodel(verbose = FALSE, addMIs = FALSE, ...)
               
               # Fisher information ok?
-              ev <- eigen(propMods[[i]]@information)$values
+              # ev <- eigen(propMods[[i]]@information)$values
               
-              if (all(ev > -sqrt(.Machine$double.eps))){
+              # if (all(ev > -sqrt(.Machine$double.eps))){
+              if (sympd_cpp(propMods[[i]]@information)){
                 break
               } else {
                 try <- try + 1
@@ -276,10 +278,12 @@ modelsearch <- function(x,
           propMods[[i]] <- propMods[[i]] %>% runmodel(verbose = FALSE, addMIs = FALSE, ...)
           
           # Fisher information ok?
-          ev <- eigen(propMods[[i]]@information)$values
+          # ev <- eigen(propMods[[i]]@information)$values
           
           # If not, try again with different starts:
-          if (any(ev < -sqrt(.Machine$double.eps))){
+          # if (any(ev < -sqrt(.Machine$double.eps))){
+          
+          if (!sympd_cpp(propMods[[i]]@information)){
             try <- 1
             repeat{
               if (try == 1){
@@ -312,9 +316,11 @@ modelsearch <- function(x,
               propMods[[i]] <- propMods[[i]] %>% runmodel(verbose = FALSE, addMIs = FALSE, ...)
               
               # Fisher information ok?
-              ev <- eigen(propMods[[i]]@information)$values
+              # ev <- eigen(propMods[[i]]@information)$values
               
-              if (all(ev > -sqrt(.Machine$double.eps))){
+              # if (all(ev > -sqrt(.Machine$double.eps))){
+              
+              if (sympd_cpp(propMods[[i]]@information)){
                 break
               } else {
                 try <- try + 1

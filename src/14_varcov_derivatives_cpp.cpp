@@ -99,7 +99,6 @@ arma::mat d_sigma_rho_cpp(
     const arma::sp_mat& L,
     const arma::sp_mat& SD,
     const arma::sp_mat& A,
-    const arma::sp_mat& delta,
     const arma::sp_mat& Dstar){
   
   // return(L * kron((arma::mat)SD, (arma::mat)SD) * Dstar); // FIXME: This kronecker prduct can be MUCH better...
@@ -141,22 +140,30 @@ arma::mat d_sigma_omega_corinput_cpp(
 
   // First make the diagonal matrix needed:
   arma::vec d = diagvec(IminOinv);
-  sp_mat dmat(d.size(), d.size());
+  // sp_mat dmat(d.size(), d.size());
   for (int i=0; i < d.size(); i++){
-    dmat(i,i) = pow(d[i], -1.5);
+    d[i] = pow(d[i], -1.5);
   }
+  mat dmat = diagmat(d);
+
+  // sp_mat dmat(d.size(), d.size());
+  // for (int i=0; i < d.size(); i++){
+  //   dmat(i,i) = pow(d[i], -1.5);
+  // }
   
   // Dense kronecker products:
-  arma::mat kron1 = kron(delta_IminOinv, delta_IminOinv);
   arma::mat kron2 = kron(IminOinv, IminOinv);
-  
+  arma::mat kron1 =  kronecker_diag(delta) * kron2;
+    // kron(delta_IminOinv, delta_IminOinv);
+
+    
   // Sparse inner part:
-  arma::sp_mat sparse = 0.5 *  (kronecker_X_I(delta_IminOinv, In.n_rows) + kronecker_I_X(delta_IminOinv, In.n_rows)) *
-    A * dmat * A.t();
+  arma::sp_mat sparse = 0.5 *  (kronecker_X_I(delta_IminOinv, In.n_rows) + kronecker_I_X(delta_IminOinv, In.n_rows));
+  arma::mat dense = A * dmat * A.t();
   
   // Return value:
   arma::mat res = 
-    L * (kron1 - sparse * kron2) * Dstar;
+    L * (kron1 - sparse * dense * kron2) * Dstar;
 
   return(res);
   

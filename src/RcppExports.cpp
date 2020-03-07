@@ -6,6 +6,30 @@
 
 using namespace Rcpp;
 
+// sympd_cpp
+bool sympd_cpp(arma::mat X);
+RcppExport SEXP _psychonetrics_sympd_cpp(SEXP XSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(sympd_cpp(X));
+    return rcpp_result_gen;
+END_RCPP
+}
+// solve_symmetric_cpp
+Rcpp::List solve_symmetric_cpp(arma::mat X, bool logdet, double epsilon);
+RcppExport SEXP _psychonetrics_solve_symmetric_cpp(SEXP XSEXP, SEXP logdetSEXP, SEXP epsilonSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< bool >::type logdet(logdetSEXP);
+    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
+    rcpp_result_gen = Rcpp::wrap(solve_symmetric_cpp(X, logdet, epsilon));
+    return rcpp_result_gen;
+END_RCPP
+}
 // kronecker_I_X
 arma::sp_mat kronecker_I_X(const arma::mat& X, int n);
 RcppExport SEXP _psychonetrics_kronecker_I_X(SEXP XSEXP, SEXP nSEXP) {
@@ -546,17 +570,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // d_sigma_rho_cpp
-arma::mat d_sigma_rho_cpp(const arma::sp_mat& L, const arma::sp_mat& SD, const arma::sp_mat& A, const arma::sp_mat& delta, const arma::sp_mat& Dstar);
-RcppExport SEXP _psychonetrics_d_sigma_rho_cpp(SEXP LSEXP, SEXP SDSEXP, SEXP ASEXP, SEXP deltaSEXP, SEXP DstarSEXP) {
+arma::mat d_sigma_rho_cpp(const arma::sp_mat& L, const arma::sp_mat& SD, const arma::sp_mat& A, const arma::sp_mat& Dstar);
+RcppExport SEXP _psychonetrics_d_sigma_rho_cpp(SEXP LSEXP, SEXP SDSEXP, SEXP ASEXP, SEXP DstarSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::sp_mat& >::type L(LSEXP);
     Rcpp::traits::input_parameter< const arma::sp_mat& >::type SD(SDSEXP);
     Rcpp::traits::input_parameter< const arma::sp_mat& >::type A(ASEXP);
-    Rcpp::traits::input_parameter< const arma::sp_mat& >::type delta(deltaSEXP);
     Rcpp::traits::input_parameter< const arma::sp_mat& >::type Dstar(DstarSEXP);
-    rcpp_result_gen = Rcpp::wrap(d_sigma_rho_cpp(L, SD, A, delta, Dstar));
+    rcpp_result_gen = Rcpp::wrap(d_sigma_rho_cpp(L, SD, A, Dstar));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -626,6 +649,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_psychonetrics_sympd_cpp", (DL_FUNC) &_psychonetrics_sympd_cpp, 1},
+    {"_psychonetrics_solve_symmetric_cpp", (DL_FUNC) &_psychonetrics_solve_symmetric_cpp, 3},
     {"_psychonetrics_kronecker_I_X", (DL_FUNC) &_psychonetrics_kronecker_I_X, 2},
     {"_psychonetrics_kronecker_X_I", (DL_FUNC) &_psychonetrics_kronecker_X_I, 2},
     {"_psychonetrics_kronecker_diag", (DL_FUNC) &_psychonetrics_kronecker_diag, 1},
@@ -664,7 +689,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_d_sigma_delta_cpp", (DL_FUNC) &_psychonetrics_d_sigma_delta_cpp, 5},
     {"_psychonetrics_d_sigma_omega_cpp", (DL_FUNC) &_psychonetrics_d_sigma_omega_cpp, 5},
     {"_psychonetrics_d_sigma_kappa_cpp", (DL_FUNC) &_psychonetrics_d_sigma_kappa_cpp, 3},
-    {"_psychonetrics_d_sigma_rho_cpp", (DL_FUNC) &_psychonetrics_d_sigma_rho_cpp, 5},
+    {"_psychonetrics_d_sigma_rho_cpp", (DL_FUNC) &_psychonetrics_d_sigma_rho_cpp, 4},
     {"_psychonetrics_d_sigma_SD_cpp", (DL_FUNC) &_psychonetrics_d_sigma_SD_cpp, 4},
     {"_psychonetrics_d_sigma_omega_corinput_cpp", (DL_FUNC) &_psychonetrics_d_sigma_omega_corinput_cpp, 7},
     {"_psychonetrics_expHcpp", (DL_FUNC) &_psychonetrics_expHcpp, 6},

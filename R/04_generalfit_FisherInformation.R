@@ -12,8 +12,8 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
   if (!analytic){
     return(numeric_FisherInformation(model))
   }
-  
-  # Prepare (FIXME: x not needed but I am laxy...)
+
+    # Prepare (FIXME: x not needed but I am laxy...)
   prep <- prepareModel(parVector(model), model)
   
   # # estimator part Jacobian:
@@ -45,6 +45,7 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
                    "Gaussian" = expected_hessian_fiml_Gaussian
     )
   )
+
 
   estimatorPart <- estimatorHessian(prep)
   
