@@ -20,7 +20,7 @@ varcov(data, type = c("cov", "chol", "prec", "ggm", "cor"),
                     covs, means, nobs, missing = "listwise", equal =
                     "none", baseline_saturated = TRUE, estimator =
                     "default", optimizer = "default", storedata = FALSE,
-                    WLS.V, sampleStats, meanstructure, corinput, verbose =
+                    WLS.W, sampleStats, meanstructure, corinput, verbose =
                     TRUE, covtype = c("choose", "ML", "UB"), standardize =
                     c("none", "z", "quantile"))
 cholesky(\dots)
@@ -103,7 +103,7 @@ Logical, should the raw data be stored? Needed for bootstrapping (see \code{boot
   \item{standardize}{
 Which standardization method should be used? \code{"none"} (default) for no standardization, \code{"z"} for z-scores, and \code{"quantile"} for a non-parametric transformation to the quantiles of the marginal standard normal distribution.
 }
-\item{WLS.V}{
+\item{WLS.W}{
 Optional WLS weights matrix.
 }
   \item{sampleStats}{

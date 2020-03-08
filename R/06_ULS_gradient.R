@@ -13,11 +13,11 @@ ULS_gradient_Gauss <- function(prep){
 
 
 # Fit per group:
-ULS_Gauss_gradient_pergroup <- function(means,S,mu,tau,thresholds,sigma,WLS.V,estimator, meanstructure = TRUE, corinput = FALSE,...){
+ULS_Gauss_gradient_pergroup <- function(means,S,mu,tau,thresholds,sigma,WLS.W,estimator, meanstructure = TRUE, corinput = FALSE,...){
 
   
   if (estimator == "DWLS"){
-    WLS.V <- Diagonal(x = diag(WLS.V))
+    WLS.W <- Diagonal(x = diag(WLS.W))
   }
   
   
@@ -59,5 +59,5 @@ ULS_Gauss_gradient_pergroup <- function(means,S,mu,tau,thresholds,sigma,WLS.V,es
   }
 
   # ULS:
-  -2 * t(obs - imp) %*% WLS.V
+  -2 * t(obs - imp) %*% WLS.W
 }

@@ -11,7 +11,7 @@ This is the family of Ising models fit to dichotomous datasets. Note that the in
 Ising(data, omega = "full", tau, beta, vars, groups, covs, means, nobs, 
     covtype = c("choose","ML","UB"), responses, missing = "listwise", 
     equal = "none", baseline_saturated = TRUE, estimator = "default", 
-    optimizer = "default", storedata = FALSE, WLS.V, sampleStats, 
+    optimizer = "default", storedata = FALSE, WLS.W, sampleStats, 
     identify = TRUE, verbose = TRUE, maxNodes = 20)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -67,7 +67,7 @@ The optimizer to be used. Usually either \code{"nlminb"} (with box constrains) o
   \item{storedata}{
 Logical, should the raw data be stored? Needed for bootstrapping (see \code{bootstrap}).
 }
-\item{WLS.V}{
+\item{WLS.W}{
 Optional WLS weights matrix. CURRENTLY NOT USED.
 }
   \item{sampleStats}{

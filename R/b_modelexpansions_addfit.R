@@ -78,6 +78,10 @@ addfit <- function(
   
   # Baseline model:
   if (!is.null(x@baseline_saturated$baseline) && x@baseline_saturated$baseline@computed){
+    if (length(x@baseline_saturated$baseline@objective) == 0){
+      x@baseline_saturated$baseline@objective <- psychonetrics_fitfunction(parVector(x@baseline_saturated$baseline),x@baseline_saturated$baseline)
+    }
+    
     # fitMeasures$fmin_baseline <- x@baseline_saturated$baseline@objective
     # fitMeasures$baseline.chisq <-  sampleSize * fitMeasures$fmin_baseline
     if (x@estimator%in% c("FIML","ML")){

@@ -24,7 +24,7 @@ varcov <- function(
   estimator = "default",
   optimizer = "default",
   storedata = FALSE,
-  WLS.V,
+  WLS.W,
   sampleStats, # Leave to missing
   meanstructure, # Defaults to TRUE if data is used or means is used, FALSE otherwie
   corinput, # Defaults to TRUE if the input is detected to consist of correlation matrix/matrices, FALSE otherwise
@@ -87,8 +87,8 @@ varcov <- function(
   # Obtain sample stats:
   if (missing(sampleStats)){
     # WLS weights:
-    if (missing(WLS.V)){
-      WLS.V <- ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
+    if (missing(WLS.W)){
+      WLS.W <- ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
                       switch(estimator,
                              "WLS" = "full",
                              "ULS" = "identity",
@@ -107,7 +107,7 @@ varcov <- function(
                                rawts = rawts,
                                fimldata = estimator == "FIML",
                                storedata = storedata,
-                               weightsmatrix = WLS.V,
+                               weightsmatrix = WLS.W,
                                meanstructure = meanstructure,
                                corinput = corinput,
                                covtype=covtype,

@@ -42,10 +42,10 @@ prepareModel <- function(x, model){
   # FIXME: Add fullFIML to the prep model:
   prep$fullFIML <- model@sample@fullFIML
   
-  # FIXME Add WLS.V:
+  # FIXME Add WLS.W:
   if (model@estimator %in%  c("WLS","DWLS","ULS")){
     for (g in seq_along(prep$groupModels)){
-      prep$groupModels[[g]]$WLS.V <- model@sample@WLS.V[[g]]
+      prep$groupModels[[g]]$WLS.W <- model@sample@WLS.W[[g]]
     }
   }
   
