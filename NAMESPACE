@@ -2,7 +2,7 @@
 useDynLib(psychonetrics, .registration = TRUE)
 
 # importFrom(metaSEM, asyCov)
-
+export(meta_ggm)
 export(simplestructure)
 
 # Multi-level models:
