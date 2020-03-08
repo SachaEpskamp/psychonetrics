@@ -9,7 +9,7 @@ License: GPL-2
 LinkingTo: Rcpp (>= 0.11.3), RcppArmadillo, pbv
 Depends: R (>= 3.5)
 Imports: methods, qgraph, numDeriv, dplyr, abind, matrixcalc, Matrix, lavaan, corpcor, ucminf, glasso, mgcv, optimx, mvtnorm, VCA, pbapply, parallel, magrittr, pbv, IsingSampler, ggplot2, tidyr
-Suggests: psychTools, semPlot, graphicalVAR, metaSEM
+Suggests: psychTools, semPlot, graphicalVAR
 ByteCompile: true
 URL: http://psychonetrics.org/
 BugReports: https://github.com/SachaEpskamp/psychonetrics/issues
