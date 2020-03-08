@@ -42,7 +42,7 @@ meta_varcov <- function(
   sampleStats, # Leave to missing
   verbose = TRUE
 ){
-  warning("'meta_varcov' is still experimental.")
+  # warning("'meta_varcov' is still experimental.")
   sampleSizes <- nobs # FIXME
   
   # For now, I will always assume correlations were used in the input:

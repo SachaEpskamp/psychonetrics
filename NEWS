@@ -5,6 +5,7 @@ Changes in version 0.6.1:
   o Large internal restructure to support RcppArmadillo
   o Fixed a bug with Cov input not working for lvm models
   o Changed 'WLS.V' to 'WLS.W'
+  o Added the meta_ggm rapper
 
 Changes in version 0.6:
   o The 'dlvm1' model family now also returns the implied latent variance-covarriance matrix as 'sigma_eta_within'
