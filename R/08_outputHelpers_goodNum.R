@@ -1,6 +1,6 @@
 goodNum <- function(x){
   sapply(x,function(xx){
-    if (is.na(xx))return("")
+    if (is.na(xx) || !is.finite(xx))return("")
     if (xx < 0.0001){
       return("< 0.0001")
     }
@@ -14,7 +14,7 @@ goodNum <- function(x){
 
 goodNum2 <- function(x){
   sapply(x,function(xx){
-    if (is.na(xx))return("")
+    if (is.na(xx) || !is.finite(xx))return("")
     if (xx < 0.0001 & xx > -0.0001){
       return("~0")
     }
