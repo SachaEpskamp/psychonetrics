@@ -24,10 +24,10 @@ ULS_Gauss <- function(x, model){
 }
 
 # Fit per group:
-ULS_Gauss_pergroup <- function(means,S,tau,mu,sigma,WLS.V,estimator,thresholds, meanstructure = TRUE, corinput = FALSE,...){
+ULS_Gauss_pergroup <- function(means,S,tau,mu,sigma,WLS.W,estimator,thresholds, meanstructure = TRUE, corinput = FALSE,...){
 
   if (estimator == "DWLS"){
-     WLS.V <- Diagonal(x = diag(WLS.V))
+     WLS.W <- Diagonal(x = diag(WLS.W))
   }
   
   # Include means:
@@ -77,5 +77,5 @@ ULS_Gauss_pergroup <- function(means,S,tau,mu,sigma,WLS.V,estimator,thresholds, 
   # imp <- c(as.vector(mu),Vech(sigma))
   
   # ULS:
-  as.numeric(t(obs - imp) %*% WLS.V %*% (obs - imp))
+  as.numeric(t(obs - imp) %*% WLS.W %*% (obs - imp))
 }

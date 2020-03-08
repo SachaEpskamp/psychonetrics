@@ -13,7 +13,7 @@ generate_psychonetrics_samplestats <- setClass("psychonetrics_samplestats",  slo
   # data = "list" # Raw data, used only with fimldata
   fimldata = "list",
   fullFIML = "logical",
-  WLS.V = "list", # List with weights matrix per group
+  WLS.W = "list", # List with weights matrix per group
   rawdata = "data.frame" # For bootstrapping!
 ), prototype = list(groups = data.frame(
   label = character(0),

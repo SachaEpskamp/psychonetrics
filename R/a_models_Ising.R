@@ -17,7 +17,7 @@ Ising <- function(
   estimator = "default",
   optimizer = "default",
   storedata = FALSE,
-  WLS.V,
+  WLS.W,
   sampleStats, # Leave to missing
   identify = TRUE,
   verbose = TRUE,
@@ -59,8 +59,8 @@ Ising <- function(
   # Obtain sample stats:
   if (missing(sampleStats)){
     # WLS weights:
-    if (missing(WLS.V)){
-      WLS.V <- ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
+    if (missing(WLS.W)){
+      WLS.W <- ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
                       switch(estimator,
                              "WLS" = "full",
                              "ULS" = "identity",
@@ -78,7 +78,7 @@ Ising <- function(
                                missing = ifelse(estimator == "FIML","pairwise",missing),
                                fimldata = estimator == "FIML",
                                storedata = storedata,
-                               weightsmatrix = WLS.V,
+                               weightsmatrix = WLS.W,
                                # corinput = corinput,
                                covtype=covtype,
                                verbose=verbose)

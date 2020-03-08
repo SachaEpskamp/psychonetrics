@@ -43,7 +43,7 @@ lvm <- function(
   estimator = "ML",
   optimizer = "default",
   storedata = FALSE,
-  WLS.V,
+  WLS.W,
   covtype = c("choose","ML","UB"),
   standardize = c("none","z","quantile"),
   sampleStats,
@@ -62,8 +62,8 @@ lvm <- function(
   identification <- match.arg(identification)
 
   # WLS weights:
-  if (missing(WLS.V)){
-    WLS.V <- ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
+  if (missing(WLS.W)){
+    WLS.W <- ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
                     switch(estimator,
                            "WLS" = "full",
                            "ULS" = "identity",
@@ -84,7 +84,7 @@ lvm <- function(
                                fimldata = estimator == "FIML",
                                storedata = storedata,
                                covtype=covtype,
-                               weightsmatrix = WLS.V,
+                               weightsmatrix = WLS.W,
                                verbose=verbose,
                                standardize=standardize)
   }

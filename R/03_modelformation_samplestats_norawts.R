@@ -117,7 +117,7 @@ samplestats_norawts <- function(
     if (!sum(vars %in% ordered) == 0 && !sum(vars %in% ordered) == length(vars)){
       stop("Either all variables or no variables may be ordered...")
     }
-    # Do I need a WLS.V?
+    # Do I need a WLS.W?
     if (length(ordered) > 0 && is.character(weightsmatrix)){
       needWLSV <- TRUE
       weightsmatrix <- list()
@@ -516,29 +516,29 @@ samplestats_norawts <- function(
     attr(object@rawdata, "fimldata") <- fimldata
   }
   
-  # add WLS.V:
+  # add WLS.W:
   
   if (is.list(weightsmatrix) || is.matrix(weightsmatrix)){
     if (is.list(weightsmatrix)){
-      object@WLS.V <- lapply(weightsmatrix, function(x)sparseordense(x)) # as(weightsmatrix,"Matrix")
+      object@WLS.W <- lapply(weightsmatrix, function(x)sparseordense(x)) # as(weightsmatrix,"Matrix")
     } else {
-      object@WLS.V <- lapply(1:nGroup,function(x)sparseordense(weightsmatrix))
+      object@WLS.W <- lapply(1:nGroup,function(x)sparseordense(weightsmatrix))
     }
     
     # Check if mean structure is added, otherwise add identitiy matrix:
     
     # FIXME: DISABLED FOR NOW
-    #   if (ncol(object@WLS.V[[1]]) != nVars + nVars*(nVars+1)/2){
-    #     if (ncol(object@WLS.V[[1]]) == nVars*(nVars+1)/2){
+    #   if (ncol(object@WLS.W[[1]]) != nVars + nVars*(nVars+1)/2){
+    #     if (ncol(object@WLS.W[[1]]) == nVars*(nVars+1)/2){
     #       if (verbose && meanstructure){
-    #         warning("WLS.V only supplied for variance/covariance structure. Adding identitiy matrix to means part.")
+    #         warning("WLS.W only supplied for variance/covariance structure. Adding identitiy matrix to means part.")
     #       }
-    #       object@WLS.V[[1]] <- rbind(
+    #       object@WLS.W[[1]] <- rbind(
     #         cbind(Diagonal(nVars), Matrix(0,nVars,nVars*(nVars+1)/2)),
-    #         cbind(Matrix(0,nVars*(nVars+1)/2,nVars), object@WLS.V[[1]])
+    #         cbind(Matrix(0,nVars*(nVars+1)/2,nVars), object@WLS.W[[1]])
     #         )
     #     } else {
-    #       stop("WLS.V not of appropriate dimension.")  
+    #       stop("WLS.W not of appropriate dimension.")  
     #     }
     #   }
     # }
@@ -547,13 +547,13 @@ samplestats_norawts <- function(
       if (is.character(weightsmatrix) && weightsmatrix != "none"){
         for (g in 1:nGroup){
           if (weightsmatrix == "identity"){
-            object@WLS.V[[g]] <- Diagonal(nVars + nVars*(nVars+1)/2)  
+            object@WLS.W[[g]] <- Diagonal(nVars + nVars*(nVars+1)/2)  
           } else if (weightsmatrix == "full"){
             subData <- data[data[[groups]] == g,c(vars)]
-            object@WLS.V[[g]] <- LS_weightsmat(subData,meanstructure=meanstructure,corinput=corinput)
+            object@WLS.W[[g]] <- LS_weightsmat(subData,meanstructure=meanstructure,corinput=corinput)
           } else if (weightsmatrix == "diag"){
             subData <- data[data[[groups]] == g,c(vars)]
-            object@WLS.V[[g]] <- LS_weightsmat(subData, type = "diagonal",meanstructure=meanstructure,corinput=corinput)
+            object@WLS.W[[g]] <- LS_weightsmat(subData, type = "diagonal",meanstructure=meanstructure,corinput=corinput)
           }
         }
       }

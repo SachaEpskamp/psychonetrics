@@ -23,7 +23,7 @@ lvm(data, lambda, latent = c("cov", "chol", "prec",
                     "variance"), vars, latents, groups, covs, means, nobs,
                     missing = "listwise", equal = "none",
                     baseline_saturated = TRUE, estimator = "ML", optimizer
-                    = "default", storedata = FALSE, WLS.V, covtype =
+                    = "default", storedata = FALSE, WLS.W, covtype =
                     c("choose", "ML", "UB"), standardize = c("none", "z",
                     "quantile"), sampleStats,   verbose=TRUE)
 
@@ -129,7 +129,7 @@ Logical, should the raw data be stored? Needed for bootstrapping (see \code{\lin
   \item{verbose}{
 Logical, should progress be printed to the console?
 }
-  \item{WLS.V}{
+  \item{WLS.W}{
 The weights matrix used in WLS estimation (experimental)
 }
   \item{sampleStats}{
