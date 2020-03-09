@@ -21,7 +21,6 @@ logLikelihood_gaussian_group_fiml <- function(fimldata,fulln,sigma,kappa,mu,cpp,
     }
     
   } else {
-    
     if (fullFIML){
       stop("Full (rowwise) FIML only supported through C++")
     } else {
