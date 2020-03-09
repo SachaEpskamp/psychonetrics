@@ -78,10 +78,11 @@ Rcpp::List solve_symmetric_cpp(
     }
     
   } else {
-    // Smal spectral shift:
-    if (lowestEV < 0){
+    // Small spectral shift:
+    if (lowestEV < epsilon){
       for (i=0;i<nvar;i++){
-        X(i,i) -= lowestEV;
+        //X(i,i) -= lowestEV;
+        X(i,i) += epsilon;
       }
     }
     // Rf_PrintValue(wrap(lowestEV));
