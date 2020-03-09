@@ -22,7 +22,7 @@ addfit <- function(
   # Saturated:
   if (x@estimator %in% c("FIML","ML")){
     if (!is.null(x@baseline_saturated$saturated)){
-      satLL <- psychonetrics_logLikelihood(x@baseline_saturated$saturated)    
+      satLL <- psychonetrics_logLikelihood(x@baseline_saturated$saturated %>% usecpp(FALSE))    
     } else {
       satLL <- NA
     }

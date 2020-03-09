@@ -6,13 +6,13 @@ fimlEstimator_Gauss_subgroup <- function(dat,sigma,kappa,mu,...){
   
   
   # Means:
-  mu_p <- mu[obs,]
+  mu_p <- mu[obs]
   dat$n *  maxLikEstimator_Gauss_group(S = dat$S,kappa = kappa_p, mu = mu_p, means = dat$means,sigma = sig_p)
 }
 
 # Fit function per group:
 fimlEstimator_Gauss_group <- function(fimldata,fulln,sigma,kappa,mu,...){
-  
+
   # # 
   # Sigma <<- sigma
   # Kappa <<- kappa

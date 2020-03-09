@@ -9,6 +9,7 @@ logLikelihood_gaussian_group <- function(fimldata,...){
 # FIML version:
 logLikelihood_gaussian_group_fiml <- function(fimldata,fulln,sigma,kappa,mu,cpp,fullFIML,...){
   
+  print(cpp)
   # Use C++?
   if (cpp){
     if (fullFIML){
@@ -21,7 +22,7 @@ logLikelihood_gaussian_group_fiml <- function(fimldata,fulln,sigma,kappa,mu,cpp,
     
   } else {
     
-    if (model@sample@fullFIML){
+    if (fullFIML){
       stop("Full (rowwise) FIML only supported through C++")
     } else {
       # Fit function per group:

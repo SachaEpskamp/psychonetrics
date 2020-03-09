@@ -7,7 +7,7 @@ meta_varcov <- function(
   # Vmethod = c("default","individual","weighted","psychonetrics_individual", "psychonetrics_weighted", "psychonetrics_pooled", "metaSEM_individual","metaSEM_weighted"), # How to obtain V matrices if Vmats is not supplied?
   # Vestimation = c("averaged","per_study"),
 
-  Vmethod = c("pooled","individual","metaSEM_individual","metaSEM_weighted"), # How to obtain V matrices if Vmats is not supplied?
+  Vmethod = c("individual","pooled","metaSEM_individual","metaSEM_weighted"), # How to obtain V matrices if Vmats is not supplied?
   Vestimation = c("averaged","per_study"),  
   
   # Model setup:
@@ -22,7 +22,7 @@ meta_varcov <- function(
   SD_y = "full", # Used for cor
   
   # Random effects setup:
-  randomEffects = c("cov","chol","prec","ggm","cor"),
+  randomEffects = c("chol","cov","prec","ggm","cor"),
   sigma_randomEffects = "full", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
   kappa_randomEffects = "full", # Precision
   # rho = "full", # Correlations
