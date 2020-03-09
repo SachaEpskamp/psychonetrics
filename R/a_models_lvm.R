@@ -296,7 +296,7 @@ lvm <- function(
                                                 nGroup = nGroup, 
                                                 labels = sampleStats@variables$label,
                                                 equal = "delta_epsilon" %in% equal, sampletable = sampleStats,
-                                                omegaStart =  modMatrices$delta_epsilon$start) 
+                                                omegaStart =  modMatrices$omega_epsilon$start) 
   } else if (residual == "prec"){
     
     # Add omega matrix:
