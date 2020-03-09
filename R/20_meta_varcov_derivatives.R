@@ -177,7 +177,7 @@ d_phi_theta_meta_varcov_group <- function(y,randomEffects,metacor,cpp,...){
     # Regular covs:
     Jac[varPart,varPart] <- as.matrix(Diagonal(nEl))
     
-  } else if (y == "chol"){
+  } else if (randomEffects == "chol"){
     if (cpp){
       # Cholesky decomposition:
       Jac[varPart,varPart] <- d_sigma_cholesky_cpp(lowertri = dots$lowertri_randomEffects,L = dots$L_c, C = dots$C_c, 
@@ -188,7 +188,7 @@ d_phi_theta_meta_varcov_group <- function(y,randomEffects,metacor,cpp,...){
                                                In = dots$In_c)      
     }
     
-  } else if (y == "ggm"){
+  } else if (randomEffects == "ggm"){
     
     # Gaussian graphical model:
     netPart <- seq_len(nmod*(nmod-1)/2)
@@ -225,7 +225,7 @@ d_phi_theta_meta_varcov_group <- function(y,randomEffects,metacor,cpp,...){
       
     }
     
-  } else  if (y == "prec"){
+  } else  if (randomEffects == "prec"){
     
     if (cpp){
       Jac[varPart,varPart] <- d_sigma_kappa_cpp(L = dots$L_c, D = dots$D_c, sigma = dots$sigma_randomEffects)
@@ -233,7 +233,7 @@ d_phi_theta_meta_varcov_group <- function(y,randomEffects,metacor,cpp,...){
       Jac[varPart,varPart] <- d_sigma_kappa(L = dots$L_c, D = dots$D_c, sigma = dots$sigma_randomEffects)
     }
     
-  } else if (y == "cor"){
+  } else if (randomEffects == "cor"){
     # Corelation matrix:
     corPart <- seq_len(nmod*(nmod-1)/2)
     
