@@ -261,7 +261,8 @@ d_phi_theta_meta_varcov_group <- function(y,randomEffects,metacor,cpp,...){
   ####
   
   # Make sparse if needed:
-  Jac <- as(Jac, "Matrix")
+  # Jac <- as(Jac, "Matrix")
+  Jac <- sparseordense(Jac)
   
   # Return jacobian:
   return(Jac)
