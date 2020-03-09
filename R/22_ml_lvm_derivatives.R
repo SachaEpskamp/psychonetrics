@@ -188,7 +188,8 @@ d_phi_theta_ml_lvm_group <- function(within_latent,within_residual,between_laten
   Jac <- P %*% Jac
   
   # Make sparse if needed:
-  Jac <- as(Jac, "Matrix")
+  # Jac <- as(Jac, "Matrix")
+  Jac <- sparseordense(Jac)
 
   # Return jacobian:
   return(Jac)

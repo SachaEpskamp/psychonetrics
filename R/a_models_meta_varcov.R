@@ -7,7 +7,7 @@ meta_varcov <- function(
   # Vmethod = c("default","individual","weighted","psychonetrics_individual", "psychonetrics_weighted", "psychonetrics_pooled", "metaSEM_individual","metaSEM_weighted"), # How to obtain V matrices if Vmats is not supplied?
   # Vestimation = c("averaged","per_study"),
 
-  Vmethod = c("pooled","individual"), # How to obtain V matrices if Vmats is not supplied?
+  Vmethod = c("pooled","individual","metaSEM_individual","metaSEM_weighted"), # How to obtain V matrices if Vmats is not supplied?
   Vestimation = c("averaged","per_study"),  
   
   # Model setup:
@@ -323,33 +323,33 @@ meta_varcov <- function(
     #   # avgVmat <- acov * length(cors)
     # }
     # 
-    # if (Vmethod == "metaSEM_individual"){
-    #   
-    #   acovs <- metaSEM::asyCov(cors, sampleSizes, acov = "individual")
-    #   acovs[is.na(acovs)] <- 0
-    #   Vmats <- list()
-    #   for (i in seq_len(nrow(acovs))){
-    #     Vmats[[i]] <- matrix(0, nCor, nCor)
-    #     Vmats[[i]][lower.tri(Vmats[[i]],diag=TRUE)] <- acovs[i,]
-    #     Vmats[[i]][upper.tri(Vmats[[i]],diag=TRUE)] <- t(Vmats[[i]])[upper.tri(Vmats[[i]],diag=TRUE)]
-    #   }
-    #   avgVmat <- Reduce("+", Vmats) / Reduce("+",lapply(Vmats,function(x)x!=0))
-    #   
-    # }
-    # 
-    # 
-    # 
-    # if (Vmethod == "metaSEM_weighted"){
-    #   acovs <- metaSEM::asyCov(cors, sampleSizes, acov = "weighted")
-    #   acovs[is.na(acovs)] <- 0
-    #   Vmats <- list()
-    #   for (i in seq_len(nrow(acovs))){
-    #     Vmats[[i]] <- matrix(0, nCor, nCor)
-    #     Vmats[[i]][lower.tri(Vmats[[i]],diag=TRUE)] <- acovs[i,]
-    #     Vmats[[i]][upper.tri(Vmats[[i]],diag=TRUE)] <- t(Vmats[[i]])[upper.tri(Vmats[[i]],diag=TRUE)]
-    #   }
-    #   avgVmat <- Reduce("+", Vmats) / Reduce("+",lapply(Vmats,function(x)x!=0))
-    # }
+    if (Vmethod == "metaSEM_individual"){
+
+      acovs <- metaSEM::asyCov(cors, sampleSizes, acov = "individual")
+      acovs[is.na(acovs)] <- 0
+      Vmats <- list()
+      for (i in seq_len(nrow(acovs))){
+        Vmats[[i]] <- matrix(0, nCor, nCor)
+        Vmats[[i]][lower.tri(Vmats[[i]],diag=TRUE)] <- acovs[i,]
+        Vmats[[i]][upper.tri(Vmats[[i]],diag=TRUE)] <- t(Vmats[[i]])[upper.tri(Vmats[[i]],diag=TRUE)]
+      }
+      avgVmat <- Reduce("+", Vmats) / Reduce("+",lapply(Vmats,function(x)x!=0))
+
+    }
+
+
+
+    if (Vmethod == "metaSEM_weighted"){
+      acovs <- metaSEM::asyCov(cors, sampleSizes, acov = "weighted")
+      acovs[is.na(acovs)] <- 0
+      Vmats <- list()
+      for (i in seq_len(nrow(acovs))){
+        Vmats[[i]] <- matrix(0, nCor, nCor)
+        Vmats[[i]][lower.tri(Vmats[[i]],diag=TRUE)] <- acovs[i,]
+        Vmats[[i]][upper.tri(Vmats[[i]],diag=TRUE)] <- t(Vmats[[i]])[upper.tri(Vmats[[i]],diag=TRUE)]
+      }
+      avgVmat <- Reduce("+", Vmats) / Reduce("+",lapply(Vmats,function(x)x!=0))
+    }
   }
   
   ####
