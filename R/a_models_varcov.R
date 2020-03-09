@@ -379,6 +379,7 @@ varcov <- function(
       model@baseline_saturated$saturated@objective <- psychonetrics_fitfunction(parVector(model@baseline_saturated$saturated),model@baseline_saturated$saturated)      
     }
   }
+
   
   # Return model:
   return(model)
