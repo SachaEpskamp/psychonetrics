@@ -82,7 +82,7 @@ Rcpp::List solve_symmetric_cpp(
     if (lowestEV < epsilon){
       for (i=0;i<nvar;i++){
         //X(i,i) -= lowestEV;
-        X(i,i) += epsilon;
+        X(i,i) = X(i,i) -lowestEV + epsilon;
       }
     }
     // Rf_PrintValue(wrap(lowestEV));

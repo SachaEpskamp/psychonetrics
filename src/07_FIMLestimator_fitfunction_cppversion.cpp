@@ -49,16 +49,19 @@ double fimlEstimator_Gauss_group_cpp_inner(
   
   // log det:
   arma::vec ev = arma::eig_sym(sigma_p);
-  bool ispos = true;
-  for (int j = 0; j < ev.size(); j++){
-    if (ev[j] < sqrt(epsilon)){
-      ispos = false;
-      break;
-    }
-  }
+  bool ispos = ev[0] > epsilon;
+
+  // bool ispos = true;
+  // for (int j = 0; j < ev.size(); j++){
+  //   if (ev[j] < sqrt(epsilon)){
+  //     ispos = false;
+  //     break;
+  //   }
+  // }
   if (ispos){
     kappa_p = inv(sigma_p);
-    logdet = log(det(kappa_p));
+    // logdet = log(det(kappa_p));\
+    logdet =  real(log_det(kappa_p));
   } else {
     kappa_p = pinv(sigma_p);
     logdet = log(epsilon);
@@ -68,6 +71,7 @@ double fimlEstimator_Gauss_group_cpp_inner(
   double result = n_part * (trace(S * kappa_p) + 
                             dot((means - mu_p).t(), kappa_p * (means - mu_p)) - 
                             logdet);
+
   
   // Return
   return result;
