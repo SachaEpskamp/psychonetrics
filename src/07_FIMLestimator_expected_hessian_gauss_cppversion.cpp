@@ -96,6 +96,7 @@ arma::mat expected_hessian_fiml_Gaussian_group_cpp_inner(
   // }
   kappa_p = solve_symmetric_cpp_matrixonly(sigma_p, epsilon);
   
+  
   // Mean part:
   arma::mat meanpart = 2.0 * kappa_p;
   // Sigma part:
