@@ -10,7 +10,7 @@ expected_hessian_fiml_Gaussian_subgroup <- function(dat,sigma,kappa,mu,...){
   
   
   # Means:
-  mu_p <- mu[obs,]
+  mu_p <- mu[obs]
   dat$n * t(dat$L) %*% expected_hessian_Gaussian_group(S = dat$S,kappa = kappa_p, mu = mu_p, means = dat$means,sigma = sig_p,D=dat$D) %*% dat$L
 }
 

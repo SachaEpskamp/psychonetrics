@@ -86,7 +86,7 @@ logLikelihood_gaussian_subgroup_fiml <- function(dat,sigma,kappa,mu,...){
 
   
   # Means:
-  mu_p <- mu[obs,]
+  mu_p <- mu[obs]
   dat$n *  logLikelihood_gaussian_group_sumstat(S = dat$S,kappa = kappa_p, mu = mu_p, means = dat$means,sigma = sig_p)
 }
 

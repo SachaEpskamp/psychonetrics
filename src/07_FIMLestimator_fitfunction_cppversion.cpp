@@ -58,14 +58,22 @@ double fimlEstimator_Gauss_group_cpp_inner(
   //     break;
   //   }
   // }
+  double logepsilon = log(epsilon);
+  
   if (ispos){
     kappa_p = inv(sigma_p);
     // logdet = log(det(kappa_p));\
-    logdet =  real(log_det(kappa_p));
+    // logdet =  real(log_det(kappa_p));
+    logdet =  log(det(kappa_p));
+    if (logdet < logepsilon){
+      logdet = logepsilon;
+    }
   } else {
     kappa_p = pinv(sigma_p);
-    logdet = log(epsilon);
+    logdet = logepsilon;
   }
+  
+  // Rf_PrintValue(wrap(log_det(kappa_p)));
   
   // Likelihood:
   double result = n_part * (trace(S * kappa_p) + 

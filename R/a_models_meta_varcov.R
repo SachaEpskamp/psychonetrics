@@ -453,6 +453,7 @@ meta_varcov <- function(
     }
   }
   
+  
   # Compute expected random effects matrix:
   expRanEffects <- as.matrix(spectralshift(sampleStats@covs[[1]] - avgVmat))
   

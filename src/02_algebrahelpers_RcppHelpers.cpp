@@ -92,7 +92,12 @@ Rcpp::List solve_symmetric_cpp(
     res["inv"] = inv;
     
     if (logdet){
-      logdetval = real(log_det(inv));
+      double logepsilon = log(epsilon);
+      logdetval =  log(det(inv));
+      if (logdetval < logepsilon){
+        logdetval = logepsilon;
+      }
+      
       res["logdet"] = logdetval;
     }
   }
