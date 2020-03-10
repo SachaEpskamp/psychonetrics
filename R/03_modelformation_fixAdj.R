@@ -5,7 +5,7 @@ fixAdj <- function(kappa, nGroup, nNode, equal = FALSE, diag0 = FALSE, diagonal 
   if (is.character(kappa)){
     
     # Empty network:
-    if (kappa == "empty"){
+    if (kappa %in% c("diag","empty")){
       
       # Equal for all groups:
       if (equal){
@@ -14,6 +14,10 @@ fixAdj <- function(kappa, nGroup, nNode, equal = FALSE, diag0 = FALSE, diagonal 
         # Different for all groups:
         kappa <- array(diag(nNode), c(nNode, nNode, nGroup))
       }
+    } else if (kappa == "zero"){
+      
+      kappa <- array(0, c(nNode, nNode, nGroup))
+      
     } else {
       # Full network:
       if (equal){
