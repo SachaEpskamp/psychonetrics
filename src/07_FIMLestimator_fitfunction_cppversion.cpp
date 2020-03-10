@@ -5,7 +5,7 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 using namespace arma;
-
+#include "02_algebrahelpers_RcppHelpers.h"
 
 // mat test(
 //   mat X,
@@ -28,7 +28,7 @@ double fimlEstimator_Gauss_group_cpp_inner(
     double epsilon,
     double n) {
   
-  double logdet = 0;
+  // double logdet = 0;
   double n_part;
   
   // Observed indices:
@@ -40,7 +40,7 @@ double fimlEstimator_Gauss_group_cpp_inner(
   
   // Subset matrices:
   arma::mat sigma_p = sigma(inds,inds);
-  arma::mat kappa_p(sigma_p);
+  // arma::mat kappa_p(sigma_p);
   arma::vec mu_p = mu(inds);
   
   // Observed values:
@@ -48,8 +48,8 @@ double fimlEstimator_Gauss_group_cpp_inner(
   arma::vec means = dat["means"];
   
   // log det:
-  arma::vec ev = arma::eig_sym(sigma_p);
-  bool ispos = ev[0] > epsilon;
+  // arma::vec ev = arma::eig_sym(sigma_p);
+  // bool ispos = ev[0] > epsilon;
 
   // bool ispos = true;
   // for (int j = 0; j < ev.size(); j++){
@@ -58,20 +58,23 @@ double fimlEstimator_Gauss_group_cpp_inner(
   //     break;
   //   }
   // }
-  double logepsilon = log(epsilon);
-  
-  if (ispos){
-    kappa_p = inv(sigma_p);
-    // logdet = log(det(kappa_p));\
-    // logdet =  real(log_det(kappa_p));
-    logdet =  log(det(kappa_p));
-    if (logdet < logepsilon){
-      logdet = logepsilon;
-    }
-  } else {
-    kappa_p = pinv(sigma_p);
-    logdet = logepsilon;
-  }
+  // double logepsilon = log(epsilon);
+  // 
+  // if (ispos){
+  //   kappa_p = inv(sigma_p);
+  //   // logdet = log(det(kappa_p));\
+  //   // logdet =  real(log_det(kappa_p));
+  //   logdet =  log(det(kappa_p));
+  //   if (logdet < logepsilon){
+  //     logdet = logepsilon;
+  //   }
+  // } else {
+  //   kappa_p = pinv(sigma_p);
+  //   logdet = logepsilon;
+  // }
+  List invres = solve_symmetric_cpp(sigma_p, true, epsilon);
+  arma::mat kappa_p = invres["inv"];
+  double logdet = invres["logdet"];
   
   // Rf_PrintValue(wrap(log_det(kappa_p)));
   

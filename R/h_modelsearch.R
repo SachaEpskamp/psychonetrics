@@ -153,14 +153,19 @@ modelsearch <- function(x,
     # List all parameters in matrices of interest:
     ind <- which(x@parameters$matrix %in% matrices & !x@parameters$identified)
     
+    nona <- function(x){
+      x[is.na(x)] <- FALSE
+      x
+    }
+    
     allParsToConsider <- ind[
       !is.na(x@parameters$fixed[ind]) &
         
       # Non significant edges to remove?
-      (!x@parameters$fixed[ind]  & x@parameters$p[ind] > prunealpha) |
+        nona(!x@parameters$fixed[ind]  & x@parameters$p[ind] > prunealpha) |
         
         # Significant edges to add?
-        (x@parameters$fixed[ind]  & x@parameters[[pmi]][ind] < addalpha)
+        nona(x@parameters$fixed[ind]  & x@parameters[[pmi]][ind] < addalpha)
       ]
     
  
