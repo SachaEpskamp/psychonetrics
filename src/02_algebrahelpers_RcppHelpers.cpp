@@ -105,3 +105,46 @@ Rcpp::List solve_symmetric_cpp(
   return(res);
 }
 
+
+// [[Rcpp::export]]
+arma::mat solve_symmetric_cpp_matrixonly(
+    arma::mat X,
+    double epsilon
+){
+  int i;
+  int nvar = X.n_cols;
+  
+  // Check if symmetric:
+  bool issym = X.is_symmetric();
+  
+  // if not, make symmetric:
+  if (!issym){
+    X = 0.5* (X + X.t());
+  }
+  
+  // // Check if posdef:
+  // bool posdef = X.is_sympd();
+  // Check if posdef:
+  double lowestEV = eig_sym(X)[0];
+  bool posdef = lowestEV > -epsilon; //X.is_sympd();
+  
+  // If not, pseudoinverse:
+  if (!posdef){
+    arma::mat res = pinv(X);
+    return(res);
+    
+  } else {
+    // Small spectral shift:
+    if (lowestEV < epsilon){
+      for (i=0;i<nvar;i++){
+        X(i,i) = X(i,i) -lowestEV + epsilon;
+      }
+    }
+
+    // invert:
+    arma::mat res = inv_sympd(X); // FIXME
+    return(res);
+  }
+  
+
+}

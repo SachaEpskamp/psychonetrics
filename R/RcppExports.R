@@ -13,6 +13,10 @@ solve_symmetric_cpp <- function(X, logdet, epsilon) {
     .Call(`_psychonetrics_solve_symmetric_cpp`, X, logdet, epsilon)
 }
 
+solve_symmetric_cpp_matrixonly <- function(X, epsilon) {
+    .Call(`_psychonetrics_solve_symmetric_cpp_matrixonly`, X, epsilon)
+}
+
 kronecker_I_X <- function(X, n) {
     .Call(`_psychonetrics_kronecker_I_X`, X, n)
 }

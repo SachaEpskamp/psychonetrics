@@ -4,6 +4,7 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 using namespace arma;
+#include "02_algebrahelpers_RcppHelpers.h"
 
 
 // Inner function
@@ -57,19 +58,39 @@ arma::mat jacobian_fiml_gaussian_subgroup_sigma_cpp_inner(
   arma::vec means = dat["means"];
   
   // inverse:
-  arma::vec ev = arma::eig_sym(sigma_p);
-  bool ispos = true;
-  for ( j = 0; j < ev.size(); j++){
-    if (ev[j] < sqrt(epsilon)){
-      ispos = false;
-      break;
-    }
-  }
-  if (ispos){
-    kappa_p = inv(sigma_p);
-  } else {
-    kappa_p = pinv(sigma_p);
-  }
+  // arma::vec ev = arma::eig_sym(sigma_p);
+  // bool ispos = true;
+  // for ( j = 0; j < ev.size(); j++){
+  //   if (ev[j] < sqrt(epsilon)){
+  //     ispos = false;
+  //     break;
+  //   }
+  // }
+  // if (ispos){
+  //   kappa_p = inv(sigma_p);
+  // } else {
+  //   kappa_p = pinv(sigma_p);
+  // }
+  // log det:
+  // arma::vec ev = arma::eig_sym(sigma_p);
+  // bool ispos = ev[0] > epsilon;
+  // 
+  // // bool ispos = true;
+  // // for (int j = 0; j < ev.size(); j++){
+  // //   if (ev[j] < sqrt(epsilon)){
+  // //     ispos = false;
+  // //     break;
+  // //   }
+  // // }
+  // double logepsilon = log(epsilon);
+  // 
+  // if (ispos){
+  //   kappa_p = inv(sigma_p);
+  // } else {
+  //   kappa_p = pinv(sigma_p);
+  // }
+  kappa_p = solve_symmetric_cpp_matrixonly(sigma_p, epsilon);
+  
   
   // Mean part:
   arma::mat meanpart = -2 * (means - mu_p).t() * kappa_p;

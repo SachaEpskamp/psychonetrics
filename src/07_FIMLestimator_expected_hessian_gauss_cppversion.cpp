@@ -3,6 +3,7 @@
 // we only include RcppArmadillo.h which pulls Rcpp.h in for us
 #include <RcppArmadillo.h>
 #include <math.h>
+#include "02_algebrahelpers_RcppHelpers.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -84,15 +85,16 @@ arma::mat expected_hessian_fiml_Gaussian_group_cpp_inner(
   //     break;
   //   }
   // }
-  bool ispos = sigma_p.is_sympd();
-  
-  if (ispos){
-    kappa_p = inv_sympd(sigma_p);
-    // logdet = log(det(kappa_p));
-  } else {
-    kappa_p = pinv(sigma_p);
-    // logdet = log(epsilon);
-  }
+  // bool ispos = sigma_p.is_sympd();
+  // 
+  // if (ispos){
+  //   kappa_p = inv_sympd(sigma_p);
+  //   // logdet = log(det(kappa_p));
+  // } else {
+  //   kappa_p = pinv(sigma_p);
+  //   // logdet = log(epsilon);
+  // }
+  kappa_p = solve_symmetric_cpp_matrixonly(sigma_p, epsilon);
   
   // Mean part:
   arma::mat meanpart = 2.0 * kappa_p;
