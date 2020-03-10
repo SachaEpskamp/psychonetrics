@@ -9,7 +9,7 @@ logLikelihood_gaussian_group <- function(fimldata,...){
 # FIML version:
 logLikelihood_gaussian_group_fiml <- function(fimldata,fulln,sigma,kappa,mu,cpp,fullFIML,...){
   
-  print(cpp)
+  # print(cpp)
   # Use C++?
   if (cpp){
     if (fullFIML){
