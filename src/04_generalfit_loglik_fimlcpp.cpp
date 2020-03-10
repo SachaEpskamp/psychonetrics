@@ -69,6 +69,11 @@ double logLikelihood_gaussian_subgroup_fiml_cpp_inner(
     if (ispos){
       kappa_p = inv(sigma_p);
       logdet = log(det(kappa_p));
+      double logepsilon = log(epsilon);
+      if (logdet < logepsilon){
+        logdet = logepsilon;
+      }
+      
     } else {
       kappa_p = pinv(sigma_p);
       logdet = log(epsilon);

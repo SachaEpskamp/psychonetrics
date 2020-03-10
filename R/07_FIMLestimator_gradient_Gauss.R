@@ -10,7 +10,7 @@ jacobian_fiml_gaussian_subgroup_sigma <- function(dat,sigma,kappa,mu,...){
   
   
   # Means:
-  mu_p <- mu[obs,]
+  mu_p <- mu[obs]
   dat$n *  jacobian_gaussian_group_sigma(S = dat$S,kappa = kappa_p, mu = mu_p, means = dat$means,sigma = sig_p,D=dat$D) %*% dat$L
 }
 
