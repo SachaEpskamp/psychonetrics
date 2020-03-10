@@ -65,7 +65,7 @@ Rcpp::List solve_symmetric_cpp(
   // bool posdef = X.is_sympd();
   // Check if posdef:
   double lowestEV = eig_sym(X)[0];
-  bool posdef = lowestEV > -epsilon; //X.is_sympd();
+  bool posdef = lowestEV > -sqrt(epsilon); //X.is_sympd();
   
   // If not, pseudoinverse:
   if (!posdef){
@@ -79,10 +79,10 @@ Rcpp::List solve_symmetric_cpp(
     
   } else {
     // Small spectral shift:
-    if (lowestEV < epsilon){
+    if (lowestEV < sqrt(epsilon)){
       for (i=0;i<nvar;i++){
         //X(i,i) -= lowestEV;
-        X(i,i) = X(i,i) -lowestEV + epsilon;
+        X(i,i) = X(i,i) -lowestEV + sqrt(epsilon);
       }
     }
     // Rf_PrintValue(wrap(lowestEV));
@@ -126,7 +126,7 @@ arma::mat solve_symmetric_cpp_matrixonly(
   // bool posdef = X.is_sympd();
   // Check if posdef:
   double lowestEV = eig_sym(X)[0];
-  bool posdef = lowestEV > -epsilon; //X.is_sympd();
+  bool posdef = lowestEV > - sqrt(epsilon); //X.is_sympd();
   
   // If not, pseudoinverse:
   if (!posdef){
@@ -135,9 +135,9 @@ arma::mat solve_symmetric_cpp_matrixonly(
     
   } else {
     // Small spectral shift:
-    if (lowestEV < epsilon){
+    if (lowestEV < sqrt(epsilon)){
       for (i=0;i<nvar;i++){
-        X(i,i) = X(i,i) -lowestEV + epsilon;
+        X(i,i) = X(i,i) - lowestEV + sqrt(epsilon);
       }
     }
 
