@@ -8,7 +8,7 @@ meta_varcov <- function(
   # Vestimation = c("averaged","per_study"),
 
   Vmethod = c("individual","pooled","metaSEM_individual","metaSEM_weighted"), # How to obtain V matrices if Vmats is not supplied?
-  Vestimation = c("per_study","averaged"),  
+  Vestimation = c("averaged","per_study"),  
   
   # Model setup:
   type = c("cor", "ggm"), # Same as in varcov. Currently only cor and ggm are supported.
