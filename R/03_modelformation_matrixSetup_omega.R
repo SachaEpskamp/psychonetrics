@@ -23,20 +23,31 @@ matrixsetup_omega <- function(
 
     # Current estimate:
     covest <- as.matrix(expcov[[g]])
+
+
     if (!any(is.na(covest))){
       
       zeroes <- which(omegaStart[,,g]==0 & t(omegaStart[,,g])==0 & diag(nNode) != 1,arr.ind=TRUE)
       if (nrow(zeroes) == 0){
-        wi <- solve_symmetric(spectralshift(covest))
+        wi <- solve_symmetric(covest)
+        pcor <- qgraph::wi2net(as.matrix(wi))
+        # FIXME: Quick check, if there is an outrageous starting value, use glasso with lasso instead:
+        if (any(abs(pcor) > 0.8)){
+          wi <- glasso(as.matrix(spectralshift(covest)), rho = 0.1)$wi
+          pcor <-  qgraph::wi2net(as.matrix(wi))
+        }
+        
       } else {
         glas <- glasso(as.matrix(covest),
                        rho = 1e-10, zero = zeroes)
         wi <- glas$wi
+        pcor <- qgraph::wi2net(as.matrix(wi))
       }
       
       # Network starting values:
-      omegaStart[,,g] <- as.matrix(qgraph::wi2net(as.matrix(wi)))
+      omegaStart[,,g] <- as.matrix(pcor)
       diag(omegaStart[,,g] ) <- 0
+      
       
     } else {
       
