@@ -25,6 +25,12 @@ matrixsetup_kappa <- function(
     zeroes <- which(kappaStart[,,g]==0 & t(kappaStart[,,g])==0 & diag(nNode) != 1,arr.ind=TRUE)
     if (nrow(zeroes) == 0){
       wi <- solve_symmetric(covest)
+      
+      # FIXME: Quick check, if there is an outrageous starting value, use glasso with lasso instead:
+      if (any(abs(qgraph::wi2net(wi)[lower.tri(wi,diag=FALSE)]) > 0.8)){
+        wi <- glasso(as.matrix(spectralshift(covest)), rho = 0.1)$wi
+      }
+      
     } else {
       glas <- glasso(as.matrix(covest),
                      rho = 1e-10, zero = zeroes)

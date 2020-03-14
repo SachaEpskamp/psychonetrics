@@ -62,6 +62,8 @@ d_sigma1_sigma_zeta_var1 <- function(IkronBeta,D2,Js,...){
 
 # Full jacobian of phi (distribution parameters) with respect to theta (model parameters) for a group
 d_phi_theta_var1_group <- function(beta,P,zeta,...){
+  dots <- list(...)
+  
   # Number of variables:
   nvar <- nrow(beta) * 2
   
@@ -79,7 +81,7 @@ d_phi_theta_var1_group <- function(beta,P,zeta,...){
     nNode * (nNode+1) / 2 # Contemporaneous network and var-cov
   
   # Empty Jacobian:
-  Jac <- Matrix(0, nrow = nobs, ncol=nelement, sparse = FALSE)
+  Jac <- matrix(0, nrow = nobs, ncol=nelement)
   
   # Indices:
   meanInds <- 1:nvar
@@ -95,25 +97,39 @@ d_phi_theta_var1_group <- function(beta,P,zeta,...){
   
 
   # fill intercept part:
-  Jac[meanInds,interceptInds] <- bdiag(d_mu_mu_var1(beta=beta,...),d_mu_mu_var1(beta=beta,...))
+  # Jac[meanInds,interceptInds] <- bdiag(d_mu_mu_var1(beta=beta,...),d_mu_mu_var1(beta=beta,...))
+  Jac[meanInds,interceptInds] <- as.matrix(bdiag(d_mu_mu_var1_cpp(beta),d_mu_mu_var1_cpp(beta)))
   
   # Fill the exo var part:
-  Jac[sigmaStarInds,exovarInds] <- d_sigmastar_exo_cholesky_var1(...)
+  # Jac[sigmaStarInds,exovarInds] <- d_sigmastar_exo_cholesky_var1(...)
+  Jac[sigmaStarInds,exovarInds] <- d_sigmastar_exo_cholesky_var1_cpp(In = dots$In, L = dots$L, C = dots$C, exo_cholesky = dots$exo_cholesky)
   
   # Fill sigma0 to beta part:
-  Jac[sigma0Inds,betaInds] <- Jb <- d_sigma0_beta_var1(...)
-
-  # Fill sigma0 to sigma_zeta part:
-  Jac[sigma0Inds,sigmazetaInds] <- d_sigma0_sigma_zeta_var1(...)
+  # Jac[sigma0Inds,betaInds] <- Jb <- d_sigma0_beta_var1(...)
+  Jac[sigma0Inds,betaInds] <- Jb <- d_sigma0_beta_var1_cpp(BetaStar = dots$BetaStar, In = dots$In, sigma = dots$sigma, C = dots$C, L = dots$L)
   
+  # Fill sigma0 to sigma_zeta part:
+  # Jac[sigma0Inds,sigmazetaInds] <- d_sigma0_sigma_zeta_var1(...)
+  Jac[sigma0Inds,sigmazetaInds] <- d_sigma0_sigma_zeta_var1_cpp(L = dots$L, BetaStar = dots$BetaStar, D2 = dots$D2)
+  # d_sigma0_sigma_zeta_var1_cpp
   
   # Augment:
+  # if (zeta == "chol"){
+  #   Jac[sigma0Inds,sigmazetaInds] <- as.matrix( Jac[sigma0Inds,sigmazetaInds] %*% d_sigma_zeta_cholesky_var1(...) )
+  # } else if (zeta == "prec"){
+  #   Jac[sigma0Inds,sigmazetaInds] <- as.matrix( Jac[sigma0Inds,sigmazetaInds] %*% d_sigma_zeta_kappa_var1(...))
+  # } else if (zeta == "ggm"){
+  #   Jac[sigma0Inds,sigmazetaInds] <- as.matrix(Jac[sigma0Inds,sigmazetaInds] %*% d_sigma_zeta_ggm_var1(...))
+  # }
   if (zeta == "chol"){
-    Jac[sigma0Inds,sigmazetaInds] <- Jac[sigma0Inds,sigmazetaInds] %*% d_sigma_zeta_cholesky_var1(...)
+    Jac[sigma0Inds,sigmazetaInds] <-  Jac[sigma0Inds,sigmazetaInds] %*% d_sigma_zeta_cholesky_var1_cpp(lowertri_zeta = dots$lowertri_zeta,L = dots$L,C = dots$C,In = dots$In)
   } else if (zeta == "prec"){
-    Jac[sigma0Inds,sigmazetaInds] <- Jac[sigma0Inds,sigmazetaInds] %*% d_sigma_zeta_kappa_var1(...)
+    Jac[sigma0Inds,sigmazetaInds] <-  Jac[sigma0Inds,sigmazetaInds] %*% d_sigma_zeta_kappa_var1_cpp(L = dots$L,D2 = dots$D2,sigma_zeta = dots$sigma_zeta)
+    
+      # Jac[sigma0Inds,sigmazetaInds] <- as.matrix( Jac[sigma0Inds,sigmazetaInds] %*% as.matrix(d_sigma_zeta_kappa_var1(...)))
+    
   } else if (zeta == "ggm"){
-    Jac[sigma0Inds,sigmazetaInds] <- Jac[sigma0Inds,sigmazetaInds] %*% d_sigma_zeta_ggm_var1(...)
+    Jac[sigma0Inds,sigmazetaInds] <- Jac[sigma0Inds,sigmazetaInds] %*% d_sigma_zeta_ggm_var1_cpp(L = dots$L, delta_IminOinv_zeta = dots$delta_IminOinv_zeta,A = dots$A, delta_zeta = dots$delta_zeta,Dstar = dots$Dstar,In = dots$In)
   }
   
   # Store:
@@ -121,11 +137,16 @@ d_phi_theta_var1_group <- function(beta,P,zeta,...){
   
 ##
   # Fill sigma1 to beta part:
-  Jac[sigma1Inds,betaInds] <- d_sigma1_beta_var1(beta=beta,Jb=Jb,...)
+  # Jac[sigma1Inds,betaInds] <- as.matrix(d_sigma1_beta_var1(beta=beta,Jb=Jb,...))
+  # 
+  # # Fill sigma1 to sigma_zeta part:
+  # Jac[sigma1Inds,sigmazetaInds] <- as.matrix(d_sigma1_sigma_zeta_var1(Js=Js,...))
   
+  Jac[sigma1Inds,betaInds] <- d_sigma1_beta_var1_cpp(beta=beta,Jb=Jb,IkronBeta = dots$IkronBeta,D2 = dots$D2,sigma = dots$sigma,In = dots$In)
+
   # Fill sigma1 to sigma_zeta part:
-  Jac[sigma1Inds,sigmazetaInds] <- d_sigma1_sigma_zeta_var1(Js=Js,...)
-  
+  Jac[sigma1Inds,sigmazetaInds] <- d_sigma1_sigma_zeta_var1_cpp(Js=Js,IkronBeta = dots$IkronBeta, D2 = dots$D2)
+  # 
   # Augment:
   # if (zeta == "chol"){
   #   Jac[sigma1Inds,sigmazetaInds] <- Jac[sigma1Inds,sigmazetaInds]  %*% d_sigma_zeta_cholesky_var1(...)
@@ -139,7 +160,7 @@ d_phi_theta_var1_group <- function(beta,P,zeta,...){
   Jac <- P %*% Jac
 
   # Make sparse if needed:
-  Jac <- as(Jac, "Matrix")
+  Jac <- sparseordense(Jac)
   # Return jacobian:
   return(Jac)
 }
