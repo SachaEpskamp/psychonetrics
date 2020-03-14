@@ -29,7 +29,7 @@ d_sigma_omega <- function(L,delta_IminOinv,A,delta,Dstar,...){
 
 # Derivative of precision matrix:
 d_sigma_kappa <- function(L,D,sigma,...){
-  res <- - L %*% (sigma %x% sigma) %*% D
+  res <- - (L %*% (sigma %x% sigma) %*% D)
   as.matrix(res)
 }
 
@@ -144,7 +144,7 @@ d_phi_theta_varcov_group <- function(cpp, sigma,y,corinput,meanstructure,tau,mu,
     } else {
      if (cpp){
        Jac[varPart,netPart] <- d_sigma_omega_cpp(L = dots$L,delta_IminOinv = dots$delta_IminOinv,A = dots$A,delta = dots$delta,Dstar = dots$Dstar)
-       Jac[varPart,scalingPart] <- d_sigma_delta_cpp(L = dots$L, delta_IminOinv = dots$delta_IminOinv, In = dots$In,A = dots$A,delta = dots$delta)
+       Jac[varPart,scalingPart] <- d_sigma_delta_cpp(L = dots$L, delta_IminOinv = dots$delta_IminOinv, In = dots$In,A = dots$A)
      } else {
        Jac[varPart,netPart] <- d_sigma_omega(...)
        Jac[varPart,scalingPart] <- d_sigma_delta(...)       

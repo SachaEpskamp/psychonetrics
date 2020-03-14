@@ -1,5 +1,5 @@
-#ifndef ORDINALCCPP_H
-#define ORDINALCCPP_H
+#ifndef RCPP_H
+#define RCPP_H
 
 #include <RcppArmadillo.h>
 #include <math.h>

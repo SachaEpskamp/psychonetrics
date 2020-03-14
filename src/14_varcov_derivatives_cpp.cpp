@@ -5,7 +5,6 @@
 #include <math.h>
 #include "02_algebragelpers_kronecker.h"
 
-
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 using namespace arma;
@@ -18,10 +17,10 @@ arma::mat d_sigma_cholesky_cpp(
     const arma::sp_mat In
 ){
   // return(L * (kron(In,In) + C) * (kron(lowertri, (arma::mat)In) * L.t()));
-  
   arma::sp_mat res = L * (kronecker_diag(In) + C) * (kronecker_X_I(lowertri, In.n_rows) * L.t());
-  return((arma::mat)res);
   
+  return((arma::mat)res);
+
 }
 
 // d_sigma_cholesky <- function(lowertri,L,C,In,...){
@@ -37,19 +36,12 @@ arma::mat d_sigma_delta_cpp(
     const arma::sp_mat& L,
     const arma::mat& delta_IminOinv,
     const arma::sp_mat& In,
-    const arma::sp_mat& A,
-    const arma::sp_mat& delta
+    const arma::sp_mat& A
 ){
-  // return(
-  //   L * (
-  //       kron(delta_IminOinv, (arma::mat)In) + 
-  //         kron((arma::mat)In, delta_IminOinv) // FIXME: Kronecker product with identity matrix is much easier...
-  //   ) * A
-  // );
-  arma::sp_mat res = L * (
-    kronecker_X_I(delta_IminOinv, In.n_rows) + 
-      kronecker_I_X(delta_IminOinv, In.n_rows) 
-  ) * A;
+  arma::sp_mat inner =  kronecker_X_I(delta_IminOinv, In.n_rows) + kronecker_I_X(delta_IminOinv, In.n_rows);
+  
+  
+  arma::sp_mat res = L * inner * A;
   
   return((arma::mat)res);
 }
@@ -72,7 +64,12 @@ arma::mat d_sigma_omega_cpp(
     const arma::sp_mat& delta,
     const arma::sp_mat& Dstar
 ){
-  return(L * kron(delta_IminOinv, delta_IminOinv) * Dstar);
+
+  arma::mat kronmat = kron(delta_IminOinv, delta_IminOinv);
+  
+
+  
+  return(L * kronmat * Dstar);
 }
 
 // 
@@ -137,7 +134,7 @@ arma::mat d_sigma_omega_corinput_cpp(
     const arma::mat& IminOinv,
     const arma::sp_mat& In){
   
-
+  
   // First make the diagonal matrix needed:
   arma::vec d = diagvec(IminOinv);
   // sp_mat dmat(d.size(), d.size());
@@ -145,7 +142,7 @@ arma::mat d_sigma_omega_corinput_cpp(
     d[i] = pow(d[i], -1.5);
   }
   mat dmat = diagmat(d);
-
+  
   // sp_mat dmat(d.size(), d.size());
   // for (int i=0; i < d.size(); i++){
   //   dmat(i,i) = pow(d[i], -1.5);
@@ -154,9 +151,9 @@ arma::mat d_sigma_omega_corinput_cpp(
   // Dense kronecker products:
   arma::mat kron2 = kron(IminOinv, IminOinv);
   arma::mat kron1 =  kronecker_diag(delta) * kron2;
-    // kron(delta_IminOinv, delta_IminOinv);
-
-    
+  // kron(delta_IminOinv, delta_IminOinv);
+  
+  
   // Sparse inner part:
   arma::sp_mat sparse = 0.5 *  (kronecker_X_I(delta_IminOinv, In.n_rows) + kronecker_I_X(delta_IminOinv, In.n_rows));
   arma::mat dense = A * dmat * A.t();
@@ -164,7 +161,7 @@ arma::mat d_sigma_omega_corinput_cpp(
   // Return value:
   arma::mat res = 
     L * (kron1 - sparse * dense * kron2) * Dstar;
-
+  
   return(res);
   
   // return(
@@ -175,4 +172,13 @@ arma::mat d_sigma_omega_corinput_cpp(
   //   ) * Dstar
   // );
   
+}
+
+
+// [[Rcpp::export]]
+arma::mat d_sigma0_sigma_zeta_var1_cpp(
+    const arma::sp_mat& L,
+    const arma::mat& BetaStar,
+    const arma::sp_mat& D2){
+  return(L * BetaStar * D2);
 }

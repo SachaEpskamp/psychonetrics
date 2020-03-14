@@ -157,8 +157,8 @@ d_sigma_cholesky_cpp <- function(lowertri, L, C, In) {
     .Call(`_psychonetrics_d_sigma_cholesky_cpp`, lowertri, L, C, In)
 }
 
-d_sigma_delta_cpp <- function(L, delta_IminOinv, In, A, delta) {
-    .Call(`_psychonetrics_d_sigma_delta_cpp`, L, delta_IminOinv, In, A, delta)
+d_sigma_delta_cpp <- function(L, delta_IminOinv, In, A) {
+    .Call(`_psychonetrics_d_sigma_delta_cpp`, L, delta_IminOinv, In, A)
 }
 
 d_sigma_omega_cpp <- function(L, delta_IminOinv, A, delta, Dstar) {
@@ -179,6 +179,42 @@ d_sigma_SD_cpp <- function(L, SD_IplusRho, In, A) {
 
 d_sigma_omega_corinput_cpp <- function(L, delta_IminOinv, A, delta, Dstar, IminOinv, In) {
     .Call(`_psychonetrics_d_sigma_omega_corinput_cpp`, L, delta_IminOinv, A, delta, Dstar, IminOinv, In)
+}
+
+d_sigma0_sigma_zeta_var1_cpp <- function(L, BetaStar, D2) {
+    .Call(`_psychonetrics_d_sigma0_sigma_zeta_var1_cpp`, L, BetaStar, D2)
+}
+
+d_mu_mu_var1_cpp <- function(beta) {
+    .Call(`_psychonetrics_d_mu_mu_var1_cpp`, beta)
+}
+
+d_sigmastar_exo_cholesky_var1_cpp <- function(In, L, C, exo_cholesky) {
+    .Call(`_psychonetrics_d_sigmastar_exo_cholesky_var1_cpp`, In, L, C, exo_cholesky)
+}
+
+d_sigma0_beta_var1_cpp <- function(BetaStar, In, sigma, C, L) {
+    .Call(`_psychonetrics_d_sigma0_beta_var1_cpp`, BetaStar, In, sigma, C, L)
+}
+
+d_sigma_zeta_cholesky_var1_cpp <- function(lowertri_zeta, L, C, In) {
+    .Call(`_psychonetrics_d_sigma_zeta_cholesky_var1_cpp`, lowertri_zeta, L, C, In)
+}
+
+d_sigma_zeta_kappa_var1_cpp <- function(L, D2, sigma_zeta) {
+    .Call(`_psychonetrics_d_sigma_zeta_kappa_var1_cpp`, L, D2, sigma_zeta)
+}
+
+d_sigma_zeta_ggm_var1_cpp <- function(L, delta_IminOinv_zeta, A, delta_zeta, Dstar, In) {
+    .Call(`_psychonetrics_d_sigma_zeta_ggm_var1_cpp`, L, delta_IminOinv_zeta, A, delta_zeta, Dstar, In)
+}
+
+d_sigma1_beta_var1_cpp <- function(IkronBeta, D2, Jb, sigma, beta, In) {
+    .Call(`_psychonetrics_d_sigma1_beta_var1_cpp`, IkronBeta, D2, Jb, sigma, beta, In)
+}
+
+d_sigma1_sigma_zeta_var1_cpp <- function(IkronBeta, D2, Js) {
+    .Call(`_psychonetrics_d_sigma1_sigma_zeta_var1_cpp`, IkronBeta, D2, Js)
 }
 
 expHcpp <- function(states, probabilities, omega, tau, nstate, nvar) {
