@@ -64,4 +64,9 @@ arma::mat d_sigma0_sigma_zeta_var1_cpp(
                 const arma::mat& BetaStar,
                 const arma::sp_mat& D2);
 
+
+// arma::mat d_phi_theta_varcov_group_cpp(
+//     const Rcpp::List& grouplist
+// );
+
 #endif
