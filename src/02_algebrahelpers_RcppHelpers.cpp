@@ -148,3 +148,51 @@ arma::mat solve_symmetric_cpp_matrixonly(
   
 
 }
+
+// Block diag:
+// [[Rcpp::export]]
+arma::mat bdiag_psychonetrics(
+    const Rcpp::List&  mats
+){
+  int nMat = mats.length();
+  arma::vec cols(nMat);
+  arma::vec rows(nMat);
+  int totalrow = 0;
+  int totalcol = 0;
+  int i, j, k;
+  
+  // Compute size:
+  for (i=0;i<nMat;i++){
+    arma::mat curmat = mats[i];
+    cols[i] = curmat.n_cols;
+    totalcol += cols[i];
+    rows[i] = curmat.n_rows;
+    totalrow += rows[i];
+  }
+  
+  // Form zero matrix:
+  arma::mat diagmat = zeros(totalrow, totalcol);
+  
+  // Fill the matrix:
+  int startrow = 0;
+  int startcol = 0;
+  
+  for (k =0; k<nMat; k++){
+    arma::mat curmat = mats[k];
+    
+    for (i=0;i<rows[k];i++){
+      
+      for (j=0;j<cols[k];j++){
+        
+        diagmat(startrow+i, startcol + j)  = curmat(i,j);
+        
+      }
+    }
+    startrow += rows[k];
+    startcol += cols[k];
+  }
+  
+  
+  return(diagmat);
+}
+

@@ -182,3 +182,20 @@ arma::mat d_sigma0_sigma_zeta_var1_cpp(
     const arma::sp_mat& D2){
   return(L * BetaStar * D2);
 }
+
+
+// FULL GROUP JACOBIAN ///
+// // [[Rcpp::export]]
+// arma::mat d_phi_theta_varcov_group_cpp(
+//   const Rcpp::List& grouplist
+// ){
+//   // objects needed now:
+//   arma::mat sigma = grouplist["sigma"];
+//   char y = grouplist["y"]
+//   bool corinput = grouplist["corinput"]
+//   bool meanstructure = grouplist["meanstructure"]
+//   tau,mu
+//   
+//   
+// }
+

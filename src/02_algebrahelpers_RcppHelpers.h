@@ -26,4 +26,9 @@ arma::mat solve_symmetric_cpp_matrixonly(
         double epsilon
 );
 
+
+arma::mat bdiag_psychonetrics(
+                Rcpp::List mats
+);
+
 #endif

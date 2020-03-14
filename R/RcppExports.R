@@ -17,6 +17,10 @@ solve_symmetric_cpp_matrixonly <- function(X, epsilon) {
     .Call(`_psychonetrics_solve_symmetric_cpp_matrixonly`, X, epsilon)
 }
 
+bdiag_psychonetrics <- function(mats) {
+    .Call(`_psychonetrics_bdiag_psychonetrics`, mats)
+}
+
 kronecker_I_X <- function(X, n) {
     .Call(`_psychonetrics_kronecker_I_X`, X, n)
 }
