@@ -8,7 +8,7 @@ implied_varcov <- function(model, all = FALSE){
   for (g in seq_along(x)){
     # Check mu (if it is not there, this is because meanstructure = FALSE):
     if (is.null(x[[g]]$mu)){
-      x[[g]]$mu <- model@sample@means[[g]]
+      x[[g]]$mu <- as.matrix(model@sample@means[[g]])
     }
 
     # Check kappa
