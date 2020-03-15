@@ -1,5 +1,5 @@
-#ifndef ORDINALCCPP_H
-#define ORDINALCCPP_H
+#ifndef RCPPHELPERS_H
+#define RCPPHELPERS_H
 
 #include <RcppArmadillo.h>
 #include <math.h>
@@ -29,6 +29,11 @@ arma::mat solve_symmetric_cpp_matrixonly(
 
 arma::mat bdiag_psychonetrics(
                 Rcpp::List mats
+);
+
+arma::vec vech(
+                arma::mat& X,
+                bool diag = true
 );
 
 #endif

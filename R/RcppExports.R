@@ -21,6 +21,10 @@ bdiag_psychonetrics <- function(mats) {
     .Call(`_psychonetrics_bdiag_psychonetrics`, mats)
 }
 
+vech <- function(X, diag = TRUE) {
+    .Call(`_psychonetrics_vech`, X, diag)
+}
+
 kronecker_I_X <- function(X, n) {
     .Call(`_psychonetrics_kronecker_I_X`, X, n)
 }
@@ -187,6 +191,14 @@ d_sigma_omega_corinput_cpp <- function(L, delta_IminOinv, A, delta, Dstar, IminO
 
 d_sigma0_sigma_zeta_var1_cpp <- function(L, BetaStar, D2) {
     .Call(`_psychonetrics_d_sigma0_sigma_zeta_var1_cpp`, L, BetaStar, D2)
+}
+
+d_phi_theta_varcov_group_cpp <- function(grouplist) {
+    .Call(`_psychonetrics_d_phi_theta_varcov_group_cpp`, grouplist)
+}
+
+d_phi_theta_varcov_cpp <- function(prep) {
+    .Call(`_psychonetrics_d_phi_theta_varcov_cpp`, prep)
 }
 
 d_mu_mu_var1_cpp <- function(beta) {
