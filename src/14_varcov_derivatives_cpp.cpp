@@ -190,12 +190,15 @@ arma::mat d_sigma0_sigma_zeta_var1_cpp(
 arma::mat d_phi_theta_varcov_group_cpp(
     const Rcpp::List& grouplist
 ){
+
   // objects needed now:
   arma::mat sigma = grouplist["sigma"];
   std::string y = grouplist["y"];
   bool corinput = grouplist["corinput"];
   bool meanstructure = grouplist["meanstructure"];
   arma::mat mu = grouplist["mu"];
+  
+
   
   // Number of variables:
   int nvar = sigma.n_rows;
@@ -371,6 +374,7 @@ arma::mat d_phi_theta_varcov_group_cpp(
 arma::mat d_phi_theta_varcov_cpp(
     const Rcpp::List& prep
 ){
+  
   Rcpp::List groupmodels = prep["groupModels"];
   int nGroup = groupmodels.length();
 
