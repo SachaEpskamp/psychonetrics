@@ -14,7 +14,7 @@ using namespace arma;
 // Eigenvalues of symmetric matrix:
 // [[Rcpp::export]]
 arma::vec eig_sym_cpp(
-  arma::mat X
+    arma::mat X
 ){
   return(eig_sym(X));
 }
@@ -22,7 +22,7 @@ arma::vec eig_sym_cpp(
 // Check symmetric pd:
 // [[Rcpp::export]]
 bool sympd_cpp(
-  arma::mat X
+    arma::mat X
 ){
   // Check if symmetric:
   bool issym = X.is_symmetric();
@@ -31,7 +31,7 @@ bool sympd_cpp(
   if (!issym){
     X = 0.5* (X + X.t());
   }
-
+  
   
   // Check if posdef:
   double epsilon = 1.490116e-08;
@@ -44,9 +44,9 @@ bool sympd_cpp(
 // Symmetric solve:
 // [[Rcpp::export]]
 Rcpp::List solve_symmetric_cpp(
-  arma::mat X,
-  bool logdet,
-  double epsilon
+    arma::mat X,
+    bool logdet,
+    double epsilon
 ){
   double logdetval = R_NegInf;
   Rcpp::List res;
@@ -140,19 +140,19 @@ arma::mat solve_symmetric_cpp_matrixonly(
         X(i,i) = X(i,i) - lowestEV + sqrt(epsilon);
       }
     }
-
+    
     // invert:
     arma::mat res = inv_sympd(X); // FIXME
     return(res);
   }
   
-
+  
 }
 
 // Block diag:
 // [[Rcpp::export]]
 arma::mat bdiag_psychonetrics(
-    const Rcpp::List&  mats
+    const Rcpp::List  mats
 ){
   int nMat = mats.length();
   arma::vec cols(nMat);
@@ -194,5 +194,38 @@ arma::mat bdiag_psychonetrics(
   
   
   return(diagmat);
+}
+
+// Half vectorization (lower triangle):
+// [[Rcpp::export]]
+arma::vec vech(
+    arma::mat& X,
+    bool diag = true
+){
+  int nvar = X.n_rows;
+  int nelement = nvar * (nvar - 1 + 2 * diag) / 2;
+  int curel = 0;
+  arma::vec out(nelement);
+  for (int j=0;j<nvar;j++){
+    for (int i=j;i<nvar;i++){
+      
+      if (diag || (i != j)){
+
+        // if (diag){
+        out(curel) = X(i,j);  
+        curel++;
+        // }
+        //   
+        // } else {
+        //   out(curel) = X(i,j);
+        //   curel++;
+        // }
+        
+      }
+    }
+  }
+  
+  
+  return(out);
 }
 

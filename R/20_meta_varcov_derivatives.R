@@ -126,13 +126,17 @@ d_phi_theta_meta_varcov_group <- function(y,randomEffects,metacor,cpp,...){
       if (cpp){
         Jac[meanPart,netPart] <- d_sigma_omega_cpp(L = Lmat, delta_IminOinv = dots$delta_IminOinv_y,
                                                    A = dots$A, delta = dots$delta_y, Dstar = dots$Dstar)
+        # Jac[meanPart,scalingPart] <- d_sigma_delta_cpp(L = Lmat, delta_IminOinv = dots$delta_IminOinv_y,
+        #                                                In = dots$In, A = dots$A, delta = dots$delta_y)
         Jac[meanPart,scalingPart] <- d_sigma_delta_cpp(L = Lmat, delta_IminOinv = dots$delta_IminOinv_y,
-                                                       In = dots$In, A = dots$A, delta = dots$delta_y)
+                                                       In = dots$In, A = dots$A)
       } else {
         Jac[meanPart,netPart] <- d_sigma_omega(L = Lmat, delta_IminOinv = dots$delta_IminOinv_y,
                                                A = dots$A, delta = dots$delta_y, Dstar = dots$Dstar)
+        # Jac[meanPart,scalingPart] <- d_sigma_delta(L = Lmat, delta_IminOinv = dots$delta_IminOinv_y,
+        #                                            In = dots$In, A = dots$A, delta = dots$delta_y)
         Jac[meanPart,scalingPart] <- d_sigma_delta(L = Lmat, delta_IminOinv = dots$delta_IminOinv_y,
-                                                   In = dots$In, A = dots$A, delta = dots$delta_y)       
+                                                   In = dots$In, A = dots$A)      
       }
       
       
@@ -212,14 +216,19 @@ d_phi_theta_meta_varcov_group <- function(y,randomEffects,metacor,cpp,...){
       if (cpp){
         Jac[varPart,netPart] <- d_sigma_omega_cpp(L = dots$L_c, delta_IminOinv = dots$delta_IminOinv_randomEffects,
                                                   A = dots$A_c, delta = dots$delta_randomEffects, Dstar = dots$Dstar_c)
+        # Jac[varPart,scalingPart] <- d_sigma_delta_cpp(L = dots$L_c, delta_IminOinv = dots$delta_IminOinv_randomEffects,
+        #                                               In = dots$In_c, A = dots$A_c, delta = dots$delta_randomEffects)
         Jac[varPart,scalingPart] <- d_sigma_delta_cpp(L = dots$L_c, delta_IminOinv = dots$delta_IminOinv_randomEffects,
-                                                      In = dots$In_c, A = dots$A_c, delta = dots$delta_randomEffects)
+                                                      In = dots$In_c, A = dots$A_c)
         
       } else {
         Jac[varPart,netPart] <- d_sigma_omega(L = dots$L_c, delta_IminOinv = dots$delta_IminOinv_randomEffects,
                                               A = dots$A_c, delta = dots$delta_randomEffects, Dstar = dots$Dstar_c)
+        # Jac[varPart,scalingPart] <- d_sigma_delta(L = dots$L_c, delta_IminOinv = dots$delta_IminOinv_randomEffects,
+        #                                           In = dots$In_c, A = dots$A_c, delta = dots$delta_randomEffects)
+        
         Jac[varPart,scalingPart] <- d_sigma_delta(L = dots$L_c, delta_IminOinv = dots$delta_IminOinv_randomEffects,
-                                                  In = dots$In_c, A = dots$A_c, delta = dots$delta_randomEffects)
+                                                  In = dots$In_c, A = dots$A_c)
         
       }
       

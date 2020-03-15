@@ -73,7 +73,6 @@ d_phi_theta_varcov_group <- function(cpp, sigma,y,corinput,meanstructure,tau,mu,
   if (missing(tau)){
     tau <- matrix(NA,1,nvar)
   }
-  
 
   # Number of means/thresholds:
   nMean_Thresh <- sum(!is.na(tau)) + sum(!is.na(mu))
@@ -96,6 +95,7 @@ d_phi_theta_varcov_group <- function(cpp, sigma,y,corinput,meanstructure,tau,mu,
   # Var part for parameters:
   varPartPars <- meanstructure * max(meanPart) + nThresh +  seq_len(nvar*(nvar+1)/2)    
   
+
   # Empty Jacobian:
   Jac <- matrix(0, nobs, npars)
   

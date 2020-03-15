@@ -25,4 +25,5 @@ arma::sp_mat kronecker_diag(
     arma::sp_mat X
 );
 
+
 #endif

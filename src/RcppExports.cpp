@@ -54,13 +54,25 @@ BEGIN_RCPP
 END_RCPP
 }
 // bdiag_psychonetrics
-arma::mat bdiag_psychonetrics(const Rcpp::List& mats);
+arma::mat bdiag_psychonetrics(const Rcpp::List mats);
 RcppExport SEXP _psychonetrics_bdiag_psychonetrics(SEXP matsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::List& >::type mats(matsSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List >::type mats(matsSEXP);
     rcpp_result_gen = Rcpp::wrap(bdiag_psychonetrics(mats));
+    return rcpp_result_gen;
+END_RCPP
+}
+// vech
+arma::vec vech(arma::mat& X, bool diag);
+RcppExport SEXP _psychonetrics_vech(SEXP XSEXP, SEXP diagSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< bool >::type diag(diagSEXP);
+    rcpp_result_gen = Rcpp::wrap(vech(X, diag));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -660,6 +672,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// d_phi_theta_varcov_group_cpp
+arma::mat d_phi_theta_varcov_group_cpp(const Rcpp::List& grouplist);
+RcppExport SEXP _psychonetrics_d_phi_theta_varcov_group_cpp(SEXP grouplistSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type grouplist(grouplistSEXP);
+    rcpp_result_gen = Rcpp::wrap(d_phi_theta_varcov_group_cpp(grouplist));
+    return rcpp_result_gen;
+END_RCPP
+}
+// d_phi_theta_varcov_cpp
+arma::mat d_phi_theta_varcov_cpp(const Rcpp::List& prep);
+RcppExport SEXP _psychonetrics_d_phi_theta_varcov_cpp(SEXP prepSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prep(prepSEXP);
+    rcpp_result_gen = Rcpp::wrap(d_phi_theta_varcov_cpp(prep));
+    return rcpp_result_gen;
+END_RCPP
+}
 // d_mu_mu_var1_cpp
 arma::mat d_mu_mu_var1_cpp(const arma::mat& beta);
 RcppExport SEXP _psychonetrics_d_mu_mu_var1_cpp(SEXP betaSEXP) {
@@ -812,6 +846,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_solve_symmetric_cpp", (DL_FUNC) &_psychonetrics_solve_symmetric_cpp, 3},
     {"_psychonetrics_solve_symmetric_cpp_matrixonly", (DL_FUNC) &_psychonetrics_solve_symmetric_cpp_matrixonly, 2},
     {"_psychonetrics_bdiag_psychonetrics", (DL_FUNC) &_psychonetrics_bdiag_psychonetrics, 1},
+    {"_psychonetrics_vech", (DL_FUNC) &_psychonetrics_vech, 2},
     {"_psychonetrics_kronecker_I_X", (DL_FUNC) &_psychonetrics_kronecker_I_X, 2},
     {"_psychonetrics_kronecker_X_I", (DL_FUNC) &_psychonetrics_kronecker_X_I, 2},
     {"_psychonetrics_kronecker_diag", (DL_FUNC) &_psychonetrics_kronecker_diag, 1},
@@ -854,6 +889,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_d_sigma_SD_cpp", (DL_FUNC) &_psychonetrics_d_sigma_SD_cpp, 4},
     {"_psychonetrics_d_sigma_omega_corinput_cpp", (DL_FUNC) &_psychonetrics_d_sigma_omega_corinput_cpp, 7},
     {"_psychonetrics_d_sigma0_sigma_zeta_var1_cpp", (DL_FUNC) &_psychonetrics_d_sigma0_sigma_zeta_var1_cpp, 3},
+    {"_psychonetrics_d_phi_theta_varcov_group_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_varcov_group_cpp, 1},
+    {"_psychonetrics_d_phi_theta_varcov_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_varcov_cpp, 1},
     {"_psychonetrics_d_mu_mu_var1_cpp", (DL_FUNC) &_psychonetrics_d_mu_mu_var1_cpp, 1},
     {"_psychonetrics_d_sigmastar_exo_cholesky_var1_cpp", (DL_FUNC) &_psychonetrics_d_sigmastar_exo_cholesky_var1_cpp, 4},
     {"_psychonetrics_d_sigma0_beta_var1_cpp", (DL_FUNC) &_psychonetrics_d_sigma0_beta_var1_cpp, 5},
