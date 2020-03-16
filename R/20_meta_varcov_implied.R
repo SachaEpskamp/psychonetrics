@@ -3,9 +3,20 @@ implied_meta_varcov <- function(model, all = FALSE){
 
   x <- formModelMatrices(model)
 
-  # Implied covariance structures:
-  x <- impliedcovstructures(x,type = model@types$y, all = all, name = "y")
-  x <- impliedcovstructures(x,type = model@types$randomEffects, name = "randomEffects", all = all)
+  
+  if (model@cpp){
+    
+    # Implied covariance structures:
+    x <- impliedcovstructures_cpp(x,type = model@types$y, all = all, name = "y")
+    x <- impliedcovstructures_cpp(x,type = model@types$randomEffects, name = "randomEffects", all = all)
+    
+  } else {
+    # Implied covariance structures:
+    x <- impliedcovstructures(x,type = model@types$y, all = all, name = "y")
+    x <- impliedcovstructures(x,type = model@types$randomEffects, name = "randomEffects", all = all)
+  }
+  
+
 
   for (g in seq_along(x)){
     

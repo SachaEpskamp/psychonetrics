@@ -132,7 +132,6 @@ d_phi_theta_lvm_group <- function(lambda,latent,residual,...){
   sigmaepsilonInds <- max(sigmazetaInds) + seq_len(nvar*(nvar+1)/2)
 
   
-  
   # fill intercept part:
   Jac[meanInds,interceptInds] <- d_mu_nu_lvm(...)
   
@@ -143,6 +142,22 @@ d_phi_theta_lvm_group <- function(lambda,latent,residual,...){
   Jac[meanInds,lambdaInds] <- d_mu_lambda_lvm(...)
   Jac[sigmaInds,lambdaInds] <- d_sigma_lambda_lvm(...)
   
+
+# 
+#   grouplist <- list(...)
+# 
+#   d_sigma_lambda_lvm(
+#     grouplist[["L"]],  grouplist[["Lambda_BetaStar"]],  grouplist[["Betasta_sigmaZeta"]],  grouplist[["In"]],  grouplist[["C"]]
+#   ) -
+#   d_sigma_lambda_lvm_cpp(
+#     grouplist[["L"]],  grouplist[["Lambda_BetaStar"]],  grouplist[["Betasta_sigmaZeta"]],  grouplist[["In"]],  grouplist[["C"]]
+#   )
+# 
+#  View(as.matrix( (grouplist[["Lambda_BetaStar"]] %*% t(grouplist[["Betasta_sigmaZeta"]])) %x% grouplist[["In"]]  ))
+# 
+#  View( as.matrix( kronecker_X_I((grouplist[["Lambda_BetaStar"]] %*% t(grouplist[["Betasta_sigmaZeta"]])), 10)))
+#   
+#   browser()
   # Fill the beta parts:
   Jac[meanInds,betaInds] <- d_mu_beta_lvm(lambda=lambda,...)
   Jac[sigmaInds,betaInds] <- d_sigma_beta_lvm(lambda=lambda,...)

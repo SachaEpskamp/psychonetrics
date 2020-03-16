@@ -3,7 +3,12 @@ implied_varcov <- function(model, all = FALSE){
   x <- formModelMatrices(model)
   
   # Implied covariance structures:
-  x <- impliedcovstructures(x,type = model@types$y, all = all)
+  if (model@cpp){
+    x <- impliedcovstructures_cpp(x,type = model@types$y, all = all)  
+  } else {
+    x <- impliedcovstructures(x,type = model@types$y, all = all)
+  }
+  
 
   for (g in seq_along(x)){
     # Check mu (if it is not there, this is because meanstructure = FALSE):

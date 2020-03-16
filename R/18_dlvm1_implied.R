@@ -2,12 +2,22 @@
 implied_dlvm1 <- function(model,all = FALSE){
   x <- formModelMatrices(model)
   
-  # Implied covariance structures:
-  x <- impliedcovstructures(x, "zeta_within", type = model@types$within_latent, all = all)
-  x <- impliedcovstructures(x, "epsilon_within", type = model@types$within_residual, all = all)
-  x <- impliedcovstructures(x, "zeta_between", type = model@types$between_latent, all = all)
-  x <- impliedcovstructures(x, "epsilon_between", type = model@types$between_residual, all = all)
-  
+  if (model@cpp){
+    # Implied covariance structures:
+    x <- impliedcovstructures_cpp(x, "zeta_within", type = model@types$within_latent, all = all)
+    x <- impliedcovstructures_cpp(x, "epsilon_within", type = model@types$within_residual, all = all)
+    x <- impliedcovstructures_cpp(x, "zeta_between", type = model@types$between_latent, all = all)
+    x <- impliedcovstructures_cpp(x, "epsilon_between", type = model@types$between_residual, all = all)
+    
+  } else {
+    # Implied covariance structures:
+    x <- impliedcovstructures(x, "zeta_within", type = model@types$within_latent, all = all)
+    x <- impliedcovstructures(x, "epsilon_within", type = model@types$within_residual, all = all)
+    x <- impliedcovstructures(x, "zeta_between", type = model@types$between_latent, all = all)
+    x <- impliedcovstructures(x, "epsilon_between", type = model@types$between_residual, all = all)
+    
+  }
+    
   # For each group:
   nGroup <- length(x)
   

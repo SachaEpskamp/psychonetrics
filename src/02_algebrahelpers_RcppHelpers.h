@@ -17,13 +17,13 @@ arma::vec eig_sym_cpp(
 
 Rcpp::List solve_symmetric_cpp(
         arma::mat X,
-        bool logdet,
-        double epsilon
+        bool logdet = false,
+        double epsilon  = 1.490116e-08
 );
 
 arma::mat solve_symmetric_cpp_matrixonly(
         arma::mat X,
-        double epsilon
+        double epsilon  = 1.490116e-08
 );
 
 
@@ -36,5 +36,29 @@ arma::vec vech(
                 bool diag = true
 );
 
+arma::vec seq_len_inds(
+                int start,
+                int n
+);
+
+arma::mat cov2cor_cpp(
+                const arma::mat& X
+);
+
+arma::mat wi2net_cpp(
+                const arma::mat& X
+);
+
+arma::mat SDmat(
+                const arma::mat& X
+);
+
+bool anyNon0(
+                const arma::mat& X
+);
+
+arma::sp_mat invSDmat(
+                const arma::mat& X
+);
 
 #endif

@@ -45,8 +45,8 @@ bool sympd_cpp(
 // [[Rcpp::export]]
 Rcpp::List solve_symmetric_cpp(
     arma::mat X,
-    bool logdet,
-    double epsilon
+    bool logdet = false,
+    double epsilon  = 1.490116e-08
 ){
   double logdetval = R_NegInf;
   Rcpp::List res;
@@ -109,7 +109,7 @@ Rcpp::List solve_symmetric_cpp(
 // [[Rcpp::export]]
 arma::mat solve_symmetric_cpp_matrixonly(
     arma::mat X,
-    double epsilon
+    double epsilon  = 1.490116e-08
 ){
   int i;
   int nvar = X.n_cols;
@@ -227,5 +227,106 @@ arma::vec vech(
   
   
   return(out);
+}
+
+
+// Indices (start end) for seq_len - 1:
+// [[Rcpp::export]]
+arma::vec seq_len_inds(
+  int start,
+  int n
+){
+  arma::vec res(2);
+  res[0] = start;
+  res[1] = start + n - 1;
+  return(res);
+}
+
+
+// [[Rcpp::export]]
+arma::mat cov2cor_cpp(
+  const arma::mat& X
+){
+  int n = X.n_rows;
+  
+  arma::mat Y = eye(n,n);
+
+  int i, j;
+  for (i=0;i<n;i++){
+    for (j=0;j<=i;j++){
+      Y(i,j) = Y(j,i) = 
+        X(i,j) / sqrt(X(i,i) * X(j,j));
+    }  
+  }
+  
+  return(Y);
+}
+
+// [[Rcpp::export]]
+arma::mat wi2net_cpp(
+    const arma::mat& X
+){
+  int n = X.n_rows;
+  arma::mat Y = zeros(n,n);
+  
+  int i, j;
+  for (i=0;i<n;i++){
+    for (j=0;j<i;j++){
+      Y(i,j) = Y(j,i) = 
+        - X(i,j) / sqrt(X(i,i) * X(j,j));
+    }  
+  }
+  
+  return(Y);
+}
+
+// [[Rcpp::export]]
+arma::mat SDmat(
+    const arma::mat& X
+){
+  int n = X.n_rows;
+  arma::mat Y = zeros(n,n);
+  
+  int i;
+  for (i=0;i<n;i++){
+    Y(i,i) = sqrt(X(i,i));
+  }
+  
+  return(Y);
+}
+
+// [[Rcpp::export]]
+arma::sp_mat invSDmat(
+    const arma::mat& X
+){
+  int n = X.n_rows;
+  arma::sp_mat Y(n,n);
+  
+  int i;
+  for (i=0;i<n;i++){
+    Y(i,i) = pow(X(i,i), -0.5);
+  }
+  
+  return(Y);
+}
+
+
+
+// [[Rcpp:export]]
+bool anyNon0(
+  const arma::mat& X
+){
+  bool anyNon0 = false;
+  for (int i=0; i<X.n_rows; i++){
+    for (int j=0; j<X.n_cols; j++){
+      
+      if (X(i,j) != 0){
+        anyNon0 = true;
+      }
+      
+    }
+  }
+  
+  return(anyNon0);
 }
 
