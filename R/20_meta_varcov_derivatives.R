@@ -195,24 +195,24 @@ d_phi_theta_meta_varcov_group <- function(y,randomEffects,metacor,cpp,...){
   } else if (randomEffects == "ggm"){
     
     # Gaussian graphical model:
-    netPart <- seq_len(nmod*(nmod-1)/2)
+    netPart <- max(meanPart) + seq_len(nmod*(nmod-1)/2)
     scalingPart <- max(netPart) + seq_len(nmod)
     
-    if (metacor){
-      
-      if (cpp){
-        Jac[varPart,netPart] <- d_sigma_omega_corinput_cpp(delta_IminOinv = dots$delta_IminOinv_randomEffects, 
-                                                           L = dots$L_c, A = dots$A_c, delta = dots$delta_randomEffects,
-                                                           Dstar = dots$Dstar_c, IminOinv = dots$IminOinv_randomEffects, 
-                                                           In = dots$In_c)
-      } else {
-        Jac[varPart,netPart] <- d_sigma_omega_corinput(delta_IminOinv = dots$delta_IminOinv_randomEffects, 
-                                                       L = dots$L_c, A = dots$A_c, delta = dots$delta_randomEffects,
-                                                       Dstar = dots$Dstar_c, IminOinv = dots$IminOinv_randomEffects, 
-                                                       In = dots$In_c)
-      }
-      
-    } else {
+    # if (metacor){
+    #   
+    #   if (cpp){
+    #     Jac[varPart,netPart] <- d_sigma_omega_corinput_cpp(delta_IminOinv = dots$delta_IminOinv_randomEffects, 
+    #                                                        L = dots$L_c, A = dots$A_c, delta = dots$delta_randomEffects,
+    #                                                        Dstar = dots$Dstar_c, IminOinv = dots$IminOinv_randomEffects, 
+    #                                                        In = dots$In_c)
+    #   } else {
+    #     Jac[varPart,netPart] <- d_sigma_omega_corinput(delta_IminOinv = dots$delta_IminOinv_randomEffects, 
+    #                                                    L = dots$L_c, A = dots$A_c, delta = dots$delta_randomEffects,
+    #                                                    Dstar = dots$Dstar_c, IminOinv = dots$IminOinv_randomEffects, 
+    #                                                    In = dots$In_c)
+    #   }
+    #   
+    # } else {
       if (cpp){
         Jac[varPart,netPart] <- d_sigma_omega_cpp(L = dots$L_c, delta_IminOinv = dots$delta_IminOinv_randomEffects,
                                                   A = dots$A_c, delta = dots$delta_randomEffects, Dstar = dots$Dstar_c)
@@ -232,7 +232,7 @@ d_phi_theta_meta_varcov_group <- function(y,randomEffects,metacor,cpp,...){
         
       }
       
-    }
+    # }
     
   } else  if (randomEffects == "prec"){
     
@@ -244,7 +244,7 @@ d_phi_theta_meta_varcov_group <- function(y,randomEffects,metacor,cpp,...){
     
   } else if (randomEffects == "cor"){
     # Corelation matrix:
-    corPart <- seq_len(nmod*(nmod-1)/2)
+    corPart <- max(meanPart) + seq_len(nmod*(nmod-1)/2)
     
     if (cpp){
       Jac[varPart,corPart] <- d_sigma_rho_cpp(L = dots$L_c, SD = dots$SD_randomEffects, A = dots$A_c, Dstar = dots$Dstar_c)
@@ -252,8 +252,8 @@ d_phi_theta_meta_varcov_group <- function(y,randomEffects,metacor,cpp,...){
       Jac[varPart,corPart] <- d_sigma_rho(L = dots$L_c, SD = dots$SD_randomEffects, A = dots$A_c, Dstar = dots$Dstar_c)      
     }
 
-    
-    if (!metacor){
+ 
+    # if (!metacor){
       sdPart <- max(corPart) + seq_len(nmod) 
       
       if (cpp){
@@ -264,7 +264,7 @@ d_phi_theta_meta_varcov_group <- function(y,randomEffects,metacor,cpp,...){
                                           A = dots$A_c)        
       }
 
-    }
+    # }
   }
   
   ####

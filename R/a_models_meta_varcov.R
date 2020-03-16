@@ -546,6 +546,7 @@ meta_varcov <- function(
   model@parameters <- pars$partable
   model@matrices <- pars$mattable
   
+  
   # Just add all the matrices
   # FIXME: This stores some objects that may not be needed.
   model@extramatrices <- list(
@@ -572,6 +573,9 @@ meta_varcov <- function(
     Vmethod = Vmethod,
     Vestimation = Vestimation # FIXME: This is nicer somewhere else...
   )
+  
+
+  
   # 
   # if (Vmethod == "pooled"){
   #   model@extramatrices$Vall <- avgVmat

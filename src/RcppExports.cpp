@@ -806,6 +806,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// d_phi_theta_meta_varcov_group_cpp
+arma::mat d_phi_theta_meta_varcov_group_cpp(const Rcpp::List& grouplist);
+RcppExport SEXP _psychonetrics_d_phi_theta_meta_varcov_group_cpp(SEXP grouplistSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type grouplist(grouplistSEXP);
+    rcpp_result_gen = Rcpp::wrap(d_phi_theta_meta_varcov_group_cpp(grouplist));
+    return rcpp_result_gen;
+END_RCPP
+}
+// d_phi_theta_meta_varcov_cpp
+arma::mat d_phi_theta_meta_varcov_cpp(const Rcpp::List& prep);
+RcppExport SEXP _psychonetrics_d_phi_theta_meta_varcov_cpp(SEXP prepSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prep(prepSEXP);
+    rcpp_result_gen = Rcpp::wrap(d_phi_theta_meta_varcov_cpp(prep));
+    return rcpp_result_gen;
+END_RCPP
+}
 // expHcpp
 double expHcpp(const arma::mat& states, const arma::vec& probabilities, const arma::mat& omega, const arma::vec& tau, const int nstate, const int nvar);
 RcppExport SEXP _psychonetrics_expHcpp(SEXP statesSEXP, SEXP probabilitiesSEXP, SEXP omegaSEXP, SEXP tauSEXP, SEXP nstateSEXP, SEXP nvarSEXP) {
@@ -899,6 +921,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_d_sigma_zeta_ggm_var1_cpp", (DL_FUNC) &_psychonetrics_d_sigma_zeta_ggm_var1_cpp, 6},
     {"_psychonetrics_d_sigma1_beta_var1_cpp", (DL_FUNC) &_psychonetrics_d_sigma1_beta_var1_cpp, 6},
     {"_psychonetrics_d_sigma1_sigma_zeta_var1_cpp", (DL_FUNC) &_psychonetrics_d_sigma1_sigma_zeta_var1_cpp, 3},
+    {"_psychonetrics_d_phi_theta_meta_varcov_group_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_meta_varcov_group_cpp, 1},
+    {"_psychonetrics_d_phi_theta_meta_varcov_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_meta_varcov_cpp, 1},
     {"_psychonetrics_expHcpp", (DL_FUNC) &_psychonetrics_expHcpp, 6},
     {"_psychonetrics_expHessianCpp", (DL_FUNC) &_psychonetrics_expHessianCpp, 7},
     {NULL, NULL, 0}

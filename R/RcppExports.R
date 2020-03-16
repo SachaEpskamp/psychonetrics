@@ -233,6 +233,14 @@ d_sigma1_sigma_zeta_var1_cpp <- function(IkronBeta, D2, Js) {
     .Call(`_psychonetrics_d_sigma1_sigma_zeta_var1_cpp`, IkronBeta, D2, Js)
 }
 
+d_phi_theta_meta_varcov_group_cpp <- function(grouplist) {
+    .Call(`_psychonetrics_d_phi_theta_meta_varcov_group_cpp`, grouplist)
+}
+
+d_phi_theta_meta_varcov_cpp <- function(prep) {
+    .Call(`_psychonetrics_d_phi_theta_meta_varcov_cpp`, prep)
+}
+
 expHcpp <- function(states, probabilities, omega, tau, nstate, nvar) {
     .Call(`_psychonetrics_expHcpp`, states, probabilities, omega, tau, nstate, nvar)
 }
