@@ -3,8 +3,14 @@ implied_lvm <- function(model, all = FALSE){
 
   x <- formModelMatrices(model)
   
-  x <- impliedcovstructures(x,"zeta",type = model@types$latent, all = all)
-  x <- impliedcovstructures(x,"epsilon",type = model@types$residual, all = all)
+  if (model@cpp){
+    x <- impliedcovstructures_cpp(x,"zeta",type = model@types$latent, all = all)
+    x <- impliedcovstructures_cpp(x,"epsilon",type = model@types$residual, all = all)
+  } else {
+    x <- impliedcovstructures(x,"zeta",type = model@types$latent, all = all)
+    x <- impliedcovstructures(x,"epsilon",type = model@types$residual, all = all)
+  }
+
 
     # For each group:
   nGroup <- length(x)

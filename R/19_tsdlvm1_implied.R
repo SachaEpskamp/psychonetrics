@@ -3,8 +3,20 @@ implied_tsdlvm1 <- function(model,all = FALSE){
   x <- formModelMatrices(model)
   
   # Implied covariance structures:
-  x <- impliedcovstructures(x, "zeta", type = model@types$zeta, all = all)
-  x <- impliedcovstructures(x, "epsilon", type = model@types$epsilon, all = all)
+  if (model@cpp){
+    # Implied covariance structures:
+    x <- impliedcovstructures_cpp(x, "zeta", type = model@types$zeta, all = all)
+    x <- impliedcovstructures_cpp(x, "epsilon", type = model@types$epsilon, all = all)
+    
+  } else {
+    # Implied covariance structures:
+    x <- impliedcovstructures(x, "zeta", type = model@types$zeta, all = all)
+    x <- impliedcovstructures(x, "epsilon", type = model@types$epsilon, all = all)
+    
+  }
+  
+  
+
   # x <- impliedcovstructures(x, "zeta_between", type = model@types$between_latent, all = all)
   # x <- impliedcovstructures(x, "epsilon_between", type = model@types$between_residual, all = all)
   

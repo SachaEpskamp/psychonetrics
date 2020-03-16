@@ -9,11 +9,11 @@ sympd_cpp <- function(X) {
     .Call(`_psychonetrics_sympd_cpp`, X)
 }
 
-solve_symmetric_cpp <- function(X, logdet, epsilon) {
+solve_symmetric_cpp <- function(X, logdet = FALSE, epsilon = 1.490116e-08) {
     .Call(`_psychonetrics_solve_symmetric_cpp`, X, logdet, epsilon)
 }
 
-solve_symmetric_cpp_matrixonly <- function(X, epsilon) {
+solve_symmetric_cpp_matrixonly <- function(X, epsilon = 1.490116e-08) {
     .Call(`_psychonetrics_solve_symmetric_cpp_matrixonly`, X, epsilon)
 }
 
@@ -23,6 +23,26 @@ bdiag_psychonetrics <- function(mats) {
 
 vech <- function(X, diag = TRUE) {
     .Call(`_psychonetrics_vech`, X, diag)
+}
+
+seq_len_inds <- function(start, n) {
+    .Call(`_psychonetrics_seq_len_inds`, start, n)
+}
+
+cov2cor_cpp <- function(X) {
+    .Call(`_psychonetrics_cov2cor_cpp`, X)
+}
+
+wi2net_cpp <- function(X) {
+    .Call(`_psychonetrics_wi2net_cpp`, X)
+}
+
+SDmat <- function(X) {
+    .Call(`_psychonetrics_SDmat`, X)
+}
+
+invSDmat <- function(X) {
+    .Call(`_psychonetrics_invSDmat`, X)
 }
 
 kronecker_I_X <- function(X, n) {
@@ -35,6 +55,10 @@ kronecker_X_I <- function(X, n) {
 
 kronecker_diag <- function(X) {
     .Call(`_psychonetrics_kronecker_diag`, X)
+}
+
+impliedcovstructures_cpp <- function(x, name = "", type = "cov", all = FALSE) {
+    .Call(`_psychonetrics_impliedcovstructures_cpp`, x, name, type, all)
 }
 
 FisherInformation_inner_cpp_DSS <- function(estimator, model, manual) {
@@ -199,6 +223,66 @@ d_phi_theta_varcov_group_cpp <- function(grouplist) {
 
 d_phi_theta_varcov_cpp <- function(prep) {
     .Call(`_psychonetrics_d_phi_theta_varcov_cpp`, prep)
+}
+
+d_mu_nu_lvm_cpp <- function(nu) {
+    .Call(`_psychonetrics_d_mu_nu_lvm_cpp`, nu)
+}
+
+d_mu_nu_eta_lvm_cpp <- function(Lambda_BetaStar) {
+    .Call(`_psychonetrics_d_mu_nu_eta_lvm_cpp`, Lambda_BetaStar)
+}
+
+d_mu_lambda_lvm_cpp <- function(nu_eta, BetaStar, In) {
+    .Call(`_psychonetrics_d_mu_lambda_lvm_cpp`, nu_eta, BetaStar, In)
+}
+
+d_mu_beta_lvm_cpp <- function(nu_eta, lambda, tBetakronBeta) {
+    .Call(`_psychonetrics_d_mu_beta_lvm_cpp`, nu_eta, lambda, tBetakronBeta)
+}
+
+d_sigma_lambda_lvm_cpp <- function(L, Lambda_BetaStar, Betasta_sigmaZeta, In, C) {
+    .Call(`_psychonetrics_d_sigma_lambda_lvm_cpp`, L, Lambda_BetaStar, Betasta_sigmaZeta, In, C)
+}
+
+d_sigma_beta_lvm_cpp <- function(L, lambda, Betasta_sigmaZeta, Cbeta, Inlatent, tBetakronBeta) {
+    .Call(`_psychonetrics_d_sigma_beta_lvm_cpp`, L, lambda, Betasta_sigmaZeta, Cbeta, Inlatent, tBetakronBeta)
+}
+
+d_sigma_sigma_zeta_lvm_cpp <- function(L, Lambda_BetaStar, Deta) {
+    .Call(`_psychonetrics_d_sigma_sigma_zeta_lvm_cpp`, L, Lambda_BetaStar, Deta)
+}
+
+d_sigma_zeta_cholesky_lvm_cpp <- function(lowertri_zeta, L_eta, Cbeta, Inlatent) {
+    .Call(`_psychonetrics_d_sigma_zeta_cholesky_lvm_cpp`, lowertri_zeta, L_eta, Cbeta, Inlatent)
+}
+
+d_sigma_zeta_kappa_lvm_cpp <- function(L_eta, Deta, sigma_zeta) {
+    .Call(`_psychonetrics_d_sigma_zeta_kappa_lvm_cpp`, L_eta, Deta, sigma_zeta)
+}
+
+d_sigma_zeta_ggm_lvm_cpp <- function(L_eta, delta_IminOinv_zeta, Aeta, delta_zeta, Dstar_eta, Inlatent) {
+    .Call(`_psychonetrics_d_sigma_zeta_ggm_lvm_cpp`, L_eta, delta_IminOinv_zeta, Aeta, delta_zeta, Dstar_eta, Inlatent)
+}
+
+d_sigma_epsilon_cholesky_lvm_cpp <- function(lowertri_epsilon, L, C_chol, In) {
+    .Call(`_psychonetrics_d_sigma_epsilon_cholesky_lvm_cpp`, lowertri_epsilon, L, C_chol, In)
+}
+
+d_sigma_epsilon_kappa_lvm_cpp <- function(L, D, sigma_epsilon) {
+    .Call(`_psychonetrics_d_sigma_epsilon_kappa_lvm_cpp`, L, D, sigma_epsilon)
+}
+
+d_sigma_epsilon_ggm_lvm_cpp <- function(L, delta_IminOinv_epsilon, A, delta_epsilon, Dstar, In) {
+    .Call(`_psychonetrics_d_sigma_epsilon_ggm_lvm_cpp`, L, delta_IminOinv_epsilon, A, delta_epsilon, Dstar, In)
+}
+
+d_phi_theta_lvm_group_cpp <- function(grouplist) {
+    .Call(`_psychonetrics_d_phi_theta_lvm_group_cpp`, grouplist)
+}
+
+d_phi_theta_lvm_cpp <- function(prep) {
+    .Call(`_psychonetrics_d_phi_theta_lvm_cpp`, prep)
 }
 
 d_mu_mu_var1_cpp <- function(beta) {

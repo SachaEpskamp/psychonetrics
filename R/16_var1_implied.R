@@ -2,7 +2,13 @@
 implied_var1 <- function(model,all = FALSE){
   x <- formModelMatrices(model)
 
-  x <- impliedcovstructures(x,"zeta",type = model@types$zeta, all = all)
+  if (model@cpp){
+    x <- impliedcovstructures_cpp(x,"zeta",type = model@types$zeta, all = all)
+  } else {
+    x <- impliedcovstructures(x,"zeta",type = model@types$zeta, all = all)
+  }
+  
+  
   
   # For each group:
   nGroup <- length(x)

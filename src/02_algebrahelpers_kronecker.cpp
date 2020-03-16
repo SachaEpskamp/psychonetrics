@@ -60,7 +60,9 @@ arma::sp_mat kronecker_X_I(
   for (i=0; i<nrow; i++){
     for (j=0;j<ncol; j++){
       for (k=0;k<n;k++){
-        res(k + i*nrow, k + j*ncol) = X(i,j);
+        
+        
+        res(k + i*n, k + j*n) = X(i,j);
         
         
       }
