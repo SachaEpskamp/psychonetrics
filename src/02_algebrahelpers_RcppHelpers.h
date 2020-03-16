@@ -36,4 +36,5 @@ arma::vec vech(
                 bool diag = true
 );
 
+
 #endif
