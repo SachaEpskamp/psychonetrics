@@ -50,24 +50,46 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
   estimatorPart <- estimatorHessian(prep)
   
   # model part:
-  modelJacobian <- switch(
-    model@model,
-    # "lnm" = d_phi_theta_lnm,
-    # "ggm" = d_phi_theta_ggm,
-    # "rnm" = d_phi_theta_rnm,
-    # "gvar" =  ifelse(model@rawts,d_phi_theta_gvar_rawts,d_phi_theta_gvar),
-    "varcov" = d_phi_theta_varcov,
-    "lvm" = d_phi_theta_lvm,
-    "var1" = d_phi_theta_var1,
-    # "panelvar1" = d_phi_theta_panelvar1,
-    "dlvm1" = d_phi_theta_dlvm1,
-    "tsdlvm1" = d_phi_theta_tsdlvm1,
-    "meta_varcov" = d_phi_theta_meta_varcov,
-    "Ising" = d_phi_theta_Ising,
-    "ml_lvm" = d_phi_theta_ml_lvm
-    # "cholesky" = d_phi_theta_cholesky
-  )
+  if (model@cpp){
+    modelJacobian <- switch(
+      model@model,
+      # "lnm" = d_phi_theta_lnm,
+      # "ggm" = d_phi_theta_ggm,
+      # "rnm" = d_phi_theta_rnm,
+      # "gvar" = ifelse(model@rawts,d_phi_theta_gvar_rawts,d_phi_theta_gvar),
+      "varcov" = d_phi_theta_varcov_cpp, # <- updated!
+      "lvm" = d_phi_theta_lvm,
+      "var1" = d_phi_theta_var1,
+      # "panelvar1" = d_phi_theta_panelvar1,
+      "dlvm1" = d_phi_theta_dlvm1,
+      "tsdlvm1" = d_phi_theta_tsdlvm1,
+      "meta_varcov" = d_phi_theta_meta_varcov_cpp,
+      "Ising" = d_phi_theta_Ising,
+      "ml_lvm" = d_phi_theta_ml_lvm
+      # "cholesky" = d_phi_theta_cholesky
+    )    
+  } else {
+    modelJacobian <- switch(
+      model@model,
+      # "lnm" = d_phi_theta_lnm,
+      # "ggm" = d_phi_theta_ggm,
+      # "rnm" = d_phi_theta_rnm,
+      # "gvar" = ifelse(model@rawts,d_phi_theta_gvar_rawts,d_phi_theta_gvar),
+      "varcov" = d_phi_theta_varcov,
+      "lvm" = d_phi_theta_lvm,
+      "var1" = d_phi_theta_var1,
+      # "panelvar1" = d_phi_theta_panelvar1,
+      "dlvm1" = d_phi_theta_dlvm1,
+      "tsdlvm1" = d_phi_theta_tsdlvm1,
+      "meta_varcov" = d_phi_theta_meta_varcov,
+      "Ising" = d_phi_theta_Ising,
+      "ml_lvm" = d_phi_theta_ml_lvm
+      # "cholesky" = d_phi_theta_cholesky
+    )
+  }
+  
   modelPart <- modelJacobian(prep)
+  
   
   # Manual part:
   manualPart <- Mmatrix(model@parameters)
