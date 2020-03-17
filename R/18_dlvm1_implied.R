@@ -32,7 +32,7 @@ implied_dlvm1 <- function(model,all = FALSE){
   
   for (g in 1:nGroup){
     # Beta star:
-    BetaStar <- sparseordense(solve(I_eta %x% I_eta - (x[[g]]$beta %x% x[[g]]$beta)))
+    BetaStar <- as.matrix(solve(I_eta %x% I_eta - (x[[g]]$beta %x% x[[g]]$beta)))
     
     # Implied mean vector:
     impMu <- x[[g]]$nu + x[[g]]$lambda %*% x[[g]]$mu_eta
@@ -55,7 +55,7 @@ implied_dlvm1 <- function(model,all = FALSE){
     }
     
     # Create the block Toeplitz:
-    fullSigma_within_latent  <- sparseordense(blockToeplitz(lapply(allSigmas_within,as.matrix)))
+    fullSigma_within_latent  <- blockToeplitz(lapply(allSigmas_within,as.matrix))
     
     # Full within-subject cov matrix:
     fullSigma_within <- (Diagonal(nTime) %x% x[[g]]$lambda) %*% fullSigma_within_latent %*% (Diagonal(nTime) %x% t(x[[g]]$lambda)) + (Diagonal(nTime) %x% x[[g]]$sigma_epsilon_within)

@@ -137,7 +137,8 @@ dlvm1 <- function(
   
   
   # Design matrix:
-  design <- as(1*(!is.na(vars)),"dgCMatrix")
+  # design <- as(1*(!is.na(vars)),"dgCMatrix")
+  design <- as.matrix(1*(!is.na(vars)))
   
   # time per var:
   timePerVar <- as.vector(design * row(design))
@@ -454,6 +455,8 @@ dlvm1 <- function(
   model@extramatrices$P <- sparseMatrix(
     i = distVecrawts, j = distVec, dims = c(nTotal, totElements)
   )
+  
+  model@extramatrices$P <- as( model@extramatrices$P, "indMatrix")
   # model@extramatrices$P <- sparseMatrix(j=seq_along(inds),i=order(inds))
   
   

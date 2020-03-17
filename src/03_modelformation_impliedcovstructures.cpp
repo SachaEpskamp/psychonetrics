@@ -119,44 +119,56 @@ Rcpp::List impliedcovstructures_cpp(
       }
     } else if (type == "ggm"){
       
-
+      
       arma::mat mat_omega = grouplist[omega];
       arma::mat I = eye(mat_omega.n_rows, mat_omega.n_cols);
       
       // First check if the delta Matrix is present (it is ignored when corinput = TRUE only, so don't need to know that that argument was used):
       arma::mat IminO = I - mat_omega;
       arma::mat IminO_inv = solve_symmetric_cpp_matrixonly(IminO);
-
+      
       if (grouplist.containsElementNamed(delta.c_str()) == false){
         // FIXME: non positive definite matrices are even worse here... So I am trying to solve this with a spectral shift for now:
         // FIXME: use spectral shift in R code here ..
         grouplist[delta] = invSDmat(IminO_inv);
       }
-
+      
       arma::sp_mat mat_delta = grouplist[delta];
-
+      
       // Compute sigma:
       arma::mat mat_sigma = mat_delta * IminO_inv * mat_delta;
       grouplist[sigma] = mat_sigma;
-
-        // Stuff needed if all = TRUE:
-        if (all){
-          if (anyNon0(mat_sigma)){
-            arma::mat mat_kappa = solve_symmetric_cpp_matrixonly(mat_sigma);
-            grouplist[kappa] = mat_kappa;
-            grouplist[rho] = cov2cor_cpp(mat_sigma);
-            grouplist[SD] = SDmat(mat_sigma);
-          }
-
+      
+      // Stuff needed if all = TRUE:
+      if (all){
+        if (anyNon0(mat_sigma)){
+          arma::mat mat_kappa = solve_symmetric_cpp_matrixonly(mat_sigma);
+          grouplist[kappa] = mat_kappa;
+          grouplist[rho] = cov2cor_cpp(mat_sigma);
+          grouplist[SD] = SDmat(mat_sigma);
         }
-
-        // Extra matrix needed:
-        if (!all){
-          grouplist[IminOinv] = IminO_inv;
-          grouplist[delta_IminOinv] =  mat_delta * IminO_inv;
-        }
-    } else if (type == "cor"){
-
+        
+      }
+      
+      // Extra matrix needed:
+      if (!all){
+        grouplist[IminOinv] = IminO_inv;
+        grouplist[delta_IminOinv] =  mat_delta * IminO_inv;
+      }
+    } else if (type == "prec"){
+      
+      arma::mat mat_kappa = grouplist[kappa];
+      arma::mat mat_sigma = solve_symmetric_cpp_matrixonly(mat_kappa);
+      // Precision matrix
+      grouplist[sigma] = mat_sigma;
+      
+      if (all) {
+        grouplist[omega] = wi2net_cpp(mat_kappa);
+        grouplist[rho] = cov2cor_cpp(mat_sigma);
+        grouplist[SD] = SDmat(mat_sigma);
+      }
+    }  else if (type == "cor"){
+      
       arma::mat mat_rho = grouplist[rho];
       int nvar = mat_rho.n_rows;
       
@@ -168,27 +180,27 @@ Rcpp::List impliedcovstructures_cpp(
       arma::sp_mat mat_SD = grouplist[SD];
       arma::mat mat_sigma = mat_SD * (eye(nvar, nvar) + mat_rho) * mat_SD;
       grouplist[sigma] = mat_sigma;
-
-        // Stuff needed if all = TRUE:
-        if (all){
-          if (anyNon0(mat_sigma)){
-            
-            arma::mat mat_kappa = solve_symmetric_cpp_matrixonly(mat_sigma);
-            grouplist[kappa] = mat_kappa;
-            grouplist[omega] = wi2net_cpp(mat_kappa);
-          }
-
+      
+      // Stuff needed if all = TRUE:
+      if (all){
+        if (anyNon0(mat_sigma)){
+          
+          arma::mat mat_kappa = solve_symmetric_cpp_matrixonly(mat_sigma);
+          grouplist[kappa] = mat_kappa;
+          grouplist[omega] = wi2net_cpp(mat_kappa);
         }
-
-        // Extra matrix needed:
-        if (!all){
-          arma::mat mat_IplusRho = eye(nvar,nvar) + mat_rho;;
-          grouplist[IplusRho] = mat_IplusRho;
-          grouplist[SD_IplusRho] = mat_SD * mat_IplusRho;
-        }
-
+        
+      }
+      
+      // Extra matrix needed:
+      if (!all){
+        arma::mat mat_IplusRho = eye(nvar,nvar) + mat_rho;;
+        grouplist[IplusRho] = mat_IplusRho;
+        grouplist[SD_IplusRho] = mat_SD * mat_IplusRho;
+      }
+      
     }
-
+    
     // Return to list:
     x[g] = grouplist;
   }
