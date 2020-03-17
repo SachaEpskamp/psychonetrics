@@ -477,7 +477,8 @@ ml_lvm <- function(
   model@extramatrices$P <- sparseMatrix(
     i = distVecrawts, j = distVec, dims = c(nTotal, totElements)
   )
-  P <- as(P, "dgCMatrix")
+  
+  model@extramatrices$P <- as(model@extramatrices$P, "indMatrix")
   # model@extramatrices$P <- sparseMatrix(j=seq_along(inds),i=order(inds))
   
   
