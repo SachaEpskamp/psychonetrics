@@ -59,9 +59,9 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
       # "gvar" = ifelse(model@rawts,d_phi_theta_gvar_rawts,d_phi_theta_gvar),
       "varcov" = d_phi_theta_varcov_cpp, # <- updated!
       "lvm" = d_phi_theta_lvm_cpp, # <- updated!
-      "var1" = d_phi_theta_var1_cpp,
+      "var1" = d_phi_theta_var1_cpp, # <- updated!
       # "panelvar1" = d_phi_theta_panelvar1,
-      "dlvm1" = d_phi_theta_dlvm1,
+      "dlvm1" = d_phi_theta_dlvm1_cpp, # <- updated!
       "tsdlvm1" = d_phi_theta_tsdlvm1,
       "meta_varcov" = d_phi_theta_meta_varcov_cpp, # <- updated!
       "Ising" = d_phi_theta_Ising,
@@ -88,7 +88,7 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
     )
   }
   
-  modelPart <- modelJacobian(prep)
+  modelPart <- sparseordense(modelJacobian(prep))
   
   
   # Manual part:

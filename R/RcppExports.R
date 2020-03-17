@@ -325,6 +325,38 @@ d_phi_theta_var1_cpp <- function(prep) {
     .Call(`_psychonetrics_d_phi_theta_var1_cpp`, prep)
 }
 
+d_mu_lambda_dlvm1_cpp <- function(mu_eta, I_y) {
+    .Call(`_psychonetrics_d_mu_lambda_dlvm1_cpp`, mu_eta, I_y)
+}
+
+d_sigmak_lambda_dlvm1_cpp <- function(lambda, k, allSigmas_within, C_y_eta, I_y, L_y, sigma_zeta_between) {
+    .Call(`_psychonetrics_d_sigmak_lambda_dlvm1_cpp`, lambda, k, allSigmas_within, C_y_eta, I_y, L_y, sigma_zeta_between)
+}
+
+d_sigma0_sigma_zeta_within_dlvm1_cpp <- function(BetaStar, D_eta) {
+    .Call(`_psychonetrics_d_sigma0_sigma_zeta_within_dlvm1_cpp`, BetaStar, D_eta)
+}
+
+d_sigma0_beta_dlvm1_cpp <- function(BetaStar, I_eta, allSigmas_within, C_eta_eta) {
+    .Call(`_psychonetrics_d_sigma0_beta_dlvm1_cpp`, BetaStar, I_eta, allSigmas_within, C_eta_eta)
+}
+
+d_sigmak_beta_dlvm1_cpp <- function(J_sigma_beta, IkronBeta, k, allSigmas_within, I_eta) {
+    .Call(`_psychonetrics_d_sigmak_beta_dlvm1_cpp`, J_sigma_beta, IkronBeta, k, allSigmas_within, I_eta)
+}
+
+d_sigmak_sigma_zeta_between_dlvm1_cpp <- function(lambda, D_eta) {
+    .Call(`_psychonetrics_d_sigmak_sigma_zeta_between_dlvm1_cpp`, lambda, D_eta)
+}
+
+d_phi_theta_dlvm1_group_cpp <- function(grouplist) {
+    .Call(`_psychonetrics_d_phi_theta_dlvm1_group_cpp`, grouplist)
+}
+
+d_phi_theta_dlvm1_cpp <- function(prep) {
+    .Call(`_psychonetrics_d_phi_theta_dlvm1_cpp`, prep)
+}
+
 d_phi_theta_meta_varcov_group_cpp <- function(grouplist) {
     .Call(`_psychonetrics_d_phi_theta_meta_varcov_group_cpp`, grouplist)
 }
