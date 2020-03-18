@@ -101,14 +101,12 @@ logLikelihood_gaussian_group_sumstat <- function(S,kappa,means,mu,sigma,...){
 }
 
 # Fit function for Gauss ML: -2n* log likelihood
-logLikelihood_gaussian <- function(model){
-  # Prepare
-  prep <- prepareModel(parVector(model), model)
-  
+logLikelihood_gaussian <- function(prep){
+
   # Add cpp:
   for (i in seq_along(prep$groupModels)){
-    prep$groupModels[[i]]$cpp <- model@cpp
-    prep$groupModels[[i]]$fullFIML <- model@sample@fullFIML
+    prep$groupModels[[i]]$cpp <- prep$cpp
+    prep$groupModels[[i]]$fullFIML <- prep$fullFIML
   }
 
   # Fit function per group:

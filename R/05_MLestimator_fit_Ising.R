@@ -29,10 +29,8 @@ maxLikEstimator_Ising_group <- function(omega,tau,beta,squares,means,responses,n
 
 
 # Fit function for Ising ML: -2n* log likelihood
-maxLikEstimator_Ising <- function(x, model){
-  # Prepare
-  prep <- prepareModel(x, model)
-
+maxLikEstimator_Ising <- function(prep){
+  
   # Fit function per group:
   fit_per_group <- prep$nPerGroup / prep$nTotal * sapply(prep$groupModels,do.call,what=maxLikEstimator_Ising_group)
 
