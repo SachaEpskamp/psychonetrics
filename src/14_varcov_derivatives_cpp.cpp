@@ -190,7 +190,7 @@ arma::mat d_sigma0_sigma_zeta_var1_cpp(
 arma::mat d_phi_theta_varcov_group_cpp(
     const Rcpp::List& grouplist
 ){
-
+  
   // objects needed now:
   arma::mat sigma = grouplist["sigma"];
   std::string y = grouplist["y"];
@@ -198,7 +198,7 @@ arma::mat d_phi_theta_varcov_group_cpp(
   bool meanstructure = grouplist["meanstructure"];
   arma::mat mu = grouplist["mu"];
   
-
+  
   
   // Number of variables:
   int nvar = sigma.n_rows;
@@ -208,6 +208,18 @@ arma::mat d_phi_theta_varcov_group_cpp(
   
   // If not missing tau:
   arma::mat tau = grouplist["tau"];
+  
+  // Check if all NA:
+  bool noThresholds = true;
+  for (i = 0; i < tau.n_rows && noThresholds; i++){
+    
+    for (j = 0; j < tau.n_cols && noThresholds; j++){
+      
+      if (is_finite(tau(i,j)) == false){
+        noThresholds = false;
+      }
+    }  
+  }
   
   // if (grouplist.containsElementNamed("tau")){
   //   tau = (arma::mat)grouplist["tau"];
@@ -236,6 +248,7 @@ arma::mat d_phi_theta_varcov_group_cpp(
       }
     }
   }
+  
   int nMean_Thresh = nMean + nThresh;
   
   // number of vars:
@@ -343,7 +356,6 @@ arma::mat d_phi_theta_varcov_group_cpp(
   }
   
   
-  
   // If corinput, cut out the diagonal rows:
   if (corinput){
     arma::mat I = eye(nvar, nvar );
@@ -361,7 +373,10 @@ arma::mat d_phi_theta_varcov_group_cpp(
   }
   
   if (meanstructure == false){
-    Jac.shed_rows(0, nvar - 1);
+    if (noThresholds){
+      Jac.shed_rows(0, nvar - 1);  
+    }
+    
     // FIXME: Add error for thresholds
     
   }
@@ -377,7 +392,7 @@ arma::mat d_phi_theta_varcov_cpp(
   
   Rcpp::List groupmodels = prep["groupModels"];
   int nGroup = groupmodels.length();
-
+  
   Rcpp::List groupgradients(nGroup);
   
   for (int i=0; i<nGroup;i++){
@@ -386,7 +401,7 @@ arma::mat d_phi_theta_varcov_cpp(
   }
   
   arma::mat res =  bdiag_psychonetrics(groupgradients);
-
+  
   return(res);
 }
 

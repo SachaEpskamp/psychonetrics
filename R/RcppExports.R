@@ -89,8 +89,24 @@ logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML <- function(sigma, kappa, mu, 
     .Call(`_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML`, sigma, kappa, mu, fimldata, epsilon)
 }
 
+maxLikEstimator_Gauss_group_cpp <- function(grouplist) {
+    .Call(`_psychonetrics_maxLikEstimator_Gauss_group_cpp`, grouplist)
+}
+
+maxLikEstimator_Gauss_cpp <- function(prep) {
+    .Call(`_psychonetrics_maxLikEstimator_Gauss_cpp`, prep)
+}
+
 DWLS_wmat <- function(data, means, ncase, nvar) {
     .Call(`_psychonetrics_DWLS_wmat`, data, means, ncase, nvar)
+}
+
+ULS_Gauss_cpp_pergroup <- function(grouplist) {
+    .Call(`_psychonetrics_ULS_Gauss_cpp_pergroup`, grouplist)
+}
+
+ULS_Gauss_cpp <- function(prep) {
+    .Call(`_psychonetrics_ULS_Gauss_cpp`, prep)
 }
 
 WLS_wmat <- function(data, means, ncase, nvar) {
