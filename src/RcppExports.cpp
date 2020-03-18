@@ -278,6 +278,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// maxLikEstimator_Gauss_group_cpp
+double maxLikEstimator_Gauss_group_cpp(const Rcpp::List& grouplist);
+RcppExport SEXP _psychonetrics_maxLikEstimator_Gauss_group_cpp(SEXP grouplistSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type grouplist(grouplistSEXP);
+    rcpp_result_gen = Rcpp::wrap(maxLikEstimator_Gauss_group_cpp(grouplist));
+    return rcpp_result_gen;
+END_RCPP
+}
+// maxLikEstimator_Gauss_cpp
+double maxLikEstimator_Gauss_cpp(const Rcpp::List& prep);
+RcppExport SEXP _psychonetrics_maxLikEstimator_Gauss_cpp(SEXP prepSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prep(prepSEXP);
+    rcpp_result_gen = Rcpp::wrap(maxLikEstimator_Gauss_cpp(prep));
+    return rcpp_result_gen;
+END_RCPP
+}
 // DWLS_wmat
 arma::sp_mat DWLS_wmat(arma::mat data, arma::vec means, const int ncase, const int nvar);
 RcppExport SEXP _psychonetrics_DWLS_wmat(SEXP dataSEXP, SEXP meansSEXP, SEXP ncaseSEXP, SEXP nvarSEXP) {
@@ -289,6 +311,28 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int >::type ncase(ncaseSEXP);
     Rcpp::traits::input_parameter< const int >::type nvar(nvarSEXP);
     rcpp_result_gen = Rcpp::wrap(DWLS_wmat(data, means, ncase, nvar));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ULS_Gauss_cpp_pergroup
+double ULS_Gauss_cpp_pergroup(const Rcpp::List& grouplist);
+RcppExport SEXP _psychonetrics_ULS_Gauss_cpp_pergroup(SEXP grouplistSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type grouplist(grouplistSEXP);
+    rcpp_result_gen = Rcpp::wrap(ULS_Gauss_cpp_pergroup(grouplist));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ULS_Gauss_cpp
+double ULS_Gauss_cpp(const Rcpp::List& prep);
+RcppExport SEXP _psychonetrics_ULS_Gauss_cpp(SEXP prepSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prep(prepSEXP);
+    rcpp_result_gen = Rcpp::wrap(ULS_Gauss_cpp(prep));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1416,7 +1460,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_inner", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_inner, 5},
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp, 5},
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML, 5},
+    {"_psychonetrics_maxLikEstimator_Gauss_group_cpp", (DL_FUNC) &_psychonetrics_maxLikEstimator_Gauss_group_cpp, 1},
+    {"_psychonetrics_maxLikEstimator_Gauss_cpp", (DL_FUNC) &_psychonetrics_maxLikEstimator_Gauss_cpp, 1},
     {"_psychonetrics_DWLS_wmat", (DL_FUNC) &_psychonetrics_DWLS_wmat, 4},
+    {"_psychonetrics_ULS_Gauss_cpp_pergroup", (DL_FUNC) &_psychonetrics_ULS_Gauss_cpp_pergroup, 1},
+    {"_psychonetrics_ULS_Gauss_cpp", (DL_FUNC) &_psychonetrics_ULS_Gauss_cpp, 1},
     {"_psychonetrics_WLS_wmat", (DL_FUNC) &_psychonetrics_WLS_wmat, 4},
     {"_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp_inner", (DL_FUNC) &_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp_inner, 5},
     {"_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp, 5},

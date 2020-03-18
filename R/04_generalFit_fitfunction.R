@@ -14,10 +14,13 @@ psychonetrics_fitfunction <- function(x, model){
   if (model@cpp){
     estFun <- switch(
       estimator,
-      "ML" = switch(distribution,"Gaussian" = maxLikEstimator_Gauss, "Ising" = maxLikEstimator_Ising),
-      "ULS" =  switch(distribution,"Gaussian" = ULS_Gauss),
-      "DWLS" = switch(distribution,"Gaussian" = ULS_Gauss),
-      "WLS" = switch(distribution,"Gaussian" = ULS_Gauss),
+      "ML" = switch(distribution,
+                    "Gaussian" = maxLikEstimator_Gauss_cpp, # <- updated!
+                    "Ising" = maxLikEstimator_Ising
+                    ),
+      "ULS" =  switch(distribution,"Gaussian" = ULS_Gauss_cpp), # <- updated
+      "DWLS" = switch(distribution,"Gaussian" = ULS_Gauss_cpp), # <- updated
+      "WLS" = switch(distribution,"Gaussian" = ULS_Gauss_cpp), # <- updated
       "FIML" = switch(distribution,"Gaussian" = fimlEstimator_Gauss)
     )
   } else {

@@ -190,9 +190,10 @@ d_phi_theta_varcov_group <- function(cpp, sigma,y,corinput,meanstructure,tau,mu,
     Jac <- Jac[keep,]
   }
   if (!meanstructure){
+    
     if (all(is.na(tau))){
       Jac <- Jac[-(seq_len(nvar)), ] 
-    } else if (any(is.na(tau))) stop("Mix of continuous and ordinal variables is not yet supported.")
+    } else if (any(colSums(is.na(tau)) == nrow(tau))) stop("Mix of continuous and ordinal variables is not yet supported.")
   }
 
   # Make sparse if needed:

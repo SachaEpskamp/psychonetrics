@@ -15,6 +15,10 @@ arma::vec eig_sym_cpp(
         arma::mat X
 );
 
+bool sympd_cpp(
+                arma::mat X
+);
+
 Rcpp::List solve_symmetric_cpp(
         arma::mat X,
         bool logdet = false,
