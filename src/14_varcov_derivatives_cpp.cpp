@@ -211,11 +211,12 @@ arma::mat d_phi_theta_varcov_group_cpp(
   
   // Check if all NA:
   bool noThresholds = true;
+  
   for (i = 0; i < tau.n_rows && noThresholds; i++){
     
     for (j = 0; j < tau.n_cols && noThresholds; j++){
       
-      if (is_finite(tau(i,j)) == false){
+      if (is_finite(tau(i,j))){
         noThresholds = false;
       }
     }  
@@ -264,8 +265,6 @@ arma::mat d_phi_theta_varcov_group_cpp(
   } else {
     npars = nobs - corinput * nvar - nMean;
   }
-  
-  // Rf_PrintValue(wrap(nobs));
   
   // Empty JAcobian:
   arma::mat Jac = zeros(nobs, npars);
@@ -358,6 +357,8 @@ arma::mat d_phi_theta_varcov_group_cpp(
   
   // If corinput, cut out the diagonal rows:
   if (corinput){
+    
+    
     arma::mat I = eye(nvar, nvar );
     arma::vec dummyvec = join_cols(
       zeros<vec>(nMean_Thresh),
@@ -370,7 +371,11 @@ arma::mat d_phi_theta_varcov_group_cpp(
     uvec remove = find(dummyvec > 0);
     // Rf_PrintValue(wrap(remove));
     Jac.shed_rows(remove);
+    
+    
+    
   }
+  
   
   if (meanstructure == false){
     if (noThresholds){
@@ -378,7 +383,6 @@ arma::mat d_phi_theta_varcov_group_cpp(
     }
     
     // FIXME: Add error for thresholds
-    
   }
   
   // Return:

@@ -137,6 +137,7 @@ double fimlEstimator_Gauss_group_cpp_fullFIML(
   // Loop over groups
   for (int i = 0; i < fimldata.size(); i++){
     
+    
     result += fimlEstimator_Gauss_group_cpp_inner(
       sigma[i], 
       kappa[i],
@@ -150,3 +151,45 @@ double fimlEstimator_Gauss_group_cpp_fullFIML(
   // Return
   return (1/n) * result;
 }
+
+
+
+
+// fMain function:
+// [[Rcpp::export]]
+double fimlestimator_Gauss_cpp(
+    const Rcpp::List& prep
+){
+  
+  Rcpp::List groupmodels = prep["groupModels"];
+  int nGroup = groupmodels.length();
+  arma::vec nPerGroup = prep["nPerGroup"];
+  double nTotal = prep["nTotal"];
+  
+  bool fullFIML = prep["fullFIML"];
+  
+  // Result:
+  double fit = 0;
+  
+  for (int i=0; i<nGroup;i++){
+    
+    Rcpp::List grouplist = groupmodels[i];
+    
+    if (fullFIML){
+      
+      fit += (nPerGroup(i) / nTotal) * fimlEstimator_Gauss_group_cpp_fullFIML(grouplist["sigma"],grouplist["kappa"],grouplist["mu"],grouplist["fimldata"], 1.490116e-08,grouplist["fulln"]);
+      
+    } else {
+      
+      fit += (nPerGroup(i) / nTotal) * fimlEstimator_Gauss_group_cpp(grouplist["sigma"],grouplist["kappa"],grouplist["mu"],grouplist["fimldata"], 1.490116e-08, grouplist["fulln"]);
+      
+    }
+    
+  }
+  
+  return(fit);
+}
+
+
+
+
