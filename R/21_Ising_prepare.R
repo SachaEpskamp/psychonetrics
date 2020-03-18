@@ -38,7 +38,7 @@ prepare_Ising <- function(x, model){
     groupModels[[g]]$squares <- squares[[g]]
     groupModels[[g]]$means <- means[[g]]
     groupModels[[g]]$nobs <- nobs[[g]]
-  
+    groupModels[[g]]$cpp <- model@cpp
 
   }
 

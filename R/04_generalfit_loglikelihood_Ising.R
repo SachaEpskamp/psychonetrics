@@ -72,15 +72,15 @@ logLikelihood_Ising_group_sumstat <- function(omega,tau,beta,squares,means,respo
 }
 
 # Fit function for Gauss ML: -2n* log likelihood
-logLikelihood_Ising <- function(model){
-  # Prepare
-  prep <- prepareModel(parVector(model), model)
-  
+logLikelihood_Ising <- function(prep){
+  # # Prepare
+  # prep <- prepareModel(parVector(model), model)
+  # 
   # Add cpp:
-  for (i in seq_along(prep$groupModels)){
-    prep$groupModels[[i]]$cpp <- model@cpp
-  }
-  
+  # for (i in seq_along(prep$groupModels)){
+  #   prep$groupModels[[i]]$cpp <- model@cpp
+  # }
+  # 
   # Fit function per group:
   ll_per_Group <- sapply(prep$groupModels,do.call,what=logLikelihood_Ising_group)
 

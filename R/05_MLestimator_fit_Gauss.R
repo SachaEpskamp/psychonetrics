@@ -8,9 +8,7 @@ maxLikEstimator_Gauss_group <- function(S,kappa,means,mu,sigma,...){
 }
 
 # Fit function for Gauss ML: -2n* log likelihood
-maxLikEstimator_Gauss <- function(x, model){
-  # Prepare
-  prep <- prepareModel(x, model)
+maxLikEstimator_Gauss <- function(prep){
 
     # Fit function per group:
   fit_per_group <- prep$nPerGroup / prep$nTotal * sapply(prep$groupModels,do.call,what=maxLikEstimator_Gauss_group)

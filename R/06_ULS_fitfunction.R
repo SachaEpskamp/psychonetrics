@@ -1,21 +1,18 @@
-ULSestimator <- function(x, model){
-  # What distribution?
-  distribution <- model@distribution
-  
-  # Function to use:
-  distFun <- switch(distribution,
-                    "Gaussian" = ULS_Gauss)
-  
-  # Run and return:
-  distFun(x, model)
-}
+# ULSestimator <- function(x, model){
+#   # What distribution?
+#   distribution <- model@distribution
+#   
+#   # Function to use:
+#   distFun <- switch(distribution,
+#                     "Gaussian" = ULS_Gauss)
+#   
+#   # Run and return:
+#   distFun(x, model)
+# }
 
 
 # Fit function for Gauss ML: -2n* log likelihood
-ULS_Gauss <- function(x, model){
-
-  # Prepare
-  prep <- prepareModel(x, model)
+ULS_Gauss <- function(prep){
 
   # Fit per group:
   fit_per_group <- (prep$nPerGroup+1)/(prep$nTotal) * sapply(prep$groupModels, do.call, what=ULS_Gauss_pergroup)

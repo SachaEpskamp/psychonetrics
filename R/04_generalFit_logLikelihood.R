@@ -3,6 +3,10 @@ psychonetrics_logLikelihood <- function(model){
   # What distribution to use:
   distribution <- model@distribution
   
+  # Prepare model:
+  prep <- prepareModel(parVector(model), model)
+  
+  
   # Obtain log likelihood:
   loglikFun <- switch(
     distribution,
@@ -11,5 +15,5 @@ psychonetrics_logLikelihood <- function(model){
   )
   
   # Run and return:
-  loglikFun(model)
+  loglikFun(prep)
 }

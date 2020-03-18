@@ -68,13 +68,11 @@ fimlEstimator_Gauss_group_cpp_outer_fullFIML <- function(fimldata,fulln,sigma,ka
 
 
 # Fit function for Gauss ML: -2n* log likelihood
-fimlEstimator_Gauss <- function(x, model){
-  # Prepare
-  prep <- prepareModel(x, model)
+fimlEstimator_Gauss <- function(prep){
   
   # Use C++?
-  if (model@cpp){
-    if (model@sample@fullFIML){
+  if (prep$cpp){
+    if (prep$fullFIML){
       # Fit function per group:
       fit_per_group <- prep$nPerGroup / prep$nTotal * sapply(prep$groupModels,do.call,what=fimlEstimator_Gauss_group_cpp_outer_fullFIML)      
       
@@ -85,7 +83,7 @@ fimlEstimator_Gauss <- function(x, model){
     
   } else {
     
-    if (model@sample@fullFIML){
+    if (prep$fullFIML){
       stop("Full (rowwise) FIML only supported through C++")
     } else {
       # Fit function per group:
