@@ -443,6 +443,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// fimlestimator_Gauss_cpp
+double fimlestimator_Gauss_cpp(const Rcpp::List& prep);
+RcppExport SEXP _psychonetrics_fimlestimator_Gauss_cpp(SEXP prepSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prep(prepSEXP);
+    rcpp_result_gen = Rcpp::wrap(fimlestimator_Gauss_cpp(prep));
+    return rcpp_result_gen;
+END_RCPP
+}
 // jacobian_fiml_gaussian_subgroup_sigma_cpp_inner
 arma::mat jacobian_fiml_gaussian_subgroup_sigma_cpp_inner(const arma::mat& sigma, const arma::mat& kappa, const arma::vec& mu, Rcpp::List dat, double epsilon);
 RcppExport SEXP _psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp_inner(SEXP sigmaSEXP, SEXP kappaSEXP, SEXP muSEXP, SEXP datSEXP, SEXP epsilonSEXP) {
@@ -1472,6 +1483,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_fimlEstimator_Gauss_group_cpp_inner", (DL_FUNC) &_psychonetrics_fimlEstimator_Gauss_group_cpp_inner, 6},
     {"_psychonetrics_fimlEstimator_Gauss_group_cpp", (DL_FUNC) &_psychonetrics_fimlEstimator_Gauss_group_cpp, 6},
     {"_psychonetrics_fimlEstimator_Gauss_group_cpp_fullFIML", (DL_FUNC) &_psychonetrics_fimlEstimator_Gauss_group_cpp_fullFIML, 6},
+    {"_psychonetrics_fimlestimator_Gauss_cpp", (DL_FUNC) &_psychonetrics_fimlestimator_Gauss_cpp, 1},
     {"_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp_inner", (DL_FUNC) &_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp_inner, 5},
     {"_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp", (DL_FUNC) &_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp, 5},
     {"_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp_fullFIML", (DL_FUNC) &_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp_fullFIML, 5},

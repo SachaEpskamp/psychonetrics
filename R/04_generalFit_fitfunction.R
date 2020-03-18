@@ -21,7 +21,7 @@ psychonetrics_fitfunction <- function(x, model){
       "ULS" =  switch(distribution,"Gaussian" = ULS_Gauss_cpp), # <- updated
       "DWLS" = switch(distribution,"Gaussian" = ULS_Gauss_cpp), # <- updated
       "WLS" = switch(distribution,"Gaussian" = ULS_Gauss_cpp), # <- updated
-      "FIML" = switch(distribution,"Gaussian" = fimlEstimator_Gauss)
+      "FIML" = switch(distribution,"Gaussian" = fimlestimator_Gauss_cpp) # <- updated!
     )
   } else {
     estFun <- switch(

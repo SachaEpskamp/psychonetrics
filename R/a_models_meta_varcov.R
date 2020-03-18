@@ -596,8 +596,6 @@ meta_varcov <- function(
     sampleStats2@corinput <- FALSE
     
     # Form baseline model:
-    
-    
     model@baseline_saturated$baseline <- varcov(data,
                                                 mu = rep(0,nCor),
                                                 type = "chol",
@@ -610,6 +608,7 @@ meta_varcov <- function(
     
     
     
+    model@baseline_saturated$baseline@sample@fullFIML <- FALSE
     # Add model:
     # model@baseline_saturated$baseline@fitfunctions$extramatrices$M <- Mmatrix(model@baseline_saturated$baseline@parameters)
     
@@ -625,7 +624,7 @@ meta_varcov <- function(
                                                  baseline_saturated = FALSE,
                                                  sampleStats=sampleStats2)
     
-    
+    model@baseline_saturated$saturated@sample@fullFIML <- FALSE
     
     # if not FIML, Treat as computed:
     if (estimator != "FIML"){

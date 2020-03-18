@@ -137,6 +137,10 @@ fimlEstimator_Gauss_group_cpp_fullFIML <- function(sigma, kappa, mu, fimldata, e
     .Call(`_psychonetrics_fimlEstimator_Gauss_group_cpp_fullFIML`, sigma, kappa, mu, fimldata, epsilon, n)
 }
 
+fimlestimator_Gauss_cpp <- function(prep) {
+    .Call(`_psychonetrics_fimlestimator_Gauss_cpp`, prep)
+}
+
 jacobian_fiml_gaussian_subgroup_sigma_cpp_inner <- function(sigma, kappa, mu, dat, epsilon) {
     .Call(`_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp_inner`, sigma, kappa, mu, dat, epsilon)
 }
