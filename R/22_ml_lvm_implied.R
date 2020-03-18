@@ -32,8 +32,8 @@ implied_ml_lvm <- function(model,all = FALSE){
   
   for (g in 1:nGroup){
     # Beta star within:
-    BetaStar_within <- sparseordense(solve(Diagonal(nrow(x[[g]]$beta_within)) - x[[g]]$beta_within))
-    BetaStar_between <- sparseordense(solve(Diagonal(nrow(x[[g]]$beta_between)) - x[[g]]$beta_between))
+    BetaStar_within <- as.matrix(solve(Diagonal(nrow(x[[g]]$beta_within)) - x[[g]]$beta_within))
+    BetaStar_between <- as.matrix(solve(Diagonal(nrow(x[[g]]$beta_between)) - x[[g]]$beta_between))
     
     Betasta_sigmaZeta_within <- BetaStar_within %*% x[[g]]$sigma_zeta_within
     Betasta_sigmaZeta_between <- BetaStar_between %*% x[[g]]$sigma_zeta_between
@@ -44,7 +44,7 @@ implied_ml_lvm <- function(model,all = FALSE){
     
     fullMu <- as(do.call(rbind,lapply(seq_len(nMaxInCluster),function(t){
       impMu[design[,t]==1,,drop=FALSE]
-    })), "Matrix")
+    })), "matrix")
     
     # List of implied varcovs within-subject latents:
     nLatent <- ncol(x[[g]]$lambda)
@@ -54,13 +54,13 @@ implied_ml_lvm <- function(model,all = FALSE){
     sigma_eta_between <- Betasta_sigmaZeta_between %*% t(BetaStar_between)
     
     # Create the block Toeplitz:
-    fullSigma_within_latent  <- Diagonal(nMaxInCluster) %x% sigma_eta_within
+    fullSigma_within_latent  <- as.matrix(Diagonal(nMaxInCluster) %x% sigma_eta_within)
     
     # Full within-subject cov matrix:
     fullSigma_within <- (Diagonal(nMaxInCluster) %x% x[[g]]$lambda) %*% fullSigma_within_latent %*% (Diagonal(nMaxInCluster) %x% t(x[[g]]$lambda)) + (Diagonal(nMaxInCluster) %x% x[[g]]$sigma_epsilon_within)
     
     # Full between-subject cov matrix:
-    fullSigma_between <- Matrix(1,nMaxInCluster,nMaxInCluster) %x%  (
+    fullSigma_between <- matrix(1,nMaxInCluster,nMaxInCluster) %x%  (
       x[[g]]$lambda %*% sigma_eta_between %*% t(x[[g]]$lambda) + x[[g]]$sigma_epsilon_between
     )
     

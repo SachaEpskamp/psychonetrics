@@ -357,6 +357,34 @@ d_phi_theta_dlvm1_cpp <- function(prep) {
     .Call(`_psychonetrics_d_phi_theta_dlvm1_cpp`, prep)
 }
 
+d_mu_lambda_tsdlvm1_cpp <- function(mu_eta, I_y) {
+    .Call(`_psychonetrics_d_mu_lambda_tsdlvm1_cpp`, mu_eta, I_y)
+}
+
+d_sigmak_lambda_tsdlvm1_cpp <- function(lambda, k, Sigma_eta_0, Sigma_eta_1, C_y_eta, I_y, L_y) {
+    .Call(`_psychonetrics_d_sigmak_lambda_tsdlvm1_cpp`, lambda, k, Sigma_eta_0, Sigma_eta_1, C_y_eta, I_y, L_y)
+}
+
+d_sigma0_sigma_zeta_tsdlvm1_cpp <- function(BetaStar, D_eta) {
+    .Call(`_psychonetrics_d_sigma0_sigma_zeta_tsdlvm1_cpp`, BetaStar, D_eta)
+}
+
+d_sigma0_beta_tsdlvm1_cpp <- function(BetaStar, I_eta, Sigma_eta_1, C_eta_eta) {
+    .Call(`_psychonetrics_d_sigma0_beta_tsdlvm1_cpp`, BetaStar, I_eta, Sigma_eta_1, C_eta_eta)
+}
+
+d_sigma1_beta_tsdlvm1_cpp <- function(J_sigma_beta, IkronBeta, Sigma_eta_0, I_eta) {
+    .Call(`_psychonetrics_d_sigma1_beta_tsdlvm1_cpp`, J_sigma_beta, IkronBeta, Sigma_eta_0, I_eta)
+}
+
+d_phi_theta_tsdlvm1_group_cpp <- function(grouplist) {
+    .Call(`_psychonetrics_d_phi_theta_tsdlvm1_group_cpp`, grouplist)
+}
+
+d_phi_theta_tsdlvm1_cpp <- function(prep) {
+    .Call(`_psychonetrics_d_phi_theta_tsdlvm1_cpp`, prep)
+}
+
 d_phi_theta_meta_varcov_group_cpp <- function(grouplist) {
     .Call(`_psychonetrics_d_phi_theta_meta_varcov_group_cpp`, grouplist)
 }
@@ -365,11 +393,27 @@ d_phi_theta_meta_varcov_cpp <- function(prep) {
     .Call(`_psychonetrics_d_phi_theta_meta_varcov_cpp`, prep)
 }
 
+d_phi_theta_Ising_group_cpp <- function(grouplist) {
+    .Call(`_psychonetrics_d_phi_theta_Ising_group_cpp`, grouplist)
+}
+
+d_phi_theta_Ising_cpp <- function(prep) {
+    .Call(`_psychonetrics_d_phi_theta_Ising_cpp`, prep)
+}
+
 expHcpp <- function(states, probabilities, omega, tau, nstate, nvar) {
     .Call(`_psychonetrics_expHcpp`, states, probabilities, omega, tau, nstate, nvar)
 }
 
 expHessianCpp <- function(states, probabilities, omega, tau, beta, nstate, nvar) {
     .Call(`_psychonetrics_expHessianCpp`, states, probabilities, omega, tau, beta, nstate, nvar)
+}
+
+d_phi_theta_ml_lvm_group_cpp <- function(grouplist) {
+    .Call(`_psychonetrics_d_phi_theta_ml_lvm_group_cpp`, grouplist)
+}
+
+d_phi_theta_ml_lvm_cpp <- function(prep) {
+    .Call(`_psychonetrics_d_phi_theta_ml_lvm_cpp`, prep)
 }
 
