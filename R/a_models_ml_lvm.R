@@ -232,7 +232,7 @@ ml_lvm <- function(
   
   
   # designPattern matrix:
-  designPattern <- as(1*(!is.na(design)),"dgCMatrix")
+  designPattern <- as(1*(!is.na(design)),"matrix")
   
   # cases per var:
   casesPerVar <- as.vector(designPattern * row(designPattern))

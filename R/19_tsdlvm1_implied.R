@@ -31,19 +31,19 @@ implied_tsdlvm1 <- function(model,all = FALSE){
   
   for (g in 1:nGroup){
     # Beta star:
-    BetaStar <- sparseordense(solve(I_eta %x% I_eta - (x[[g]]$beta %x% x[[g]]$beta)))
+    BetaStar <- as.matrix(solve(I_eta %x% I_eta - (x[[g]]$beta %x% x[[g]]$beta)))
     
     # Implied mean vector:
     impMu <- x[[g]]$nu + x[[g]]$lambda %*% x[[g]]$mu_eta
     
-    fullMu <- sparseordense(rbind(x[[g]]$exo_means,impMu))
+    fullMu <- rbind(x[[g]]$exo_means,impMu)
     
     # Exogenous cov part:
     exoCov <- x[[g]]$exo_cholesky %*% t( x[[g]]$exo_cholesky)
     
     # Latent lag-0:
     nLatent <- ncol(x[[g]]$lambda)
-    Sigma_eta_0 <- Matrix(as.vector(BetaStar %*% Vec(x[[g]]$sigma_zeta)), nLatent, nLatent)
+    Sigma_eta_0 <- matrix(as.vector(BetaStar %*% Vec(x[[g]]$sigma_zeta)), nLatent, nLatent)
     
     # Observed stationary:
     Sigma_y_0 <-  x[[g]]$lambda %*%  Sigma_eta_0 %*% t(x[[g]]$lambda) + x[[g]]$sigma_epsilon

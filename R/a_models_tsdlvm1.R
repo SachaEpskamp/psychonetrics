@@ -323,7 +323,7 @@ tsdlvm1 <- function(
   # P matrix:
   # P <- bdiag(Diagonal(nNode*2),sparseMatrix(j=seq_along(inds),i=inds))
   model@extramatrices$P <- bdiag(Diagonal(nNode*2),sparseMatrix(j=seq_along(inds),i=order(inds)))
-  dgCMatrix <- as(dgCMatrix, "dgCMatrix")
+  model@extramatrices$P  <- as(as.matrix(model@extramatrices$P), "pMatrix")
   
   # Form the model matrices
   model@modelmatrices <- formModelMatrices(model)

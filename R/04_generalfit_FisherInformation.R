@@ -62,10 +62,10 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
       "var1" = d_phi_theta_var1_cpp, # <- updated!
       # "panelvar1" = d_phi_theta_panelvar1,
       "dlvm1" = d_phi_theta_dlvm1_cpp, # <- updated!
-      "tsdlvm1" = d_phi_theta_tsdlvm1,
+      "tsdlvm1" = d_phi_theta_tsdlvm1_cpp, # <- updated!
       "meta_varcov" = d_phi_theta_meta_varcov_cpp, # <- updated!
-      "Ising" = d_phi_theta_Ising,
-      "ml_lvm" = d_phi_theta_ml_lvm
+      "Ising" = d_phi_theta_Ising_cpp, # <- updated!
+      "ml_lvm" = d_phi_theta_ml_lvm_cpp # <- updated!
       # "cholesky" = d_phi_theta_cholesky
     )    
   } else {
