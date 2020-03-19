@@ -222,9 +222,13 @@ arma::mat expected_hessian_fiml_Gaussian_cppVersion_inner(
     bool fullFIML
 ){
   double fulln = grouplist["fulln"];
-  bool corinput = grouplist["corinput"];
   
-  bool meanstructure = false;
+  bool corinput = false;
+  if (grouplist.containsElementNamed("corinput")){
+    corinput = grouplist["corinput"];
+  }
+  
+  bool meanstructure = true;
   
   if (grouplist.containsElementNamed("meanstructure")){
     meanstructure = grouplist["meanstructure"];

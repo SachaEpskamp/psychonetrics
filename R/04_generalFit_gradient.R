@@ -92,7 +92,7 @@ psychonetrics_gradient <- function(x, model){
 
   # message("Model part...")
   modelPart <- sparseordense(modelJacobian(prep))
- 
+
   # Manual part:
   manualPart <- Mmatrix(model@parameters)
 
