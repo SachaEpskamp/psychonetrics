@@ -520,9 +520,9 @@ samplestats_norawts <- function(
   
   if (is.list(weightsmatrix) || is.matrix(weightsmatrix)){
     if (is.list(weightsmatrix)){
-      object@WLS.W <- lapply(weightsmatrix, function(x)sparseordense(x)) # as(weightsmatrix,"Matrix")
+      object@WLS.W <- lapply(weightsmatrix, function(x)x) # as(weightsmatrix,"Matrix")
     } else {
-      object@WLS.W <- lapply(1:nGroup,function(x)sparseordense(weightsmatrix))
+      object@WLS.W <- lapply(1:nGroup,function(x)weightsmatrix)
     }
     
     # Check if mean structure is added, otherwise add identitiy matrix:
@@ -547,13 +547,13 @@ samplestats_norawts <- function(
       if (is.character(weightsmatrix) && weightsmatrix != "none"){
         for (g in 1:nGroup){
           if (weightsmatrix == "identity"){
-            object@WLS.W[[g]] <- Diagonal(nVars + nVars*(nVars+1)/2)  
+            object@WLS.W[[g]] <- diag(nVars + nVars*(nVars+1)/2)
           } else if (weightsmatrix == "full"){
             subData <- data[data[[groups]] == g,c(vars)]
-            object@WLS.W[[g]] <- LS_weightsmat(subData,meanstructure=meanstructure,corinput=corinput)
+            object@WLS.W[[g]] <- as.matrix(LS_weightsmat(subData,meanstructure=meanstructure,corinput=corinput))
           } else if (weightsmatrix == "diag"){
             subData <- data[data[[groups]] == g,c(vars)]
-            object@WLS.W[[g]] <- LS_weightsmat(subData, type = "diagonal",meanstructure=meanstructure,corinput=corinput)
+            object@WLS.W[[g]] <- as.matrix(LS_weightsmat(subData, type = "diagonal",meanstructure=meanstructure,corinput=corinput))
           }
         }
       }

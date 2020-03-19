@@ -141,6 +141,14 @@ ULS_Gauss_cpp <- function(prep) {
     .Call(`_psychonetrics_ULS_Gauss_cpp`, prep)
 }
 
+ULS_Gauss_gradient_pergroup_cpp <- function(grouplist) {
+    .Call(`_psychonetrics_ULS_Gauss_gradient_pergroup_cpp`, grouplist)
+}
+
+ULS_gradient_Gauss_cpp <- function(prep) {
+    .Call(`_psychonetrics_ULS_gradient_Gauss_cpp`, prep)
+}
+
 WLS_wmat <- function(data, means, ncase, nvar) {
     .Call(`_psychonetrics_WLS_wmat`, data, means, ncase, nvar)
 }
