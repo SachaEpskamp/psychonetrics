@@ -125,7 +125,7 @@ arma::mat expected_hessian_fiml_Gaussian_group_cpp_inner(
 
 // Outer function:
 // [[Rcpp::export]]
-arma::mat expected_hessian_fiml_Gaussian_group_cpp(
+arma::mat expected_hessian_fiml_Gaussian_group_cppversion(
     const arma::mat& sigma, 
     const arma::mat& kappa,
     const arma::vec& mu,
@@ -240,7 +240,7 @@ arma::mat expected_hessian_fiml_Gaussian_cppVersion_inner(
     
   } else {
     
-    Hes = 1.0/fulln * expected_hessian_fiml_Gaussian_group_cpp(grouplist["sigma"],grouplist["kappa"],grouplist["mu"],grouplist["fimldata"],1.490116e-08);
+    Hes = 1.0/fulln * expected_hessian_fiml_Gaussian_group_cppversion(grouplist["sigma"],grouplist["kappa"],grouplist["mu"],grouplist["fimldata"],1.490116e-08);
     
   }
   
