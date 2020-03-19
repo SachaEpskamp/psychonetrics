@@ -81,7 +81,7 @@ arma::mat d_sigma_zeta_ggm_lvm_cpp(
     const arma::sp_mat& L_eta,
     const arma::mat& delta_IminOinv_zeta,
     const arma::sp_mat& Aeta,
-    const arma::sp_mat& delta_zeta,
+    const arma::mat& delta_zeta,
     const arma::sp_mat& Dstar_eta,
     const arma::sp_mat& Inlatent);
 
@@ -103,7 +103,7 @@ arma::mat d_sigma_epsilon_ggm_lvm_cpp(
     const arma::sp_mat& L,
     const arma::mat& delta_IminOinv_epsilon,
     const arma::sp_mat& A,
-    const arma::sp_mat& delta_epsilon,
+    const arma::mat& delta_epsilon,
     const arma::sp_mat& Dstar,
     const arma::sp_mat& In);
 

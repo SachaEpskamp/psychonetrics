@@ -1,7 +1,7 @@
 # Implied model for precision. Requires appropriate model matrices:
 implied_varcov <- function(model, all = FALSE){
   x <- formModelMatrices(model)
-  
+
   # Implied covariance structures:
   if (model@cpp){
     x <- impliedcovstructures_cpp(x,type = model@types$y, all = all)  

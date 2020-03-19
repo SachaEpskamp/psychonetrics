@@ -16,7 +16,7 @@ psychonetrics_fitfunction <- function(x, model){
       estimator,
       "ML" = switch(distribution,
                     "Gaussian" = maxLikEstimator_Gauss_cpp, # <- updated!
-                    "Ising" = maxLikEstimator_Ising
+                    "Ising" = maxLikEstimator_Ising_cpp # <- updated!
                     ),
       "ULS" =  switch(distribution,"Gaussian" = ULS_Gauss_cpp), # <- updated
       "DWLS" = switch(distribution,"Gaussian" = ULS_Gauss_cpp), # <- updated

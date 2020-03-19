@@ -210,7 +210,7 @@ arma::vec vech(
     for (int i=j;i<nvar;i++){
       
       if (diag || (i != j)){
-
+        
         // if (diag){
         out(curel) = X(i,j);  
         curel++;
@@ -233,8 +233,8 @@ arma::vec vech(
 // Indices (start end) for seq_len - 1:
 // [[Rcpp::export]]
 arma::vec seq_len_inds(
-  int start,
-  int n
+    int start,
+    int n
 ){
   arma::vec res(2);
   res[0] = start;
@@ -245,12 +245,12 @@ arma::vec seq_len_inds(
 
 // [[Rcpp::export]]
 arma::mat cov2cor_cpp(
-  const arma::mat& X
+    const arma::mat& X
 ){
   int n = X.n_rows;
   
   arma::mat Y = eye(n,n);
-
+  
   int i, j;
   for (i=0;i<n;i++){
     for (j=0;j<=i;j++){
@@ -296,11 +296,11 @@ arma::mat SDmat(
 }
 
 // [[Rcpp::export]]
-arma::sp_mat invSDmat(
+arma::mat invSDmat(
     const arma::mat& X
 ){
   int n = X.n_rows;
-  arma::sp_mat Y(n,n);
+  arma::mat Y = zeros(n,n);
   
   int i;
   for (i=0;i<n;i++){
@@ -314,7 +314,7 @@ arma::sp_mat invSDmat(
 
 // [[Rcpp:export]]
 bool anyNon0(
-  const arma::mat& X
+    const arma::mat& X
 ){
   bool anyNon0 = false;
   for (int i=0; i<X.n_rows; i++){
@@ -329,4 +329,56 @@ bool anyNon0(
   
   return(anyNon0);
 }
+
+
+// 
+// // [[Rcpp::export]]
+// arma::mat test1(
+//     const arma::mat& delta,
+//     const arma::mat& omega
+// ){
+//   int n = omega.n_rows;
+//   arma::mat I = eye(n,n);
+//   arma::mat res = delta * solve_symmetric_cpp_matrixonly(I - omega) * delta;
+//   return(res);
+// }
+// 
+// // [[Rcpp::export]]
+// arma::mat test2(
+//     arma::mat& delta,
+//     const arma::mat& omega
+// ){
+//   delta = diagmat(delta);
+//   int n = omega.n_rows;
+//   arma::mat I = eye(n,n);
+//   arma::mat res = delta * solve_symmetric_cpp_matrixonly(I - omega) * delta;
+//   return(res);
+// }
+// 
+// 
+// 
+// // [[Rcpp::export]]
+// arma::mat test3(
+//     const arma::sp_mat& delta,
+//     const arma::mat& omega
+// ){
+//   int n = omega.n_rows;
+//   arma::mat I = eye(n,n);
+//   arma::mat res = delta * solve_symmetric_cpp_matrixonly(I - omega) * delta;
+//   return(res);
+// }
+// 
+// 
+// 
+// // [[Rcpp::export]]
+// arma::mat test4(
+//     const arma::mat& delta,
+//     const arma::mat& omega
+// ){
+//   int n = omega.n_rows;
+//   arma::mat I = eye(n,n);
+//   arma::mat res = diagmat(delta) * solve_symmetric_cpp_matrixonly(I - omega) * diagmat(delta);
+//   return(res);
+// }
+
 

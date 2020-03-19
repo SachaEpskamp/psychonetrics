@@ -55,11 +55,11 @@ formModelMatrices <- function(x){
       #   }
       # 
       # }
-      if (mats$diagonal[i]){
-        mat <- Diagonal(x=diag(mat))
-      } else {
+      # if (mats$diagonal[i]){
+      #   mat <- Diagonal(x=diag(mat))
+      # } else {
         mat <- as.matrix(mat)
-      }
+      # }
       
       
       # mat <- as(mat, "Matrix")

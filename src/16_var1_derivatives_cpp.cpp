@@ -68,7 +68,7 @@ arma::mat d_sigma0_beta_var1_cpp(
   
   arma::sp_mat InXIn = speye(n*n,n*n);
   
-  arma::mat res = L * (InXIn + C) * BetaStar * kronecker_X_I(sigma1,n); 
+  arma::mat res = (L * (InXIn + C)) * BetaStar * kronecker_X_I(sigma1,n); 
   return(res);
 }
 
@@ -102,7 +102,7 @@ arma::mat d_sigma_zeta_ggm_var1_cpp(
     const arma::sp_mat& L,
     const arma::mat& delta_IminOinv_zeta,
     const arma::sp_mat& A,
-    const arma::sp_mat& delta_zeta,
+    const arma::mat& delta_zeta,
     const arma::sp_mat& Dstar,
     const arma::sp_mat& In){
   

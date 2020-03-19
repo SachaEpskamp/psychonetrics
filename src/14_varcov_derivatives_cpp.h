@@ -29,7 +29,7 @@ arma::mat d_sigma_omega_cpp(
                 const arma::sp_mat& L,
                 const arma::mat& delta_IminOinv,
                 const arma::sp_mat& A,
-                const arma::sp_mat& delta,
+                const arma::mat& delta,
                 const arma::sp_mat& Dstar
 );
 
@@ -40,7 +40,7 @@ arma::mat d_sigma_kappa_cpp(
 
 arma::mat d_sigma_rho_cpp(
                 const arma::sp_mat& L,
-                const arma::sp_mat& SD,
+                const arma::mat& SD,
                 const arma::sp_mat& A,
                 const arma::sp_mat& Dstar);
 
@@ -54,7 +54,7 @@ arma::mat d_sigma_omega_corinput_cpp(
                 const arma::sp_mat& L,
                 const arma::mat& delta_IminOinv,
                 const arma::sp_mat& A,
-                const arma::sp_mat&delta,
+                const arma::mat&delta,
                 const arma::sp_mat& Dstar,
                 const arma::mat& IminOinv,
                 const arma::sp_mat& In);

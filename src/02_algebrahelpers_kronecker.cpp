@@ -74,7 +74,7 @@ arma::sp_mat kronecker_X_I(
 
 // Kron of diagonal matrix with itself:
 // [[Rcpp::export]]
-arma::sp_mat kronecker_diag(
+arma::sp_mat kronecker_diag_sparse(
   arma::sp_mat X
 ){
   int i,j;
@@ -94,5 +94,25 @@ arma::sp_mat kronecker_diag(
   return(res);
 }
 
+// [[Rcpp::export]]
+arma::sp_mat kronecker_diag(
+    arma::mat X
+){
+  int i,j;
+  
+  // Size of X:
+  int n = X.n_rows;
+  
+  // return matrix:
+  arma::sp_mat res = sp_mat(n*n,n*n);
+  
+  for (i=0; i<n; i++){
+    for (j=0; j<n; j++){
+      res(i*n + j, i*n + j) = X(i,i) * X(j,j);
+    }
+  }
+  
+  return(res);
+}
 
 

@@ -18,7 +18,7 @@ arma::mat d_sigma_cholesky_cpp(
     const arma::sp_mat In
 ){
   // return(L * (kron(In,In) + C) * (kron(lowertri, (arma::mat)In) * L.t()));
-  arma::sp_mat res = L * (kronecker_diag(In) + C) * (kronecker_X_I(lowertri, In.n_rows) * L.t());
+  arma::sp_mat res = L * (kronecker_diag_sparse(In) + C) * (kronecker_X_I(lowertri, In.n_rows) * L.t());
   
   return((arma::mat)res);
   
@@ -62,7 +62,7 @@ arma::mat d_sigma_omega_cpp(
     const arma::sp_mat& L,
     const arma::mat& delta_IminOinv,
     const arma::sp_mat& A,
-    const arma::sp_mat& delta,
+    const arma::mat& delta,
     const arma::sp_mat& Dstar
 ){
   
@@ -95,7 +95,7 @@ arma::mat d_sigma_kappa_cpp(
 // [[Rcpp::export]]
 arma::mat d_sigma_rho_cpp(
     const arma::sp_mat& L,
-    const arma::sp_mat& SD,
+    const arma::mat& SD,
     const arma::sp_mat& A,
     const arma::sp_mat& Dstar){
   
@@ -130,7 +130,7 @@ arma::mat d_sigma_omega_corinput_cpp(
     const arma::sp_mat& L,
     const arma::mat& delta_IminOinv,
     const arma::sp_mat& A,
-    const arma::sp_mat&delta,
+    const arma::mat& delta,
     const arma::sp_mat& Dstar,
     const arma::mat& IminOinv,
     const arma::sp_mat& In){
@@ -151,7 +151,7 @@ arma::mat d_sigma_omega_corinput_cpp(
   
   // Dense kronecker products:
   arma::mat kron2 = kron(IminOinv, IminOinv);
-  arma::mat kron1 =  kronecker_diag(delta) * kron2;
+  arma::mat kron1 =  (arma::mat)kronecker_diag(delta) * kron2;
   // kron(delta_IminOinv, delta_IminOinv);
   
   
@@ -161,7 +161,7 @@ arma::mat d_sigma_omega_corinput_cpp(
   
   // Return value:
   arma::mat res = 
-    L * (kron1 - sparse * dense * kron2) * Dstar;
+    L * (kron1 - (arma::mat)sparse * dense * kron2) * Dstar;
   
   return(res);
   
