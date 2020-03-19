@@ -13,7 +13,7 @@ psychonetrics_gradient <- function(x, model){
       model@estimator,
       "ML" = switch(model@distribution,
                     "Gaussian" = jacobian_gaussian_sigma_cpp, # <- Updated!
-                    "Ising" = jacobian_Ising
+                    "Ising" = jacobian_Ising_cpp # <- updated!
       ),
       "ULS" = switch(model@distribution,
                      "Gaussian" = ULS_gradient_Gauss),

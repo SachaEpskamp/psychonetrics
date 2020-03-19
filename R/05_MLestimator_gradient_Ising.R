@@ -1,31 +1,31 @@
 # jacobian function per group:
-jacobian_Ising_group <- function(omega,tau,beta,squares,means,responses,nobs,...){
+jacobian_Ising_group <- function(omega,tau,beta,squares,means,responses,nobs,exp_v1,exp_v2,exp_H,...){
   # Graph and thresholds:
   thresholds <- as.vector(tau)
   graph <- as.matrix(omega)
   beta <- as.numeric(beta)
   
   # Compute likelihood table:
-  LikTable <- IsingSampler::IsingLikelihood(graph,thresholds,beta,responses,potential=TRUE)
-  states <- as.matrix(LikTable[,-1])
-  Z <- sum(LikTable$Potential)
-  probabilities <- LikTable$Potential / Z
-  
-  # Compute expected sum scores:
-  exp_v1 <- colSums(probabilities * states)
-  
-  # Compute expected products:
-  exp_v2 <- t(probabilities * states) %*% states
-  
-
-  # Compute expected H:
-  expH <- expHcpp(
-    states,
-    probabilities,
-    graph,
-    thresholds,
-    nrow(states),
-    ncol(states)) 
+  # LikTable <- IsingSampler::IsingLikelihood(graph,thresholds,beta,responses,potential=TRUE)
+  # states <- as.matrix(LikTable[,-1])
+  # Z <- sum(LikTable$Potential)
+  # probabilities <- LikTable$Potential / Z
+  # 
+  # # Compute expected sum scores:
+  # exp_v1 <- colSums(probabilities * states)
+  # 
+  # # Compute expected products:
+  # exp_v2 <- t(probabilities * states) %*% states
+  # 
+  # 
+  # # Compute expected H:
+  # expH <- expHcpp(
+  #   states,
+  #   probabilities,
+  #   graph,
+  #   thresholds,
+  #   nrow(states),
+  #   ncol(states)) 
   
 
   # Compute summary statistics:
@@ -53,7 +53,7 @@ jacobian_Ising_group <- function(omega,tau,beta,squares,means,responses,nobs,...
 
   # beta gradient
   betaGrad <- (
-    2*(H/nobs - expH)
+    2*(H/nobs - exp_H)
   )
   
   # Final gradient:
