@@ -26,25 +26,50 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
   # estimatorPartJacobian <- estimatorJacobian(prep)
   
   # estimator part expected Hessian:
-  estimatorHessian <- switch(
-    model@estimator,
-    "ML" = switch(model@distribution,
-                  "Gaussian" = expected_hessian_Gaussian,
-                  "Ising" = expected_hessian_Ising
-    ),
-    "ULS" = switch(model@distribution,
-                  "Gaussian" = expected_hessian_ULS_Gaussian
-    ),
-    "WLS" = switch(model@distribution,
-                   "Gaussian" = expected_hessian_ULS_Gaussian
-    ),
-    "DWLS" = switch(model@distribution,
-                   "Gaussian" = expected_hessian_ULS_Gaussian
-    ),
-    "FIML" = switch(model@distribution,
-                   "Gaussian" = expected_hessian_fiml_Gaussian
+  if (model@cpp){
+    
+    estimatorHessian <- switch(
+      model@estimator,
+      "ML" = switch(model@distribution,
+                    "Gaussian" = expected_hessian_Gaussian_cpp, # <- Updated!
+                    "Ising" = expected_hessian_Ising
+      ),
+      "ULS" = switch(model@distribution,
+                     "Gaussian" = expected_hessian_ULS_Gaussian_cpp # <- Updated!
+      ),
+      "WLS" = switch(model@distribution,
+                     "Gaussian" = expected_hessian_ULS_Gaussian_cpp # <- Updated!
+      ),
+      "DWLS" = switch(model@distribution,
+                      "Gaussian" = expected_hessian_ULS_Gaussian_cpp # <- Updated!
+      ),
+      "FIML" = switch(model@distribution,
+                      "Gaussian" = expected_hessian_fiml_Gaussian
+      )
     )
-  )
+    
+  } else {
+    estimatorHessian <- switch(
+      model@estimator,
+      "ML" = switch(model@distribution,
+                    "Gaussian" = expected_hessian_Gaussian,
+                    "Ising" = expected_hessian_Ising
+      ),
+      "ULS" = switch(model@distribution,
+                     "Gaussian" = expected_hessian_ULS_Gaussian
+      ),
+      "WLS" = switch(model@distribution,
+                     "Gaussian" = expected_hessian_ULS_Gaussian
+      ),
+      "DWLS" = switch(model@distribution,
+                      "Gaussian" = expected_hessian_ULS_Gaussian
+      ),
+      "FIML" = switch(model@distribution,
+                      "Gaussian" = expected_hessian_fiml_Gaussian
+      )
+    )
+  }
+
 
 
   estimatorPart <- estimatorHessian(prep)
