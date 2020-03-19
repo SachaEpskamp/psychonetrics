@@ -61,8 +61,9 @@ bool anyNon0(
                 const arma::mat& X
 );
 
-arma::sp_mat invSDmat(
+arma::mat invSDmat(
                 const arma::mat& X
 );
+
 
 #endif

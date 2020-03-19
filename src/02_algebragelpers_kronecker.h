@@ -21,9 +21,12 @@ arma::sp_mat kronecker_X_I(
     int n
 );
 
-arma::sp_mat kronecker_diag(
+arma::sp_mat kronecker_diag_sparse(
     arma::sp_mat X
 );
 
+arma::sp_mat kronecker_diag(
+        arma::mat X
+);
 
 #endif

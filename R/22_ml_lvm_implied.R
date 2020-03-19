@@ -1,7 +1,7 @@
 # Implied model for precision. Requires appropriate model matrices:
 implied_ml_lvm <- function(model,all = FALSE){
   x <- formModelMatrices(model)
-  
+
   # Implied covariance structures:
   if (model@cpp){
     x <- impliedcovstructures_cpp(x, "zeta_within", type = model@types$within_latent, all = all)
@@ -72,7 +72,7 @@ implied_ml_lvm <- function(model,all = FALSE){
     x[[g]]$sigma <- fullSigma[as.vector(design)==1,as.vector(design)==1]
     
     # FIXME: forcing symmetric, but not sure why this is needed...
-    x[[g]]$sigma <- 0.5*(x[[g]]$sigma + t(x[[g]]$sigma))
+    x[[g]]$sigma <- as.matrix(0.5*(x[[g]]$sigma + t(x[[g]]$sigma)))
     
     # if (any(is.na( x[[g]]$sigma))){
     #   browser()
@@ -85,7 +85,7 @@ implied_ml_lvm <- function(model,all = FALSE){
     
     # Let's round to make sparse if possible:
     # x[[g]]$kappa <- as(round(x[[g]]$kappa,14),"Matrix")
-    
+
     
     # Extra matrices needed in optimization:
     if (!all){

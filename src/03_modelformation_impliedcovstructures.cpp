@@ -69,8 +69,10 @@ Rcpp::List impliedcovstructures_cpp(
   }
   
   // For each group:
+  
   for (g=0; g < nGroup; g++){
     Rcpp::List grouplist = x[g]; // FIXME: This will copy the list.
+    
     
     // Form the models:
     // Contemporaneous:
@@ -100,6 +102,7 @@ Rcpp::List impliedcovstructures_cpp(
       
     }
     else if(type == "chol"){
+      
       // form cov matrix:
       arma::mat mat_lowertri = grouplist[lowertri];
       arma::mat mat_sigma = mat_lowertri * mat_lowertri.t();
@@ -119,7 +122,6 @@ Rcpp::List impliedcovstructures_cpp(
       }
     } else if (type == "ggm"){
       
-      
       arma::mat mat_omega = grouplist[omega];
       arma::mat I = eye(mat_omega.n_rows, mat_omega.n_cols);
       
@@ -130,10 +132,11 @@ Rcpp::List impliedcovstructures_cpp(
       if (grouplist.containsElementNamed(delta.c_str()) == false){
         // FIXME: non positive definite matrices are even worse here... So I am trying to solve this with a spectral shift for now:
         // FIXME: use spectral shift in R code here ..
-        grouplist[delta] = invSDmat(IminO_inv);
+        grouplist[delta] = (arma::mat)invSDmat(IminO_inv);
       }
       
-      arma::sp_mat mat_delta = grouplist[delta];
+      arma::mat mat_delta = grouplist[delta];
+      mat_delta = diagmat(mat_delta);
       
       // Compute sigma:
       arma::mat mat_sigma = mat_delta * IminO_inv * mat_delta;
@@ -174,10 +177,11 @@ Rcpp::List impliedcovstructures_cpp(
       
       // First check if the SD Matrix is present (it is ignored when corinput = TRUE only, so don't need to know that that argument was used):
       if (grouplist.containsElementNamed(SD.c_str()) == false){
-        grouplist[SD] = speye(nvar, nvar);
+        grouplist[SD] = eye(nvar, nvar);
       }
       
-      arma::sp_mat mat_SD = grouplist[SD];
+      arma::mat mat_SD = grouplist[SD];
+      mat_SD = diagmat(mat_SD);
       arma::mat mat_sigma = mat_SD * (eye(nvar, nvar) + mat_rho) * mat_SD;
       grouplist[sigma] = mat_sigma;
       

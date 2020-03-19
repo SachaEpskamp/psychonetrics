@@ -53,6 +53,10 @@ kronecker_X_I <- function(X, n) {
     .Call(`_psychonetrics_kronecker_X_I`, X, n)
 }
 
+kronecker_diag_sparse <- function(X) {
+    .Call(`_psychonetrics_kronecker_diag_sparse`, X)
+}
+
 kronecker_diag <- function(X) {
     .Call(`_psychonetrics_kronecker_diag`, X)
 }
@@ -95,6 +99,14 @@ maxLikEstimator_Gauss_group_cpp <- function(grouplist) {
 
 maxLikEstimator_Gauss_cpp <- function(prep) {
     .Call(`_psychonetrics_maxLikEstimator_Gauss_cpp`, prep)
+}
+
+maxLikEstimator_Ising_group_cpp <- function(grouplist) {
+    .Call(`_psychonetrics_maxLikEstimator_Ising_group_cpp`, grouplist)
+}
+
+maxLikEstimator_Ising_cpp <- function(prep) {
+    .Call(`_psychonetrics_maxLikEstimator_Ising_cpp`, prep)
 }
 
 DWLS_wmat <- function(data, means, ncase, nvar) {
@@ -427,6 +439,18 @@ expHcpp <- function(states, probabilities, omega, tau, nstate, nvar) {
 
 expHessianCpp <- function(states, probabilities, omega, tau, beta, nstate, nvar) {
     .Call(`_psychonetrics_expHessianCpp`, states, probabilities, omega, tau, beta, nstate, nvar)
+}
+
+H <- function(state, graph, tau) {
+    .Call(`_psychonetrics_H`, state, graph, tau)
+}
+
+Pot <- function(state, graph, tau, beta) {
+    .Call(`_psychonetrics_Pot`, state, graph, tau, beta)
+}
+
+computeZ_cpp <- function(graph, tau, beta, responses) {
+    .Call(`_psychonetrics_computeZ_cpp`, graph, tau, beta, responses)
 }
 
 d_phi_theta_ml_lvm_group_cpp <- function(grouplist) {

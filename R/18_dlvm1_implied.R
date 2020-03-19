@@ -69,11 +69,11 @@ implied_dlvm1 <- function(model,all = FALSE){
     fullSigma <- fullSigma_within + fullSigma_between
     
     # Subset and add to the list:
-    x[[g]]$mu <- fullMu
+    x[[g]]$mu <- as.matrix(fullMu)
     x[[g]]$sigma <- fullSigma[as.vector(design)==1,as.vector(design)==1]
     
     # FIXME: forcing symmetric, but not sure why this is needed...
-    x[[g]]$sigma <- 0.5*(x[[g]]$sigma + t(x[[g]]$sigma))
+    x[[g]]$sigma <- as.matrix(0.5*(x[[g]]$sigma + t(x[[g]]$sigma)))
     
     # if (any(is.na( x[[g]]$sigma))){
     #   browser()
