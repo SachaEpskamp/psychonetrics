@@ -196,6 +196,58 @@ arma::mat bdiag_psychonetrics(
   return(diagmat);
 }
 
+// [[Rcpp::export]]
+arma::mat cbind_psychonetrics(
+    const Rcpp::List  mats
+){
+  int nMat = mats.length();
+  arma::vec cols(nMat);
+  arma::vec rows(nMat);
+  
+  arma::mat curmat = mats[0];
+  
+  int totalrow = curmat.n_rows;
+  int totalcol = 0;
+  int i, j, k;
+  
+  // Compute size:
+  for (i=0;i<nMat;i++){
+    arma::mat curmat = mats[i];
+    cols[i] = curmat.n_cols;
+    totalcol += cols[i];
+    rows[i] = curmat.n_rows;
+    if (rows[i] != totalrow){
+      Rf_error("Number of rows are not consistent");
+    }
+    // totalrow += rows[i];
+  }
+  
+  // Form zero matrix:
+  arma::mat resmat = zeros(totalrow, totalcol);
+  
+  // Fill the matrix:
+  // int startrow = 0;
+  int startcol = 0;
+  
+  for (k =0; k<nMat; k++){
+    arma::mat curmat = mats[k];
+    
+    for (i=0;i<rows[k];i++){
+      
+      for (j=0;j<cols[k];j++){
+        
+        resmat(i, startcol + j)  = curmat(i,j);
+        
+      }
+    }
+    // startrow += rows[k];
+    startcol += cols[k];
+  }
+  
+  
+  return(resmat);
+}
+
 // Half vectorization (lower triangle):
 // [[Rcpp::export]]
 arma::vec vech(

@@ -65,5 +65,9 @@ arma::mat invSDmat(
                 const arma::mat& X
 );
 
+arma::mat cbind_psychonetrics(
+                const Rcpp::List  mats
+);
+
 
 #endif

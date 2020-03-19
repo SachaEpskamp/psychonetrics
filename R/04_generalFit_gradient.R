@@ -5,22 +5,47 @@ psychonetrics_gradient <- function(x, model){
   # message("Prep model...")
   prep <- prepareModel(x, model)
 
+
   # estimator part:
-  estimatorJacobian <- switch(
-    model@estimator,
-    "ML" = switch(model@distribution,
-                  "Gaussian" = jacobian_gaussian_sigma,
-                  "Ising" = jacobian_Ising
-    ),
-    "ULS" = switch(model@distribution,
-                "Gaussian" = ULS_gradient_Gauss),
-    "WLS" = switch(model@distribution,
-                   "Gaussian" = ULS_gradient_Gauss),
-    "DWLS" = switch(model@distribution,
-                   "Gaussian" = ULS_gradient_Gauss),
-    "FIML" = switch(model@distribution,
-                   "Gaussian" = jacobian_fiml_gaussian_sigma)
-  )
+  if (model@cpp){
+    
+    estimatorJacobian <- switch(
+      model@estimator,
+      "ML" = switch(model@distribution,
+                    "Gaussian" = jacobian_gaussian_sigma_cpp, # <- Updated!
+                    "Ising" = jacobian_Ising
+      ),
+      "ULS" = switch(model@distribution,
+                     "Gaussian" = ULS_gradient_Gauss),
+      "WLS" = switch(model@distribution,
+                     "Gaussian" = ULS_gradient_Gauss),
+      "DWLS" = switch(model@distribution,
+                      "Gaussian" = ULS_gradient_Gauss),
+      "FIML" = switch(model@distribution,
+                      "Gaussian" = jacobian_fiml_gaussian_sigma_cpp) # <- Updated!
+    )
+    
+    
+  } else {
+    
+    estimatorJacobian <- switch(
+      model@estimator,
+      "ML" = switch(model@distribution,
+                    "Gaussian" = jacobian_gaussian_sigma,
+                    "Ising" = jacobian_Ising
+      ),
+      "ULS" = switch(model@distribution,
+                     "Gaussian" = ULS_gradient_Gauss),
+      "WLS" = switch(model@distribution,
+                     "Gaussian" = ULS_gradient_Gauss),
+      "DWLS" = switch(model@distribution,
+                      "Gaussian" = ULS_gradient_Gauss),
+      "FIML" = switch(model@distribution,
+                      "Gaussian" = jacobian_fiml_gaussian_sigma)
+    )
+    
+  }
+ 
 
   # message("Estimator part...")
   estimatorPart <- estimatorJacobian(prep)
@@ -84,7 +109,7 @@ psychonetrics_gradient <- function(x, model){
     Jac <- estimatorPart %*% modelPart %*% manualPart    
   }
 
-
+  
   # Return:
   return(as.vector(Jac))
 }

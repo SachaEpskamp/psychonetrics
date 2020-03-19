@@ -21,6 +21,10 @@ bdiag_psychonetrics <- function(mats) {
     .Call(`_psychonetrics_bdiag_psychonetrics`, mats)
 }
 
+cbind_psychonetrics <- function(mats) {
+    .Call(`_psychonetrics_cbind_psychonetrics`, mats)
+}
+
 vech <- function(X, diag = TRUE) {
     .Call(`_psychonetrics_vech`, X, diag)
 }
@@ -109,6 +113,14 @@ maxLikEstimator_Ising_cpp <- function(prep) {
     .Call(`_psychonetrics_maxLikEstimator_Ising_cpp`, prep)
 }
 
+jacobian_gaussian_sigma_group_cpp <- function(grouplist) {
+    .Call(`_psychonetrics_jacobian_gaussian_sigma_group_cpp`, grouplist)
+}
+
+jacobian_gaussian_sigma_cpp <- function(prep) {
+    .Call(`_psychonetrics_jacobian_gaussian_sigma_cpp`, prep)
+}
+
 DWLS_wmat <- function(data, means, ncase, nvar) {
     .Call(`_psychonetrics_DWLS_wmat`, data, means, ncase, nvar)
 }
@@ -163,6 +175,10 @@ jacobian_fiml_gaussian_subgroup_sigma_cpp <- function(sigma, kappa, mu, fimldata
 
 jacobian_fiml_gaussian_subgroup_sigma_cpp_fullFIML <- function(sigma, kappa, mu, fimldata, epsilon) {
     .Call(`_psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp_fullFIML`, sigma, kappa, mu, fimldata, epsilon)
+}
+
+jacobian_fiml_gaussian_sigma_cpp <- function(prep) {
+    .Call(`_psychonetrics_jacobian_fiml_gaussian_sigma_cpp`, prep)
 }
 
 covPrepare_cpp <- function(data, isOrdered, tol = 0.000001, WLSweights = TRUE, verbose = TRUE) {
