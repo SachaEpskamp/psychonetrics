@@ -49,6 +49,10 @@ prepareModel <- function(x, model){
     }
   }
   
+  # Add number of parameters:
+  prep$nParFull = nrow(model@parameters)
+  prep$nParFree = max(model@parameters$par[!is.na(model@parameters$par)])
+  
  # Return:
   return(prep)
 }
