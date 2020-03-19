@@ -214,3 +214,101 @@ arma::mat expected_hessian_fiml_Gaussian_group_cpp_fullFIML(
   return Hes;
 }
 
+
+
+
+arma::mat expected_hessian_fiml_Gaussian_cppVersion_inner(
+    const Rcpp::List& grouplist,
+    bool fullFIML
+){
+  double fulln = grouplist["fulln"];
+  bool corinput = grouplist["corinput"];
+  
+  bool meanstructure = false;
+  
+  if (grouplist.containsElementNamed("meanstructure")){
+    meanstructure = grouplist["meanstructure"];
+  }
+  
+  arma::mat S = grouplist["S"];
+  int nvar = S.n_rows;
+  arma::mat Hes;
+  
+  // Subgroup models:
+  if (fullFIML){
+    Hes = 1.0/fulln * expected_hessian_fiml_Gaussian_group_cpp_fullFIML(grouplist["sigma"],grouplist["kappa"],grouplist["mu"],grouplist["fimldata"],1.490116e-08);
+    
+  } else {
+    
+    Hes = 1.0/fulln * expected_hessian_fiml_Gaussian_group_cpp(grouplist["sigma"],grouplist["kappa"],grouplist["mu"],grouplist["fimldata"],1.490116e-08);
+    
+  }
+  
+  
+  
+  // FIXME: Nicer to not bother with computing the parts not needed
+  // Cut out variances if needed:
+  if (corinput){
+    
+    arma::mat I = eye(nvar, nvar );
+    arma::vec dummyvec = join_cols(
+      zeros<vec>(nvar),
+      vech(I)
+    );
+    
+    uvec remove = find(dummyvec > 0);
+    
+    Hes.shed_cols(remove);      
+    Hes.shed_rows(remove);    
+    
+  }
+  
+  if (!meanstructure){
+    
+    Hes = Hes.submat(nvar, nvar, Hes.n_rows-1, Hes.n_cols-1);
+    
+  } 
+  
+  return(Hes);
+  
+}
+
+
+
+// full Jacobian function 
+// [[Rcpp::export]]
+arma::mat expected_hessian_fiml_Gaussian_cppVersion(
+    const Rcpp::List& prep
+){
+  
+  Rcpp::List groupmodels = prep["groupModels"];
+  int nGroup = groupmodels.length();
+  arma::vec nPerGroup = prep["nPerGroup"];
+  double nTotal = prep["nTotal"];
+  bool fullFIML = prep["fullFIML"];
+  
+  // JAcobian:
+  Rcpp::List grouphessians(nGroup);
+  
+  for (int i=0; i<nGroup;i++){
+    // if (fullFIML){
+    
+    arma::mat grouphes =  (nPerGroup(i) / nTotal) * expected_hessian_fiml_Gaussian_cppVersion_inner(groupmodels[i], fullFIML);
+    grouphessians[i]  = grouphes;      
+    
+    // } else {
+    //   
+    //   arma::mat grouphes =  (nPerGroup(i) / nTotal) * jacobian_fiml_gaussian_group_sigma_cpp_outer_cpp(groupmodels[i]);
+    //   grouphessians[i]  = grouphes;
+    //   
+    // }
+    
+  }
+  
+  
+  arma::mat res =  bdiag_psychonetrics(grouphessians);
+  
+  
+  return(res);
+}
+

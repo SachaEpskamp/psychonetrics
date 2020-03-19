@@ -97,12 +97,12 @@ logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML <- function(sigma, kappa, mu, 
     .Call(`_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML`, sigma, kappa, mu, fimldata, epsilon)
 }
 
-expected_hessian_Gaussian_group_cpp <- function(grouplist) {
-    .Call(`_psychonetrics_expected_hessian_Gaussian_group_cpp`, grouplist)
+expected_hessian_fiml_Gaussian_group_cpp <- function(grouplist) {
+    .Call(`_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp`, grouplist)
 }
 
-expected_hessian_Gaussian_cpp <- function(prep) {
-    .Call(`_psychonetrics_expected_hessian_Gaussian_cpp`, prep)
+expected_hessian_fiml_Gaussian_cpp <- function(prep) {
+    .Call(`_psychonetrics_expected_hessian_fiml_Gaussian_cpp`, prep)
 }
 
 maxLikEstimator_Gauss_group_cpp <- function(grouplist) {
@@ -179,6 +179,10 @@ expected_hessian_fiml_Gaussian_group_cpp <- function(sigma, kappa, mu, fimldata,
 
 expected_hessian_fiml_Gaussian_group_cpp_fullFIML <- function(sigma, kappa, mu, fimldata, epsilon) {
     .Call(`_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp_fullFIML`, sigma, kappa, mu, fimldata, epsilon)
+}
+
+expected_hessian_fiml_Gaussian_cppVersion <- function(prep) {
+    .Call(`_psychonetrics_expected_hessian_fiml_Gaussian_cppVersion`, prep)
 }
 
 fimlEstimator_Gauss_group_cpp_inner <- function(sigma, kappa, mu, dat, epsilon, n) {

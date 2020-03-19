@@ -300,25 +300,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// expected_hessian_Gaussian_group_cpp
-arma::mat expected_hessian_Gaussian_group_cpp(const Rcpp::List& grouplist);
-RcppExport SEXP _psychonetrics_expected_hessian_Gaussian_group_cpp(SEXP grouplistSEXP) {
+// expected_hessian_fiml_Gaussian_group_cpp
+arma::mat expected_hessian_fiml_Gaussian_group_cpp(const Rcpp::List& grouplist);
+RcppExport SEXP _psychonetrics_expected_hessian_fiml_Gaussian_group_cpp(SEXP grouplistSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::List& >::type grouplist(grouplistSEXP);
-    rcpp_result_gen = Rcpp::wrap(expected_hessian_Gaussian_group_cpp(grouplist));
+    rcpp_result_gen = Rcpp::wrap(expected_hessian_fiml_Gaussian_group_cpp(grouplist));
     return rcpp_result_gen;
 END_RCPP
 }
-// expected_hessian_Gaussian_cpp
-arma::mat expected_hessian_Gaussian_cpp(const Rcpp::List& prep);
-RcppExport SEXP _psychonetrics_expected_hessian_Gaussian_cpp(SEXP prepSEXP) {
+// expected_hessian_fiml_Gaussian_cpp
+arma::mat expected_hessian_fiml_Gaussian_cpp(const Rcpp::List& prep);
+RcppExport SEXP _psychonetrics_expected_hessian_fiml_Gaussian_cpp(SEXP prepSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::List& >::type prep(prepSEXP);
-    rcpp_result_gen = Rcpp::wrap(expected_hessian_Gaussian_cpp(prep));
+    rcpp_result_gen = Rcpp::wrap(expected_hessian_fiml_Gaussian_cpp(prep));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -546,6 +546,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::List >::type fimldata(fimldataSEXP);
     Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
     rcpp_result_gen = Rcpp::wrap(expected_hessian_fiml_Gaussian_group_cpp_fullFIML(sigma, kappa, mu, fimldata, epsilon));
+    return rcpp_result_gen;
+END_RCPP
+}
+// expected_hessian_fiml_Gaussian_cppVersion
+arma::mat expected_hessian_fiml_Gaussian_cppVersion(const Rcpp::List& prep);
+RcppExport SEXP _psychonetrics_expected_hessian_fiml_Gaussian_cppVersion(SEXP prepSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prep(prepSEXP);
+    rcpp_result_gen = Rcpp::wrap(expected_hessian_fiml_Gaussian_cppVersion(prep));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1693,8 +1704,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_inner", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_inner, 5},
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp, 5},
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML, 5},
-    {"_psychonetrics_expected_hessian_Gaussian_group_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_Gaussian_group_cpp, 1},
-    {"_psychonetrics_expected_hessian_Gaussian_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_Gaussian_cpp, 1},
+    {"_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp, 1},
+    {"_psychonetrics_expected_hessian_fiml_Gaussian_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_fiml_Gaussian_cpp, 1},
     {"_psychonetrics_maxLikEstimator_Gauss_group_cpp", (DL_FUNC) &_psychonetrics_maxLikEstimator_Gauss_group_cpp, 1},
     {"_psychonetrics_maxLikEstimator_Gauss_cpp", (DL_FUNC) &_psychonetrics_maxLikEstimator_Gauss_cpp, 1},
     {"_psychonetrics_maxLikEstimator_Ising_group_cpp", (DL_FUNC) &_psychonetrics_maxLikEstimator_Ising_group_cpp, 1},
@@ -1714,6 +1725,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp_inner", (DL_FUNC) &_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp_inner, 5},
     {"_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp, 5},
     {"_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp_fullFIML", (DL_FUNC) &_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp_fullFIML, 5},
+    {"_psychonetrics_expected_hessian_fiml_Gaussian_cppVersion", (DL_FUNC) &_psychonetrics_expected_hessian_fiml_Gaussian_cppVersion, 1},
     {"_psychonetrics_fimlEstimator_Gauss_group_cpp_inner", (DL_FUNC) &_psychonetrics_fimlEstimator_Gauss_group_cpp_inner, 6},
     {"_psychonetrics_fimlEstimator_Gauss_group_cpp", (DL_FUNC) &_psychonetrics_fimlEstimator_Gauss_group_cpp, 6},
     {"_psychonetrics_fimlEstimator_Gauss_group_cpp_fullFIML", (DL_FUNC) &_psychonetrics_fimlEstimator_Gauss_group_cpp_fullFIML, 6},
