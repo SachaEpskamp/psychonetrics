@@ -424,6 +424,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// ULS_Gauss_gradient_pergroup_cpp
+arma::mat ULS_Gauss_gradient_pergroup_cpp(const Rcpp::List& grouplist);
+RcppExport SEXP _psychonetrics_ULS_Gauss_gradient_pergroup_cpp(SEXP grouplistSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type grouplist(grouplistSEXP);
+    rcpp_result_gen = Rcpp::wrap(ULS_Gauss_gradient_pergroup_cpp(grouplist));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ULS_gradient_Gauss_cpp
+arma::mat ULS_gradient_Gauss_cpp(const Rcpp::List& prep);
+RcppExport SEXP _psychonetrics_ULS_gradient_Gauss_cpp(SEXP prepSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prep(prepSEXP);
+    rcpp_result_gen = Rcpp::wrap(ULS_gradient_Gauss_cpp(prep));
+    return rcpp_result_gen;
+END_RCPP
+}
 // WLS_wmat
 arma::mat WLS_wmat(arma::mat data, arma::vec means, const int ncase, const int nvar);
 RcppExport SEXP _psychonetrics_WLS_wmat(SEXP dataSEXP, SEXP meansSEXP, SEXP ncaseSEXP, SEXP nvarSEXP) {
@@ -1638,6 +1660,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_DWLS_wmat", (DL_FUNC) &_psychonetrics_DWLS_wmat, 4},
     {"_psychonetrics_ULS_Gauss_cpp_pergroup", (DL_FUNC) &_psychonetrics_ULS_Gauss_cpp_pergroup, 1},
     {"_psychonetrics_ULS_Gauss_cpp", (DL_FUNC) &_psychonetrics_ULS_Gauss_cpp, 1},
+    {"_psychonetrics_ULS_Gauss_gradient_pergroup_cpp", (DL_FUNC) &_psychonetrics_ULS_Gauss_gradient_pergroup_cpp, 1},
+    {"_psychonetrics_ULS_gradient_Gauss_cpp", (DL_FUNC) &_psychonetrics_ULS_gradient_Gauss_cpp, 1},
     {"_psychonetrics_WLS_wmat", (DL_FUNC) &_psychonetrics_WLS_wmat, 4},
     {"_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp_inner", (DL_FUNC) &_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp_inner, 5},
     {"_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_fiml_Gaussian_group_cpp, 5},

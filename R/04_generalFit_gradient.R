@@ -16,11 +16,11 @@ psychonetrics_gradient <- function(x, model){
                     "Ising" = jacobian_Ising_cpp # <- updated!
       ),
       "ULS" = switch(model@distribution,
-                     "Gaussian" = ULS_gradient_Gauss),
+                     "Gaussian" = ULS_gradient_Gauss_cpp),  # <- updated!
       "WLS" = switch(model@distribution,
-                     "Gaussian" = ULS_gradient_Gauss),
+                     "Gaussian" = ULS_gradient_Gauss_cpp),  # <- updated!
       "DWLS" = switch(model@distribution,
-                      "Gaussian" = ULS_gradient_Gauss),
+                      "Gaussian" = ULS_gradient_Gauss_cpp), # <- updated!
       "FIML" = switch(model@distribution,
                       "Gaussian" = jacobian_fiml_gaussian_sigma_cpp) # <- Updated!
     )
