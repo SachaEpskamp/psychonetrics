@@ -45,7 +45,11 @@ arma::mat jacobian_gaussian_sigma_group_cpp(
     const Rcpp::List& grouplist
 ){
   // Stuff I need now:
-  bool corinput = grouplist["corinput"];
+  bool corinput = false;
+  if (grouplist.containsElementNamed("corinput")){
+    corinput = grouplist["corinput"];
+  }
+  
   bool meanstructure = true;
   if (grouplist.containsElementNamed("meanstructure")){
     meanstructure = grouplist["meanstructure"];

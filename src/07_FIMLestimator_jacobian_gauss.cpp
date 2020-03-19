@@ -13,7 +13,7 @@ arma::mat jacobian_fiml_gaussian_subgroup_sigma_cpp_inner(
     const arma::mat& sigma, 
     const arma::mat& kappa,
     const arma::vec& mu,
-    Rcpp::List dat,
+    const Rcpp::List& dat,
     double epsilon) {
   // Rf_PrintValue(wrap("USED"));
   
@@ -114,9 +114,9 @@ arma::mat jacobian_fiml_gaussian_subgroup_sigma_cpp_inner(
 // Outer function
 // [[Rcpp::export]]
 arma::mat jacobian_fiml_gaussian_subgroup_sigma_cpp(
-    arma::mat sigma, 
-    arma::mat kappa,
-    arma::vec mu,
+    const arma::mat& sigma, 
+    const arma::mat& kappa,
+    const arma::vec& mu,
     Rcpp::List fimldata,
     double epsilon) {
   
@@ -152,10 +152,10 @@ arma::mat jacobian_fiml_gaussian_subgroup_sigma_cpp(
 // Outer function
 // [[Rcpp::export]]
 arma::mat jacobian_fiml_gaussian_subgroup_sigma_cpp_fullFIML(
-    Rcpp::List sigma, 
-    Rcpp::List kappa,
-    Rcpp::List mu,
-    Rcpp::List fimldata,
+    const Rcpp::List& sigma, 
+    const Rcpp::List& kappa,
+    const Rcpp::List& mu,
+    const Rcpp::List& fimldata,
     double epsilon) {
   
   // Number of parameters
@@ -194,9 +194,13 @@ arma::mat jacobian_fiml_outer_cpp(
     bool fullFIML
 ){
   double fulln = grouplist["fulln"];
-  bool corinput = grouplist["corinput"];
+  
+  bool corinput = false;
+  if (grouplist.containsElementNamed("corinput")){
+    corinput = grouplist["corinput"];
+  }
 
-  bool meanstructure = false;
+  bool meanstructure = true;
   
   if (grouplist.containsElementNamed("meanstructure")){
     meanstructure = grouplist["meanstructure"];
@@ -251,7 +255,6 @@ arma::mat jacobian_fiml_outer_cpp(
 arma::mat jacobian_fiml_gaussian_sigma_cpp(
     const Rcpp::List& prep
 ){
-  
   Rcpp::List groupmodels = prep["groupModels"];
   int nGroup = groupmodels.length();
   arma::vec nPerGroup = prep["nPerGroup"];
@@ -267,12 +270,6 @@ arma::mat jacobian_fiml_gaussian_sigma_cpp(
       arma::mat groupgrad =  (nPerGroup(i) / nTotal) * jacobian_fiml_outer_cpp(groupmodels[i], fullFIML);
       groupgradients[i]  = groupgrad;      
       
-    // } else {
-    //   
-    //   arma::mat groupgrad =  (nPerGroup(i) / nTotal) * jacobian_fiml_gaussian_group_sigma_cpp_outer_cpp(groupmodels[i]);
-    //   groupgradients[i]  = groupgrad;
-    //   
-    // }
 
   }
   
