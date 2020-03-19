@@ -19,4 +19,12 @@ double computeZ_cpp(
 );
 
 
+Rcpp::List isingExpectation(
+    arma::mat graph,
+    arma::vec tau,
+    double beta,
+    arma::vec responses 
+);
+
+
 #endif

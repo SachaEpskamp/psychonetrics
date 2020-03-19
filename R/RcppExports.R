@@ -121,6 +121,14 @@ jacobian_gaussian_sigma_cpp <- function(prep) {
     .Call(`_psychonetrics_jacobian_gaussian_sigma_cpp`, prep)
 }
 
+jacobian_Ising_group_cpp <- function(grouplist) {
+    .Call(`_psychonetrics_jacobian_Ising_group_cpp`, grouplist)
+}
+
+jacobian_Ising_cpp <- function(prep) {
+    .Call(`_psychonetrics_jacobian_Ising_cpp`, prep)
+}
+
 DWLS_wmat <- function(data, means, ncase, nvar) {
     .Call(`_psychonetrics_DWLS_wmat`, data, means, ncase, nvar)
 }
@@ -463,6 +471,10 @@ H <- function(state, graph, tau) {
 
 Pot <- function(state, graph, tau, beta) {
     .Call(`_psychonetrics_Pot`, state, graph, tau, beta)
+}
+
+isingExpectation <- function(graph, tau, beta, responses) {
+    .Call(`_psychonetrics_isingExpectation`, graph, tau, beta, responses)
 }
 
 computeZ_cpp <- function(graph, tau, beta, responses) {

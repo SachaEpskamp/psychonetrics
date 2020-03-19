@@ -4,6 +4,7 @@
 #include <RcppArmadillo.h>
 #include <math.h>
 #include "21_Ising_helperfunctions.h"
+#include "02_algebragelpers_kronecker.h"
 #include "02_algebrahelpers_RcppHelpers.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
@@ -11,9 +12,9 @@ using namespace Rcpp;
 using namespace arma;
 
 
-// GROUP FIT FUNCTION //
+// GROUP JACOBIAN FUNCTION //
 // [[Rcpp::export]]
-double maxLikEstimator_Ising_group_cpp(
+arma::mat jacobian_Ising_group_cpp(
     const Rcpp::List& grouplist
 ){
   arma::vec thresholds = grouplist["tau"];
@@ -24,16 +25,15 @@ double maxLikEstimator_Ising_group_cpp(
   double beta = grouplist["beta"];
   double nobs = grouplist["nobs"];
   
+  double Z = grouplist["Z"];
+  double exp_H = grouplist["exp_H"];
+  arma::vec exp_v1  = grouplist["exp_v1"];
+  arma::mat exp_v2  = grouplist["exp_v2"];
   
-  
-  // Compute Z:
-  double Z = grouplist["Z"]; // computeZ_cpp(graph, thresholds, beta, responses);
-  
-  // Compute summary statistics:
-  // FIXME: Not nice, will make things double
   arma::vec v1 = means * nobs;
   arma::mat v2 = squares;
   
+  // Hamiltionian:  
   arma::vec part1 = thresholds % v1;
   arma::mat part2 = graph % v2;
   
@@ -43,18 +43,35 @@ double maxLikEstimator_Ising_group_cpp(
       sum(vech(part2, false))
   );
   
-  // Fml
-  double Fml = 2 * log(Z) + 2 * beta * H / nobs;
+  
+  // Thresholds gradient:
+  arma::vec threshGrad = (
+    2 * beta * exp_v1 - 2 * beta * v1 / nobs
+  );
   
   
-  // Return:
-  return(Fml);
+  // Network: gradient
+  arma::mat graphmatrixgrad = 2 * beta * exp_v2 - 2 * beta * v2 / nobs;
+  arma::vec graphGrad = vech(graphmatrixgrad, false);
+  
+  
+  // beta gradient
+  arma::vec betaGrad(1);
+  betaGrad(0) = (
+    2*(H/nobs - exp_H)
+  );
+  
+  // Final gradient:
+  arma::mat grad = join_rows(threshGrad.t(), graphGrad.t(), betaGrad);
+    
+    // Return:
+    return(grad);
 }
 
 
-// full fit function 
+// full Jacobian function 
 // [[Rcpp::export]]
-double maxLikEstimator_Ising_cpp(
+arma::mat jacobian_Ising_cpp(
     const Rcpp::List& prep
 ){
   
@@ -63,13 +80,18 @@ double maxLikEstimator_Ising_cpp(
   arma::vec nPerGroup = prep["nPerGroup"];
   double nTotal = prep["nTotal"];
   
-  // Result:
-  double fit = 0;
+  // JAcobian:
+  Rcpp::List groupgradients(nGroup);
   
   for (int i=0; i<nGroup;i++){
-    fit += (nPerGroup(i) / nTotal) * maxLikEstimator_Ising_group_cpp(groupmodels[i]);
+    arma::mat groupgrad =  (nPerGroup(i) / nTotal) * jacobian_Ising_group_cpp(groupmodels[i]);
+    groupgradients[i]  = groupgrad;
   }
   
-  return(fit);
+  
+  arma::mat res =  cbind_psychonetrics(groupgradients);
+  
+  
+  return(res);
 }
 

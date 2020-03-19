@@ -366,6 +366,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// jacobian_Ising_group_cpp
+arma::mat jacobian_Ising_group_cpp(const Rcpp::List& grouplist);
+RcppExport SEXP _psychonetrics_jacobian_Ising_group_cpp(SEXP grouplistSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type grouplist(grouplistSEXP);
+    rcpp_result_gen = Rcpp::wrap(jacobian_Ising_group_cpp(grouplist));
+    return rcpp_result_gen;
+END_RCPP
+}
+// jacobian_Ising_cpp
+arma::mat jacobian_Ising_cpp(const Rcpp::List& prep);
+RcppExport SEXP _psychonetrics_jacobian_Ising_cpp(SEXP prepSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prep(prepSEXP);
+    rcpp_result_gen = Rcpp::wrap(jacobian_Ising_cpp(prep));
+    return rcpp_result_gen;
+END_RCPP
+}
 // DWLS_wmat
 arma::sp_mat DWLS_wmat(arma::mat data, arma::vec means, const int ncase, const int nvar);
 RcppExport SEXP _psychonetrics_DWLS_wmat(SEXP dataSEXP, SEXP meansSEXP, SEXP ncaseSEXP, SEXP nvarSEXP) {
@@ -1529,6 +1551,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// isingExpectation
+Rcpp::List isingExpectation(arma::mat graph, arma::vec tau, double beta, arma::vec responses);
+RcppExport SEXP _psychonetrics_isingExpectation(SEXP graphSEXP, SEXP tauSEXP, SEXP betaSEXP, SEXP responsesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type graph(graphSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type responses(responsesSEXP);
+    rcpp_result_gen = Rcpp::wrap(isingExpectation(graph, tau, beta, responses));
+    return rcpp_result_gen;
+END_RCPP
+}
 // computeZ_cpp
 double computeZ_cpp(arma::mat graph, arma::vec tau, double beta, arma::vec responses);
 RcppExport SEXP _psychonetrics_computeZ_cpp(SEXP graphSEXP, SEXP tauSEXP, SEXP betaSEXP, SEXP responsesSEXP) {
@@ -1597,6 +1633,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_maxLikEstimator_Ising_cpp", (DL_FUNC) &_psychonetrics_maxLikEstimator_Ising_cpp, 1},
     {"_psychonetrics_jacobian_gaussian_sigma_group_cpp", (DL_FUNC) &_psychonetrics_jacobian_gaussian_sigma_group_cpp, 1},
     {"_psychonetrics_jacobian_gaussian_sigma_cpp", (DL_FUNC) &_psychonetrics_jacobian_gaussian_sigma_cpp, 1},
+    {"_psychonetrics_jacobian_Ising_group_cpp", (DL_FUNC) &_psychonetrics_jacobian_Ising_group_cpp, 1},
+    {"_psychonetrics_jacobian_Ising_cpp", (DL_FUNC) &_psychonetrics_jacobian_Ising_cpp, 1},
     {"_psychonetrics_DWLS_wmat", (DL_FUNC) &_psychonetrics_DWLS_wmat, 4},
     {"_psychonetrics_ULS_Gauss_cpp_pergroup", (DL_FUNC) &_psychonetrics_ULS_Gauss_cpp_pergroup, 1},
     {"_psychonetrics_ULS_Gauss_cpp", (DL_FUNC) &_psychonetrics_ULS_Gauss_cpp, 1},
@@ -1683,6 +1721,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_expHessianCpp", (DL_FUNC) &_psychonetrics_expHessianCpp, 7},
     {"_psychonetrics_H", (DL_FUNC) &_psychonetrics_H, 3},
     {"_psychonetrics_Pot", (DL_FUNC) &_psychonetrics_Pot, 4},
+    {"_psychonetrics_isingExpectation", (DL_FUNC) &_psychonetrics_isingExpectation, 4},
     {"_psychonetrics_computeZ_cpp", (DL_FUNC) &_psychonetrics_computeZ_cpp, 4},
     {"_psychonetrics_d_phi_theta_ml_lvm_group_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_ml_lvm_group_cpp, 1},
     {"_psychonetrics_d_phi_theta_ml_lvm_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_ml_lvm_cpp, 1},

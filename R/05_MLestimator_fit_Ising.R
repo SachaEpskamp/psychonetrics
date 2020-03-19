@@ -1,13 +1,13 @@
 # Fit function per group:
-maxLikEstimator_Ising_group <- function(omega,tau,beta,squares,means,responses,nobs,...){
+maxLikEstimator_Ising_group <- function(omega,tau,beta,squares,means,responses,nobs,Z,...){
   # Graph and thresholds:
   thresholds <- as.vector(tau)
   graph <- as.matrix(omega)
   beta <- as.numeric(beta)
   
   # Compute Z:
-  Z <- computeZ(graph, thresholds, as.numeric(beta), responses)
-  
+  # Z <- computeZ(graph, thresholds, as.numeric(beta), responses)
+  # 
   # Compute summary statistics:
   # FIXME: Not nice, will make things double
   v1 <- as.vector(means * nobs)
