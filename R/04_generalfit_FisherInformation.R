@@ -44,7 +44,7 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
                       "Gaussian" = expected_hessian_ULS_Gaussian_cpp # <- Updated!
       ),
       "FIML" = switch(model@distribution,
-                      "Gaussian" = expected_hessian_fiml_Gaussian
+                      "Gaussian" = expected_hessian_fiml_Gaussian_cppVersion # <- Updated!
       )
     )
     

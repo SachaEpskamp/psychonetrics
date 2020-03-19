@@ -32,7 +32,7 @@ arma::mat expected_hessian_Gaussian_group_varPart_cpp(
 
 // GROUP JACOBIAN FUNCTION //
 // [[Rcpp::export]]
-arma::mat expected_hessian_fiml_Gaussian_group_cpp(
+arma::mat expected_hessian_Gaussian_group_cpp(
     const Rcpp::List& grouplist
 ){
   // Stuff I need now:
@@ -99,7 +99,7 @@ arma::mat expected_hessian_fiml_Gaussian_group_cpp(
 
 // full Jacobian function 
 // [[Rcpp::export]]
-arma::mat expected_hessian_fiml_Gaussian_cpp(
+arma::mat expected_hessian_Gaussian_cpp(
     const Rcpp::List& prep
 ){
   
@@ -112,7 +112,7 @@ arma::mat expected_hessian_fiml_Gaussian_cpp(
   Rcpp::List grouphessians(nGroup);
   
   for (int i=0; i<nGroup;i++){
-    arma::mat grouphes =  (nPerGroup(i) / nTotal) * expected_hessian_fiml_Gaussian_group_cpp(groupmodels[i]);
+    arma::mat grouphes =  (nPerGroup(i) / nTotal) * expected_hessian_Gaussian_group_cpp(groupmodels[i]);
     grouphessians[i]  = grouphes;
   }
   
