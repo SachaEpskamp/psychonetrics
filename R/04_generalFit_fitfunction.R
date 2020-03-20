@@ -2,7 +2,12 @@
 psychonetrics_fitfunction <- function(x, model){
   
   # Prepare model:
-  prep <- prepareModel(x, model)
+  if (model@cpp){
+    prep <- prepareModel_cpp(x, model) # <- upated!
+  } else {
+    prep <- prepareModel(x, model)  
+  }
+  
   
   # What estimator to use:
   estimator <- model@estimator
@@ -33,6 +38,8 @@ psychonetrics_fitfunction <- function(x, model){
       "FIML" = switch(distribution,"Gaussian" = fimlEstimator_Gauss)
     )
   }
+  
+  
   # Run and return:
   estFun(prep)
 }

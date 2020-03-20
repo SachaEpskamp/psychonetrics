@@ -143,17 +143,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// CheapDataFrameBuilder
-List CheapDataFrameBuilder(List a);
-RcppExport SEXP _psychonetrics_CheapDataFrameBuilder(SEXP aSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< List >::type a(aSEXP);
-    rcpp_result_gen = Rcpp::wrap(CheapDataFrameBuilder(a));
-    return rcpp_result_gen;
-END_RCPP
-}
 // kronecker_I_X
 arma::sp_mat kronecker_I_X(const arma::mat& X, int n);
 RcppExport SEXP _psychonetrics_kronecker_I_X(SEXP XSEXP, SEXP nSEXP) {
@@ -285,6 +274,53 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type model(modelSEXP);
     Rcpp::traits::input_parameter< const arma::sp_mat& >::type manual(manualSEXP);
     rcpp_result_gen = Rcpp::wrap(gradient_inner_cpp_DDS(estimator, model, manual));
+    return rcpp_result_gen;
+END_RCPP
+}
+// psychonetrics_fitfunction_cpp_prepared
+double psychonetrics_fitfunction_cpp_prepared(Rcpp::List prep);
+RcppExport SEXP _psychonetrics_psychonetrics_fitfunction_cpp_prepared(SEXP prepSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type prep(prepSEXP);
+    rcpp_result_gen = Rcpp::wrap(psychonetrics_fitfunction_cpp_prepared(prep));
+    return rcpp_result_gen;
+END_RCPP
+}
+// psychonetrics_fitfunction_cpp
+double psychonetrics_fitfunction_cpp(arma::vec x, const S4& model);
+RcppExport SEXP _psychonetrics_psychonetrics_fitfunction_cpp(SEXP xSEXP, SEXP modelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const S4& >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(psychonetrics_fitfunction_cpp(x, model));
+    return rcpp_result_gen;
+END_RCPP
+}
+// impliedModel_cpp
+Rcpp::List impliedModel_cpp(const S4& model, bool all);
+RcppExport SEXP _psychonetrics_impliedModel_cpp(SEXP modelSEXP, SEXP allSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const S4& >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< bool >::type all(allSEXP);
+    rcpp_result_gen = Rcpp::wrap(impliedModel_cpp(model, all));
+    return rcpp_result_gen;
+END_RCPP
+}
+// prepareModel_cpp
+Rcpp::List prepareModel_cpp(arma::vec x, const S4& model);
+RcppExport SEXP _psychonetrics_prepareModel_cpp(SEXP xSEXP, SEXP modelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const S4& >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(prepareModel_cpp(x, model));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1040,6 +1076,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// prepare_varcov_cpp
+Rcpp::List prepare_varcov_cpp(arma::vec x, const S4& model);
+RcppExport SEXP _psychonetrics_prepare_varcov_cpp(SEXP xSEXP, SEXP modelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const S4& >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(prepare_varcov_cpp(x, model));
+    return rcpp_result_gen;
+END_RCPP
+}
 // d_mu_nu_lvm_cpp
 arma::mat d_mu_nu_lvm_cpp(const arma::mat& nu);
 RcppExport SEXP _psychonetrics_d_mu_nu_lvm_cpp(SEXP nuSEXP) {
@@ -1724,13 +1772,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // updateModel_cpp
-S4 updateModel_cpp(arma::vec x, S4& model, bool updateMatrices);
+S4 updateModel_cpp(arma::vec x, S4 model, bool updateMatrices);
 RcppExport SEXP _psychonetrics_updateModel_cpp(SEXP xSEXP, SEXP modelSEXP, SEXP updateMatricesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
-    Rcpp::traits::input_parameter< S4& >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< S4 >::type model(modelSEXP);
     Rcpp::traits::input_parameter< bool >::type updateMatrices(updateMatricesSEXP);
     rcpp_result_gen = Rcpp::wrap(updateModel_cpp(x, model, updateMatrices));
     return rcpp_result_gen;
@@ -1750,7 +1798,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_wi2net_cpp", (DL_FUNC) &_psychonetrics_wi2net_cpp, 1},
     {"_psychonetrics_SDmat", (DL_FUNC) &_psychonetrics_SDmat, 1},
     {"_psychonetrics_invSDmat", (DL_FUNC) &_psychonetrics_invSDmat, 1},
-    {"_psychonetrics_CheapDataFrameBuilder", (DL_FUNC) &_psychonetrics_CheapDataFrameBuilder, 1},
     {"_psychonetrics_kronecker_I_X", (DL_FUNC) &_psychonetrics_kronecker_I_X, 2},
     {"_psychonetrics_kronecker_X_I", (DL_FUNC) &_psychonetrics_kronecker_X_I, 2},
     {"_psychonetrics_kronecker_diag_sparse", (DL_FUNC) &_psychonetrics_kronecker_diag_sparse, 1},
@@ -1762,6 +1809,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_FisherInformation_inner_cpp_DDS", (DL_FUNC) &_psychonetrics_FisherInformation_inner_cpp_DDS, 3},
     {"_psychonetrics_gradient_inner_cpp_DSS", (DL_FUNC) &_psychonetrics_gradient_inner_cpp_DSS, 3},
     {"_psychonetrics_gradient_inner_cpp_DDS", (DL_FUNC) &_psychonetrics_gradient_inner_cpp_DDS, 3},
+    {"_psychonetrics_psychonetrics_fitfunction_cpp_prepared", (DL_FUNC) &_psychonetrics_psychonetrics_fitfunction_cpp_prepared, 1},
+    {"_psychonetrics_psychonetrics_fitfunction_cpp", (DL_FUNC) &_psychonetrics_psychonetrics_fitfunction_cpp, 2},
+    {"_psychonetrics_impliedModel_cpp", (DL_FUNC) &_psychonetrics_impliedModel_cpp, 2},
+    {"_psychonetrics_prepareModel_cpp", (DL_FUNC) &_psychonetrics_prepareModel_cpp, 2},
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_inner", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_inner, 5},
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp, 5},
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML, 5},
@@ -1819,6 +1870,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_d_phi_theta_varcov_group_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_varcov_group_cpp, 1},
     {"_psychonetrics_d_phi_theta_varcov_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_varcov_cpp, 1},
     {"_psychonetrics_implied_varcov_cpp", (DL_FUNC) &_psychonetrics_implied_varcov_cpp, 2},
+    {"_psychonetrics_prepare_varcov_cpp", (DL_FUNC) &_psychonetrics_prepare_varcov_cpp, 2},
     {"_psychonetrics_d_mu_nu_lvm_cpp", (DL_FUNC) &_psychonetrics_d_mu_nu_lvm_cpp, 1},
     {"_psychonetrics_d_mu_nu_eta_lvm_cpp", (DL_FUNC) &_psychonetrics_d_mu_nu_eta_lvm_cpp, 1},
     {"_psychonetrics_d_mu_lambda_lvm_cpp", (DL_FUNC) &_psychonetrics_d_mu_lambda_lvm_cpp, 3},

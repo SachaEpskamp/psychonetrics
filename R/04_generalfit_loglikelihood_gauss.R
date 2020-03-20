@@ -93,10 +93,9 @@ logLikelihood_gaussian_subgroup_fiml <- function(dat,sigma,kappa,mu,...){
 
 # Fit function per group:
 logLikelihood_gaussian_group_sumstat <- function(S,kappa,means,mu,sigma,...){
-
   SK <- S %*% kappa
   nvar <- ncol(kappa)
-  res <-  attr(kappa, "logdet") - nvar * log((2*pi)) - sum(diag(SK)) - t(means - mu) %*% kappa %*% (means - mu)
+  res <-  log(det(kappa)) - nvar * log((2*pi)) - sum(diag(SK)) - t(means - mu) %*% kappa %*% (means - mu)
   as.numeric(res)
 }
 

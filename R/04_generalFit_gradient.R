@@ -3,7 +3,13 @@ psychonetrics_gradient <- function(x, model){
   # I need an estimator part, a model part and a manual part
   # Prepare
   # message("Prep model...")
-  prep <- prepareModel(x, model)
+  # Prepare model:
+  if (model@cpp){
+    prep <- prepareModel_cpp(x, model) # <- upated!
+  } else {
+    prep <- prepareModel(x, model)  
+  }
+  
 
 
   # estimator part:

@@ -3,22 +3,42 @@ prepareModel <- function(x, model){
   framework <- model@model
   
   # Get the function:
-  prepFun <- switch(framework,
-        # "lnm" = prepare_lnm,
-        # "ggm" = prepare_ggm,
-        # "rnm" = prepare_rnm,
-        # "gvar" = prepare_gvar,
-        "varcov" = prepare_varcov,
-        "lvm" = prepare_lvm,
-        "var1" = prepare_var1,
-        # "panelvar1" = prepare_panelvar1,
-        "dlvm1" = prepare_dlvm1,
-        "tsdlvm1" = prepare_tsdlvm1,
-        "meta_varcov" = prepare_meta_varcov,
-        "Ising" = prepare_Ising,
-        "ml_lvm" = prepare_ml_lvm
-        # "cholesky" = prepare_cholesky
-        )
+  if (model@cpp){
+    prepFun <- switch(framework,
+                      # "lnm" = prepare_lnm,
+                      # "ggm" = prepare_ggm,
+                      # "rnm" = prepare_rnm,
+                      # "gvar" = prepare_gvar,
+                      "varcov" = prepare_varcov_cpp, # <- Updated!
+                      "lvm" = prepare_lvm,
+                      "var1" = prepare_var1,
+                      # "panelvar1" = prepare_panelvar1,
+                      "dlvm1" = prepare_dlvm1,
+                      "tsdlvm1" = prepare_tsdlvm1,
+                      "meta_varcov" = prepare_meta_varcov,
+                      "Ising" = prepare_Ising,
+                      "ml_lvm" = prepare_ml_lvm
+                      # "cholesky" = prepare_cholesky
+    )    
+  } else {
+    prepFun <- switch(framework,
+                      # "lnm" = prepare_lnm,
+                      # "ggm" = prepare_ggm,
+                      # "rnm" = prepare_rnm,
+                      # "gvar" = prepare_gvar,
+                      "varcov" = prepare_varcov,
+                      "lvm" = prepare_lvm,
+                      "var1" = prepare_var1,
+                      # "panelvar1" = prepare_panelvar1,
+                      "dlvm1" = prepare_dlvm1,
+                      "tsdlvm1" = prepare_tsdlvm1,
+                      "meta_varcov" = prepare_meta_varcov,
+                      "Ising" = prepare_Ising,
+                      "ml_lvm" = prepare_ml_lvm
+                      # "cholesky" = prepare_cholesky
+    )
+  }
+
 # prepare:
   prep <- prepFun(x, model)
     

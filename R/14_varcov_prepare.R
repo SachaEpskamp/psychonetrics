@@ -1,7 +1,12 @@
 # Prepare all matrices for the fit, gradient and hessian of varcov models:
 prepare_varcov <- function(x, model){
   # New model:
-  newMod <- updateModel(x,model,updateMatrices = FALSE)
+  if (model@cpp){
+    newMod <- updateModel_cpp(x,model,FALSE)
+  } else {
+    newMod <- updateModel(x,model,updateMatrices = FALSE)  
+  }
+  
   
   # Number of groups:
   nGroup <- nrow(model@sample@groups)
