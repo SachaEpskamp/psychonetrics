@@ -81,23 +81,23 @@ S4 psychonetrics_BFGS(
     // FIXME: This is a silly optimizer ....
     alpha_k = 1;
     
-    dummyfit = psychonetrics_fitfunction_cpp(x + alpha_k * p, newMod);
-    propfit;
-    propalpha;
-
-    alphasearchcont = true;
-
-    do{
-      propalpha = alpha_k / 2;
-      propfit = psychonetrics_fitfunction_cpp(x + propalpha * p, newMod);
-
-      if (dummyfit < propfit){
-        alphasearchcont = false;
-      } else{
-        alpha_k = propalpha;
-        dummyfit = propfit;
-      }
-    } while (alphasearchcont);
+    // dummyfit = psychonetrics_fitfunction_cpp(x + alpha_k * p, newMod);
+    // propfit;
+    // propalpha;
+    // 
+    // alphasearchcont = true;
+    // 
+    // do{
+    //   propalpha = alpha_k / 2;
+    //   propfit = psychonetrics_fitfunction_cpp(x + propalpha * p, newMod);
+    // 
+    //   if (dummyfit < propfit){
+    //     alphasearchcont = false;
+    //   } else{
+    //     alpha_k = propalpha;
+    //     dummyfit = propfit;
+    //   }
+    // } while (alphasearchcont);
     
     
     // Step 3: update x:
