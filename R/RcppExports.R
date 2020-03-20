@@ -69,6 +69,10 @@ Mmatrix_cpp <- function(parDF) {
     .Call(`_psychonetrics_Mmatrix_cpp`, parDF)
 }
 
+Mmatrix_cpp_list <- function(parDF) {
+    .Call(`_psychonetrics_Mmatrix_cpp_list`, parDF)
+}
+
 formModelMatrices_cpp <- function(model) {
     .Call(`_psychonetrics_formModelMatrices_cpp`, model)
 }
@@ -91,6 +95,14 @@ gradient_inner_cpp_DSS <- function(estimator, model, manual) {
 
 gradient_inner_cpp_DDS <- function(estimator, model, manual) {
     .Call(`_psychonetrics_gradient_inner_cpp_DDS`, estimator, model, manual)
+}
+
+psychonetrics_gradient_cpp_prepared <- function(prep, manualPart) {
+    .Call(`_psychonetrics_psychonetrics_gradient_cpp_prepared`, prep, manualPart)
+}
+
+psychonetrics_gradient_cpp <- function(x, model) {
+    .Call(`_psychonetrics_psychonetrics_gradient_cpp`, x, model)
 }
 
 psychonetrics_fitfunction_cpp_prepared <- function(prep) {
@@ -119,6 +131,10 @@ logLikelihood_gaussian_subgroup_fiml_cpp <- function(sigma, kappa, mu, fimldata,
 
 logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML <- function(sigma, kappa, mu, fimldata, epsilon) {
     .Call(`_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML`, sigma, kappa, mu, fimldata, epsilon)
+}
+
+psychonetrics_BFGS <- function(model, Hstart) {
+    .Call(`_psychonetrics_psychonetrics_BFGS`, model, Hstart)
 }
 
 expected_hessian_Gaussian_group_cpp <- function(grouplist) {
