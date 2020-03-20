@@ -19,6 +19,7 @@ using namespace arma;
 //   return X;
 // }
 
+
 // Inner function:
 // [[Rcpp::export]]
 arma::mat expected_hessian_fiml_Gaussian_group_cpp_inner(
