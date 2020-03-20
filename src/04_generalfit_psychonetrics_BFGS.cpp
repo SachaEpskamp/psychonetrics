@@ -68,9 +68,10 @@ S4 psychonetrics_BFGS(
   // Converged:
   bool converged = false;
   
-  
+  int nIter = 0;
   // START OPTIMIZER:
   do{
+    nIter++;
     // Current gradient:
     curGrad = psychonetrics_gradient_cpp(x, newMod);
     
@@ -124,6 +125,8 @@ S4 psychonetrics_BFGS(
   
   // Set computed:
   newMod.slot("computed") = true;
+  
+  // Rf_PrintValue(wrap(nIter));
   
   // Return:
   return(newMod);
