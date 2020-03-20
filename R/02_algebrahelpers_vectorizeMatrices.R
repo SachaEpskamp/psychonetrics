@@ -5,11 +5,12 @@ duplicationMatrix <- function(n, diag = TRUE){
   mat[upper.tri(mat,diag=diag)] <- t(mat)[upper.tri(mat,diag=diag)]
   inds <- c(mat)
   res <- Matrix::sparseMatrix(i=seq_len(n^2)[inds!=0],j=inds[inds!=0],dims = c(n^2,sum(lower.tri(mat,diag=diag))))
-  if (diag){
-    res <- as(res, "indMatrix")
-  } else {
-    res <- as(res, "dgCMatrix")
-  }
+  # if (diag){
+  #   res <- as(res, "indMatrix")
+  # } else {
+  #   res <- as(res, "dgCMatrix")
+  # }
+  res <- as(res, "dgCMatrix")
   return(res)
 }
 
@@ -19,7 +20,8 @@ eliminationMatrix <- function(n, diag = TRUE){
   mat[lower.tri(mat,diag=diag)] <- seq_len(sum(lower.tri(mat,diag=diag)))
   inds <- c(mat)
   res <- Matrix::sparseMatrix(j=seq_len(n^2)[inds!=0],i=inds[inds!=0],dims = c(sum(lower.tri(mat,diag=diag)),n^2))
-  res <- as(res, "indMatrix")
+  # res <- as(res, "indMatrix")
+  res <- as(res, "dgCMatrix")
   return(res)
 }
 

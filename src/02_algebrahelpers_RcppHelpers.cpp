@@ -434,3 +434,11 @@ bool anyNon0(
 // }
 
 
+// [[Rcpp::export]]
+arma::sp_mat testmult(
+    const arma::sp_mat& X
+){
+  return(X * X);
+}
+
+

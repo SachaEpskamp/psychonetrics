@@ -328,11 +328,11 @@ lvm <- function(
     L_eta = psychonetrics::eliminationMatrix(nLatent), # Elinimation matrix
     Dstar = psychonetrics::duplicationMatrix(nNode,diag = FALSE), # Strict duplicaton matrix
     Dstar_eta = psychonetrics::duplicationMatrix(nLatent,diag = FALSE), # Strict duplicaton matrix
-    In = Diagonal(nNode), # Identity of dim n
-    Inlatent = Diagonal(nLatent),
+    In = as(diag(nNode),"dgCMatrix"), # Identity of dim n
+    Inlatent = as(diag(nLatent),"dgCMatrix"),
     C = as(lavaan::lav_matrix_commutation(nNode, nLatent),"dgCMatrix"),
-    Cbeta = as(lavaan::lav_matrix_commutation(nLatent, nLatent),"pMatrix"),
-    C_chol = as(lavaan::lav_matrix_commutation(nNode, nNode),"pMatrix"),
+    Cbeta = as(lavaan::lav_matrix_commutation(nLatent, nLatent),"dgCMatrix"),
+    C_chol = as(lavaan::lav_matrix_commutation(nNode, nNode),"dgCMatrix"),
     A = psychonetrics::diagonalizationMatrix(nNode),
     Aeta = psychonetrics::diagonalizationMatrix(nLatent)
   )

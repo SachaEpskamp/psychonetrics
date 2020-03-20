@@ -44,8 +44,8 @@ arma::mat jacobian_fiml_gaussian_subgroup_sigma_cpp_inner(
   n_part = dat["n"];
   
   // Duplication matrix:
-  arma::sp_mat D = dat["D"];
-  arma::sp_mat L = dat["L"];
+  arma::sp_mat D = dat["D"]; 
+  arma::sp_mat L = dat["L"]; 
   
   // Subset matrices:
   arma::mat sigma_p = sigma(inds,inds);
