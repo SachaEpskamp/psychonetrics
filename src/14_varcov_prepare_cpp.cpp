@@ -86,8 +86,8 @@ Rcpp::List prepare_varcov_cpp(
       grouplist["tau"] = tau;
     }
     
-    if (thresholds.length() > 1){
-      grouplist["thresholds"] = thresholds;
+    if (thresholds.length() > 0){
+      grouplist["thresholds"] = thresholds[g];
     }
     
     groupModels[g] = grouplist;
