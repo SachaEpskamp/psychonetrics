@@ -1,6 +1,10 @@
 # Implied model for precision. Requires appropriate model matrices:
 implied_var1 <- function(model,all = FALSE){
-  x <- formModelMatrices(model)
+  if (model@cpp){
+    x <- formModelMatrices_cpp(model)
+  } else {
+    x <- formModelMatrices(model)  
+  }
 
   if (model@cpp){
     x <- impliedcovstructures_cpp(x,"zeta",type = model@types$zeta, all = all)

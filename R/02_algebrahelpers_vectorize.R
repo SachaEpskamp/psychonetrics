@@ -1,7 +1,7 @@
 # some helper functions:
 Vec <- function(x){
   if (is.null(dim(x))){
-    return(Matrix(x,1,1))
+    return(matrix(x,1,1))
   }
   
   if (is(x,"matrix")){
@@ -16,7 +16,7 @@ Vec <- function(x){
       #   as(c(as.matrix(x)), "Matrix") # FIXME: This should be better...
       # }
     } else {
-      return(Matrix(x@x))  
+      return(matrix(x@x))  
     }
   }
 }

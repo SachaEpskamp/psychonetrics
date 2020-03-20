@@ -1,7 +1,11 @@
 # Implied model for precision. Requires appropriate model matrices:
 implied_meta_varcov <- function(model, all = FALSE){
 
-  x <- formModelMatrices(model)
+  if (model@cpp){
+    x <- formModelMatrices_cpp(model)
+  } else {
+    x <- formModelMatrices(model)  
+  }
 
   
   if (model@cpp){
