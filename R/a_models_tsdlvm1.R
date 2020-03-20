@@ -284,8 +284,8 @@ tsdlvm1 <- function(
     # Dstar_between = psychonetrics::duplicationMatrix(nLat,diag = FALSE),  
     
     # Identity matrices:
-    I_y = Diagonal(nNode),
-    I_eta = Diagonal(nLat),
+    I_y = as(diag(nNode),"dgCMatrix"),
+    I_eta = as(diag(nLat),"dgCMatrix"),
     # I_within = Diagonal(nLat),
     # I_between = Diagonal(nLat),
     
@@ -296,9 +296,9 @@ tsdlvm1 <- function(
     # A_between = psychonetrics::diagonalizationMatrix(nLat),
     
     # Commutation matrices:
-    C_y_y = as(lavaan::lav_matrix_commutation(nNode, nNode),"pMatrix"),
+    C_y_y = as(lavaan::lav_matrix_commutation(nNode, nNode),"dgCMatrix"),
     C_y_eta = as(lavaan::lav_matrix_commutation(nNode, nLat),"dgCMatrix"),
-    C_eta_eta = as(lavaan::lav_matrix_commutation(nLat, nLat),"pMatrix"),
+    C_eta_eta = as(lavaan::lav_matrix_commutation(nLat, nLat),"dgCMatrix"),
     
     # 
     # C_y_within = as(lavaan::lav_matrix_commutation(nVar, nLat),"sparseMatrix"),
@@ -323,7 +323,7 @@ tsdlvm1 <- function(
   # P matrix:
   # P <- bdiag(Diagonal(nNode*2),sparseMatrix(j=seq_along(inds),i=inds))
   model@extramatrices$P <- bdiag(Diagonal(nNode*2),sparseMatrix(j=seq_along(inds),i=order(inds)))
-  model@extramatrices$P  <- as(as.matrix(model@extramatrices$P), "pMatrix")
+  model@extramatrices$P  <- as(as.matrix(model@extramatrices$P), "dgCMatrix")
   
   # Form the model matrices
   model@modelmatrices <- formModelMatrices(model)

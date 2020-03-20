@@ -51,11 +51,11 @@ missingpatterns <- function(dat, verbose = TRUE){
     
     # Elimintation matrix:
     patterns[[i]]$L <- sparseMatrix(i=seq_along(inds),j=inds,dims=c(length(inds),nvar + nvar*(nvar+1)/2))
-    patterns[[i]]$L <- as(patterns[[i]]$L, "indMatrix")
+    patterns[[i]]$L <- as(patterns[[i]]$L, "dgCMatrix")
     
     # Duplication matrix: 
     patterns[[i]]$D <- duplicationMatrix(sum(obs))
-    
+    # patterns[[i]]$D <- as(as.matrix(patterns[[i]]$D), "dgCMatrix")
     
     # Stuff that Armadillo understands:
     # Not needed, Arma already understands!

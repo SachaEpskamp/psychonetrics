@@ -49,6 +49,10 @@ invSDmat <- function(X) {
     .Call(`_psychonetrics_invSDmat`, X)
 }
 
+testmult <- function(X) {
+    .Call(`_psychonetrics_testmult`, X)
+}
+
 kronecker_I_X <- function(X, n) {
     .Call(`_psychonetrics_kronecker_I_X`, X, n)
 }

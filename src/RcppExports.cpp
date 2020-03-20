@@ -143,6 +143,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// testmult
+arma::sp_mat testmult(const arma::sp_mat& X);
+RcppExport SEXP _psychonetrics_testmult(SEXP XSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::sp_mat& >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(testmult(X));
+    return rcpp_result_gen;
+END_RCPP
+}
 // kronecker_I_X
 arma::sp_mat kronecker_I_X(const arma::mat& X, int n);
 RcppExport SEXP _psychonetrics_kronecker_I_X(SEXP XSEXP, SEXP nSEXP) {
@@ -1692,6 +1703,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_wi2net_cpp", (DL_FUNC) &_psychonetrics_wi2net_cpp, 1},
     {"_psychonetrics_SDmat", (DL_FUNC) &_psychonetrics_SDmat, 1},
     {"_psychonetrics_invSDmat", (DL_FUNC) &_psychonetrics_invSDmat, 1},
+    {"_psychonetrics_testmult", (DL_FUNC) &_psychonetrics_testmult, 1},
     {"_psychonetrics_kronecker_I_X", (DL_FUNC) &_psychonetrics_kronecker_I_X, 2},
     {"_psychonetrics_kronecker_X_I", (DL_FUNC) &_psychonetrics_kronecker_X_I, 2},
     {"_psychonetrics_kronecker_diag_sparse", (DL_FUNC) &_psychonetrics_kronecker_diag_sparse, 1},
