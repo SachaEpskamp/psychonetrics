@@ -221,8 +221,8 @@ var1 <- function(
     D2 = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
     L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
     Dstar = psychonetrics::duplicationMatrix(nNode,diag = FALSE), # Strict duplicaton matrix
-    In = Diagonal(nNode), # Identity of dim n
-    In2 = Diagonal(nNode), # Identity of dim n^2
+    In = as(diag(nNode),"dgCMatrix"), # Identity of dim n
+    In2 = as(diag(nNode),"dgCMatrix"), # Identity of dim n^2
     A = psychonetrics::diagonalizationMatrix(nNode),
     C = as(lavaan::lav_matrix_commutation(nNode,nNode),"sparseMatrix")
     # P=P # Permutation matrix
@@ -242,6 +242,8 @@ var1 <- function(
     # P <- bdiag(Diagonal(nNode*2),sparseMatrix(j=seq_along(inds),i=inds))
     model@extramatrices$P <- bdiag(Diagonal(nNode*2),sparseMatrix(j=seq_along(inds),i=order(inds)))
 
+    model@extramatrices$P <- as(model@extramatrices$P, "dgCMatrix")
+    
   
   # Form the model matrices
   model@modelmatrices <- formModelMatrices(model)
