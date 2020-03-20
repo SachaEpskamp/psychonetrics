@@ -32,7 +32,7 @@ Rcpp::List impliedModel_cpp(
   } else if (framework == "lvm"){
     
     // Obtain environment containing function
-    Rcpp::Environment base("package:psychonetrics"); 
+    Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
     
     // Make function callable from C++
     Rcpp::Function impfun = base["implied_lvm"]; 
@@ -42,7 +42,7 @@ Rcpp::List impliedModel_cpp(
   } else if (framework == "var1"){
     
     // Obtain environment containing function
-    Rcpp::Environment base("package:psychonetrics"); 
+    Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
     
     // Make function callable from C++
     Rcpp::Function impfun = base["implied_var1"]; 
@@ -52,7 +52,7 @@ Rcpp::List impliedModel_cpp(
   } else if (framework == "dlvm1"){
     
     // Obtain environment containing function
-    Rcpp::Environment base("package:psychonetrics"); 
+    Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
     
     // Make function callable from C++
     Rcpp::Function impfun = base["implied_dlvm1"]; 
@@ -62,7 +62,7 @@ Rcpp::List impliedModel_cpp(
   }  else if (framework == "tsdlvm1"){
     
     // Obtain environment containing function
-    Rcpp::Environment base("package:psychonetrics"); 
+    Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
     
     // Make function callable from C++
     Rcpp::Function impfun = base["implied_tsdlvm1"]; 
@@ -72,7 +72,7 @@ Rcpp::List impliedModel_cpp(
   }   else if (framework == "meta_varcov"){
     
     // Obtain environment containing function
-    Rcpp::Environment base("package:psychonetrics"); 
+    Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
     
     // Make function callable from C++
     Rcpp::Function impfun = base["implied_meta_varcov"]; 
@@ -82,7 +82,7 @@ Rcpp::List impliedModel_cpp(
   }  else if (framework == "Ising"){
     
     // Obtain environment containing function
-    Rcpp::Environment base("package:psychonetrics"); 
+    Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
     
     // Make function callable from C++
     Rcpp::Function impfun = base["implied_Ising"]; 
@@ -92,7 +92,7 @@ Rcpp::List impliedModel_cpp(
   }  else if (framework == "ml_lvm"){
     
     // Obtain environment containing function
-    Rcpp::Environment base("package:psychonetrics"); 
+    Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
     
     // Make function callable from C++
     Rcpp::Function impfun = base["implied_ml_lvm"]; 
@@ -128,7 +128,8 @@ Rcpp::List prepareModel_cpp(
   } else if (framework == "lvm"){
     
     // Obtain environment containing function
-    Rcpp::Environment base("package:psychonetrics"); 
+    Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
+
     
     // Make function callable from C++
     Rcpp::Function prepfun = base["prepare_lvm"]; 
@@ -138,7 +139,7 @@ Rcpp::List prepareModel_cpp(
   } else if (framework == "var1"){
     
     // Obtain environment containing function
-    Rcpp::Environment base("package:psychonetrics"); 
+    Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
     
     // Make function callable from C++
     Rcpp::Function prepfun = base["prepare_var1"]; 
@@ -148,7 +149,7 @@ Rcpp::List prepareModel_cpp(
   } else if (framework == "dlvm1"){
     
     // Obtain environment containing function
-    Rcpp::Environment base("package:psychonetrics"); 
+    Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
     
     // Make function callable from C++
     Rcpp::Function prepfun = base["prepare_dlvm1"]; 
@@ -158,7 +159,7 @@ Rcpp::List prepareModel_cpp(
   }  else if (framework == "tsdlvm1"){
     
     // Obtain environment containing function
-    Rcpp::Environment base("package:psychonetrics"); 
+    Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
     
     // Make function callable from C++
     Rcpp::Function prepfun = base["prepare_tsdlvm1"]; 
@@ -168,7 +169,7 @@ Rcpp::List prepareModel_cpp(
   }   else if (framework == "meta_varcov"){
     
     // Obtain environment containing function
-    Rcpp::Environment base("package:psychonetrics"); 
+    Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
     
     // Make function callable from C++
     Rcpp::Function prepfun = base["prepare_meta_varcov"]; 
@@ -178,7 +179,7 @@ Rcpp::List prepareModel_cpp(
   }  else if (framework == "Ising"){
     
     // Obtain environment containing function
-    Rcpp::Environment base("package:psychonetrics"); 
+    Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
     
     // Make function callable from C++
     Rcpp::Function prepfun = base["prepare_Ising"]; 
@@ -188,7 +189,7 @@ Rcpp::List prepareModel_cpp(
   }  else if (framework == "ml_lvm"){
     
     // Obtain environment containing function
-    Rcpp::Environment base("package:psychonetrics"); 
+    Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
     
     // Make function callable from C++
     Rcpp::Function prepfun = base["prepare_ml_lvm"]; 
