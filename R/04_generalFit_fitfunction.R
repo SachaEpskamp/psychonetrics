@@ -8,7 +8,6 @@ psychonetrics_fitfunction <- function(x, model){
     prep <- prepareModel(x, model)  
   }
   
-  
   # What estimator to use:
   estimator <- model@estimator
   
