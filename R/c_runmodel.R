@@ -34,11 +34,11 @@ runmodel <- function(
   if (optimizer == "default"){
     # if (x@model %in% c("varcov","lvm") && any(grepl("omega",x@parameters$matrix))){
     if (x@distribution == "Gaussian" && any(grepl("omega",x@parameters$matrix))){
-      optimizer <- "nlminb"      
+      optimizer <- "nlminb"
     } else {
       optimizer <- "ucminf"
     }
-    
+    # optimizer <- "psychonetrics_BFGS"
   }
   
   
@@ -152,74 +152,99 @@ runmodel <- function(
   # Form optimizer arguments:
   
   
-  
-  optim.control$par <- start
-  optim.control$fn <- psychonetrics_fitfunction
-  optim.control$model <- x
-  if (level != "fitfunction"){
-    optim.control$gr <- psychonetrics_gradient
-  }
-  
-  # Add method:
-  optim.control$method <- optimizer
-  
-  # Add bounds:
-  if (optimizer %in% c("nlminb","L-BFGS-B","lbfgs")){
+  if (optimizer == "psychonetrics_BFGS"){
     
-    optim.control$lower <- lower
-    optim.control$upper <- upper
-  }
-  # Run model:
-  curtry <- 1
-  
-  # If nlminb, add lavaan controls:
-  if (optimizer == "nlminb"){
-    if (is.null(optim.control$control)){
-      optim.control$control<- list(eval.max=20000L,
-                                   iter.max=10000L,
-                                   trace=0L,
-                                   #abs.tol=1e-20, ### important!! fx never negative
-                                   abs.tol=(.Machine$double.eps * 10),
-                                   # rel.tol=1e-10,
-                                   rel.tol=1e-5,
-                                   #step.min=2.2e-14, # in =< 0.5-12
-                                   step.min=1.0, # 1.0 in < 0.5-21
-                                   step.max=1.0,
-                                   x.tol=1.5e-8,
-                                   xf.tol=2.2e-14)
-    }
-  }
-  
-  
-  repeat{
-    tryres <- try({
-      optim.out <- do.call(optimr,optim.control)
-    }, silent = TRUE)    
+    x <- psychonetrics_BFGS(x, Hstart = 0.5 * psychonetrics_FisherInformation(x))
     
-    if (!is(tryres,"try-error") && !any(is.na(optim.out$par))){
-      break
+    x <- updateModel(parVector(x),x,updateMatrices = TRUE)
+    
+    
+  } else {
+    optim.control$par <- start
+    if (x@cpp){
+      optim.control$fn <- psychonetrics_fitfunction_cpp
     } else {
-      curtry <- curtry + 1
-      if (curtry > maxtry){
-        if (verbose){
-          message("Model estimation failed and 'maxtry' reached. Returning error.")
-          print(tryres)
-        }        
-        return(tryres)
+      optim.control$fn <- psychonetrics_fitfunction
+    }
+    
+    optim.control$model <- x
+    if (level != "fitfunction"){
+      if (x@cpp){
+        optim.control$gr <- psychonetrics_gradient_cpp
       } else {
-        if (verbose){
-          message("Model estimation failed. Perturbing start values.")
-        }        
-        optim.control$par <- optim.control$par  + runif(length(optim.control$par),0, 0.1)
-        optim.control$par[parMat(x) == "beta" | (rowMat(x) != colMat(x))] <- optim.control$par[parMat(x) == "beta" | (rowMat(x) != colMat(x))]/2
+        optim.control$gr <- psychonetrics_gradient
+      }
+      
+    }
+    
+    # Add method:
+    optim.control$method <- optimizer
+    
+    # Add bounds:
+    if (optimizer %in% c("nlminb","L-BFGS-B","lbfgs")){
+      
+      optim.control$lower <- lower
+      optim.control$upper <- upper
+    }
+    # Run model:
+    curtry <- 1
+    
+    # If nlminb, add lavaan controls:
+    if (optimizer == "nlminb"){
+      if (is.null(optim.control$control)){
+        optim.control$control<- list(eval.max=20000L,
+                                     iter.max=10000L,
+                                     trace=0L,
+                                     #abs.tol=1e-20, ### important!! fx never negative
+                                     abs.tol=(.Machine$double.eps * 10),
+                                     # rel.tol=1e-10,
+                                     rel.tol=1e-5,
+                                     #step.min=2.2e-14, # in =< 0.5-12
+                                     step.min=1.0, # 1.0 in < 0.5-21
+                                     step.max=1.0,
+                                     x.tol=1.5e-8,
+                                     xf.tol=2.2e-14)
       }
     }
+    
+    
+    repeat{
+      tryres <- try({
+        optim.out <- do.call(optimr,optim.control)
+      }, silent = TRUE)    
+      
+      if (!is(tryres,"try-error") && !any(is.na(optim.out$par))){
+        break
+      } else {
+        curtry <- curtry + 1
+        if (curtry > maxtry){
+          if (verbose){
+            message("Model estimation failed and 'maxtry' reached. Returning error.")
+            print(tryres)
+          }        
+          return(tryres)
+        } else {
+          if (verbose){
+            message("Model estimation failed. Perturbing start values.")
+          }        
+          optim.control$par <- optim.control$par  + runif(length(optim.control$par),0, 0.1)
+          optim.control$par[parMat(x) == "beta" | (rowMat(x) != colMat(x))] <- optim.control$par[parMat(x) == "beta" | (rowMat(x) != colMat(x))]/2
+        }
+      }
+    }
+    x <- updateModel(optim.out$par,x,updateMatrices = TRUE)
+    optimresults <- optim.out
+    optimresults$optimizer <- optimizer
+    x@optim <- optimresults
+    # x@computed <- TRUE
+    x@objective <- optimresults$value
   }
+
   
   # optim.out <- do.call(optimr,optim.control)
   
   # Update model:
-  x <- updateModel(optim.out$par,x,updateMatrices = TRUE)
+
   
   # Make list:
   # optimresults <- list(
@@ -228,8 +253,7 @@ runmodel <- function(
   #   message = optim.out$message,
   #   optimizer = optimizer
   # )
-  optimresults <- optim.out
-  optimresults$optimizer <- optimizer
+
   
   # 
   #   ### START OPTIMIZATION ###
@@ -319,9 +343,9 @@ runmodel <- function(
   #   }
   #   
   
-  x@optim <- optimresults
+  # x@optim <- optimresults
   x@computed <- TRUE
-  x@objective <- optimresults$value
+  # x@objective <- optimresults$value
   
   # Add information:
   # if (!is.null(x@fitfunctions$information)){

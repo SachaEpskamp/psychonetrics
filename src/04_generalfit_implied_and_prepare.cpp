@@ -252,6 +252,7 @@ Rcpp::List prepareModel_cpp(
     
     prep["estimator"] = model.slot("estimator");
     prep["distribution"] = model.slot("distribution");
+    prep["model"] = model.slot("model");
     
     
     // Return:
