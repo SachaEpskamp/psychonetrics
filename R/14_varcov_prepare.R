@@ -13,10 +13,15 @@ prepare_varcov <- function(x, model){
   nPerGroup <- model@sample@groups$nobs
 
   # Form the model matrices:
-  mats <- formModelMatrices(newMod)
+  # mats <- formModelMatrices(newMod)
   
   # Compute implied matrices:
-  imp <- implied_varcov(newMod, all = FALSE)
+  if (model@cpp){
+    imp <- implied_varcov_cpp(newMod, all = FALSE)  
+  } else {
+    imp <- implied_varcov(newMod, all = FALSE)
+  }
+  
 
   # Sample stats:
   S <- model@sample@covs

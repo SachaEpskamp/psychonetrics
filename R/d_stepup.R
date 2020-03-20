@@ -321,7 +321,12 @@ stepup <- function(
         x <- emergencystart(x)
         
         # Update the model:
-        x@extramatrices$M <- Mmatrix(x@parameters) # FIXME: Make nice function for this
+        # x@extramatrices$M <- Mmatrix(x@parameters) # FIXME: Make nice function for this
+        if (x@cpp){
+          x@extramatrices$M  <- Mmatrix_cpp(x@parameters)
+        } else {
+          x@extramatrices$M  <- Mmatrix(x@parameters)  
+        }
         
         if (verbose){
           message(paste("Adding",length(best),"parameters in greedy search start."))

@@ -94,7 +94,12 @@ psychonetrics_gradient <- function(x, model){
   modelPart <- sparseordense(modelJacobian(prep))
 
   # Manual part:
-  manualPart <- Mmatrix(model@parameters)
+  if (model@cpp){
+    manualPart <- Mmatrix_cpp(model@parameters)
+  } else {
+    manualPart <- Mmatrix(model@parameters)  
+  }
+  
 
   # FIXME: partial cpp
   if (model@cpp){

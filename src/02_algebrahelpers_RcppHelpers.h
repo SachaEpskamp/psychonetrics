@@ -69,5 +69,6 @@ arma::mat cbind_psychonetrics(
                 const Rcpp::List  mats
 );
 
+List CheapDataFrameBuilder(List a);
 
 #endif

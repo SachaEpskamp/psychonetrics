@@ -94,7 +94,13 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
   # modCopy <- identify(modCopy)
   
   # Remake the model matrix:
-  modCopy@extramatrices$M <- Mmatrix(modCopy@parameters)
+  # modCopy@extramatrices$M <- Mmatrix(modCopy@parameters)
+  # 
+  if (modCopy@cpp){
+    modCopy@extramatrices$M   <- Mmatrix_cpp(modCopy@parameters )
+  } else {
+    modCopy@extramatrices$M  <- Mmatrix(modCopy@parameters)  
+  }
   
   
   # Check if gradient and hessian are present:

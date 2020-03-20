@@ -117,8 +117,11 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
   
   
   # Manual part:
-  manualPart <- Mmatrix(model@parameters)
-
+  if (model@cpp){
+    manualPart <- Mmatrix_cpp(model@parameters)
+  } else {
+    manualPart <- Mmatrix(model@parameters)  
+  }
   # Compute fisher information and return:
   # Fisher <- 2 * prep$nTotal * t(manualPart) %*% t(modelPart) %*% estimatorPartHessian %*% modelPart %*% manualPart
 

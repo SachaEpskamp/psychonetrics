@@ -224,7 +224,7 @@ var1 <- function(
     In = as(diag(nNode),"dgCMatrix"), # Identity of dim n
     In2 = as(diag(nNode),"dgCMatrix"), # Identity of dim n^2
     A = psychonetrics::diagonalizationMatrix(nNode),
-    C = as(lavaan::lav_matrix_commutation(nNode,nNode),"sparseMatrix")
+    C = as(lavaan::lav_matrix_commutation(nNode,nNode),"dgCMatrix")
     # P=P # Permutation matrix
   )
   

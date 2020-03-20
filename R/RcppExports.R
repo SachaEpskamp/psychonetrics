@@ -49,6 +49,10 @@ invSDmat <- function(X) {
     .Call(`_psychonetrics_invSDmat`, X)
 }
 
+CheapDataFrameBuilder <- function(a) {
+    .Call(`_psychonetrics_CheapDataFrameBuilder`, a)
+}
+
 kronecker_I_X <- function(X, n) {
     .Call(`_psychonetrics_kronecker_I_X`, X, n)
 }
@@ -63,6 +67,14 @@ kronecker_diag_sparse <- function(X) {
 
 kronecker_diag <- function(X) {
     .Call(`_psychonetrics_kronecker_diag`, X)
+}
+
+Mmatrix_cpp <- function(parDF) {
+    .Call(`_psychonetrics_Mmatrix_cpp`, parDF)
+}
+
+formModelMatrices_cpp <- function(model) {
+    .Call(`_psychonetrics_formModelMatrices_cpp`, model)
 }
 
 impliedcovstructures_cpp <- function(x, name = "", type = "cov", all = FALSE) {
@@ -309,6 +321,10 @@ d_phi_theta_varcov_cpp <- function(prep) {
     .Call(`_psychonetrics_d_phi_theta_varcov_cpp`, prep)
 }
 
+implied_varcov_cpp <- function(model, all = FALSE) {
+    .Call(`_psychonetrics_implied_varcov_cpp`, model, all)
+}
+
 d_mu_nu_lvm_cpp <- function(nu) {
     .Call(`_psychonetrics_d_mu_nu_lvm_cpp`, nu)
 }
@@ -515,5 +531,9 @@ d_phi_theta_ml_lvm_group_cpp <- function(grouplist) {
 
 d_phi_theta_ml_lvm_cpp <- function(prep) {
     .Call(`_psychonetrics_d_phi_theta_ml_lvm_cpp`, prep)
+}
+
+updateModel_cpp <- function(x, model, updateMatrices) {
+    .Call(`_psychonetrics_updateModel_cpp`, x, model, updateMatrices)
 }
 
