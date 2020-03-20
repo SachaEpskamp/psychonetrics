@@ -1,33 +1,58 @@
-// // -*- mode: C++; c-indent-level: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*-
-// 
-// // we only include RcppArmadillo.h which pulls Rcpp.h in for us
-// #include <RcppArmadillo.h>
-// #include <math.h>
-// #include "02_algebragelpers_kronecker.h"
-// #include "02_algebrahelpers_RcppHelpers.h"
-// #include "03_modelformation_formModelMatrices_cpp.h"
-// #include "03_modelformation_impliedcovstructures.h"
-// 
-// // [[Rcpp::depends(RcppArmadillo)]]
-// using namespace Rcpp;
-// using namespace arma;
-// 
-// // [[Rcpp::export]]
-// S4 updateModel_cpp(
-//     arma::vec x,
-//     S4& model,
-//     bool updateMatrices
-// ){
-//   S4 newMod(model); // FIXME: this copies the entire model ...
-//   
-//   Rcpp::List parsList = newMod.slot("parameters");
-//   
-//   Rcpp::DataFrame parsDF = CheapDataFrameBuilder(parsList);
-//   
-//   int nPar = x.n_elem;
-//   
-//   
-//   newMod.slot("parameters") = parsDF;
-//   return(newMod);
-// }
-// 
+// -*- mode: C++; c-indent-level: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*-
+
+// we only include RcppArmadillo.h which pulls Rcpp.h in for us
+#include <RcppArmadillo.h>
+#include <math.h>
+#include "02_algebragelpers_kronecker.h"
+#include "02_algebrahelpers_RcppHelpers.h"
+#include "03_modelformation_formModelMatrices_cpp.h"
+#include "03_modelformation_impliedcovstructures.h"
+
+// [[Rcpp::depends(RcppArmadillo)]]
+using namespace Rcpp;
+using namespace arma;
+
+// [[Rcpp::export]]
+S4 updateModel_cpp(
+    arma::vec x,
+    S4 model,
+    bool updateMatrices
+){
+  S4 newMod(model); // FIXME: creates a copy?
+  
+  int i;
+    
+  // Extract pars:
+  Rcpp::List parsList = model.slot("parameters");
+
+  // Extract ests:
+  arma::vec est = parsList["est"];
+  arma::vec par = parsList["par"];
+  
+  // max par:
+  int maxPar = max(par);
+  
+  int totPar = est.n_elem;
+  
+  // Need to update?
+  if (maxPar > 0){
+    for (i=0; i<totPar;i++){
+      if (par(i) > 0){
+        est(i) = x(par(i)-1);
+      }
+    }
+  }
+  
+  // Add model:
+  if (updateMatrices){
+    Rf_error("updateMatrices not yet implemented in C++");
+    
+  }
+  
+  // Write back:
+  parsList["est"] = est;
+  model.slot("parameters") = parsList;
+  
+  return(model);
+}
+

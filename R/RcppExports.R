@@ -49,10 +49,6 @@ invSDmat <- function(X) {
     .Call(`_psychonetrics_invSDmat`, X)
 }
 
-CheapDataFrameBuilder <- function(a) {
-    .Call(`_psychonetrics_CheapDataFrameBuilder`, a)
-}
-
 kronecker_I_X <- function(X, n) {
     .Call(`_psychonetrics_kronecker_I_X`, X, n)
 }
@@ -95,6 +91,22 @@ gradient_inner_cpp_DSS <- function(estimator, model, manual) {
 
 gradient_inner_cpp_DDS <- function(estimator, model, manual) {
     .Call(`_psychonetrics_gradient_inner_cpp_DDS`, estimator, model, manual)
+}
+
+psychonetrics_fitfunction_cpp_prepared <- function(prep) {
+    .Call(`_psychonetrics_psychonetrics_fitfunction_cpp_prepared`, prep)
+}
+
+psychonetrics_fitfunction_cpp <- function(x, model) {
+    .Call(`_psychonetrics_psychonetrics_fitfunction_cpp`, x, model)
+}
+
+impliedModel_cpp <- function(model, all = FALSE) {
+    .Call(`_psychonetrics_impliedModel_cpp`, model, all)
+}
+
+prepareModel_cpp <- function(x, model) {
+    .Call(`_psychonetrics_prepareModel_cpp`, x, model)
 }
 
 logLikelihood_gaussian_subgroup_fiml_cpp_inner <- function(sigma, kappa, mu, dat, epsilon) {
@@ -323,6 +335,10 @@ d_phi_theta_varcov_cpp <- function(prep) {
 
 implied_varcov_cpp <- function(model, all = FALSE) {
     .Call(`_psychonetrics_implied_varcov_cpp`, model, all)
+}
+
+prepare_varcov_cpp <- function(x, model) {
+    .Call(`_psychonetrics_prepare_varcov_cpp`, x, model)
 }
 
 d_mu_nu_lvm_cpp <- function(nu) {

@@ -13,8 +13,13 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
     return(numeric_FisherInformation(model))
   }
 
-    # Prepare (FIXME: x not needed but I am laxy...)
-  prep <- prepareModel(parVector(model), model)
+  # Prepare model:
+  if (model@cpp){
+    prep <- prepareModel_cpp(parVector(model), model) # <- upated!
+  } else {
+    prep <- prepareModel(parVector(model), model)  
+  }
+  
   
   # # estimator part Jacobian:
   # estimatorJacobian <- switch(

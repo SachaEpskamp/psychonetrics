@@ -383,89 +383,24 @@ bool anyNon0(
 }
 
 
-// https://gallery.rcpp.org/articles/faster-data-frame-creation/
-
-// [[Rcpp::export]]
-List CheapDataFrameBuilder(List a) {
-  List returned_frame = clone(a);
-  GenericVector sample_row = returned_frame(0);
+// [[Rcpp:export]]
+void growlist(
+  Rcpp::List& X,
+  const Rcpp::List Y
+){
+  // Names of Y:
+  CharacterVector names = Y.names();
   
-  StringVector row_names(sample_row.length());
-  for (int i = 0; i < sample_row.length(); ++i) {
-    char name[5];
-    sprintf(&(name[0]), "%d", i);
-    row_names(i) = name;
+  // Length of Y:
+  int n = Y.length();
+  
+  // var:
+  std::string var;
+  
+  // Loop
+  for (int i=0; i < n; i++){
+    var = names[i];
+    X[var] = Y[i];
   }
-  returned_frame.attr("row.names") = row_names;
   
-  StringVector col_names(returned_frame.length());
-  for (int j = 0; j < returned_frame.length(); ++j) {
-    char name[6];
-    sprintf(&(name[0]), "X.%d", j);
-    col_names(j) = name;
-  }
-  returned_frame.attr("names") = col_names;
-  returned_frame.attr("class") = "data.frame";
-  
-  return returned_frame;
 }
-
-// 
-// // [[Rcpp::export]]
-// arma::mat test1(
-//     const arma::mat& delta,
-//     const arma::mat& omega
-// ){
-//   int n = omega.n_rows;
-//   arma::mat I = eye(n,n);
-//   arma::mat res = delta * solve_symmetric_cpp_matrixonly(I - omega) * delta;
-//   return(res);
-// }
-// 
-// // [[Rcpp::export]]
-// arma::mat test2(
-//     arma::mat& delta,
-//     const arma::mat& omega
-// ){
-//   delta = diagmat(delta);
-//   int n = omega.n_rows;
-//   arma::mat I = eye(n,n);
-//   arma::mat res = delta * solve_symmetric_cpp_matrixonly(I - omega) * delta;
-//   return(res);
-// }
-// 
-// 
-// 
-// // [[Rcpp::export]]
-// arma::mat test3(
-//     const arma::sp_mat& delta,
-//     const arma::mat& omega
-// ){
-//   int n = omega.n_rows;
-//   arma::mat I = eye(n,n);
-//   arma::mat res = delta * solve_symmetric_cpp_matrixonly(I - omega) * delta;
-//   return(res);
-// }
-// 
-// 
-// 
-// // [[Rcpp::export]]
-// arma::mat test4(
-//     const arma::mat& delta,
-//     const arma::mat& omega
-// ){
-//   int n = omega.n_rows;
-//   arma::mat I = eye(n,n);
-//   arma::mat res = diagmat(delta) * solve_symmetric_cpp_matrixonly(I - omega) * diagmat(delta);
-//   return(res);
-// }
-
-
-// // [[Rcpp::export]]
-// arma::sp_mat testmult(
-//     const arma::sp_mat& X
-// ){
-//   return(X * X);
-// }
-// 
-

@@ -1,0 +1,258 @@
+// -*- mode: C++; c-indent-level: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*-
+
+// we only include RcppArmadillo.h which pulls Rcpp.h in for us
+#include <RcppArmadillo.h>
+#include <math.h>
+#include "02_algebrahelpers_RcppHelpers.h"
+#include "03_modelformation_formModelMatrices_cpp.h"
+#include "14_varcov_implied_cpp.h"
+#include "14_varcov_prepare_cpp.h"
+
+// [[Rcpp::depends(RcppArmadillo)]]
+using namespace Rcpp;
+using namespace arma;
+
+// [[Rcpp::export]]
+Rcpp::List impliedModel_cpp(
+    const S4& model,
+    bool all = false
+){
+  // What model:
+  std::string framework= model.slot("model");
+  
+  // Output list:
+  Rcpp::List imp;
+  
+  
+  // Run:
+  if (framework == "varcov"){
+    
+    imp = implied_varcov_cpp(model, all); // = Updated!
+    
+  } else if (framework == "lvm"){
+    
+    // Obtain environment containing function
+    Rcpp::Environment base("package:psychonetrics"); 
+    
+    // Make function callable from C++
+    Rcpp::Function impfun = base["implied_lvm"]; 
+    
+    imp = impfun(Rcpp::_["model"] = model, Rcpp::_["all"] =   all);
+    
+  } else if (framework == "var1"){
+    
+    // Obtain environment containing function
+    Rcpp::Environment base("package:psychonetrics"); 
+    
+    // Make function callable from C++
+    Rcpp::Function impfun = base["implied_var1"]; 
+    
+    imp = impfun(Rcpp::_["model"] = model, Rcpp::_["all"] =   all);
+    
+  } else if (framework == "dlvm1"){
+    
+    // Obtain environment containing function
+    Rcpp::Environment base("package:psychonetrics"); 
+    
+    // Make function callable from C++
+    Rcpp::Function impfun = base["implied_dlvm1"]; 
+    
+    imp = impfun(Rcpp::_["model"] = model, Rcpp::_["all"] =   all);
+    
+  }  else if (framework == "tsdlvm1"){
+    
+    // Obtain environment containing function
+    Rcpp::Environment base("package:psychonetrics"); 
+    
+    // Make function callable from C++
+    Rcpp::Function impfun = base["implied_tsdlvm1"]; 
+    
+    imp = impfun(Rcpp::_["model"] = model, Rcpp::_["all"] =   all);
+    
+  }   else if (framework == "meta_varcov"){
+    
+    // Obtain environment containing function
+    Rcpp::Environment base("package:psychonetrics"); 
+    
+    // Make function callable from C++
+    Rcpp::Function impfun = base["implied_meta_varcov"]; 
+    
+    imp = impfun(Rcpp::_["model"] = model, Rcpp::_["all"] =   all);
+    
+  }  else if (framework == "Ising"){
+    
+    // Obtain environment containing function
+    Rcpp::Environment base("package:psychonetrics"); 
+    
+    // Make function callable from C++
+    Rcpp::Function impfun = base["implied_Ising"]; 
+    
+    imp = impfun(Rcpp::_["model"] = model, Rcpp::_["all"] =   all);
+    
+  }  else if (framework == "ml_lvm"){
+    
+    // Obtain environment containing function
+    Rcpp::Environment base("package:psychonetrics"); 
+    
+    // Make function callable from C++
+    Rcpp::Function impfun = base["implied_ml_lvm"]; 
+    
+    imp = impfun(Rcpp::_["model"] = model, Rcpp::_["all"] =   all);
+    
+  }
+  
+  // Return:
+  return(imp);
+}
+
+
+// [[Rcpp::export]]
+Rcpp::List prepareModel_cpp(
+    arma::vec x,
+    const S4& model
+){
+  int g;
+  
+  // What model:
+  std::string framework= model.slot("model");
+  
+  // Output list:
+  Rcpp::List prep;
+  
+  
+  // Run:
+  if (framework == "varcov"){
+    
+    prep = prepare_varcov_cpp(x, model); // = Updated!
+    
+  } else if (framework == "lvm"){
+    
+    // Obtain environment containing function
+    Rcpp::Environment base("package:psychonetrics"); 
+    
+    // Make function callable from C++
+    Rcpp::Function prepfun = base["prepare_lvm"]; 
+    
+    prep = prepfun(Rcpp::_["x"] = x, Rcpp::_["model"] =   model);
+    
+  } else if (framework == "var1"){
+    
+    // Obtain environment containing function
+    Rcpp::Environment base("package:psychonetrics"); 
+    
+    // Make function callable from C++
+    Rcpp::Function prepfun = base["prepare_var1"]; 
+    
+    prep = prepfun(Rcpp::_["x"] = x, Rcpp::_["model"] =   model);
+    
+  } else if (framework == "dlvm1"){
+    
+    // Obtain environment containing function
+    Rcpp::Environment base("package:psychonetrics"); 
+    
+    // Make function callable from C++
+    Rcpp::Function prepfun = base["prepare_dlvm1"]; 
+    
+    prep = prepfun(Rcpp::_["x"] = x, Rcpp::_["model"] =   model);
+    
+  }  else if (framework == "tsdlvm1"){
+    
+    // Obtain environment containing function
+    Rcpp::Environment base("package:psychonetrics"); 
+    
+    // Make function callable from C++
+    Rcpp::Function prepfun = base["prepare_tsdlvm1"]; 
+    
+    prep = prepfun(Rcpp::_["x"] = x, Rcpp::_["model"] =   model);
+    
+  }   else if (framework == "meta_varcov"){
+    
+    // Obtain environment containing function
+    Rcpp::Environment base("package:psychonetrics"); 
+    
+    // Make function callable from C++
+    Rcpp::Function prepfun = base["prepare_meta_varcov"]; 
+    
+    prep = prepfun(Rcpp::_["x"] = x, Rcpp::_["model"] =   model);
+    
+  }  else if (framework == "Ising"){
+    
+    // Obtain environment containing function
+    Rcpp::Environment base("package:psychonetrics"); 
+    
+    // Make function callable from C++
+    Rcpp::Function prepfun = base["prepare_Ising"]; 
+    
+    prep = prepfun(Rcpp::_["x"] = x, Rcpp::_["model"] =   model);
+    
+  }  else if (framework == "ml_lvm"){
+    
+    // Obtain environment containing function
+    Rcpp::Environment base("package:psychonetrics"); 
+    
+    // Make function callable from C++
+    Rcpp::Function prepfun = base["prepare_ml_lvm"]; 
+    
+    prep = prepfun(Rcpp::_["x"] = x, Rcpp::_["model"] =   model);
+    
+  }
+  
+  // Sample
+  S4 sample = model.slot("sample");
+  Rcpp::List fimldata = sample.slot("fimldata");
+  Rcpp::List WLS_W = sample.slot("WLS.W");
+  
+  // PArameters:
+  Rcpp::List parList = model.slot("parameters");
+  arma::vec pars = parList["par"];
+  
+  // Groups
+  Rcpp::List groups = sample.slot("groups");
+  arma::vec nobspergroup = groups["nobs"];
+  
+  // Number of groups:
+  Rcpp::List groupModels = prep["groupModels"];
+  int nGroup = groupModels.length();
+  
+  // Estimator:
+  std::string estimator = model.slot("estimator");
+  
+  // If the estimator is FIML, add the raw data:
+  for (g=0;g<nGroup;g++){
+    Rcpp::List groupmod = groupModels[g];
+    
+    if (estimator == "FIML"){
+      // Add the raw data to each group:
+      groupmod["fimldata"] = fimldata[g];
+      groupmod["fulln"] = nobspergroup[g];
+      
+    } else   if (estimator == "WLS" || estimator == "DWLS" || estimator == "ULS"){
+      groupmod["WLS.W"] = WLS_W[g];
+      
+    }
+    
+    groupmod["estimator"] = estimator;
+    
+    // Return back:
+    groupModels[g] = groupmod;
+  }
+  
+  // Write back:
+  prep["groupModels"] = groupModels;
+  
+  prep["fullFIML"] = sample.slot("fullFIML");
+  
+  // FIXME Add WLS.W:
+  
+  
+  // Add number of parameters:
+  prep["nParFull"] = pars.n_elem;
+  prep["nParFree"] = max(pars);
+    
+    prep["estimator"] = model.slot("estimator");
+    prep["distribution"] = model.slot("distribution");
+    
+    
+    // Return:
+    return(prep);
+}
