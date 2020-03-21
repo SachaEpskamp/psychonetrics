@@ -58,10 +58,17 @@ arma::mat gradient_inner_cpp_DDS(
 
 
 // [[Rcpp::export]]
-arma::vec psychonetrics_gradient_cpp_prepared(
-    Rcpp::List prep,
-    arma::sp_mat manualPart
+void psychonetrics_gradient_cpp_inner(
+    const arma::vec& x,
+    arma::vec& grad,
+    const S4& model
 ){
+  // Prepare model:
+  Rcpp::List prep = prepareModel_cpp(x, model);
+  
+  // Manual part:
+  arma::sp_mat manualPart = Mmatrix_cpp_list(model.slot("parameters"));
+  
   
   // What estimator:
   std::string estimator= prep["estimator"];
@@ -71,7 +78,7 @@ arma::vec psychonetrics_gradient_cpp_prepared(
   std::string distribution = prep["distribution"];
   
   // What model:
-  std::string model = prep["model"];
+  std::string usemodel = prep["model"];
   
   // Estimator part:
   arma::mat estimatorPart;
@@ -104,35 +111,35 @@ arma::vec psychonetrics_gradient_cpp_prepared(
   // Model part:
   arma::mat modelPart;
   
-  if (model == "varcov"){
+  if (usemodel == "varcov"){
     
     modelPart = d_phi_theta_varcov_cpp(prep);
     
-  } else   if (model == "lvm"){
+  } else   if (usemodel == "lvm"){
     
     modelPart = d_phi_theta_lvm_cpp(prep);
     
-  }  if (model == "var1"){
+  } else  if (usemodel == "var1"){
     
     modelPart = d_phi_theta_var1_cpp(prep);
     
-  }  if (model == "dlvm1"){
+  }  else  if (usemodel == "dlvm1"){
     
     modelPart = d_phi_theta_dlvm1_cpp(prep);
     
-  }  if (model == "tsdlvm1"){
+  } else  if (usemodel == "tsdlvm1"){
     
     modelPart = d_phi_theta_tsdlvm1_cpp(prep);
     
-  }  if (model == "meta_varcov"){
+  }  else if (usemodel == "meta_varcov"){
     
     modelPart = d_phi_theta_meta_varcov_cpp(prep);
     
-  }  if (model == "Ising"){
+  }  else if (usemodel == "Ising"){
     
     modelPart = d_phi_theta_Ising_cpp(prep);
     
-  }  if (model == "ml_lvm"){
+  }  else if (usemodel == "ml_lvm"){
     
     modelPart = d_phi_theta_ml_lvm_cpp(prep);
     
@@ -143,7 +150,8 @@ arma::vec psychonetrics_gradient_cpp_prepared(
  
   arma::mat Jac = gradient_inner_cpp_DDS(estimatorPart, modelPart, manualPart);
   
-  return(vectorise(Jac));
+  grad = vectorise(Jac);
+  // return(vectorise(Jac));
 }
 
 
@@ -154,15 +162,15 @@ arma::vec psychonetrics_gradient_cpp(
     arma::vec x,
     const S4& model
 ){
-  // Prepare model:
-  Rcpp::List prep = prepareModel_cpp(x, model);
   
   
-  // Manual part:
-  arma::sp_mat manualPart = Mmatrix_cpp_list(model.slot("parameters"));
-    
+  // Create empty gradient:
+  arma::vec grad(x.n_elem);
   
-  arma::vec Jac = psychonetrics_gradient_cpp_prepared(prep, manualPart);
-  return(Jac);
+  // Run inner:
+  psychonetrics_gradient_cpp_inner(x, grad, model);
+  
+  
+  return(grad);
 }
 

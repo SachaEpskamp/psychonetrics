@@ -41,7 +41,7 @@ lvm <- function(
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   estimator = "ML",
-  optimizer = "default",
+  optimizer = c("cpp_CG","cpp_BFGS","cpp_L-BFGS-B","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
   storedata = FALSE,
   WLS.W,
   covtype = c("choose","ML","UB"),
@@ -49,6 +49,7 @@ lvm <- function(
   sampleStats,
   verbose=TRUE
 ){
+  optimizer <- match.arg(optimizer)
   rawts = FALSE
   if (rawts){
     warning("'rawts' is only included for testing purposes. Please do not use!")

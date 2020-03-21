@@ -36,12 +36,13 @@ meta_varcov <- function(
   
   # Some extra stuff:
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
-  optimizer = "default",
+  optimizer = c("cpp_CG","cpp_BFGS","cpp_L-BFGS-B","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
   estimator = c("FIML","ML"),
   
   sampleStats, # Leave to missing
   verbose = TRUE
 ){
+  optimizer <- match.arg(optimizer)
   # warning("'meta_varcov' is still experimental.")
   sampleSizes <- nobs # FIXME
   

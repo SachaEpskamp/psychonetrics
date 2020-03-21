@@ -67,7 +67,7 @@ runmodel <- function(
   if (!isBaseline && !is.null(x@baseline_saturated$baseline) && !x@baseline_saturated$baseline@computed){
     if (verbose) message("Estimating baseline model...")
     # Run:
-    
+    x@baseline_saturated$baseline@optimizer <- optimizer
     x@baseline_saturated$baseline <- runmodel(x@baseline_saturated$baseline, addfit = FALSE, addMIs = FALSE, verbose = FALSE,addSEs=FALSE, addInformation = FALSE, analyticFisher = FALSE)
   }
   
@@ -75,6 +75,7 @@ runmodel <- function(
   
   if (!isSaturated && !is.null(x@baseline_saturated$saturated) && !x@baseline_saturated$saturated@computed){
     if (verbose) message("Estimating saturated model...")
+    x@baseline_saturated$saturated@optimizer <- optimizer
     # Run:
     x@baseline_saturated$saturated <- runmodel(x@baseline_saturated$saturated, addfit = FALSE, addMIs = FALSE, verbose = FALSE,addSEs=FALSE, addInformation = FALSE, analyticFisher = FALSE)
   }
@@ -152,12 +153,12 @@ runmodel <- function(
   # Form optimizer arguments:
   
   
-  if (optimizer == "psychonetrics_BFGS"){
+  if (grepl("cpp",optimizer)){
+
+    x <- psychonetrics_optimizer(x, lower, upper, gsub("cpp_","",optimizer))
+    x@objective <- x@optim$value
     
-    x <- psychonetrics_BFGS(x, Hstart = 0.5 * psychonetrics_FisherInformation(x))
-    
-    x <- updateModel(parVector(x),x,updateMatrices = TRUE)
-    
+    x <- updateModel(parVector(x),x,updateMatrices = TRUE) # FIXME: Move this to C++!
     
   } else {
     optim.control$par <- start
@@ -232,14 +233,16 @@ runmodel <- function(
         }
       }
     }
-    x <- updateModel(optim.out$par,x,updateMatrices = TRUE)
     optimresults <- optim.out
     optimresults$optimizer <- optimizer
     x@optim <- optimresults
     # x@computed <- TRUE
     x@objective <- optimresults$value
+    x <- updateModel(optim.out$par,x,updateMatrices = TRUE)
   }
+  
 
+  x@optimizer <- optimizer
   
   # optim.out <- do.call(optimr,optim.control)
   

@@ -97,16 +97,12 @@ gradient_inner_cpp_DDS <- function(estimator, model, manual) {
     .Call(`_psychonetrics_gradient_inner_cpp_DDS`, estimator, model, manual)
 }
 
-psychonetrics_gradient_cpp_prepared <- function(prep, manualPart) {
-    .Call(`_psychonetrics_psychonetrics_gradient_cpp_prepared`, prep, manualPart)
+psychonetrics_gradient_cpp_inner <- function(x, grad, model) {
+    invisible(.Call(`_psychonetrics_psychonetrics_gradient_cpp_inner`, x, grad, model))
 }
 
 psychonetrics_gradient_cpp <- function(x, model) {
     .Call(`_psychonetrics_psychonetrics_gradient_cpp`, x, model)
-}
-
-psychonetrics_fitfunction_cpp_prepared <- function(prep) {
-    .Call(`_psychonetrics_psychonetrics_fitfunction_cpp_prepared`, prep)
 }
 
 psychonetrics_fitfunction_cpp <- function(x, model) {
@@ -133,8 +129,8 @@ logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML <- function(sigma, kappa, mu, 
     .Call(`_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML`, sigma, kappa, mu, fimldata, epsilon)
 }
 
-psychonetrics_BFGS <- function(model, Hstart) {
-    .Call(`_psychonetrics_psychonetrics_BFGS`, model, Hstart)
+psychonetrics_optimizer <- function(model, lower, upper, optimizer = "L-BFGS-B") {
+    .Call(`_psychonetrics_psychonetrics_optimizer`, model, lower, upper, optimizer)
 }
 
 expected_hessian_Gaussian_group_cpp <- function(grouplist) {

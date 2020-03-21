@@ -64,12 +64,13 @@ ml_lvm <- function(
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   # fitfunctions, # Leave empty
   estimator = c("FIML","MUML"),
-  optimizer = "default",
+  optimizer = c("cpp_CG","cpp_BFGS","cpp_L-BFGS-B","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
   storedata = FALSE,
   verbose = TRUE,
   standardize = c("none","z","quantile"),
   sampleStats
 ){
+  optimizer <- match.arg(optimizer)
   # CRAN Check workarounds (sorry):
   . <- NULL
   variable <- NULL
