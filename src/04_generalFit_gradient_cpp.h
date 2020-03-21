@@ -16,9 +16,10 @@ arma::vec psychonetrics_gradient_cpp(
     const S4& model
 );
 
-arma::vec psychonetrics_gradient_cpp_prepared(
-    Rcpp::List prep,
-    arma::sp_mat manualPart
+void psychonetrics_gradient_cpp_inner(
+    const arma::vec& x,
+    arma::vec& grad,
+    const S4& model
 );
 
 #endif

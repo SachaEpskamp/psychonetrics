@@ -51,13 +51,14 @@ tsdlvm1 <- function(
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   # fitfunctions, # Leave empty
   estimator = "ML",
-  optimizer = "default", # ucminf
+  optimizer = c("cpp_CG","cpp_BFGS","cpp_L-BFGS-B","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),  
   storedata = FALSE,
   sampleStats,
   covtype = c("choose","ML","UB"),
   centerWithin = FALSE,
   standardize = c("none","z","quantile")
 ){
+  optimizer <- match.arg(optimizer)
   contemporaneous <- match.arg(contemporaneous)
   residual <- match.arg(residual)
   identification <- match.arg(identification)

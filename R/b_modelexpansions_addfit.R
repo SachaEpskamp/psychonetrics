@@ -10,7 +10,7 @@ addfit <- function(
   if (!x@computed){
     stop("Model has not yet been run. Use runmodel(object) first!")
   }
-  
+
 
   # Sample size:
   sampleSize <- sum(x@sample@groups$nobs)

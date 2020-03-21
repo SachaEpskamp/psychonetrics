@@ -15,11 +15,14 @@ using namespace arma;
 
 
 // [[Rcpp::export]]
-double psychonetrics_fitfunction_cpp_prepared(
-  Rcpp::List prep
+double psychonetrics_fitfunction_cpp(
+    const arma::vec& x,
+    const S4& model
 ){
   double fit;
   
+  // Prepare model:
+  Rcpp::List prep = prepareModel_cpp(x, model);
   
   // What estimator:
   std::string estimator= prep["estimator"];
@@ -54,22 +57,6 @@ double psychonetrics_fitfunction_cpp_prepared(
   } else {
     Rf_error("Estimator not supported.");
   }
-
-  
-  
-  return(fit);
-}
-
-
-// [[Rcpp::export]]
-double psychonetrics_fitfunction_cpp(
-    arma::vec x,
-    const S4& model
-){
-  // Prepare model:
-  Rcpp::List prep = prepareModel_cpp(x, model);
-  
-  double fit = psychonetrics_fitfunction_cpp_prepared(prep);
   
   return(fit);
 }

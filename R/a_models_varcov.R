@@ -22,7 +22,7 @@ varcov <- function(
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   estimator = "default",
-  optimizer = "default",
+  optimizer = c("cpp_CG","cpp_BFGS","cpp_L-BFGS-B","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
   storedata = FALSE,
   WLS.W,
   sampleStats, # Leave to missing
@@ -33,6 +33,7 @@ varcov <- function(
   standardize = c("none","z","quantile"),
   fullFIML=FALSE
 ){
+  optimizer <- match.arg(optimizer)
   rawts = FALSE
   if (rawts){
     warning("'rawts' is only included for testing purposes. Please do not use!")

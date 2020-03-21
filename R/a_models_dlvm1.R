@@ -69,11 +69,12 @@ dlvm1 <- function(
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   # fitfunctions, # Leave empty
   estimator = "ML",
-  optimizer = "default",
+  optimizer = c("cpp_CG","cpp_BFGS","cpp_L-BFGS-B","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
   storedata = FALSE,
   verbose = TRUE,
   sampleStats
 ){
+  optimizer <- match.arg(optimizer)
   covtype <- match.arg(covtype)
   # Check for missing:
   # if (missing(lambda_within)){

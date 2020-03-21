@@ -11,12 +11,8 @@
 using namespace Rcpp;
 using namespace arma;
 
-double psychonetrics_fitfunction_cpp_prepared(
-    Rcpp::List prep
-);
-
 double psychonetrics_fitfunction_cpp(
-    arma::vec x,
+    const arma::vec& x,
     const S4& model
 );
 
