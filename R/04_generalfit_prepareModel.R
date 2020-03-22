@@ -10,7 +10,7 @@ prepareModel <- function(x, model){
                       # "rnm" = prepare_rnm,
                       # "gvar" = prepare_gvar,
                       "varcov" = prepare_varcov_cpp, # <- Updated!
-                      "lvm" = prepare_lvm,
+                      "lvm" = prepare_lvm_cpp, # <- updated!
                       "var1" = prepare_var1,
                       # "panelvar1" = prepare_panelvar1,
                       "dlvm1" = prepare_dlvm1,

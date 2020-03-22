@@ -413,6 +413,14 @@ d_phi_theta_lvm_cpp <- function(prep) {
     .Call(`_psychonetrics_d_phi_theta_lvm_cpp`, prep)
 }
 
+implied_lvm_cpp <- function(model, all = FALSE) {
+    .Call(`_psychonetrics_implied_lvm_cpp`, model, all)
+}
+
+prepare_lvm_cpp <- function(x, model) {
+    .Call(`_psychonetrics_prepare_lvm_cpp`, x, model)
+}
+
 d_mu_mu_var1_cpp <- function(beta) {
     .Call(`_psychonetrics_d_mu_mu_var1_cpp`, beta)
 }
