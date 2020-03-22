@@ -7,6 +7,8 @@
 #include "03_modelformation_formModelMatrices_cpp.h"
 #include "14_varcov_implied_cpp.h"
 #include "14_varcov_prepare_cpp.h"
+#include "15_lvm_implied_cpp.h"".h"
+#include "15_lvm_prepare_cpp.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -31,13 +33,7 @@ Rcpp::List impliedModel_cpp(
     
   } else if (framework == "lvm"){
     
-    // Obtain environment containing function
-    Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
-    
-    // Make function callable from C++
-    Rcpp::Function impfun = base["implied_lvm"]; 
-    
-    imp = impfun(Rcpp::_["model"] = model, Rcpp::_["all"] =   all);
+    imp = implied_lvm_cpp(model, all); // = Updated!
     
   } else if (framework == "var1"){
     
@@ -127,14 +123,7 @@ Rcpp::List prepareModel_cpp(
     
   } else if (framework == "lvm"){
     
-    // Obtain environment containing function
-    Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
-
-    
-    // Make function callable from C++
-    Rcpp::Function prepfun = base["prepare_lvm"]; 
-    
-    prep = prepfun(Rcpp::_["x"] = x, Rcpp::_["model"] =   model);
+    prep = prepare_lvm_cpp(x, model); // = Updated!
     
   } else if (framework == "var1"){
     

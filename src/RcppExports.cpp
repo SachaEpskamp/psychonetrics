@@ -1326,6 +1326,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// implied_lvm_cpp
+Rcpp::List implied_lvm_cpp(const S4& model, bool all);
+RcppExport SEXP _psychonetrics_implied_lvm_cpp(SEXP modelSEXP, SEXP allSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const S4& >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< bool >::type all(allSEXP);
+    rcpp_result_gen = Rcpp::wrap(implied_lvm_cpp(model, all));
+    return rcpp_result_gen;
+END_RCPP
+}
+// prepare_lvm_cpp
+Rcpp::List prepare_lvm_cpp(arma::vec x, const S4& model);
+RcppExport SEXP _psychonetrics_prepare_lvm_cpp(SEXP xSEXP, SEXP modelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const S4& >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(prepare_lvm_cpp(x, model));
+    return rcpp_result_gen;
+END_RCPP
+}
 // d_mu_mu_var1_cpp
 arma::mat d_mu_mu_var1_cpp(const arma::mat& beta);
 RcppExport SEXP _psychonetrics_d_mu_mu_var1_cpp(SEXP betaSEXP) {
@@ -1927,6 +1951,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_d_sigma_epsilon_ggm_lvm_cpp", (DL_FUNC) &_psychonetrics_d_sigma_epsilon_ggm_lvm_cpp, 6},
     {"_psychonetrics_d_phi_theta_lvm_group_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_lvm_group_cpp, 1},
     {"_psychonetrics_d_phi_theta_lvm_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_lvm_cpp, 1},
+    {"_psychonetrics_implied_lvm_cpp", (DL_FUNC) &_psychonetrics_implied_lvm_cpp, 2},
+    {"_psychonetrics_prepare_lvm_cpp", (DL_FUNC) &_psychonetrics_prepare_lvm_cpp, 2},
     {"_psychonetrics_d_mu_mu_var1_cpp", (DL_FUNC) &_psychonetrics_d_mu_mu_var1_cpp, 1},
     {"_psychonetrics_d_sigmastar_exo_cholesky_var1_cpp", (DL_FUNC) &_psychonetrics_d_sigmastar_exo_cholesky_var1_cpp, 4},
     {"_psychonetrics_d_sigma0_beta_var1_cpp", (DL_FUNC) &_psychonetrics_d_sigma0_beta_var1_cpp, 5},

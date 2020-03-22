@@ -54,4 +54,3 @@ Rcpp::List implied_varcov_cpp(
   
   return(x);
 }
-
