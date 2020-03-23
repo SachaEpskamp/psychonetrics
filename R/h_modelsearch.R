@@ -254,7 +254,7 @@ modelsearch <- function(x,
               }
               
               # Run the model:
-              propMods[[i]] <- propMods[[i]] %>% runmodel(verbose = FALSE, addMIs = FALSE, ...)
+              suppressWarnings(propMods[[i]] <- propMods[[i]] %>% runmodel(verbose = FALSE, addMIs = FALSE, ...))
               
               # Fisher information ok?
               # ev <- eigen(propMods[[i]]@information)$values
