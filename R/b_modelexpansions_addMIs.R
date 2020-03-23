@@ -109,8 +109,13 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
   # information <- !is.null(x@fitfunctions$information)
   
   # Compute a gradient:
-  g <- psychonetrics_gradient(parVector(modCopy), modCopy)
-  # if (gradient){
+  if (modCopy@cpp){
+    g <- psychonetrics_gradient_cpp(parVector(modCopy), modCopy)
+  } else {
+    g <- psychonetrics_gradient(parVector(modCopy), modCopy)
+    
+  }
+# if (gradient){
   #   g <- x@fitfunctions$gradient(parVector(modCopy), modCopy)
   # } else {
   #   g <- numDeriv::grad(x@fitfunctions$fitfunction,parVector(modCopy), model=modCopy) 
@@ -131,7 +136,7 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
   
   # FIXME: 4 * n could be nicer here probably
   if (modCopy@cpp){
-    H <- 4 * nTotal * as(psychonetrics_FisherInformationcpp(modCopy, analyticFisher), "matrix")
+    H <- 4 * nTotal * as(psychonetrics_FisherInformation_cpp(modCopy, analyticFisher), "matrix")
   } else {
     H <- 4 * nTotal * as(psychonetrics_FisherInformation(modCopy, analyticFisher), "matrix")    
   }
