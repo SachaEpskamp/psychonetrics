@@ -61,6 +61,10 @@ parVector_cpp <- function(model) {
     .Call(`_psychonetrics_parVector_cpp`, model)
 }
 
+computePDC_cpp <- function(beta, kappa, sigma) {
+    .Call(`_psychonetrics_computePDC_cpp`, beta, kappa, sigma)
+}
+
 kronecker_I_X <- function(X, n) {
     .Call(`_psychonetrics_kronecker_I_X`, X, n)
 }
@@ -479,6 +483,14 @@ d_phi_theta_var1_group_cpp <- function(grouplist) {
 
 d_phi_theta_var1_cpp <- function(prep) {
     .Call(`_psychonetrics_d_phi_theta_var1_cpp`, prep)
+}
+
+implied_var1_cpp <- function(model, all = FALSE) {
+    .Call(`_psychonetrics_implied_var1_cpp`, model, all)
+}
+
+prepare_var1_cpp <- function(x, model) {
+    .Call(`_psychonetrics_prepare_var1_cpp`, x, model)
 }
 
 d_mu_lambda_dlvm1_cpp <- function(mu_eta, I_y) {

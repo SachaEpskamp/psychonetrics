@@ -78,4 +78,10 @@ arma::vec parVector_cpp(
                 const S4& model
 );
 
+arma::mat computePDC_cpp(
+                const arma::mat& beta,
+                const arma::mat& kappa,
+                const arma::mat& sigma
+);
+
 #endif

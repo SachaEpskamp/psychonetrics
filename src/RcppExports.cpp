@@ -176,6 +176,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// computePDC_cpp
+arma::mat computePDC_cpp(const arma::mat& beta, const arma::mat& kappa, const arma::mat& sigma);
+RcppExport SEXP _psychonetrics_computePDC_cpp(SEXP betaSEXP, SEXP kappaSEXP, SEXP sigmaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type kappa(kappaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type sigma(sigmaSEXP);
+    rcpp_result_gen = Rcpp::wrap(computePDC_cpp(beta, kappa, sigma));
+    return rcpp_result_gen;
+END_RCPP
+}
 // kronecker_I_X
 arma::sp_mat kronecker_I_X(const arma::mat& X, int n);
 RcppExport SEXP _psychonetrics_kronecker_I_X(SEXP XSEXP, SEXP nSEXP) {
@@ -1548,6 +1561,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// implied_var1_cpp
+Rcpp::List implied_var1_cpp(const S4& model, bool all);
+RcppExport SEXP _psychonetrics_implied_var1_cpp(SEXP modelSEXP, SEXP allSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const S4& >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< bool >::type all(allSEXP);
+    rcpp_result_gen = Rcpp::wrap(implied_var1_cpp(model, all));
+    return rcpp_result_gen;
+END_RCPP
+}
+// prepare_var1_cpp
+Rcpp::List prepare_var1_cpp(arma::vec x, const S4& model);
+RcppExport SEXP _psychonetrics_prepare_var1_cpp(SEXP xSEXP, SEXP modelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const S4& >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(prepare_var1_cpp(x, model));
+    return rcpp_result_gen;
+END_RCPP
+}
 // d_mu_lambda_dlvm1_cpp
 arma::mat d_mu_lambda_dlvm1_cpp(const arma::mat& mu_eta, const arma::sp_mat& I_y);
 RcppExport SEXP _psychonetrics_d_mu_lambda_dlvm1_cpp(SEXP mu_etaSEXP, SEXP I_ySEXP) {
@@ -1927,6 +1964,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_anyNon0", (DL_FUNC) &_psychonetrics_anyNon0, 1},
     {"_psychonetrics_growlist", (DL_FUNC) &_psychonetrics_growlist, 2},
     {"_psychonetrics_parVector_cpp", (DL_FUNC) &_psychonetrics_parVector_cpp, 1},
+    {"_psychonetrics_computePDC_cpp", (DL_FUNC) &_psychonetrics_computePDC_cpp, 3},
     {"_psychonetrics_kronecker_I_X", (DL_FUNC) &_psychonetrics_kronecker_I_X, 2},
     {"_psychonetrics_kronecker_X_I", (DL_FUNC) &_psychonetrics_kronecker_X_I, 2},
     {"_psychonetrics_kronecker_diag_sparse", (DL_FUNC) &_psychonetrics_kronecker_diag_sparse, 1},
@@ -2032,6 +2070,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_d_sigma1_sigma_zeta_var1_cpp", (DL_FUNC) &_psychonetrics_d_sigma1_sigma_zeta_var1_cpp, 3},
     {"_psychonetrics_d_phi_theta_var1_group_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_var1_group_cpp, 1},
     {"_psychonetrics_d_phi_theta_var1_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_var1_cpp, 1},
+    {"_psychonetrics_implied_var1_cpp", (DL_FUNC) &_psychonetrics_implied_var1_cpp, 2},
+    {"_psychonetrics_prepare_var1_cpp", (DL_FUNC) &_psychonetrics_prepare_var1_cpp, 2},
     {"_psychonetrics_d_mu_lambda_dlvm1_cpp", (DL_FUNC) &_psychonetrics_d_mu_lambda_dlvm1_cpp, 2},
     {"_psychonetrics_d_sigmak_lambda_dlvm1_cpp", (DL_FUNC) &_psychonetrics_d_sigmak_lambda_dlvm1_cpp, 7},
     {"_psychonetrics_d_sigma0_sigma_zeta_within_dlvm1_cpp", (DL_FUNC) &_psychonetrics_d_sigma0_sigma_zeta_within_dlvm1_cpp, 2},
