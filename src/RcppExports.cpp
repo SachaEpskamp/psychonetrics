@@ -143,6 +143,39 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// anyNon0
+bool anyNon0(const arma::mat& X);
+RcppExport SEXP _psychonetrics_anyNon0(SEXP XSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(anyNon0(X));
+    return rcpp_result_gen;
+END_RCPP
+}
+// growlist
+void growlist(Rcpp::List& X, const Rcpp::List Y);
+RcppExport SEXP _psychonetrics_growlist(SEXP XSEXP, SEXP YSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List >::type Y(YSEXP);
+    growlist(X, Y);
+    return R_NilValue;
+END_RCPP
+}
+// parVector_cpp
+arma::vec parVector_cpp(const S4& model);
+RcppExport SEXP _psychonetrics_parVector_cpp(SEXP modelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const S4& >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(parVector_cpp(model));
+    return rcpp_result_gen;
+END_RCPP
+}
 // kronecker_I_X
 arma::sp_mat kronecker_I_X(const arma::mat& X, int n);
 RcppExport SEXP _psychonetrics_kronecker_I_X(SEXP XSEXP, SEXP nSEXP) {
@@ -262,6 +295,33 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// psychonetrics_FisherInformation_cpp_inner
+void psychonetrics_FisherInformation_cpp_inner(const arma::vec& x, arma::mat& Fisher, const S4& model, bool useM, bool sparsemodel);
+RcppExport SEXP _psychonetrics_psychonetrics_FisherInformation_cpp_inner(SEXP xSEXP, SEXP FisherSEXP, SEXP modelSEXP, SEXP useMSEXP, SEXP sparsemodelSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type Fisher(FisherSEXP);
+    Rcpp::traits::input_parameter< const S4& >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< bool >::type useM(useMSEXP);
+    Rcpp::traits::input_parameter< bool >::type sparsemodel(sparsemodelSEXP);
+    psychonetrics_FisherInformation_cpp_inner(x, Fisher, model, useM, sparsemodel);
+    return R_NilValue;
+END_RCPP
+}
+// psychonetrics_FisherInformation_cpp
+arma::mat psychonetrics_FisherInformation_cpp(const S4& model, bool useM, bool sparsemodel);
+RcppExport SEXP _psychonetrics_psychonetrics_FisherInformation_cpp(SEXP modelSEXP, SEXP useMSEXP, SEXP sparsemodelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const S4& >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< bool >::type useM(useMSEXP);
+    Rcpp::traits::input_parameter< bool >::type sparsemodel(sparsemodelSEXP);
+    rcpp_result_gen = Rcpp::wrap(psychonetrics_FisherInformation_cpp(model, useM, sparsemodel));
+    return rcpp_result_gen;
+END_RCPP
+}
 // gradient_inner_cpp_DSS
 arma::mat gradient_inner_cpp_DSS(const arma::mat& estimator, const arma::sp_mat& model, const arma::sp_mat& manual);
 RcppExport SEXP _psychonetrics_gradient_inner_cpp_DSS(SEXP estimatorSEXP, SEXP modelSEXP, SEXP manualSEXP) {
@@ -289,26 +349,30 @@ BEGIN_RCPP
 END_RCPP
 }
 // psychonetrics_gradient_cpp_inner
-void psychonetrics_gradient_cpp_inner(const arma::vec& x, arma::vec& grad, const S4& model);
-RcppExport SEXP _psychonetrics_psychonetrics_gradient_cpp_inner(SEXP xSEXP, SEXP gradSEXP, SEXP modelSEXP) {
+void psychonetrics_gradient_cpp_inner(const arma::vec& x, arma::vec& grad, const S4& model, bool useM, bool sparsemodel);
+RcppExport SEXP _psychonetrics_psychonetrics_gradient_cpp_inner(SEXP xSEXP, SEXP gradSEXP, SEXP modelSEXP, SEXP useMSEXP, SEXP sparsemodelSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
     Rcpp::traits::input_parameter< arma::vec& >::type grad(gradSEXP);
     Rcpp::traits::input_parameter< const S4& >::type model(modelSEXP);
-    psychonetrics_gradient_cpp_inner(x, grad, model);
+    Rcpp::traits::input_parameter< bool >::type useM(useMSEXP);
+    Rcpp::traits::input_parameter< bool >::type sparsemodel(sparsemodelSEXP);
+    psychonetrics_gradient_cpp_inner(x, grad, model, useM, sparsemodel);
     return R_NilValue;
 END_RCPP
 }
 // psychonetrics_gradient_cpp
-arma::vec psychonetrics_gradient_cpp(arma::vec x, const S4& model);
-RcppExport SEXP _psychonetrics_psychonetrics_gradient_cpp(SEXP xSEXP, SEXP modelSEXP) {
+arma::vec psychonetrics_gradient_cpp(arma::vec x, const S4& model, bool useM, bool sparsemodel);
+RcppExport SEXP _psychonetrics_psychonetrics_gradient_cpp(SEXP xSEXP, SEXP modelSEXP, SEXP useMSEXP, SEXP sparsemodelSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
     Rcpp::traits::input_parameter< const S4& >::type model(modelSEXP);
-    rcpp_result_gen = Rcpp::wrap(psychonetrics_gradient_cpp(x, model));
+    Rcpp::traits::input_parameter< bool >::type useM(useMSEXP);
+    Rcpp::traits::input_parameter< bool >::type sparsemodel(sparsemodelSEXP);
+    rcpp_result_gen = Rcpp::wrap(psychonetrics_gradient_cpp(x, model, useM, sparsemodel));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1834,13 +1898,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // updateModel_cpp
-S4 updateModel_cpp(arma::vec x, S4 model, bool updateMatrices);
+S4 updateModel_cpp(arma::vec x, const S4& model, bool updateMatrices);
 RcppExport SEXP _psychonetrics_updateModel_cpp(SEXP xSEXP, SEXP modelSEXP, SEXP updateMatricesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
-    Rcpp::traits::input_parameter< S4 >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< const S4& >::type model(modelSEXP);
     Rcpp::traits::input_parameter< bool >::type updateMatrices(updateMatricesSEXP);
     rcpp_result_gen = Rcpp::wrap(updateModel_cpp(x, model, updateMatrices));
     return rcpp_result_gen;
@@ -1860,6 +1924,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_wi2net_cpp", (DL_FUNC) &_psychonetrics_wi2net_cpp, 1},
     {"_psychonetrics_SDmat", (DL_FUNC) &_psychonetrics_SDmat, 1},
     {"_psychonetrics_invSDmat", (DL_FUNC) &_psychonetrics_invSDmat, 1},
+    {"_psychonetrics_anyNon0", (DL_FUNC) &_psychonetrics_anyNon0, 1},
+    {"_psychonetrics_growlist", (DL_FUNC) &_psychonetrics_growlist, 2},
+    {"_psychonetrics_parVector_cpp", (DL_FUNC) &_psychonetrics_parVector_cpp, 1},
     {"_psychonetrics_kronecker_I_X", (DL_FUNC) &_psychonetrics_kronecker_I_X, 2},
     {"_psychonetrics_kronecker_X_I", (DL_FUNC) &_psychonetrics_kronecker_X_I, 2},
     {"_psychonetrics_kronecker_diag_sparse", (DL_FUNC) &_psychonetrics_kronecker_diag_sparse, 1},
@@ -1870,10 +1937,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_impliedcovstructures_cpp", (DL_FUNC) &_psychonetrics_impliedcovstructures_cpp, 4},
     {"_psychonetrics_FisherInformation_inner_cpp_DSS", (DL_FUNC) &_psychonetrics_FisherInformation_inner_cpp_DSS, 3},
     {"_psychonetrics_FisherInformation_inner_cpp_DDS", (DL_FUNC) &_psychonetrics_FisherInformation_inner_cpp_DDS, 3},
+    {"_psychonetrics_psychonetrics_FisherInformation_cpp_inner", (DL_FUNC) &_psychonetrics_psychonetrics_FisherInformation_cpp_inner, 5},
+    {"_psychonetrics_psychonetrics_FisherInformation_cpp", (DL_FUNC) &_psychonetrics_psychonetrics_FisherInformation_cpp, 3},
     {"_psychonetrics_gradient_inner_cpp_DSS", (DL_FUNC) &_psychonetrics_gradient_inner_cpp_DSS, 3},
     {"_psychonetrics_gradient_inner_cpp_DDS", (DL_FUNC) &_psychonetrics_gradient_inner_cpp_DDS, 3},
-    {"_psychonetrics_psychonetrics_gradient_cpp_inner", (DL_FUNC) &_psychonetrics_psychonetrics_gradient_cpp_inner, 3},
-    {"_psychonetrics_psychonetrics_gradient_cpp", (DL_FUNC) &_psychonetrics_psychonetrics_gradient_cpp, 2},
+    {"_psychonetrics_psychonetrics_gradient_cpp_inner", (DL_FUNC) &_psychonetrics_psychonetrics_gradient_cpp_inner, 5},
+    {"_psychonetrics_psychonetrics_gradient_cpp", (DL_FUNC) &_psychonetrics_psychonetrics_gradient_cpp, 4},
     {"_psychonetrics_psychonetrics_fitfunction_cpp", (DL_FUNC) &_psychonetrics_psychonetrics_fitfunction_cpp, 2},
     {"_psychonetrics_impliedModel_cpp", (DL_FUNC) &_psychonetrics_impliedModel_cpp, 2},
     {"_psychonetrics_prepareModel_cpp", (DL_FUNC) &_psychonetrics_prepareModel_cpp, 2},

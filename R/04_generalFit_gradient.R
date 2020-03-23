@@ -4,11 +4,12 @@ psychonetrics_gradient <- function(x, model){
   # Prepare
   # message("Prep model...")
   # Prepare model:
-  if (model@cpp){
-    prep <- prepareModel_cpp(x, model) # <- upated!
-  } else {
+  
+  # if (model@cpp){
+  #   prep <- prepareModel_cpp(x, model) # <- upated!
+  # } else {
     prep <- prepareModel(x, model)  
-  }
+  # }
   
 
 
@@ -95,9 +96,12 @@ psychonetrics_gradient <- function(x, model){
     )
   }
 
+  
 
   # message("Model part...")
   modelPart <- sparseordense(modelJacobian(prep))
+  
+  
 
   # Manual part:
   if (model@cpp){
@@ -105,7 +109,7 @@ psychonetrics_gradient <- function(x, model){
   } else {
     manualPart <- Mmatrix(model@parameters)  
   }
-  
+ 
 
   # FIXME: partial cpp
   if (model@cpp){
@@ -116,6 +120,7 @@ psychonetrics_gradient <- function(x, model){
     }
     
   } else {
+
     # Full Jacobian:
     Jac <- estimatorPart %*% modelPart %*% manualPart    
   }

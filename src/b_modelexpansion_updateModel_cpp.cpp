@@ -15,15 +15,15 @@ using namespace arma;
 // [[Rcpp::export]]
 S4 updateModel_cpp(
     arma::vec x,
-    S4 model,
+    const S4& model,
     bool updateMatrices
 ){
-  S4 newMod(model); // FIXME: creates a copy?
+  S4 newMod = clone(model); // FIXME: creates a copy, but it avoids a ton of weird stuff happening otherwise... Could do better.
   
   int i;
     
   // Extract pars:
-  Rcpp::List parsList = model.slot("parameters");
+  Rcpp::List parsList = newMod.slot("parameters");
 
   // Extract ests:
   arma::vec est = parsList["est"];
@@ -51,8 +51,8 @@ S4 updateModel_cpp(
   
   // Write back:
   parsList["est"] = est;
-  model.slot("parameters") = parsList;
+  newMod.slot("parameters") = parsList;
   
-  return(model);
+  return(newMod);
 }
 

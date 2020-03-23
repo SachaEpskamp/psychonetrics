@@ -61,7 +61,9 @@ arma::mat gradient_inner_cpp_DDS(
 void psychonetrics_gradient_cpp_inner(
     const arma::vec& x,
     arma::vec& grad,
-    const S4& model
+    const S4& model,
+    bool useM = false,
+    bool sparsemodel = false
 ){
   // Prepare model:
   Rcpp::List prep = prepareModel_cpp(x, model);
@@ -144,11 +146,80 @@ void psychonetrics_gradient_cpp_inner(
     modelPart = d_phi_theta_ml_lvm_cpp(prep);
     
   }
-
+  
   // Compute the gradient
   // FIXME? Use sparse?
- 
-  arma::mat Jac = gradient_inner_cpp_DDS(estimatorPart, modelPart, manualPart);
+  
+  // Get parameter table:
+  Rcpp::List pars = model.slot("parameters");
+  arma::vec parnum = pars["par"];
+  int freePar = max(parnum);
+  
+  arma::mat Jac(1,freePar);
+  
+  
+  if (useM){
+    if (sparsemodel) {
+      arma::sp_mat sparse_model = (arma::sp_mat)modelPart;
+      
+      Jac = gradient_inner_cpp_DSS(estimatorPart, sparse_model, manualPart);
+      
+    } else {
+      
+      Jac = gradient_inner_cpp_DDS(estimatorPart, modelPart, manualPart);
+      
+    }    
+    
+  }  else {
+    
+    
+    // Avoid using the M matrix:
+    
+    // Compute inner part:
+    // Fixme: Potentially sparse? Or use block structure in multigroup setting!!!
+    arma::mat innerpart;
+    
+    if (sparsemodel) {
+      arma::sp_mat sparse_model = (arma::sp_mat)modelPart;
+      
+      innerpart =  estimatorPart * sparse_model;
+      
+    } else {
+      
+      innerpart =estimatorPart * modelPart;
+      
+    }
+    
+    
+    // Get parameter table:
+    Rcpp::List pars = model.slot("parameters");
+    arma::vec parnum = pars["par"];
+    
+    // ints to use:
+    int i;
+    
+    // Number of free parameters:
+    // int freePar = max(parnum);
+    
+    // Number of total parameters:
+    int totalPar = parnum.n_elem;
+    
+    // Empty Fisher:
+    Jac.fill(0);
+    
+    // Start looping:
+    for (i=0;i<totalPar;i++){
+        if (parnum(i)){
+          
+          Jac(0, parnum(i)-1) += innerpart(0,i);
+          
+        }
+    }
+    
+    
+    
+  }
+  
   
   grad = vectorise(Jac);
   // return(vectorise(Jac));
@@ -160,7 +231,9 @@ void psychonetrics_gradient_cpp_inner(
 // [[Rcpp::export]]
 arma::vec psychonetrics_gradient_cpp(
     arma::vec x,
-    const S4& model
+    const S4& model,
+    bool useM = false,
+    bool sparsemodel = false
 ){
   
   

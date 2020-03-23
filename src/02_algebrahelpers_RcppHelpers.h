@@ -74,4 +74,8 @@ void growlist(
                 const Rcpp::List Y
 );
 
+arma::vec parVector_cpp(
+                const S4& model
+);
+
 #endif
