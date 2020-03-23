@@ -1,6 +1,6 @@
 # General fit function!
 psychonetrics_fitfunction <- function(x, model){
-  
+
   # Prepare model:
   if (model@cpp){
     prep <- prepareModel_cpp(x, model) # <- upated!
@@ -14,6 +14,7 @@ psychonetrics_fitfunction <- function(x, model){
   # What distribution to use:
   distribution <- model@distribution
 
+  
   # Obtain estimator:
   if (model@cpp){
     estFun <- switch(

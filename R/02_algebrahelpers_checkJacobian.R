@@ -1,46 +1,54 @@
 # Simple function to check if a gradient or hessian is correct:
-checkJacobian <- function(x, f = psychonetrics_fitfunction, jac = psychonetrics_gradient, transpose = FALSE, plot = TRUE,  perturbStart = FALSE){
-  start <- parVector(x)
+checkJacobian <- function(x, f = psychonetrics_fitfunction_cpp, jac = psychonetrics_gradient_cpp, transpose = FALSE, plot = TRUE,  perturbStart = FALSE){
   
+  start <- parVector(x)
+
   if (perturbStart){
     start <- start + runif(length(start),0,0.25)
   }
   
+  
+
   # Analytic:
   analytic <- jac(start, x)
+  
   
   # If not a matrix, make matrix:
   if (!is.matrix(analytic)){
     analytic <- matrix(analytic)
   }
-  
+
   numeric <- numDeriv::jacobian(f,start,model=x)
+
   
   # If not a matrix, make matrix:
   if (!is.matrix(numeric)){
     numeric <- matrix(numeric)
   }
+
   
   # transpose:
   if (transpose){
     numeric <- t(numeric)
   }
-  
+
+
   # plot:
   if (plot){
     plot(Vec(analytic),Vec(numeric),xlab="analytic",ylab="numeric")
     abline(0,1)
   }
   
+
   return(list(
-    analytic = analytic,
-    numeric = numeric
+    analytic = as.vector(analytic),
+    numeric = as.vector(numeric)
   ))
 }
 
 
 # Same, but first replaces observed values with their implied ones
-checkFisher <- function(x, f = psychonetrics_gradient, fis = psychonetrics_FisherInformation, transpose = FALSE, plot = TRUE,  perturbStart = FALSE){
+checkFisher <- function(x, f = psychonetrics_gradient_cpp, fis = psychonetrics_FisherInformation_cpp, transpose = FALSE, plot = TRUE,  perturbStart = FALSE){
   # x <- expectedmodel(x)
   # start <- parVector(x)
   # prep <- prepareModel(start, x)
@@ -94,7 +102,7 @@ checkFisher <- function(x, f = psychonetrics_gradient, fis = psychonetrics_Fishe
   }
   
   return(list(
-    analytic = analytic,
-    numeric = numeric
+    analytic = as.vector(analytic),
+    numeric = as.vector(numeric)
   ))
 }

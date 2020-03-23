@@ -13,7 +13,7 @@ using namespace arma;
 
 S4 updateModel_cpp(
                 arma::vec x,
-                S4 model,
+                const S4& model,
                 bool updateMatrices
 );
 

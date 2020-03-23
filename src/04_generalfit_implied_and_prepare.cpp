@@ -211,6 +211,8 @@ Rcpp::List prepareModel_cpp(
   for (g=0;g<nGroup;g++){
     Rcpp::List groupmod = groupModels[g];
     
+    groupmod["cpp"] = true;
+    
     if (estimator == "FIML"){
       // Add the raw data to each group:
       groupmod["fimldata"] = fimldata[g];

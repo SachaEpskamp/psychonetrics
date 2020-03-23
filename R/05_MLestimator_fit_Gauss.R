@@ -2,7 +2,7 @@
 maxLikEstimator_Gauss_group <- function(S,kappa,means,mu,sigma,...){
 
     # nvar <- ncol(kappa) 
-  res <-  sum(diag(S %*% kappa)) + t(means - mu) %*% kappa %*% (means - mu)  - attr(kappa, "logdet")
+  res <-  sum(diag(S %*% kappa)) + t(means - mu) %*% kappa %*% (means - mu)  - log(det(kappa))
   
   as.numeric(res)
 }

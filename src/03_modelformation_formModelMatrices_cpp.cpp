@@ -41,6 +41,7 @@ Rcpp::List formModelMatrices_cpp(
   Rcpp::StringVector par_mat = pars["matrix"];
   Rcpp::IntegerVector par_row = pars["row"];
   Rcpp::IntegerVector par_col = pars["col"];
+  Rcpp::IntegerVector group = pars["group_id"];
   Rcpp::NumericVector par_est = pars["est"];
   
   int nParTotal = par_mat.length();
@@ -82,7 +83,7 @@ Rcpp::List formModelMatrices_cpp(
       
       // FIXME: loop over all rows in parameter table. this can be nicer...
       for (p=0;p<nParTotal;p++){
-        if (par_mat[p] == name){
+        if (par_mat[p] == name && group[p] == (g+1)){
           curmat(par_row[p]-1,par_col[p]-1) = par_est[p];
           if (matsym(m)){
             curmat(par_col[p]-1,par_row[p]-1) = par_est[p];

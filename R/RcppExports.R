@@ -49,6 +49,18 @@ invSDmat <- function(X) {
     .Call(`_psychonetrics_invSDmat`, X)
 }
 
+anyNon0 <- function(X) {
+    .Call(`_psychonetrics_anyNon0`, X)
+}
+
+growlist <- function(X, Y) {
+    invisible(.Call(`_psychonetrics_growlist`, X, Y))
+}
+
+parVector_cpp <- function(model) {
+    .Call(`_psychonetrics_parVector_cpp`, model)
+}
+
 kronecker_I_X <- function(X, n) {
     .Call(`_psychonetrics_kronecker_I_X`, X, n)
 }
@@ -89,6 +101,14 @@ FisherInformation_inner_cpp_DDS <- function(estimator, model, manual) {
     .Call(`_psychonetrics_FisherInformation_inner_cpp_DDS`, estimator, model, manual)
 }
 
+psychonetrics_FisherInformation_cpp_inner <- function(x, Fisher, model, useM = TRUE, sparsemodel = FALSE) {
+    invisible(.Call(`_psychonetrics_psychonetrics_FisherInformation_cpp_inner`, x, Fisher, model, useM, sparsemodel))
+}
+
+psychonetrics_FisherInformation_cpp <- function(model, useM = FALSE, sparsemodel = FALSE) {
+    .Call(`_psychonetrics_psychonetrics_FisherInformation_cpp`, model, useM, sparsemodel)
+}
+
 gradient_inner_cpp_DSS <- function(estimator, model, manual) {
     .Call(`_psychonetrics_gradient_inner_cpp_DSS`, estimator, model, manual)
 }
@@ -97,12 +117,12 @@ gradient_inner_cpp_DDS <- function(estimator, model, manual) {
     .Call(`_psychonetrics_gradient_inner_cpp_DDS`, estimator, model, manual)
 }
 
-psychonetrics_gradient_cpp_inner <- function(x, grad, model) {
-    invisible(.Call(`_psychonetrics_psychonetrics_gradient_cpp_inner`, x, grad, model))
+psychonetrics_gradient_cpp_inner <- function(x, grad, model, useM = FALSE, sparsemodel = FALSE) {
+    invisible(.Call(`_psychonetrics_psychonetrics_gradient_cpp_inner`, x, grad, model, useM, sparsemodel))
 }
 
-psychonetrics_gradient_cpp <- function(x, model) {
-    .Call(`_psychonetrics_psychonetrics_gradient_cpp`, x, model)
+psychonetrics_gradient_cpp <- function(x, model, useM = FALSE, sparsemodel = FALSE) {
+    .Call(`_psychonetrics_psychonetrics_gradient_cpp`, x, model, useM, sparsemodel)
 }
 
 psychonetrics_fitfunction_cpp <- function(x, model) {

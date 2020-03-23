@@ -362,9 +362,7 @@ arma::mat invSDmat(
   return(Y);
 }
 
-
-
-// [[Rcpp:export]]
+// [[Rcpp::export]]
 bool anyNon0(
     const arma::mat& X
 ){
@@ -383,7 +381,7 @@ bool anyNon0(
 }
 
 
-// [[Rcpp:export]]
+// [[Rcpp::export]]
 void growlist(
   Rcpp::List& X,
   const Rcpp::List Y
@@ -403,4 +401,30 @@ void growlist(
     X[var] = Y[i];
   }
   
+}
+
+// [[Rcpp::export]]
+arma::vec parVector_cpp(
+    const S4& model
+){
+  Rcpp::List pars = model.slot("parameters");
+  arma::vec parnum = pars["par"];
+  arma::vec parest = pars["est"];
+  
+  // Number of free parameters:
+  int freePar = max(parnum);
+  
+  // Number of total parameters:
+  int totalPar = parnum.n_elem;
+  
+  // output:
+  arma::vec parvec(freePar);
+  
+  for (int i=0;i<totalPar;i++){
+    if (parnum(i)>0){
+      parvec(parnum(i)-1) = parest(i);
+    }
+  }
+  
+  return(parvec);
 }

@@ -356,7 +356,13 @@ runmodel <- function(
     if (verbose){
       message("Computing Fisher information...")
     }
-    x@information <- psychonetrics_FisherInformation(x, analyticFisher)
+    
+    if (x@cpp){
+      x@information <- psychonetrics_FisherInformation_cpp(x, analyticFisher)
+    } else {
+      x@information <- psychonetrics_FisherInformation(x, analyticFisher)
+    }
+
     
     # if (verbose){
     #   message("Transpose...")
