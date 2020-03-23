@@ -51,7 +51,7 @@ Rcpp::List implied_lvm_cpp(
     // Matrices I need in every model framework when estimating:
     int n = beta.n_rows;
     arma::mat I = eye(n,n);
-    arma::mat BetaStar = solve_symmetric_cpp_matrixonly(I - beta);  
+    arma::mat BetaStar = inv(I - beta);  
     arma::mat Lambda_BetaStar = lambda * BetaStar;
     
     // If NOT all (I know it is confusing), store these matrices (and some more):

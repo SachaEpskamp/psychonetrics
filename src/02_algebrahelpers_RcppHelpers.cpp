@@ -428,3 +428,17 @@ arma::vec parVector_cpp(
   
   return(parvec);
 }
+
+// [[Rcpp::export]]
+arma::mat computePDC_cpp(
+  const arma::mat& beta,
+  const arma::mat& kappa,
+  const arma::mat& sigma
+){
+
+  arma::vec sigmaDiag = sigma.diag();
+  arma::vec kappaDiag = kappa.diag();
+  arma::mat PDCt = beta / sqrt(sigmaDiag * kappaDiag.t() + beta % beta);
+  return(PDCt.t());
+}
+

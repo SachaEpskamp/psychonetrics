@@ -9,6 +9,8 @@
 #include "14_varcov_prepare_cpp.h"
 #include "15_lvm_implied_cpp.h"".h"
 #include "15_lvm_prepare_cpp.h"
+#include "16_var1_implied_cpp.h"
+#include "16_var1_prepare_cpp.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -37,13 +39,15 @@ Rcpp::List impliedModel_cpp(
     
   } else if (framework == "var1"){
     
-    // Obtain environment containing function
-    Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
+    imp = implied_var1_cpp(model, all); // = Updated!
     
-    // Make function callable from C++
-    Rcpp::Function impfun = base["implied_var1"]; 
-    
-    imp = impfun(Rcpp::_["model"] = model, Rcpp::_["all"] =   all);
+    // // Obtain environment containing function
+    // Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
+    // 
+    // // Make function callable from C++
+    // Rcpp::Function impfun = base["implied_var1"]; 
+    // 
+    // imp = impfun(Rcpp::_["model"] = model, Rcpp::_["all"] =   all);
     
   } else if (framework == "dlvm1"){
     
@@ -127,13 +131,15 @@ Rcpp::List prepareModel_cpp(
     
   } else if (framework == "var1"){
     
-    // Obtain environment containing function
-    Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
+    prep = prepare_var1_cpp(x, model); // = Updated!
     
-    // Make function callable from C++
-    Rcpp::Function prepfun = base["prepare_var1"]; 
-    
-    prep = prepfun(Rcpp::_["x"] = x, Rcpp::_["model"] =   model);
+    // // Obtain environment containing function
+    // Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ;
+    // 
+    // // Make function callable from C++
+    // Rcpp::Function prepfun = base["prepare_var1"];
+    // 
+    // prep = prepfun(Rcpp::_["x"] = x, Rcpp::_["model"] =   model);
     
   } else if (framework == "dlvm1"){
     
