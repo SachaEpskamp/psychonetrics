@@ -11,7 +11,7 @@ runmodel <- function(
   verbose = TRUE,
   # optimizer = c("default","ucminf","nlminb"),
   optim.control = list(),
-  maxtry = 5,
+  # maxtry = 5,
   analyticFisher = TRUE
   # inverseHessian = TRUE
 ){
@@ -48,7 +48,7 @@ runmodel <- function(
     stop("input is not a 'psychonetrics' object")
   }
   
-
+  
   if (!is.null(x@baseline_saturated$baseline)){
     # Check if model happens to be baseline model:
     isBaseline <- identical(x@baseline_saturated$baseline@parameters$par, x@parameters$par)    
@@ -154,11 +154,39 @@ runmodel <- function(
   
   
   if (grepl("cpp",optimizer)){
-
-    x <- psychonetrics_optimizer(x, lower, upper, gsub("cpp_","",optimizer))
+    
+   
+    
+    
+    
+    tryres <- try({
+      x <- psychonetrics_optimizer(x, lower, upper, gsub("cpp_","",optimizer))
+    }, silent = TRUE)    
+    
+    if (is(tryres,"try-error") && !any(is.na(parVector(x)))){
+      
+      tryres2 <- try({
+        x <- psychonetrics_optimizer(emergencystart(x), lower, upper, gsub("cpp_","",optimizer))
+      }, silent = TRUE)    
+      
+      # If still an error, break:
+      if (is(tryres2,"try-error") && !any(is.na(parVector(x)))){
+        stop(paste("Model estimation resulted in an error that could not be recovered. Try using a different optimizer with setoptimizer(...) or using different starting values. Error:\n\n",tryres2))
+        
+      }
+      
+    }
+    
+    
     x@objective <- x@optim$value
     
     x <- updateModel(parVector(x),x,updateMatrices = TRUE) # FIXME: Move this to C++!
+    
+    
+    
+
+    
+    
     
   } else {
     optim.control$par <- start
@@ -209,30 +237,27 @@ runmodel <- function(
     }
     
     
-    repeat{
-      tryres <- try({
+    tryres <- try({
+      optim.out <- do.call(optimr,optim.control)
+    }, silent = TRUE)    
+    
+    if (is(tryres,"try-error") && !any(is.na(optim.out$par))){
+      # Try with emergencystart:
+      optim.control$par <- parVector(emergencystart(x))
+      
+      tryres2 <- try({
         optim.out <- do.call(optimr,optim.control)
       }, silent = TRUE)    
       
-      if (!is(tryres,"try-error") && !any(is.na(optim.out$par))){
-        break
-      } else {
-        curtry <- curtry + 1
-        if (curtry > maxtry){
-          if (verbose){
-            message("Model estimation failed and 'maxtry' reached. Returning error.")
-            print(tryres)
-          }        
-          return(tryres)
-        } else {
-          if (verbose){
-            message("Model estimation failed. Perturbing start values.")
-          }        
-          optim.control$par <- optim.control$par  + runif(length(optim.control$par),0, 0.1)
-          optim.control$par[parMat(x) == "beta" | (rowMat(x) != colMat(x))] <- optim.control$par[parMat(x) == "beta" | (rowMat(x) != colMat(x))]/2
-        }
+      # If still an error, break:
+      if (is(tryres2,"try-error") && !any(is.na(optim.out$par))){
+        stop(paste("Model estimation resulted in an error that could not be recovered. Try using a different optimizer with setoptimizer(...) or using different starting values. Error:\n\n",tryres2))
+        
       }
+      
     }
+    
+    
     optimresults <- optim.out
     optimresults$optimizer <- optimizer
     x@optim <- optimresults
@@ -241,13 +266,13 @@ runmodel <- function(
     x <- updateModel(optim.out$par,x,updateMatrices = TRUE)
   }
   
-
+  
   x@optimizer <- optimizer
   
   # optim.out <- do.call(optimr,optim.control)
   
   # Update model:
-
+  
   
   # Make list:
   # optimresults <- list(
@@ -256,7 +281,7 @@ runmodel <- function(
   #   message = optim.out$message,
   #   optimizer = optimizer
   # )
-
+  
   
   # 
   #   ### START OPTIMIZATION ###
@@ -362,7 +387,7 @@ runmodel <- function(
     } else {
       x@information <- psychonetrics_FisherInformation(x, analyticFisher)
     }
-
+    
     
     # if (verbose){
     #   message("Transpose...")
