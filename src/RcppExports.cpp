@@ -1826,6 +1826,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// implied_tsdlvm1_cpp
+Rcpp::List implied_tsdlvm1_cpp(const S4& model, bool all);
+RcppExport SEXP _psychonetrics_implied_tsdlvm1_cpp(SEXP modelSEXP, SEXP allSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const S4& >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< bool >::type all(allSEXP);
+    rcpp_result_gen = Rcpp::wrap(implied_tsdlvm1_cpp(model, all));
+    return rcpp_result_gen;
+END_RCPP
+}
+// prepare_tsdlvm1_cpp
+Rcpp::List prepare_tsdlvm1_cpp(arma::vec x, const S4& model);
+RcppExport SEXP _psychonetrics_prepare_tsdlvm1_cpp(SEXP xSEXP, SEXP modelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const S4& >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(prepare_tsdlvm1_cpp(x, model));
+    return rcpp_result_gen;
+END_RCPP
+}
 // d_phi_theta_meta_varcov_group_cpp
 arma::mat d_phi_theta_meta_varcov_group_cpp(const Rcpp::List& grouplist);
 RcppExport SEXP _psychonetrics_d_phi_theta_meta_varcov_group_cpp(SEXP grouplistSEXP) {
@@ -2137,6 +2161,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_d_sigma1_beta_tsdlvm1_cpp", (DL_FUNC) &_psychonetrics_d_sigma1_beta_tsdlvm1_cpp, 4},
     {"_psychonetrics_d_phi_theta_tsdlvm1_group_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_tsdlvm1_group_cpp, 1},
     {"_psychonetrics_d_phi_theta_tsdlvm1_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_tsdlvm1_cpp, 1},
+    {"_psychonetrics_implied_tsdlvm1_cpp", (DL_FUNC) &_psychonetrics_implied_tsdlvm1_cpp, 2},
+    {"_psychonetrics_prepare_tsdlvm1_cpp", (DL_FUNC) &_psychonetrics_prepare_tsdlvm1_cpp, 2},
     {"_psychonetrics_d_phi_theta_meta_varcov_group_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_meta_varcov_group_cpp, 1},
     {"_psychonetrics_d_phi_theta_meta_varcov_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_meta_varcov_cpp, 1},
     {"_psychonetrics_d_phi_theta_Ising_group_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_Ising_group_cpp, 1},

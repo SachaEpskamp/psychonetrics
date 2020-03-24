@@ -569,6 +569,14 @@ d_phi_theta_tsdlvm1_cpp <- function(prep) {
     .Call(`_psychonetrics_d_phi_theta_tsdlvm1_cpp`, prep)
 }
 
+implied_tsdlvm1_cpp <- function(model, all = FALSE) {
+    .Call(`_psychonetrics_implied_tsdlvm1_cpp`, model, all)
+}
+
+prepare_tsdlvm1_cpp <- function(x, model) {
+    .Call(`_psychonetrics_prepare_tsdlvm1_cpp`, x, model)
+}
+
 d_phi_theta_meta_varcov_group_cpp <- function(grouplist) {
     .Call(`_psychonetrics_d_phi_theta_meta_varcov_group_cpp`, grouplist)
 }
