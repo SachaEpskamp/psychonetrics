@@ -1,5 +1,5 @@
-#ifndef TSDLVM1_PREPARE_H
-#define TSDLVM1_PREPARE_H
+#ifndef META_VARCOV_PREPARE_H
+#define META_VARCOV_PREPARE_H
 
 #include <RcppArmadillo.h>
 #include <math.h>
@@ -11,7 +11,7 @@
 using namespace Rcpp;
 using namespace arma;
 
-Rcpp::List prepare_tsdlvm1_cpp(
+Rcpp::List prepare_meta_varcov_cpp(
     arma::vec x,
     const S4& model
 );

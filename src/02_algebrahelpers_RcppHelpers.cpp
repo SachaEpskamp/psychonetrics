@@ -16,7 +16,7 @@ using namespace arma;
 arma::vec eig_sym_cpp(
     arma::mat X
 ){
-  return(eig_sym(X));
+  return(eig_sym(arma::symmatl(X)));
 }
 
 // Check symmetric pd:
@@ -35,7 +35,8 @@ bool sympd_cpp(
   
   // Check if posdef:
   double epsilon = 1.490116e-08;
-  bool posdef = eig_sym(X)[0] > -epsilon; //X.is_sympd();
+  
+  bool posdef = eig_sym(arma::symmatl(X))[0] > -epsilon; //X.is_sympd();
   
   // return:
   return(posdef);
@@ -64,7 +65,8 @@ Rcpp::List solve_symmetric_cpp(
   // // Check if posdef:
   // bool posdef = X.is_sympd();
   // Check if posdef:
-  double lowestEV = eig_sym(X)[0];
+  double lowestEV = eig_sym(arma::symmatl(X))[0];
+  
   bool posdef = lowestEV > -sqrt(epsilon); //X.is_sympd();
   
   // If not, pseudoinverse:
@@ -125,7 +127,11 @@ arma::mat solve_symmetric_cpp_matrixonly(
   // // Check if posdef:
   // bool posdef = X.is_sympd();
   // Check if posdef:
-  double lowestEV = eig_sym(X)[0];
+  // Rf_PrintValue(wrap(X));
+  
+  double lowestEV = eig_sym(arma::symmatl(X))[0];
+  
+  
   bool posdef = lowestEV > - sqrt(epsilon); //X.is_sympd();
   
   // If not, pseudoinverse:
@@ -251,7 +257,7 @@ arma::mat cbind_psychonetrics(
 // Half vectorization (lower triangle):
 // [[Rcpp::export]]
 arma::vec vech(
-    arma::mat& X,
+    arma::mat X,
     bool diag = true
 ){
   int nvar = X.n_rows;
@@ -297,19 +303,31 @@ arma::vec seq_len_inds(
 
 // [[Rcpp::export]]
 arma::mat cov2cor_cpp(
-    const arma::mat& X
+    arma::mat X
 ){
+  int i, j;
   int n = X.n_rows;
+  
+  // // Check diagonal:
+  // for (i=0;i<n;i++){
+  //   if (X(i,i)){
+  //     if (X(i,i) < 1.490116e-08){
+  //       X(i,i) = 1.490116e-08;
+  //     }
+  //   }
+  // }
+  
   
   arma::mat Y = eye(n,n);
   
-  int i, j;
+
   for (i=0;i<n;i++){
     for (j=0;j<=i;j++){
       Y(i,j) = Y(j,i) = 
         X(i,j) / sqrt(X(i,i) * X(j,j));
     }  
   }
+  
   
   return(Y);
 }
@@ -356,7 +374,10 @@ arma::mat invSDmat(
   
   int i;
   for (i=0;i<n;i++){
-    Y(i,i) = pow(X(i,i), -0.5);
+    if (X(i,i) > 0){
+      Y(i,i) = pow(X(i,i), -0.5);  
+    }
+    
   }
   
   return(Y);

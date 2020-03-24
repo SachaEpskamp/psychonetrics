@@ -585,6 +585,14 @@ d_phi_theta_meta_varcov_cpp <- function(prep) {
     .Call(`_psychonetrics_d_phi_theta_meta_varcov_cpp`, prep)
 }
 
+implied_meta_varcov_cpp <- function(model, all = FALSE) {
+    .Call(`_psychonetrics_implied_meta_varcov_cpp`, model, all)
+}
+
+prepare_meta_varcov_cpp <- function(x, model) {
+    .Call(`_psychonetrics_prepare_meta_varcov_cpp`, x, model)
+}
+
 d_phi_theta_Ising_group_cpp <- function(grouplist) {
     .Call(`_psychonetrics_d_phi_theta_Ising_group_cpp`, grouplist)
 }

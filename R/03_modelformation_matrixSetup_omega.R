@@ -32,6 +32,7 @@ matrixsetup_omega <- function(
         wi <- solve_symmetric(covest)
         pcor <- qgraph::wi2net(as.matrix(wi))
         # FIXME: Quick check, if there is an outrageous starting value, use glasso with lasso instead:
+        
         if (any(abs(pcor) > 0.8)){
           wi <- glasso(as.matrix(spectralshift(covest)), rho = 0.1)$wi
           pcor <-  qgraph::wi2net(as.matrix(wi))

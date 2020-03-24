@@ -36,7 +36,7 @@ arma::mat bdiag_psychonetrics(
 );
 
 arma::vec vech(
-                arma::mat& X,
+                arma::mat X,
                 bool diag = true
 );
 
@@ -46,7 +46,7 @@ arma::vec seq_len_inds(
 );
 
 arma::mat cov2cor_cpp(
-                const arma::mat& X
+                arma::mat X
 );
 
 arma::mat wi2net_cpp(

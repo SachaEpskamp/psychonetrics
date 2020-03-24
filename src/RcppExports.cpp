@@ -76,12 +76,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // vech
-arma::vec vech(arma::mat& X, bool diag);
+arma::vec vech(arma::mat X, bool diag);
 RcppExport SEXP _psychonetrics_vech(SEXP XSEXP, SEXP diagSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
     Rcpp::traits::input_parameter< bool >::type diag(diagSEXP);
     rcpp_result_gen = Rcpp::wrap(vech(X, diag));
     return rcpp_result_gen;
@@ -100,12 +100,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // cov2cor_cpp
-arma::mat cov2cor_cpp(const arma::mat& X);
+arma::mat cov2cor_cpp(arma::mat X);
 RcppExport SEXP _psychonetrics_cov2cor_cpp(SEXP XSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
     rcpp_result_gen = Rcpp::wrap(cov2cor_cpp(X));
     return rcpp_result_gen;
 END_RCPP
@@ -1872,6 +1872,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// implied_meta_varcov_cpp
+Rcpp::List implied_meta_varcov_cpp(const S4& model, bool all);
+RcppExport SEXP _psychonetrics_implied_meta_varcov_cpp(SEXP modelSEXP, SEXP allSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const S4& >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< bool >::type all(allSEXP);
+    rcpp_result_gen = Rcpp::wrap(implied_meta_varcov_cpp(model, all));
+    return rcpp_result_gen;
+END_RCPP
+}
+// prepare_meta_varcov_cpp
+Rcpp::List prepare_meta_varcov_cpp(arma::vec x, const S4& model);
+RcppExport SEXP _psychonetrics_prepare_meta_varcov_cpp(SEXP xSEXP, SEXP modelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const S4& >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(prepare_meta_varcov_cpp(x, model));
+    return rcpp_result_gen;
+END_RCPP
+}
 // d_phi_theta_Ising_group_cpp
 arma::mat d_phi_theta_Ising_group_cpp(const Rcpp::List& grouplist);
 RcppExport SEXP _psychonetrics_d_phi_theta_Ising_group_cpp(SEXP grouplistSEXP) {
@@ -2165,6 +2189,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_prepare_tsdlvm1_cpp", (DL_FUNC) &_psychonetrics_prepare_tsdlvm1_cpp, 2},
     {"_psychonetrics_d_phi_theta_meta_varcov_group_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_meta_varcov_group_cpp, 1},
     {"_psychonetrics_d_phi_theta_meta_varcov_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_meta_varcov_cpp, 1},
+    {"_psychonetrics_implied_meta_varcov_cpp", (DL_FUNC) &_psychonetrics_implied_meta_varcov_cpp, 2},
+    {"_psychonetrics_prepare_meta_varcov_cpp", (DL_FUNC) &_psychonetrics_prepare_meta_varcov_cpp, 2},
     {"_psychonetrics_d_phi_theta_Ising_group_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_Ising_group_cpp, 1},
     {"_psychonetrics_d_phi_theta_Ising_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_Ising_cpp, 1},
     {"_psychonetrics_expHcpp", (DL_FUNC) &_psychonetrics_expHcpp, 6},

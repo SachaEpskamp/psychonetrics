@@ -15,6 +15,8 @@
 #include "18_dlvm1_prepare_cpp.h"
 #include "19_tsdlvm1_implied_cpp.h"
 #include "19_tsdlvm1_prepare_cpp.h"
+#include "20_meta_varcov_implied_cpp.h"
+#include "20_meta_varcov_prepare_cpp.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -71,13 +73,15 @@ Rcpp::List impliedModel_cpp(
     
   }   else if (framework == "meta_varcov"){
     
-    // Obtain environment containing function
-    Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
-    
-    // Make function callable from C++
-    Rcpp::Function impfun = base["implied_meta_varcov"]; 
-    
-    imp = impfun(Rcpp::_["model"] = model, Rcpp::_["all"] =   all);
+    imp = implied_meta_varcov_cpp(model, all); // = Updated!
+    // 
+    // // Obtain environment containing function
+    // Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
+    // 
+    // // Make function callable from C++
+    // Rcpp::Function impfun = base["implied_meta_varcov"]; 
+    // 
+    // imp = impfun(Rcpp::_["model"] = model, Rcpp::_["all"] =   all);
     
   }  else if (framework == "Ising"){
     
@@ -161,13 +165,16 @@ Rcpp::List prepareModel_cpp(
     // 
   }   else if (framework == "meta_varcov"){
     
-    // Obtain environment containing function
-    Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
-    
-    // Make function callable from C++
-    Rcpp::Function prepfun = base["prepare_meta_varcov"]; 
-    
-    prep = prepfun(Rcpp::_["x"] = x, Rcpp::_["model"] =   model);
+    prep = prepare_meta_varcov_cpp(x, model); // = Updated!
+    // 
+    // 
+    // // Obtain environment containing function
+    // Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
+    // 
+    // // Make function callable from C++
+    // Rcpp::Function prepfun = base["prepare_meta_varcov"]; 
+    // 
+    // prep = prepfun(Rcpp::_["x"] = x, Rcpp::_["model"] =   model);
     
   }  else if (framework == "Ising"){
     
