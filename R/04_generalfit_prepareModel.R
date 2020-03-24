@@ -13,7 +13,7 @@ prepareModel <- function(x, model){
                       "lvm" = prepare_lvm_cpp, # <- updated!
                       "var1" = prepare_var1_cpp, # <- Updated!
                       # "panelvar1" = prepare_panelvar1,
-                      "dlvm1" = prepare_dlvm1,
+                      "dlvm1" = prepare_dlvm1_cpp, # <- Updayed!
                       "tsdlvm1" = prepare_tsdlvm1,
                       "meta_varcov" = prepare_meta_varcov,
                       "Ising" = prepare_Ising,

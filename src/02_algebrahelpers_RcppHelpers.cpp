@@ -383,8 +383,8 @@ bool anyNon0(
 
 // [[Rcpp::export]]
 void growlist(
-  Rcpp::List& X,
-  const Rcpp::List Y
+    Rcpp::List& X,
+    const Rcpp::List Y
 ){
   // Names of Y:
   CharacterVector names = Y.names();
@@ -431,14 +431,81 @@ arma::vec parVector_cpp(
 
 // [[Rcpp::export]]
 arma::mat computePDC_cpp(
-  const arma::mat& beta,
-  const arma::mat& kappa,
-  const arma::mat& sigma
+    const arma::mat& beta,
+    const arma::mat& kappa,
+    const arma::mat& sigma
 ){
-
+  
   arma::vec sigmaDiag = sigma.diag();
   arma::vec kappaDiag = kappa.diag();
   arma::mat PDCt = beta / sqrt(sigmaDiag * kappaDiag.t() + beta % beta);
   return(PDCt.t());
 }
 
+
+// [[Rcpp::export]]
+arma::mat blockToeplitz_cpp(
+    const Rcpp::List& X
+){
+  int b,r, start_col, start_row, end_col, end_row;
+  
+  // length:
+  int nBlock = X.length();
+  
+  // first block:
+  arma::mat first = X[0];
+  int n = first.n_rows; 
+  
+  
+  // Assume symmetric and all equal
+  arma::mat Toeplitz = zeros(n*nBlock,n*nBlock);
+  
+  // Fill for each block:
+  for (b=0;b<nBlock;b++){
+    
+    // Block 1 (0 in cpp) is repeated n times, block  n (n-1 in cpp) is repeated 1 time...
+    for (r=0;r<(nBlock-b);r++){
+      arma::mat block = X[b];
+      
+      // The r-th repition starts on the r*nth column and the 
+      start_row = r * n + b * n;
+      start_col = start_row - b*n;
+      end_row = start_row + n - 1;
+      end_col = start_col + n - 1;
+      
+      Toeplitz.submat(start_row,start_col,end_row,end_col) = block;
+      
+      if (b > 0){
+        
+        Toeplitz.submat(start_col,start_row,end_col,end_row) = block.t();
+        
+      }
+      
+      
+    }
+    
+    
+  }
+  
+  return(Toeplitz);
+}
+
+
+
+// [[Rcpp::export]]
+arma::mat matrixform(
+  const arma::vec& x
+){
+  int n = sqrt(x.n_elem);
+  arma::mat out(n,n);
+  int curelem=0;
+  for (int i=0;i<n;i++){
+    for (int j=0;j<n;j++){
+      
+      out(i,j) = x(curelem);
+      curelem++;
+    }
+  }
+  
+  return(out);
+}

@@ -65,6 +65,14 @@ computePDC_cpp <- function(beta, kappa, sigma) {
     .Call(`_psychonetrics_computePDC_cpp`, beta, kappa, sigma)
 }
 
+blockToeplitz_cpp <- function(X) {
+    .Call(`_psychonetrics_blockToeplitz_cpp`, X)
+}
+
+matrixform <- function(x) {
+    .Call(`_psychonetrics_matrixform`, x)
+}
+
 kronecker_I_X <- function(X, n) {
     .Call(`_psychonetrics_kronecker_I_X`, X, n)
 }
@@ -523,6 +531,14 @@ d_phi_theta_dlvm1_group_cpp <- function(grouplist) {
 
 d_phi_theta_dlvm1_cpp <- function(prep) {
     .Call(`_psychonetrics_d_phi_theta_dlvm1_cpp`, prep)
+}
+
+implied_dlvm1_cpp <- function(model, all = FALSE) {
+    .Call(`_psychonetrics_implied_dlvm1_cpp`, model, all)
+}
+
+prepare_dlvm1_cpp <- function(x, model) {
+    .Call(`_psychonetrics_prepare_dlvm1_cpp`, x, model)
 }
 
 d_mu_lambda_tsdlvm1_cpp <- function(mu_eta, I_y) {
