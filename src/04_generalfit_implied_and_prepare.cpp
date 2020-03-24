@@ -11,6 +11,8 @@
 #include "15_lvm_prepare_cpp.h"
 #include "16_var1_implied_cpp.h"
 #include "16_var1_prepare_cpp.h"
+#include "18_dlvm1_implied_cpp.h"
+#include "18_dlvm1_prepare_cpp.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -51,13 +53,7 @@ Rcpp::List impliedModel_cpp(
     
   } else if (framework == "dlvm1"){
     
-    // Obtain environment containing function
-    Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
-    
-    // Make function callable from C++
-    Rcpp::Function impfun = base["implied_dlvm1"]; 
-    
-    imp = impfun(Rcpp::_["model"] = model, Rcpp::_["all"] =   all);
+    imp = implied_dlvm1_cpp(model, all); // = Updated!
     
   }  else if (framework == "tsdlvm1"){
     
@@ -143,13 +139,8 @@ Rcpp::List prepareModel_cpp(
     
   } else if (framework == "dlvm1"){
     
-    // Obtain environment containing function
-    Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
+    prep = prepare_dlvm1_cpp(x, model); // = Updated!
     
-    // Make function callable from C++
-    Rcpp::Function prepfun = base["prepare_dlvm1"]; 
-    
-    prep = prepfun(Rcpp::_["x"] = x, Rcpp::_["model"] =   model);
     
   }  else if (framework == "tsdlvm1"){
     

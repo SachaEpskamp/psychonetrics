@@ -84,4 +84,12 @@ arma::mat computePDC_cpp(
                 const arma::mat& sigma
 );
 
+arma::mat blockToeplitz_cpp(
+                const Rcpp::List& X
+);
+
+arma::mat matrixform(
+                const arma::vec& x
+);
+
 #endif
