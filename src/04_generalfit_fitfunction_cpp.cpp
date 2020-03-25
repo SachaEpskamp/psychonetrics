@@ -31,6 +31,24 @@ double psychonetrics_fitfunction_cpp(
   // What distribution:
   std::string distribution = prep["distribution"];
   
+  // Group models:
+  Rcpp::List groupmodels = prep["groupModels"];
+  
+  // Loop over:
+  int nGroup = groupmodels.length();
+  for (int g=0; g<nGroup; g++){
+    Rcpp::List grouplist = groupmodels[g];
+    
+    // check if element proper is there:
+    if (grouplist.containsElementNamed("proper")){
+      bool proper = grouplist["proper"];
+      if (!proper){
+        return(1e20);
+      }
+    }
+    
+  }
+  
   
   
   if (estimator == "ML"){

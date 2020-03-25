@@ -13,7 +13,7 @@ impliedModel <- function(model, types, all = FALSE){
                      "dlvm1" = implied_dlvm1_cpp, # <- Updated!
                      "tsdlvm1" = implied_tsdlvm1_cpp, # <- Updated!
                      "meta_varcov" = implied_meta_varcov_cpp, # <- Updated!
-                     "Ising" = implied_Ising,
+                     "Ising" = implied_Ising_cpp, # <- Updated!
                      "ml_lvm" = implied_ml_lvm
     )    
   } else {

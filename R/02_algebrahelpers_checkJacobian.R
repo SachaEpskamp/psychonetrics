@@ -102,7 +102,7 @@ checkFisher <- function(x, f = psychonetrics_gradient_cpp, fis = psychonetrics_F
   }
   
   return(list(
-    analytic = as.vector(analytic),
-    numeric = as.vector(numeric)
+    analytic = as.matrix(analytic),
+    numeric = as.matrix(numeric)
   ))
 }

@@ -87,6 +87,8 @@ arma::mat expHessianCpp(
   // Borrowing heavily on the WLS computation code, order of parameters is (thresholds, omega[lower.tri], beta)
   int i, j, g, h, s, ii, jj;
   
+
+  
   // Compute expected hamiltonian:
   double expH = expHcpp(
     states,
@@ -287,6 +289,7 @@ arma::mat expHessianCpp(
     }
   }
   
+
   // Return
   return Hessian; // Dummy return omega
 }

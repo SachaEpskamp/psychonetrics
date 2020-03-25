@@ -38,6 +38,8 @@ Rcpp::List implied_lvm_cpp(
   int g;
   
   for (g=0; g<nGroup; g++){
+    bool proper = true;
+    
     Rcpp::List grouplist = x[g];
     
     // Model matrices:
@@ -76,10 +78,11 @@ Rcpp::List implied_lvm_cpp(
     
     // FIXME: Make symmetric?
     
-    arma::mat kappa = solve_symmetric_cpp_matrixonly(sigma);
+    arma::mat kappa = solve_symmetric_cpp_matrixonly_withcheck(sigma, proper);
     grouplist["kappa"] = kappa;
     
-    
+    // Return properness:
+    grouplist["proper"] = proper;
     
     x[g] = grouplist;
   }

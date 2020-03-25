@@ -17,6 +17,10 @@ solve_symmetric_cpp_matrixonly <- function(X, epsilon = 1.490116e-08) {
     .Call(`_psychonetrics_solve_symmetric_cpp_matrixonly`, X, epsilon)
 }
 
+solve_symmetric_cpp_matrixonly_withcheck <- function(X, proper) {
+    .Call(`_psychonetrics_solve_symmetric_cpp_matrixonly_withcheck`, X, proper)
+}
+
 bdiag_psychonetrics <- function(mats) {
     .Call(`_psychonetrics_bdiag_psychonetrics`, mats)
 }
@@ -623,6 +627,14 @@ isingExpectation <- function(graph, tau, beta, responses) {
 
 computeZ_cpp <- function(graph, tau, beta, responses) {
     .Call(`_psychonetrics_computeZ_cpp`, graph, tau, beta, responses)
+}
+
+implied_Ising_cpp <- function(model, all = FALSE) {
+    .Call(`_psychonetrics_implied_Ising_cpp`, model, all)
+}
+
+prepare_Ising_cpp <- function(x, model) {
+    .Call(`_psychonetrics_prepare_Ising_cpp`, x, model)
 }
 
 d_phi_theta_ml_lvm_group_cpp <- function(grouplist) {

@@ -53,6 +53,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// solve_symmetric_cpp_matrixonly_withcheck
+arma::mat solve_symmetric_cpp_matrixonly_withcheck(arma::mat X, bool& proper);
+RcppExport SEXP _psychonetrics_solve_symmetric_cpp_matrixonly_withcheck(SEXP XSEXP, SEXP properSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< bool& >::type proper(properSEXP);
+    rcpp_result_gen = Rcpp::wrap(solve_symmetric_cpp_matrixonly_withcheck(X, proper));
+    return rcpp_result_gen;
+END_RCPP
+}
 // bdiag_psychonetrics
 arma::mat bdiag_psychonetrics(const Rcpp::List mats);
 RcppExport SEXP _psychonetrics_bdiag_psychonetrics(SEXP matsSEXP) {
@@ -2006,6 +2018,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// implied_Ising_cpp
+Rcpp::List implied_Ising_cpp(const S4& model, bool all);
+RcppExport SEXP _psychonetrics_implied_Ising_cpp(SEXP modelSEXP, SEXP allSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const S4& >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< bool >::type all(allSEXP);
+    rcpp_result_gen = Rcpp::wrap(implied_Ising_cpp(model, all));
+    return rcpp_result_gen;
+END_RCPP
+}
+// prepare_Ising_cpp
+Rcpp::List prepare_Ising_cpp(arma::vec x, const S4& model);
+RcppExport SEXP _psychonetrics_prepare_Ising_cpp(SEXP xSEXP, SEXP modelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const S4& >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(prepare_Ising_cpp(x, model));
+    return rcpp_result_gen;
+END_RCPP
+}
 // d_phi_theta_ml_lvm_group_cpp
 arma::mat d_phi_theta_ml_lvm_group_cpp(const Rcpp::List& grouplist);
 RcppExport SEXP _psychonetrics_d_phi_theta_ml_lvm_group_cpp(SEXP grouplistSEXP) {
@@ -2047,6 +2083,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_sympd_cpp", (DL_FUNC) &_psychonetrics_sympd_cpp, 1},
     {"_psychonetrics_solve_symmetric_cpp", (DL_FUNC) &_psychonetrics_solve_symmetric_cpp, 3},
     {"_psychonetrics_solve_symmetric_cpp_matrixonly", (DL_FUNC) &_psychonetrics_solve_symmetric_cpp_matrixonly, 2},
+    {"_psychonetrics_solve_symmetric_cpp_matrixonly_withcheck", (DL_FUNC) &_psychonetrics_solve_symmetric_cpp_matrixonly_withcheck, 2},
     {"_psychonetrics_bdiag_psychonetrics", (DL_FUNC) &_psychonetrics_bdiag_psychonetrics, 1},
     {"_psychonetrics_cbind_psychonetrics", (DL_FUNC) &_psychonetrics_cbind_psychonetrics, 1},
     {"_psychonetrics_vech", (DL_FUNC) &_psychonetrics_vech, 2},
@@ -2199,6 +2236,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_Pot", (DL_FUNC) &_psychonetrics_Pot, 4},
     {"_psychonetrics_isingExpectation", (DL_FUNC) &_psychonetrics_isingExpectation, 4},
     {"_psychonetrics_computeZ_cpp", (DL_FUNC) &_psychonetrics_computeZ_cpp, 4},
+    {"_psychonetrics_implied_Ising_cpp", (DL_FUNC) &_psychonetrics_implied_Ising_cpp, 2},
+    {"_psychonetrics_prepare_Ising_cpp", (DL_FUNC) &_psychonetrics_prepare_Ising_cpp, 2},
     {"_psychonetrics_d_phi_theta_ml_lvm_group_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_ml_lvm_group_cpp, 1},
     {"_psychonetrics_d_phi_theta_ml_lvm_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_ml_lvm_cpp, 1},
     {"_psychonetrics_updateModel_cpp", (DL_FUNC) &_psychonetrics_updateModel_cpp, 3},

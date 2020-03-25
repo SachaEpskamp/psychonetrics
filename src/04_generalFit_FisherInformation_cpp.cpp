@@ -97,7 +97,6 @@ void psychonetrics_FisherInformation_cpp_inner(
       Rcpp::Function hesFun = base["expected_hessian_Ising"]; 
       
       estimatorPart = as<arma::mat>(hesFun(prep));
-      
 
     } else {
       Rf_error("Distribution not supported for ML estimator.");

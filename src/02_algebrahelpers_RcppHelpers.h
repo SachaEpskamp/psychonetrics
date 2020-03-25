@@ -30,6 +30,11 @@ arma::mat solve_symmetric_cpp_matrixonly(
         double epsilon  = 1.490116e-08
 );
 
+arma::mat solve_symmetric_cpp_matrixonly_withcheck(
+                arma::mat X,
+                bool& proper
+);
+
 
 arma::mat bdiag_psychonetrics(
                 Rcpp::List mats

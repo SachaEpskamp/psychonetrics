@@ -33,6 +33,8 @@ Rcpp::List implied_varcov_cpp(
   int g;
   
   for (g=0; g<nGroup; g++){
+    bool proper = true;
+    
     Rcpp::List grouplist = x[g];
     
     // If mu is not there, obtain from the sample means:
@@ -45,9 +47,13 @@ Rcpp::List implied_varcov_cpp(
     // Check kappa:
     if (!grouplist.containsElementNamed("kappa")){
       arma::mat sigma = grouplist["sigma"];
-      arma::mat kappa = solve_symmetric_cpp_matrixonly(sigma);
+      arma::mat kappa = solve_symmetric_cpp_matrixonly_withcheck(sigma, proper);
       grouplist["kappa"] = kappa;
     }
+    
+    
+    // Return properness:
+    grouplist["proper"] = proper;
     
     x[g] = grouplist;
   }

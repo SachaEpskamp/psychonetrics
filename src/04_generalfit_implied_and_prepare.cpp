@@ -17,6 +17,8 @@
 #include "19_tsdlvm1_prepare_cpp.h"
 #include "20_meta_varcov_implied_cpp.h"
 #include "20_meta_varcov_prepare_cpp.h"
+#include "21_Ising_implied_cpp.h"
+#include "21_Ising_prepare_cpp.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -85,13 +87,15 @@ Rcpp::List impliedModel_cpp(
     
   }  else if (framework == "Ising"){
     
-    // Obtain environment containing function
-    Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
+    imp = implied_Ising_cpp(model, all); // = Updated!
     
-    // Make function callable from C++
-    Rcpp::Function impfun = base["implied_Ising"]; 
-    
-    imp = impfun(Rcpp::_["model"] = model, Rcpp::_["all"] =   all);
+    // // Obtain environment containing function
+    // Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
+    // 
+    // // Make function callable from C++
+    // Rcpp::Function impfun = base["implied_Ising"]; 
+    // 
+    // imp = impfun(Rcpp::_["model"] = model, Rcpp::_["all"] =   all);
     
   }  else if (framework == "ml_lvm"){
     
@@ -178,13 +182,15 @@ Rcpp::List prepareModel_cpp(
     
   }  else if (framework == "Ising"){
     
-    // Obtain environment containing function
-    Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
-    
-    // Make function callable from C++
-    Rcpp::Function prepfun = base["prepare_Ising"]; 
-    
-    prep = prepfun(Rcpp::_["x"] = x, Rcpp::_["model"] =   model);
+    prep = prepare_Ising_cpp(x, model); // = Updated!
+    // 
+    // // Obtain environment containing function
+    // Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
+    // 
+    // // Make function callable from C++
+    // Rcpp::Function prepfun = base["prepare_Ising"]; 
+    // 
+    // prep = prepfun(Rcpp::_["x"] = x, Rcpp::_["model"] =   model);
     
   }  else if (framework == "ml_lvm"){
     

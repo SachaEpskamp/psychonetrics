@@ -21,6 +21,7 @@ expected_hessian_Ising_group <- function(omega,tau,beta,responses,nobs,...){
     beta,
     nrow(states),
     ncol(states))
+
   
   return(Hes)
   # 
@@ -74,5 +75,6 @@ expected_hessian_Ising <- function(prep){
   
   # FIXME: Computationall it is nicer to make the whole object first then fill it
   # Bind by colum and return: 
-  Reduce("bdiag",exph_per_group)
+  bdiag_psychonetrics(exph_per_group)
+  # Reduce("bdiag",exph_per_group)
 }

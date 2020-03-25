@@ -42,6 +42,7 @@ Rcpp::List implied_var1_cpp(
   
   for (g=0; g<nGroup; g++){
     Rcpp::List grouplist = x[g];
+    bool proper = true;
     
     // Model matrices:
     arma::mat beta = grouplist["beta"];
@@ -82,7 +83,7 @@ Rcpp::List implied_var1_cpp(
     
     
     // Precision:
-    arma::mat kappa = solve_symmetric_cpp_matrixonly(sigma);
+    arma::mat kappa = solve_symmetric_cpp_matrixonly_withcheck(sigma, proper);
     
     // Store matrices:
     grouplist["sigma"] = sigma;
@@ -100,6 +101,9 @@ Rcpp::List implied_var1_cpp(
       grouplist["PDC"] = computePDC_cpp(beta,grouplist["kappa_zeta"],grouplist["sigma_zeta"]);
       
     }
+    
+    // Return properness:
+    grouplist["proper"] = proper;
     
     
     x[g] = grouplist;

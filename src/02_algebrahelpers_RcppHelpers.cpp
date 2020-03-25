@@ -136,12 +136,90 @@ arma::mat solve_symmetric_cpp_matrixonly(
   
   // If not, pseudoinverse:
   if (!posdef){
+    
     arma::mat res = pinv(X);
     return(res);
     
   } else {
     // Small spectral shift:
     if (lowestEV < sqrt(epsilon)){
+      
+      for (i=0;i<nvar;i++){
+        X(i,i) = X(i,i) - lowestEV + sqrt(epsilon);
+      }
+    }
+    
+    // invert:
+    arma::mat res = inv_sympd(X); // FIXME
+    return(res);
+  }
+  
+  
+}
+
+
+
+// Same as above, but with extra check:
+
+// [[Rcpp::export]]
+arma::mat solve_symmetric_cpp_matrixonly_withcheck(
+    arma::mat X,
+    bool& proper
+){
+  double epsilon  = 1.490116e-08;
+  int i,j;
+  int nvar = X.n_cols;
+  
+  // Check if symmetric:
+  bool issym = X.is_symmetric();
+  
+  // if not, make symmetric:
+  if (!issym){
+    X = 0.5* (X + X.t());
+  }
+  
+  // Check again:
+  issym = X.is_symmetric();
+  
+  // if not, loop over to fix:
+  if (!issym){
+    proper = false;
+    for (i=0;i<nvar;i++){
+      for (j=0;j<nvar;j++){
+        if (!is_finite(X(i,j))){
+          if (i==j){
+            X(i,j) = 1;
+          } else {
+            X(i,j) = 0;
+          }
+        }
+        
+      }
+    }
+  }
+  
+  // // Check if posdef:
+  // bool posdef = X.is_sympd();
+  // Check if posdef:
+  // Rf_PrintValue(wrap(X));
+  
+  
+  double lowestEV = eig_sym(arma::symmatl(X))[0];
+  
+  
+  bool posdef = lowestEV > - sqrt(epsilon); //X.is_sympd();
+  
+  // If not, pseudoinverse:
+  if (!posdef){
+    proper = false;
+    
+    arma::mat res = pinv(X);
+    return(res);
+    
+  } else {
+    // Small spectral shift:
+    if (lowestEV < sqrt(epsilon)){
+      
       for (i=0;i<nvar;i++){
         X(i,i) = X(i,i) - lowestEV + sqrt(epsilon);
       }
