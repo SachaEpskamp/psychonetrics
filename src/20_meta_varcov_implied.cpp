@@ -43,6 +43,8 @@ Rcpp::List implied_meta_varcov_cpp(
   int nGroup = x.length();
   int g = 0;
   
+  bool proper = true;
+  
   // General stuff:
   Rcpp::List extramats = model.slot("extramatrices");
   
@@ -79,7 +81,7 @@ Rcpp::List implied_meta_varcov_cpp(
     // Form the var-cov matrix:
     arma::mat sigma = sigma_randomEffects + V;
     grouplist["sigma"] = sigma;
-    grouplist["kappa"] = solve_symmetric_cpp_matrixonly(sigma);
+    grouplist["kappa"] = solve_symmetric_cpp_matrixonly_withcheck(sigma, proper);
     
   } else {
     int nStudy = nPerGroup[g];
@@ -106,7 +108,7 @@ Rcpp::List implied_meta_varcov_cpp(
       arma::mat Vcur = Vall[s];
       arma::mat cursigma = sigma_randomEffects + Vcur;;
       sigmalist[s] = cursigma;
-      kappalist[s] = solve_symmetric_cpp_matrixonly(cursigma);
+      kappalist[s] = solve_symmetric_cpp_matrixonly_withcheck(cursigma, proper);
     }
     
     grouplist["mu"] = mulist;
@@ -123,7 +125,8 @@ Rcpp::List implied_meta_varcov_cpp(
   
   // }
   
-  
+  // Return properness:
+  grouplist["proper"] = proper;
   
   x[g] = grouplist;
   // }

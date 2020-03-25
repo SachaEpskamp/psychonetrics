@@ -400,7 +400,7 @@ runmodel <- function(
     #   message("Eigenvalues...")
     # }
     if (!sympd_cpp(x@information)){
-      warning("Information matrix is not positive semi-definite. Model might not be identified.")
+      warning("Information matrix is not positive semi-definite. This can happen because the model is not identified, or because the optimizer encountered problems. Try running the model with a different optimizer using setoptimizer(...).")
     }
     # if (any(Re(eigen(x@information)$values) < -sqrt(.Machine$double.eps))){
     #   warning("Information matrix is not positive semi-definite. Model might not be identified.")

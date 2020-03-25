@@ -48,6 +48,8 @@ Rcpp::List implied_tsdlvm1_cpp(
   
   
   for (g=0; g<nGroup; g++){
+    bool proper = true;
+    
     Rcpp::List grouplist = x[g];
     
     // Model matrices:
@@ -102,7 +104,7 @@ Rcpp::List implied_tsdlvm1_cpp(
        grouplist["sigma"] = sigma;
       
       // Precision:
-      grouplist["kappa"] = solve_symmetric_cpp_matrixonly(sigma);
+      grouplist["kappa"] = solve_symmetric_cpp_matrixonly_withcheck(sigma, proper);
 
       
       // Extra matrices needed in optimization:
@@ -119,13 +121,14 @@ Rcpp::List implied_tsdlvm1_cpp(
         if (grouplist.containsElementNamed("kappa_zeta")){
           kappa_zeta = as<arma::mat>(grouplist["kappa_zeta"]);
         } else {
-          kappa_zeta = solve_symmetric_cpp_matrixonly(sigma_zeta);
+          kappa_zeta = solve_symmetric_cpp_matrixonly_withcheck(sigma_zeta, proper);
         }
         
         grouplist["PDC"] = computePDC_cpp(grouplist["beta"], kappa_zeta, sigma_zeta);
       }
       
-      
+      // Return properness:
+      grouplist["proper"] = proper;
       
       x[g] = grouplist;
   }

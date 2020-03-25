@@ -58,6 +58,8 @@ Rcpp::List implied_dlvm1_cpp(
 
   
   for (g=0; g<nGroup; g++){
+    bool proper = true;
+    
     Rcpp::List grouplist = x[g];
     
     // Model matrices:
@@ -143,7 +145,7 @@ Rcpp::List implied_dlvm1_cpp(
     
     
     // Precision:
-    grouplist["kappa"] =  solve_symmetric_cpp_matrixonly(finalsigma);
+    grouplist["kappa"] =  solve_symmetric_cpp_matrixonly_withcheck(finalsigma, proper);
     
     // FIXME: forcing symmetric, but not sure why this is needed...
     // grouplist["kappa = 0.5*(grouplist["kappa + t(grouplist["kappa))
@@ -182,7 +184,7 @@ Rcpp::List implied_dlvm1_cpp(
     if (grouplist.containsElementNamed("kappa_zeta_within")){
       kappa_zeta_within = as<arma::mat>(grouplist["kappa_zeta_within"]);
     } else {
-      kappa_zeta_within = solve_symmetric_cpp_matrixonly(sigma_zeta_within);
+      kappa_zeta_within = solve_symmetric_cpp_matrixonly_withcheck(sigma_zeta_within, proper);
     }
     
     grouplist["PDC"] = computePDC_cpp(grouplist["beta"], kappa_zeta_within, grouplist["sigma_zeta_within"]);
@@ -191,6 +193,8 @@ Rcpp::List implied_dlvm1_cpp(
     //   grouplist["PDC[] = 0
     // }
     
+    // Return properness:
+    grouplist["proper"] = proper;
     
     
     x[g] = grouplist;
