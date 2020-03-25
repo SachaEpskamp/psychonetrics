@@ -14,7 +14,7 @@ impliedModel <- function(model, types, all = FALSE){
                      "tsdlvm1" = implied_tsdlvm1_cpp, # <- Updated!
                      "meta_varcov" = implied_meta_varcov_cpp, # <- Updated!
                      "Ising" = implied_Ising_cpp, # <- Updated!
-                     "ml_lvm" = implied_ml_lvm
+                     "ml_lvm" = implied_ml_lvm_cpp # <- Updated!
     )    
   } else {
     impFun <- switch(framework,

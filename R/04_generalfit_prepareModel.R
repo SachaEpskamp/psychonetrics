@@ -17,7 +17,7 @@ prepareModel <- function(x, model){
                       "tsdlvm1" = prepare_tsdlvm1_cpp, # <- Updated!
                       "meta_varcov" = prepare_meta_varcov_cpp, # <- updated!
                       "Ising" = prepare_Ising_cpp, # <- Updated!
-                      "ml_lvm" = prepare_ml_lvm
+                      "ml_lvm" = prepare_ml_lvm_cpp # <- Udated!!!
                       # "cholesky" = prepare_cholesky
     )    
   } else {
