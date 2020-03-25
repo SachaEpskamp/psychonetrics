@@ -30,11 +30,12 @@ var1 <- function(
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   # fitfunctions, # Leave empty
   estimator = "ML",
-  optimizer =  c("nlminb","cpp_CG","cpp_BFGS","cpp_SANN","cpp_Nelder-Mead","cpp_L-BFGS-B","ucminf"),
+  optimizer =  c("cpp_L-BFGS-B","cpp_CG","cpp_BFGS","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
   storedata = FALSE,
   covtype = c("choose","ML","UB"),
   standardize = c("none","z","quantile"),
-  sampleStats
+  sampleStats,
+  verbose=FALSE
 ){
   optimizer <- match.arg(optimizer)
   contemporaneous <- match.arg(contemporaneous)
@@ -77,6 +78,7 @@ var1 <- function(
                                storedata = storedata,
                                covtype=covtype,
                                standardize = standardize,
+                               verbose=verbose,
                                weightsmatrix = ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
                                                       switch(estimator,
                                                         "WLS" = "full",
@@ -106,7 +108,7 @@ var1 <- function(
                                     ),types = list(zeta = contemporaneous),
                                   sample = sampleStats,computed = FALSE, 
                                   equal = equal,
-                                  optimizer = optimizer, estimator = estimator, distribution = "Gaussian")
+                                  optimizer = optimizer, estimator = estimator, distribution = "Gaussian",verbose=verbose)
   
   # Number of groups:
   nGroup <- nrow(model@sample@groups)

@@ -6,10 +6,14 @@ fixpar <- function(
   col, # Must be given
   value = 0, # typical so can be missing
   group, # Can be missing to indicate all
-  verbose = TRUE,
+  verbose,
   log = TRUE,
   runmodel = FALSE,
   ...){
+  
+  if (missing(verbose)){
+    verbose <- x@verbose
+  }
 
   if (missing(matrix)){
     stop("'matrix' argument may not be missing")

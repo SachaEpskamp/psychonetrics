@@ -1,8 +1,14 @@
 # Add standard errors and p-values!
 # Add the modification indices:
-addSEs <-  function(x
+addSEs <-  function(x,
+                    verbose = FALSE
                     # approxHessian = FALSE # Approximate the hessian even if it is already stored
                     ){
+  
+  if (verbose){
+    message("Adding standard errors...")
+  }
+  
   # If not computed, warn user!
   if (!x@computed){
     warning("Model was not computed, interpret standard errors and p-values with care!")

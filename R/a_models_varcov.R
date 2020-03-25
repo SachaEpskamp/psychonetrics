@@ -22,13 +22,13 @@ varcov <- function(
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   estimator = "default",
-  optimizer = c("nlminb","cpp_CG","cpp_BFGS","cpp_SANN","cpp_Nelder-Mead","cpp_L-BFGS-B","ucminf"),
+  optimizer =  c("cpp_L-BFGS-B","cpp_CG","cpp_BFGS","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
   storedata = FALSE,
   WLS.W,
   sampleStats, # Leave to missing
   meanstructure, # Defaults to TRUE if data is used or means is used, FALSE otherwie
   corinput, # Defaults to TRUE if the input is detected to consist of correlation matrix/matrices, FALSE otherwise
-  verbose = TRUE,
+  verbose = FALSE,
   covtype = c("choose","ML","UB"),
   standardize = c("none","z","quantile"),
   fullFIML=FALSE
@@ -128,7 +128,7 @@ varcov <- function(
                                   equal = equal,
                                   optimizer = optimizer, estimator = estimator, distribution = "Gaussian",
                                   rawts = rawts, types = list(y = type),
-                                  submodel = type, meanstructure = meanstructure)
+                                  submodel = type, meanstructure = meanstructure, verbose=verbose)
   
   # Number of groups:
   nGroup <- nrow(model@sample@groups)

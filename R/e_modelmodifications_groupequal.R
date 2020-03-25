@@ -4,11 +4,16 @@ groupequal <- function(
   matrix, # Must be given
   row, # Can be missing
   col, # Can be missing
-  verbose = TRUE,
+  verbose,
   log = TRUE,
   runmodel = FALSE,
   identify = TRUE,
   ...){
+  
+  if (missing(verbose)){
+    verbose <- x@verbose
+  }
+  
   if (missing(matrix)){
     stop("'matrix' argument may not be missing")
   }

@@ -8,13 +8,16 @@ runmodel <- function(
   addSEs=TRUE,
   addInformation = TRUE,
   log = TRUE,
-  verbose = TRUE,
+  verbose,
   # optimizer = c("default","ucminf","nlminb"),
   optim.control = list(),
   # maxtry = 5,
   analyticFisher = TRUE
   # inverseHessian = TRUE
 ){
+  if (missing(verbose)){
+    verbose <- x@verbose
+  }
   # first check if there are any free parameters:
   if (all(x@parameters$fixed)){
     x@computed <- TRUE
@@ -411,7 +414,7 @@ runmodel <- function(
   # }
   # Add fit:
   if (addfit){
-    x <- addfit(x)
+    x <- addfit(x, verbose=verbose)
   }
   # Add MIs:
   if (addMIs){
@@ -419,7 +422,15 @@ runmodel <- function(
   }
   # Add SEs:
   if (addSEs){
-    x <- addSEs(x)
+    if (x@cpp){
+      if (verbose){
+        message("Adding standard errors...")
+      }
+      x <- addSEs_cpp(x)  
+    } else {
+      x <- addSEs(x, verbose=verbose)
+    }
+    
   }
   
   # Add baseline or saturated if needed:

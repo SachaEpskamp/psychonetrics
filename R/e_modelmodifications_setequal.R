@@ -3,9 +3,13 @@ parequal <- function(
   x, # Model
   ...,
  inds = integer(0), # Indices to set equal
-  verbose = TRUE,
+  verbose,
   log = TRUE,
   runmodel = FALSE){
+  
+  if (missing(verbose)){
+    verbose <- x@verbose
+  }
 
   inds <- c(unlist(list(...),inds))
   # current max par:

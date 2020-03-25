@@ -7,7 +7,7 @@ prune <- function(
   matrices, # Automatically chosen
   runmodel = TRUE,
   recursive = FALSE,
-  verbose = TRUE,
+  verbose,
   log = TRUE,
   identify = TRUE,
   # nCores = 1,
@@ -15,6 +15,10 @@ prune <- function(
   startreduce = 1,
   limit = Inf,
   ...){
+  if (missing(verbose)){
+    verbose <- x@verbose
+  }
+  
   reps <- 1000
   nCores <- 1
   bootstrap <- FALSE

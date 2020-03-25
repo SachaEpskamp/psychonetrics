@@ -84,7 +84,8 @@ generate_psychonetrics <- setClass("psychonetrics", slots = c(
   Drawts = "list",
   types = "list",
   cpp = "logical",
-  meanstructure = "logical"
+  meanstructure = "logical",
+  verbose = "logical"
 ),
 prototype = list(
   model = "dummy", submodel = "none",
@@ -140,7 +141,8 @@ prototype = list(
   estimator = "ML",
   rawts = FALSE,
   cpp = TRUE, # Use C++ when available
-  meanstructure = TRUE
+  meanstructure = TRUE,
+  verbose = FALSE
 ))
 
 # generate_psychonetrics()

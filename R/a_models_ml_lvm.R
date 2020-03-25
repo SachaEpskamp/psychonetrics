@@ -64,9 +64,9 @@ ml_lvm <- function(
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   # fitfunctions, # Leave empty
   estimator = c("FIML","MUML"),
-  optimizer =  c("nlminb","cpp_CG","cpp_BFGS","cpp_SANN","cpp_Nelder-Mead","cpp_L-BFGS-B","ucminf"),
+  optimizer =  c("cpp_L-BFGS-B","cpp_CG","cpp_BFGS","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
   storedata = FALSE,
-  verbose = TRUE,
+  verbose = FALSE,
   standardize = c("none","z","quantile"),
   sampleStats
 ){
@@ -227,7 +227,8 @@ ml_lvm <- function(
                                vars = allVars, 
                                groups = groups,
                                fimldata = estimator == "FIML",
-                               storedata = storedata)
+                               storedata = storedata,
+                               verbose=verbose)
   }
   
   
@@ -281,7 +282,7 @@ ml_lvm <- function(
                                   sample = sampleStats,computed = FALSE, 
                                   equal = equal,
                                   optimizer = optimizer, estimator = estimator, distribution = "Gaussian",
-                                  identification=identification)
+                                  identification=identification, verbose=verbose)
   
   # Number of groups:
   nGroup <- nrow(model@sample@groups)

@@ -8,13 +8,17 @@ stepup <- function(
   greedyadjust = c("bonferroni", "none", "holm", "hochberg", "hommel", "fdr", "BH", "BY"),
   stopif,
   greedy = FALSE, # If TRUE, will start by adding all significant effects followed by pruning
-  verbose = TRUE,
+  verbose,
   checkinformation = TRUE,
   singularinformation = c("tryfix","skip","continue","stop"), # tryfix = try to fix by adjusting starting values (once), skip = go to next parameter, continue = continue search, stop = stop and return current and previous model
   startEPC = TRUE,
     # maxtry = 0,
   ... # Fit arguments
 ){
+  if (missing(verbose)){
+    verbose <- x@verbose
+  }
+  
   maxtry <- 1
   singularinformation <- match.arg(singularinformation)
   triedfixing <- FALSE
@@ -174,8 +178,10 @@ stepup <- function(
           x <- groupequal(x, matrix = x@parameters$matrix[best],row = x@parameters$row[best],
                           col = x@parameters$col[best],verbose = FALSE, log = FALSE)
           
+          if (verbose){
+            message(paste0("Adding parameter ",x@parameters$matrix[best],"[",x@parameters$var1[best],", ",x@parameters$var2[best],"]"))              
+          }
           
-          message(paste0("Adding parameter ",x@parameters$matrix[best],"[",x@parameters$var1[best],", ",x@parameters$var2[best],"]"))            
           
         } else {
           x <- freepar(x, matrix = x@parameters$matrix[best],row = x@parameters$row[best],

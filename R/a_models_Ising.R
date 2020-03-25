@@ -15,12 +15,12 @@ Ising <- function(
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   estimator = "default",
-  optimizer =  c("nlminb","cpp_CG","cpp_BFGS","cpp_SANN","cpp_Nelder-Mead","cpp_L-BFGS-B","ucminf"),
+  optimizer =  c("cpp_L-BFGS-B","cpp_CG","cpp_BFGS","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
   storedata = FALSE,
   WLS.W,
   sampleStats, # Leave to missing
   identify = TRUE,
-  verbose = TRUE,
+  verbose = FALSE,
   maxNodes = 20
 ){
   optimizer <- match.arg(optimizer)
@@ -103,7 +103,7 @@ Ising <- function(
                                   equal = equal,
                                   optimizer = optimizer, estimator = estimator, distribution = "Ising",
                                   rawts = FALSE, types = list(),
-                                  submodel = type)
+                                  submodel = type, verbose=verbose)
   
   # Number of groups:
   nGroup <- nrow(model@sample@groups)

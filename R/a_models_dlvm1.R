@@ -69,9 +69,9 @@ dlvm1 <- function(
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   # fitfunctions, # Leave empty
   estimator = "ML",
-  optimizer =  c("nlminb","cpp_CG","cpp_BFGS","cpp_SANN","cpp_Nelder-Mead","cpp_L-BFGS-B","ucminf"),
+  optimizer =  c("cpp_L-BFGS-B","cpp_CG","cpp_BFGS","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
   storedata = FALSE,
-  verbose = TRUE,
+  verbose = FALSE,
   sampleStats
 ){
   optimizer <- match.arg(optimizer)
@@ -128,6 +128,7 @@ dlvm1 <- function(
                                fimldata = estimator == "FIML",
                                storedata = storedata,
                                covtype=covtype,
+                               verbose=verbose,
                                weightsmatrix = ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
                                                       switch(estimator,
                                                         "WLS" = "full",
@@ -222,7 +223,7 @@ dlvm1 <- function(
                                   sample = sampleStats,computed = FALSE, 
                                   equal = equal,
                                   optimizer = optimizer, estimator = estimator, distribution = "Gaussian",
-                                  identification=identification)
+                                  identification=identification, verbose = verbose)
   
   # Number of groups:
   nGroup <- nrow(model@sample@groups)

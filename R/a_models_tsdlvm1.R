@@ -51,12 +51,13 @@ tsdlvm1 <- function(
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   # fitfunctions, # Leave empty
   estimator = "ML",
-  optimizer =  c("nlminb","cpp_CG","cpp_BFGS","cpp_SANN","cpp_Nelder-Mead","cpp_L-BFGS-B","ucminf"),
+  optimizer =  c("cpp_L-BFGS-B","cpp_CG","cpp_BFGS","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
   storedata = FALSE,
   sampleStats,
   covtype = c("choose","ML","UB"),
   centerWithin = FALSE,
-  standardize = c("none","z","quantile")
+  standardize = c("none","z","quantile"),
+  verbose = FALSE
 ){
   optimizer <- match.arg(optimizer)
   contemporaneous <- match.arg(contemporaneous)
@@ -101,6 +102,7 @@ tsdlvm1 <- function(
                                storedata = storedata,
                                covtype=covtype,
                                standardize=standardize,
+                               verbose=verbose,
                                weightsmatrix = ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
                                                       switch(estimator,
                                                              "WLS" = "full",
@@ -142,7 +144,8 @@ tsdlvm1 <- function(
                                                epsilon = residual),
                                   sample = sampleStats,computed = FALSE, 
                                   equal = equal,
-                                  optimizer = optimizer, estimator = estimator, distribution = "Gaussian")
+                                  optimizer = optimizer, estimator = estimator, distribution = "Gaussian",
+                                  verbose=verbose)
   
   # Number of groups:
   nGroup <- nrow(model@sample@groups)

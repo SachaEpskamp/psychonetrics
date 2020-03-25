@@ -6,12 +6,16 @@ freepar <- function(
   col, # Must be given
   start, # Starting value, can be ignored
   group, # Can be missing to indicate all
-  verbose = TRUE,
+  verbose,
   log = TRUE,
   runmodel = FALSE,
   startEPC = TRUE,
   ...){
   
+  
+  if (missing(verbose)){
+    verbose <- x@verbose
+  }
   
 
   if (missing(matrix)){
