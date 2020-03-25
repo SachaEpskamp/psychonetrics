@@ -36,11 +36,11 @@ meta_varcov <- function(
   
   # Some extra stuff:
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
-  optimizer =  c("nlminb","cpp_CG","cpp_BFGS","cpp_SANN","cpp_Nelder-Mead","cpp_L-BFGS-B","ucminf"),
+  optimizer =  c("cpp_L-BFGS-B","cpp_CG","cpp_BFGS","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
   estimator = c("FIML","ML"),
   
   sampleStats, # Leave to missing
-  verbose = TRUE
+  verbose = FALSE
 ){
   optimizer <- match.arg(optimizer)
   # warning("'meta_varcov' is still experimental.")
@@ -132,7 +132,7 @@ meta_varcov <- function(
   model <- generate_psychonetrics(model = "meta_varcov", sample = sampleStats, computed = FALSE,
                                   optimizer = optimizer, estimator = estimator, distribution = "Gaussian",
                                   types = list(y = type, randomEffects = randomEffects),
-                                  submodel = type, meanstructure = TRUE)
+                                  submodel = type, meanstructure = TRUE, verbose = verbose)
   
   # Number of groups:
   nGroup <- 1

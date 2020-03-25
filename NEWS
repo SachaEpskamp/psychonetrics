@@ -1,13 +1,18 @@
-Changes in version 0.6.1:
-  o Fixed a bug in Delta starting values
-  o Fixed a bug causing modelsearch to occasionally crash
-  o Added function 'fullFIML' to use true FIML computing the likelihood per row
-  o Large internal restructure to support RcppArmadillo
-  o Fixed a bug with Cov input not working for lvm models
-  o Changed 'WLS.V' to 'WLS.W'
-  o Added the meta_ggm rapper
-  o Better starting values for FIML GGMs
-  0 Translated various parts to C++ for speedups
+Changes in version 0.7:
+  o Major changes
+    o Major restructuring of underlying core code. Most vital functions have been translated to C++, leading to a large speedup!
+    o Added C++ based optimizers cpp_L-BFGS-B, ...
+      o Verbose now defaults to FALSE everywhere. This can be set with the setverbose function for a model
+    o Added meta-analysis model for varcov family (meta_varcov)
+  o Minor changes
+    o Fixed a bug in Delta starting values
+    o Fixed a bug causing modelsearch to occasionally crash
+    o Added function 'fullFIML' to use true FIML computing the likelihood per row
+    o Fixed a bug with Cov input not working for lvm models
+    o Changed 'WLS.V' to 'WLS.W'
+    o Better starting values for FIML GGMs
+    o Several warning messages have been updated
+  
 
 Changes in version 0.6:
   o The 'dlvm1' model family now also returns the implied latent variance-covarriance matrix as 'sigma_eta_within'

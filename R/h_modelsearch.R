@@ -4,11 +4,15 @@ modelsearch <- function(x,
                         matrices, # Matrices to search
                         prunealpha = 0.01, # Minimum p-value for edges tested to be removed
                         addalpha = 0.01, # Maximum p-value for edges tested to be added
-                        verbose = TRUE,
+                        verbose,
                         ...
 ){
   mi <- "mi"
   pmi <- "pmi"
+  
+  if (missing(verbose)){
+    verbose <- x@verbose
+  }
   
   # FIXME: If number of groups > 1, stop:
   if (nrow(x@sample@groups) > 1) stop("'modelsearch' is only implemented for single group models at the moment.")

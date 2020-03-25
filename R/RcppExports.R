@@ -657,3 +657,7 @@ updateModel_cpp <- function(x, model, updateMatrices) {
     .Call(`_psychonetrics_updateModel_cpp`, x, model, updateMatrices)
 }
 
+addSEs_cpp <- function(xOld) {
+    .Call(`_psychonetrics_addSEs_cpp`, xOld)
+}
+

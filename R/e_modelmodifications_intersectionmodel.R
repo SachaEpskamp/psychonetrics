@@ -2,10 +2,15 @@
 intersectionmodel <- function(
   x, # Model
   runmodel = FALSE,
-  verbose = TRUE,
+  verbose,
   log = TRUE,
   identify = TRUE,
   ...){
+  
+  if (missing(verbose)){
+    verbose <- x@verbose
+  }
+  
   # If only one group, nothing to do!
   if (nrow(x@sample@groups) == 1){
     if (verbose) message("Only one group in model, intersectionmodel does nothing...")

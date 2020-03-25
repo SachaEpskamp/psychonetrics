@@ -4,8 +4,13 @@
 
 # Computes fit measures
 addfit <- function(
- x #, ebicTuning = 0.25
+ x, #, ebicTuning = 0.25
+ verbose = FALSE
 ){
+  if (verbose){
+    message("Adding fit measures...")
+  }
+  
   # If not computed, stop:
   if (!x@computed){
     stop("Model has not yet been run. Use runmodel(object) first!")

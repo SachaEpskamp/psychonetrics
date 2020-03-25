@@ -41,13 +41,13 @@ lvm <- function(
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   estimator = "ML",
-  optimizer = c("cpp_L-BFGS-B","cpp_CG","cpp_BFGS","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
+  optimizer =  c("cpp_L-BFGS-B","cpp_CG","cpp_BFGS","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
   storedata = FALSE,
   WLS.W,
   covtype = c("choose","ML","UB"),
   standardize = c("none","z","quantile"),
   sampleStats,
-  verbose=TRUE
+  verbose=FALSE
 ){
   optimizer <- match.arg(optimizer)
   rawts = FALSE
@@ -98,7 +98,8 @@ lvm <- function(
   model <- generate_psychonetrics(model = "lvm",sample = sampleStats,computed = FALSE, 
                                   equal = equal,identification=identification,
                                   optimizer = optimizer, estimator = estimator, distribution = "Gaussian",
-                                  rawts = rawts, types = list(latent = latent, residual = residual))
+                                  rawts = rawts, types = list(latent = latent, residual = residual),
+                                  verbose=verbose)
   
   # Submodel:
   latentCov <- latent %in% c("cov","chol")

@@ -5,6 +5,8 @@ useDynLib(psychonetrics, .registration = TRUE)
 export(meta_ggm)
 export(simplestructure)
 
+export(setverbose)
+
 # Multi-level models:
 export(ml_tsdlvm1)
 export(ml_ts_lvgvar)

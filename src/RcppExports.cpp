@@ -2101,6 +2101,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// addSEs_cpp
+S4 addSEs_cpp(const S4& xOld);
+RcppExport SEXP _psychonetrics_addSEs_cpp(SEXP xOldSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const S4& >::type xOld(xOldSEXP);
+    rcpp_result_gen = Rcpp::wrap(addSEs_cpp(xOld));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_eig_sym_cpp", (DL_FUNC) &_psychonetrics_eig_sym_cpp, 1},
@@ -2267,6 +2278,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_implied_ml_lvm_cpp", (DL_FUNC) &_psychonetrics_implied_ml_lvm_cpp, 2},
     {"_psychonetrics_prepare_ml_lvm_cpp", (DL_FUNC) &_psychonetrics_prepare_ml_lvm_cpp, 2},
     {"_psychonetrics_updateModel_cpp", (DL_FUNC) &_psychonetrics_updateModel_cpp, 3},
+    {"_psychonetrics_addSEs_cpp", (DL_FUNC) &_psychonetrics_addSEs_cpp, 1},
     {NULL, NULL, 0}
 };
 
