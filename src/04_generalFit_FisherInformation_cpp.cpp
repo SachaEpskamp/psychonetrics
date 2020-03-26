@@ -4,9 +4,9 @@
 #include <RcppArmadillo.h>
 #include <math.h>
 #include "04_generalFit_implied_and_prepare.h"
-#include "05_MLestimator_expected_Hessian_Gauss_cpp.h"".h"
-#include "06_ULS_expectedHessian_cpp.h"".h"
-#include "07_FIMLestimator_expected_hessian_gauss_cppversion.h"".h"
+#include "05_MLestimator_expected_Hessian_Gauss_cpp.h"
+#include "06_ULS_expectedHessian_cpp.h"
+#include "07_FIMLestimator_expected_hessian_gauss_cppversion.h"
 #include "14_varcov_derivatives_cpp.h"
 #include "15_lvm_derivatives_cpp.h"
 #include "16_var1_derivatives_cpp.h"
