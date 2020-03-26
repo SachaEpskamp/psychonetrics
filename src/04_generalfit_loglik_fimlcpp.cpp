@@ -60,7 +60,8 @@ double logLikelihood_gaussian_subgroup_fiml_cpp_inner(
   // log det:
   arma::vec ev = arma::eig_sym(sigma_p);
   bool ispos = true;
-  for (int j = 0; j < ev.size(); j++){
+  int nEV = ev.size();
+  for (int j = 0; j < nEV; j++){
     if (ev[j] < sqrt(epsilon)){
       ispos = false;
       break;

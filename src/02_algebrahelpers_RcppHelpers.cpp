@@ -466,8 +466,10 @@ bool anyNon0(
     const arma::mat& X
 ){
   bool anyNon0 = false;
-  for (int i=0; i<X.n_rows; i++){
-    for (int j=0; j<X.n_cols; j++){
+  int nrow = X.n_rows;
+  int ncol = X.n_cols;
+  for (int i=0; i<nrow; i++){
+    for (int j=0; j<ncol; j++){
       
       if (X(i,j) != 0){
         anyNon0 = true;
