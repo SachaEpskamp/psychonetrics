@@ -45,7 +45,7 @@ double ULS_Gauss_cpp_pergroup(
   }
   
   // If no tau, do normal stuff:
-  if (grouplist.containsElementNamed("tau") == false){
+  if (!grouplist.containsElementNamed("tau") || !grouplist.containsElementNamed("thresholds")){
     if (meanstructure){
       
       obs = join_cols(obs,means);
