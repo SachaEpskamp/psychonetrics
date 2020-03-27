@@ -8,7 +8,7 @@
 #include "03_modelformation_formModelMatrices_cpp.h"
 #include "03_modelformation_impliedcovstructures.h"
 #include "b_modelexpansion_updateModel_cpp.h"
-#include "18_dlvm1_implied_cpp.h"".h"
+#include "18_dlvm1_implied_cpp.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
