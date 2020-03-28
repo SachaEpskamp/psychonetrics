@@ -36,10 +36,12 @@ S4 addSEs_cpp(
   
   // Parameter indices and estimates:
   NumericVector est = parameters["est"];
+  NumericVector absest = abs(est);
   NumericVector se = parameters["se"];
   NumericVector p = parameters["p"];
   IntegerVector par = parameters["par"];
   
+
   
   int nparTotal = par.length();
   int nparFree = max(par);
@@ -85,7 +87,7 @@ S4 addSEs_cpp(
     for (i=0; i<nparTotal;i++){
       if (par[i] > 0){
         se[i] = SEs(par[i]-1);
-        p[i] = 2* R::pnorm(abs(est[i]), 0.0, se[i], false, false);
+        p[i] = 2.0 * R::pnorm(absest[i], 0.0, se[i], 0, 0);
       }
     }
     
