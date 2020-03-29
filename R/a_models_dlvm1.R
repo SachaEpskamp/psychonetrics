@@ -69,7 +69,7 @@ dlvm1 <- function(
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   # fitfunctions, # Leave empty
   estimator = "ML",
-  optimizer =  c("cpp_L-BFGS-B","cpp_CG","cpp_BFGS","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
+  optimizer =  c("cpp_BFGS","cpp_L-BFGS-B","cpp_CG","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
   storedata = FALSE,
   verbose = FALSE,
   sampleStats

@@ -169,6 +169,7 @@ runmodel <- function(
     if (is(tryres,"try-error") && !any(is.na(parVector(x)))){
       
       tryres2 <- try({
+        # browser()
         x <- psychonetrics_optimizer(emergencystart(x), lower, upper, gsub("cpp_","",optimizer))
       }, silent = TRUE)    
       
