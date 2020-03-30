@@ -43,7 +43,10 @@ double psychonetrics_fitfunction_cpp(
     if (grouplist.containsElementNamed("proper")){
       bool proper = grouplist["proper"];
       if (!proper){
-        return(1e20);
+        // Rf_PrintValue(wrap("a matrix was not positive definite in optimization... fit function may not be accurate."));
+        Rf_warning("A matrix was not positive definite... fit function may not be accurate. Check your results for consistency using other optimizers with setoptimizer.");
+        // return(1e20);
+        // return(NA_REAL);
       }
     }
     
@@ -75,6 +78,7 @@ double psychonetrics_fitfunction_cpp(
   } else {
     Rf_error("Estimator not supported.");
   }
+  
   
   return(fit);
 }

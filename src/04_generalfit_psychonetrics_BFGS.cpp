@@ -26,7 +26,11 @@ public:
   }
   
   double operator()(const arma::vec &x) override {
-    return psychonetrics_fitfunction_cpp(x, model_);
+
+    double res = psychonetrics_fitfunction_cpp(x, model_);
+    
+    return res;
+    //return psychonetrics_fitfunction_cpp(x, model_);
   }
   
   void Gradient(const arma::vec &x, arma::vec &gr) override {
@@ -82,7 +86,10 @@ S4 psychonetrics_optimizer(
   opt.control.trace = 0; // <- no output
   opt.control.maxit = 20000; 
   opt.control.abstol = 1.490116e-08 * 10;
-  opt.control.reltol = 1e-5;
+  opt.control.reltol = 1e-3;
+  opt.control.pgtol = 1e-5;
+  // opt.control.reltol = 1.490116e-08;
+  // opt.control.abstol = 1.490116e-08;
   
   // Bounds:
   if (optimizer == "L-BFGS-B"){
@@ -104,6 +111,7 @@ S4 psychonetrics_optimizer(
   
   // OPTIMIZE:
   opt.minimize(rb, x);
+
   
   // Rcpp::Rcout << "-------------------------" << std::endl;
   // opt.print();
