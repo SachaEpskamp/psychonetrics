@@ -1,5 +1,8 @@
-setoptimizer <- function(x, optimizer = c("cpp_CG","cpp_BFGS","cpp_L-BFGS-B","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf")){
+setoptimizer <- function(x, optimizer = c("default","nlminb","ucminf","cpp_L-BFGS-B","cpp_BFGS","cpp_CG","cpp_SANN","cpp_Nelder-Mead")){
   optimizer <- match.arg(optimizer)
+  if (optimizer == "default"){
+    optimizer <- defaultoptimizer(x)
+  }
   x@optimizer <- optimizer
   
   if (!is.null(x@baseline_saturated$baseline)){

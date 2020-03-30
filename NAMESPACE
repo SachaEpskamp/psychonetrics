@@ -1,6 +1,10 @@
 ### Dynlib ###
 useDynLib(psychonetrics, .registration = TRUE)
 
+importFrom(psych, fa)
+importFrom(GA, ga)
+importFrom(combinat, permn)
+
 # importFrom(metaSEM, asyCov)
 export(meta_ggm)
 export(simplestructure)

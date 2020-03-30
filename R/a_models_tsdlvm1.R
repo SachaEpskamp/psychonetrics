@@ -51,7 +51,7 @@ tsdlvm1 <- function(
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   # fitfunctions, # Leave empty
   estimator = "ML",
-  optimizer =  c("cpp_L-BFGS-B","cpp_BFGS","cpp_CG","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
+  optimizer,
   storedata = FALSE,
   sampleStats,
   covtype = c("choose","ML","UB"),
@@ -59,7 +59,6 @@ tsdlvm1 <- function(
   standardize = c("none","z","quantile"),
   verbose = FALSE
 ){
-  optimizer <- match.arg(optimizer)
   contemporaneous <- match.arg(contemporaneous)
   residual <- match.arg(residual)
   identification <- match.arg(identification)
@@ -144,7 +143,7 @@ tsdlvm1 <- function(
                                                epsilon = residual),
                                   sample = sampleStats,computed = FALSE, 
                                   equal = equal,
-                                  optimizer = optimizer, estimator = estimator, distribution = "Gaussian",
+                                  optimizer =  "nlminb", estimator = estimator, distribution = "Gaussian",
                                   verbose=verbose)
   
   # Number of groups:
@@ -205,14 +204,17 @@ tsdlvm1 <- function(
   
   
   # Quick and dirty sigma_zeta estimate:
-  prior_sig_zeta <- lapply(seq_along(S0est),function(i){
-    # Let's take a pseudoinverse:
-    curLam <- matrix(as.vector(modMatrices$lambda$start[,,i,drop=FALSE]),nNode,nLat)
-    
-    inv <- corpcor::pseudoinverse(as.matrix(kronecker(curLam,curLam)))
-    
-    # And obtain psi estimate:
-    matrix(inv %*% as.vector(S0est[[i]])/2,nLat,nLat)
+  # prior_sig_zeta <- lapply(seq_along(S0est),function(i){
+  #   # Let's take a pseudoinverse:
+  #   curLam <- matrix(as.vector(modMatrices$lambda$start[,,i,drop=FALSE]),nNode,nLat)
+  # 
+  #   inv <- corpcor::pseudoinverse(as.matrix(kronecker(curLam,curLam)))
+  # 
+  #   # And obtain psi estimate:
+  #   matrix(inv %*% as.vector(S0est[[i]])/2,nLat,nLat)
+  # })
+  prior_sig_zeta <- lapply(seq_len(nGroup),function(g){
+    modMatrices$lambda$sigma_zeta_start[,,g]
   })
   
   # Setup latent varcov:
@@ -237,6 +239,10 @@ tsdlvm1 <- function(
                                        equal = "beta" %in% equal, sampletable = sampleStats)
   
   
+  prior_sig_epsilon <- lapply(seq_len(nGroup),function(g){
+    modMatrices$lambda$sigma_epsilon_start[,,g]
+  })
+  
   # Setup residuals:
   modMatrices <- c(modMatrices,
                    matrixsetup_flexcov(sigma_epsilon,lowertri_epsilon,omega_epsilon,delta_epsilon,kappa_epsilon,
@@ -245,7 +251,7 @@ tsdlvm1 <- function(
                                        sampleStats= sampleStats,
                                        equal = equal,
                                        nNode = nNode,
-                                       expCov = lapply(1:nGroup,function(x)diag(0.5,nNode)),
+                                       expCov = prior_sig_epsilon,
                                        nGroup = nGroup,
                                        labels = varnames
                    ))
@@ -382,6 +388,12 @@ tsdlvm1 <- function(
   # Identify model:
   if (identify){
     model <- identify(model)
+  }
+  
+  if (missing(optimizer)){
+    model <- setoptimizer(model, "default")
+  } else {
+    model <- setoptimizer(model, optimizer)
   }
   
   # Return model:

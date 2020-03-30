@@ -1,0 +1,3 @@
+defaultoptimizer <- function(x){
+  "nlminb"
+}

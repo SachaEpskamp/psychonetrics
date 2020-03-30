@@ -15,7 +15,7 @@ Ising <- function(
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   estimator = "default",
-  optimizer =  c("cpp_L-BFGS-B","cpp_BFGS","cpp_CG","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
+  optimizer,
   storedata = FALSE,
   WLS.W,
   sampleStats, # Leave to missing
@@ -23,7 +23,6 @@ Ising <- function(
   verbose = FALSE,
   maxNodes = 20
 ){
-  optimizer <- match.arg(optimizer)
   covtype <- match.arg(covtype)
 
   if (missing(data) && missing(responses)){
@@ -101,7 +100,7 @@ Ising <- function(
   # Generate model object:
   model <- generate_psychonetrics(model = "Ising",sample = sampleStats, computed = FALSE, 
                                   equal = equal,
-                                  optimizer = optimizer, estimator = estimator, distribution = "Ising",
+                                  optimizer =  "nlminb", estimator = estimator, distribution = "Ising",
                                   rawts = FALSE, types = list(),
                                   submodel = type, verbose=verbose)
   
@@ -205,6 +204,12 @@ Ising <- function(
   # Identify model:
   if (identify){
     model <- identify(model)
+  }
+  
+  if (missing(optimizer)){
+    model <- setoptimizer(model, "default")
+  } else {
+    model <- setoptimizer(model, optimizer)
   }
   
   # Return model:
