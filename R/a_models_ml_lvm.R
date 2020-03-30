@@ -64,7 +64,7 @@ ml_lvm <- function(
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   # fitfunctions, # Leave empty
   estimator = c("FIML","MUML"),
-  optimizer =  c("cpp_BFGS","cpp_L-BFGS-B","cpp_CG","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
+  optimizer =  c("cpp_L-BFGS-B","cpp_BFGS","cpp_CG","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
   storedata = FALSE,
   verbose = FALSE,
   standardize = c("none","z","quantile"),
