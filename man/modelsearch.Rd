@@ -8,8 +8,8 @@ Stepwise model search
 This function peforms stepwise model search to find an optimal model that (locally) minimzes some criterion (by default, the BIC). 
 }
 \usage{
-modelsearch(x, criterion = "bic", matrices, 
-  prunealpha = 0.01, addalpha = 0.01, verbose = TRUE, ...)
+modelsearch(x, criterion = "bic", matrices, prunealpha = 0.01,
+                    addalpha = 0.01, verbose, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

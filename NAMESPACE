@@ -165,3 +165,5 @@ import(magrittr)
      importFrom("utils", "setTxtProgressBar", "txtProgressBar")
      
      importFrom("stats", "qnorm")
+     
+     importFrom("stats", "cor", "weighted.mean")

@@ -33,8 +33,8 @@ dlvm1(data, vars, lambda, within_latent = c("cov", "chol",
                     "variance"), latents, groups, covs, means, nobs,
                     covtype = c("choose", "ML", "UB"), missing =
                     "listwise", equal = "none", baseline_saturated = TRUE,
-                    estimator = "ML", optimizer = "default", storedata =
-                    FALSE, verbose = TRUE, sampleStats)
+                    estimator = "ML", optimizer, storedata = FALSE,
+                    verbose = FALSE, sampleStats)
 
 panelgvar(data, vars, ...)
 

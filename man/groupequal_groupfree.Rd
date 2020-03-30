@@ -9,11 +9,11 @@ Group equality constrains
 The \code{groupequal} function constrains parameters equal across groups, and the \code{groupfree} function frees equality constrains across groups.
 }
 \usage{
-groupequal(x, matrix, row, col, verbose = TRUE, log = TRUE, runmodel = FALSE, 
-      identify = TRUE, ...)
+groupequal(x, matrix, row, col, verbose, log = TRUE, runmodel =
+                    FALSE, identify = TRUE, ...)
 
-groupfree(x, matrix, row, col, verbose = TRUE, log = TRUE, runmodel = FALSE, 
-      identify = TRUE, ...)
+groupfree(x, matrix, row, col, verbose, log = TRUE, runmodel =
+                    FALSE, identify = TRUE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

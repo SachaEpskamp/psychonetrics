@@ -8,11 +8,12 @@ Ising model
 This is the family of Ising models fit to dichotomous datasets. Note that the input matters (see also https://arxiv.org/abs/1811.02916) in this model! Models based on a dataset that is encoded with -1 and 1 are not entirely equivalent to models based on datasets encoded with 0 and 1 (non-equivalences occur in multi-group settings with equality constrains). 
 }
 \usage{
-Ising(data, omega = "full", tau, beta, vars, groups, covs, means, nobs, 
-    covtype = c("choose","ML","UB"), responses, missing = "listwise", 
-    equal = "none", baseline_saturated = TRUE, estimator = "default", 
-    optimizer = "default", storedata = FALSE, WLS.W, sampleStats, 
-    identify = TRUE, verbose = TRUE, maxNodes = 20)
+Ising(data, omega = "full", tau, beta, vars, groups, covs,
+                    means, nobs, covtype = c("choose", "ML", "UB"),
+                    responses, missing = "listwise", equal = "none",
+                    baseline_saturated = TRUE, estimator = "default",
+                    optimizer, storedata = FALSE, WLS.W, sampleStats,
+                    identify = TRUE, verbose = FALSE, maxNodes = 20)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
