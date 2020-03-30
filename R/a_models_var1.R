@@ -30,14 +30,13 @@ var1 <- function(
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   # fitfunctions, # Leave empty
   estimator = "ML",
-  optimizer =  c("cpp_L-BFGS-B","cpp_BFGS","cpp_CG","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
+  optimizer,
   storedata = FALSE,
   covtype = c("choose","ML","UB"),
   standardize = c("none","z","quantile"),
   sampleStats,
   verbose=FALSE
 ){
-  optimizer <- match.arg(optimizer)
   contemporaneous <- match.arg(contemporaneous)
   
   # FIXME: Not sure why needed...
@@ -108,7 +107,7 @@ var1 <- function(
                                     ),types = list(zeta = contemporaneous),
                                   sample = sampleStats,computed = FALSE, 
                                   equal = equal,
-                                  optimizer = optimizer, estimator = estimator, distribution = "Gaussian",verbose=verbose)
+                                  optimizer =  "nlminb", estimator = estimator, distribution = "Gaussian",verbose=verbose)
   
   # Number of groups:
   nGroup <- nrow(model@sample@groups)
@@ -298,6 +297,11 @@ var1 <- function(
     
   }
   
+  if (missing(optimizer)){
+    model <- setoptimizer(model, "default")
+  } else {
+    model <- setoptimizer(model, optimizer)
+  }
   
   # Return model:
   return(model)

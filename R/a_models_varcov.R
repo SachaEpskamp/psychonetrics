@@ -22,7 +22,7 @@ varcov <- function(
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   estimator = "default",
-  optimizer =  c("cpp_L-BFGS-B","cpp_BFGS","cpp_CG","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
+  optimizer,
   storedata = FALSE,
   WLS.W,
   sampleStats, # Leave to missing
@@ -33,7 +33,6 @@ varcov <- function(
   standardize = c("none","z","quantile"),
   fullFIML=FALSE
 ){
-  optimizer <- match.arg(optimizer)
   rawts = FALSE
   if (rawts){
     warning("'rawts' is only included for testing purposes. Please do not use!")
@@ -126,7 +125,7 @@ varcov <- function(
   # Generate model object:
   model <- generate_psychonetrics(model = "varcov",sample = sampleStats,computed = FALSE, 
                                   equal = equal,
-                                  optimizer = optimizer, estimator = estimator, distribution = "Gaussian",
+                                  optimizer =  "nlminb", estimator = estimator, distribution = "Gaussian",
                                   rawts = rawts, types = list(y = type),
                                   submodel = type, meanstructure = meanstructure, verbose=verbose)
   
@@ -379,6 +378,12 @@ varcov <- function(
       # FIXME: TODO
       model@baseline_saturated$saturated@objective <- psychonetrics_fitfunction(parVector(model@baseline_saturated$saturated),model@baseline_saturated$saturated)      
     }
+  }
+  
+  if (missing(optimizer)){
+    model <- setoptimizer(model, "default")
+  } else {
+    model <- setoptimizer(model, optimizer)
   }
 
   

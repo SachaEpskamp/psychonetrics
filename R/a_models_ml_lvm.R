@@ -64,13 +64,13 @@ ml_lvm <- function(
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   # fitfunctions, # Leave empty
   estimator = c("FIML","MUML"),
-  optimizer =  c("cpp_L-BFGS-B","cpp_BFGS","cpp_CG","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
+  optimizer,
   storedata = FALSE,
   verbose = FALSE,
   standardize = c("none","z","quantile"),
   sampleStats
 ){
-  optimizer <- match.arg(optimizer)
+
   # CRAN Check workarounds (sorry):
   . <- NULL
   variable <- NULL
@@ -281,7 +281,7 @@ ml_lvm <- function(
                                   ),
                                   sample = sampleStats,computed = FALSE, 
                                   equal = equal,
-                                  optimizer = optimizer, estimator = estimator, distribution = "Gaussian",
+                                  optimizer =  "nlminb", estimator = estimator, distribution = "Gaussian",
                                   identification=identification, verbose=verbose)
   
   # Number of groups:
@@ -578,6 +578,12 @@ ml_lvm <- function(
   # Identify model:
   if (identify){
     model <- identify(model)
+  }
+  
+  if (missing(optimizer)){
+    model <- setoptimizer(model, "default")
+  } else {
+    model <- setoptimizer(model, optimizer)
   }
   
   # Return model:

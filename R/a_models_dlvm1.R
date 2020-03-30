@@ -69,12 +69,11 @@ dlvm1 <- function(
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   # fitfunctions, # Leave empty
   estimator = "ML",
-  optimizer =  c("cpp_L-BFGS-B","cpp_BFGS","cpp_CG","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
+  optimizer,
   storedata = FALSE,
   verbose = FALSE,
   sampleStats
 ){
-  optimizer <- match.arg(optimizer)
   covtype <- match.arg(covtype)
   # Check for missing:
   # if (missing(lambda_within)){
@@ -222,7 +221,7 @@ dlvm1 <- function(
                                   ),
                                   sample = sampleStats,computed = FALSE, 
                                   equal = equal,
-                                  optimizer = optimizer, estimator = estimator, distribution = "Gaussian",
+                                  optimizer = "nlminb", estimator = estimator, distribution = "Gaussian",
                                   identification=identification, verbose = verbose)
   
   # Number of groups:
@@ -517,6 +516,12 @@ dlvm1 <- function(
   # Identify model:
   if (identify){
     model <- identify(model)
+  }
+  
+  if (missing(optimizer)){
+    model <- setoptimizer(model, "default")
+  } else {
+    model <- setoptimizer(model, optimizer)
   }
   
   # Return model:

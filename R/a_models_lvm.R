@@ -41,7 +41,7 @@ lvm <- function(
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   estimator = "ML",
-  optimizer =  c("cpp_L-BFGS-B","cpp_BFGS","cpp_CG","cpp_SANN","cpp_Nelder-Mead","nlminb","ucminf"),
+  optimizer,
   storedata = FALSE,
   WLS.W,
   covtype = c("choose","ML","UB"),
@@ -49,7 +49,6 @@ lvm <- function(
   sampleStats,
   verbose=FALSE
 ){
-  optimizer <- match.arg(optimizer)
   rawts = FALSE
   if (rawts){
     warning("'rawts' is only included for testing purposes. Please do not use!")
@@ -97,7 +96,7 @@ lvm <- function(
   # Generate model object:
   model <- generate_psychonetrics(model = "lvm",sample = sampleStats,computed = FALSE, 
                                   equal = equal,identification=identification,
-                                  optimizer = optimizer, estimator = estimator, distribution = "Gaussian",
+                                  optimizer =  "nlminb", estimator = estimator, distribution = "Gaussian",
                                   rawts = rawts, types = list(latent = latent, residual = residual),
                                   verbose=verbose)
   
@@ -155,7 +154,9 @@ lvm <- function(
                                     expmeans = lapply(seq_len(nGroup),function(x)rep(0,nLatent)), sampletable = sampleStats, name = "nu_eta")
   
    # Setup lambda:
-  modMatrices$lambda <- matrixsetup_lambda(lambda, expcov=model@sample@covs, nGroup = nGroup, observednames = sampleStats@variables$label, latentnames = latents, sampletable = sampleStats)
+  modMatrices$lambda <- matrixsetup_lambda(lambda, expcov=model@sample@covs, nGroup = nGroup, 
+                                           observednames = sampleStats@variables$label, latentnames = latents, 
+                                           sampletable = sampleStats, identification = identification)
   
   # Setup beta:
   modMatrices$beta <- matrixsetup_beta(beta, nNode = nLatent, nGroup = nGroup, labels = latents, sampletable = sampleStats)
@@ -166,49 +167,67 @@ lvm <- function(
   
   # For each group:
   for (g in 1:nGroup){
-    # Current cov estimate:
-    curcov <- as.matrix(sampleStats@covs[[g]])
- 
-    # Cur loadings:
-    curLambda <- modMatrices$lambda$start[,,g]
-    if (!is.matrix(curLambda)){
-      curLambda <- as.matrix(curLambda)
-    }
+    expResidSigma[[g]] <- modMatrices$lambda$sigma_epsilon_start[,,g]
+    expLatSigma[[g]] <-  modMatrices$lambda$sigma_zeta_start[,,g]
     
-    # Residual variances, let's start by putting the vars on 1/4 times the observed variances:
-    Theta <- diag(diag(curcov)/4)
-    
-    # Check if this is positive definite:
-    ev <- eigen(curcov - Theta)$values
-    
-    # Shrink until it is positive definite:
-    loop <- 0
-    repeat{
-      ev <- eigen(curcov - Theta)$values
-      if (loop == 100){
-        # give up...
-        
-        Theta <- diag(nrow(Theta))
-        break
-      }
-      if (all(ev>0)){
-        break
-      }
-      Theta <- Theta * 0.9
-      loop <- loop + 1
-    }
-    
-    # Expected residual sigma:
-    expResidSigma[[g]] <- Theta
-    
-    # This means that the factor-part is expected to be:
-    factorPart <- curcov - Theta
-    
-    # Let's take a pseudoinverse:
-    inv <- corpcor::pseudoinverse(kronecker(curLambda,curLambda))
-    
-    # And obtain psi estimate:
-    expLatSigma[[g]] <- matrix(inv %*% as.vector(factorPart),nLatent,nLatent)
+      
+    # # Current cov estimate:
+    # curcov <- as.matrix(sampleStats@covs[[g]])
+    # 
+    # 
+    # # Cur loadings:
+    # curLambda <- modMatrices$lambda$start[,,g]
+    # if (!is.matrix(curLambda)){
+    #   curLambda <- as.matrix(curLambda)
+    # }
+    # 
+    # ### Run factor start ###:
+    # # facStart <- factorstart(curcov, modMatrices$lambda[[1]][,,1])
+    # 
+    # 
+    # ###
+    # 
+    # 
+    # # Residual variances, let's start by putting the vars on 1/4 times the observed variances:
+    # Theta <- diag(diag(curcov)/4)
+    # # Theta <- modMatrices$lambda$thetaStart[,,g]
+    # fa <- factanal(covmat = curcov, factors = nLatent, covar = TRUE)
+    # 
+    # fa <- fa(r = curcov, nfactors = nLatent, rotate = "promax", covar = TRUE)
+    # 
+    # Theta <- diag(fa$uniquenesses)
+    # 
+    # # Check if this is positive definite:
+    # ev <- eigen(curcov - Theta)$values
+    # 
+    # # Shrink until it is positive definite:
+    # loop <- 0
+    # repeat{
+    #   ev <- eigen(curcov - Theta)$values
+    #   if (loop == 100){
+    #     # give up...
+    #     
+    #     Theta <- diag(nrow(Theta))
+    #     break
+    #   }
+    #   if (all(ev>0)){
+    #     break
+    #   }
+    #   Theta <- Theta * 0.9
+    #   loop <- loop + 1
+    # }
+    # 
+    # # Expected residual sigma:
+    # expResidSigma[[g]] <- Theta
+    # 
+    # # This means that the factor-part is expected to be:
+    # factorPart <- curcov - Theta
+    # 
+    # # Let's take a pseudoinverse:
+    # inv <- corpcor::pseudoinverse(kronecker(curLambda,curLambda))
+    # 
+    # # And obtain psi estimate:
+    # expLatSigma[[g]] <- matrix(inv %*% as.vector(factorPart),nLatent,nLatent)
   }
   
   # Latent varcov:
@@ -391,6 +410,12 @@ lvm <- function(
   # Identify model:
   if (identify){
     model <- identify(model)
+  }
+  
+  if (missing(optimizer)){
+    model <- setoptimizer(model, "default")
+  } else {
+    model <- setoptimizer(model, optimizer)
   }
   
   # Return model:
