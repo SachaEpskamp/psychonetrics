@@ -22,10 +22,10 @@ lvm(data, lambda, latent = c("cov", "chol", "prec",
                     identify = TRUE, identification = c("loadings",
                     "variance"), vars, latents, groups, covs, means, nobs,
                     missing = "listwise", equal = "none",
-                    baseline_saturated = TRUE, estimator = "ML", optimizer
-                    = "default", storedata = FALSE, WLS.W, covtype =
+                    baseline_saturated = TRUE, estimator = "ML",
+                    optimizer, storedata = FALSE, WLS.W, covtype =
                     c("choose", "ML", "UB"), standardize = c("none", "z",
-                    "quantile"), sampleStats,   verbose=TRUE)
+                    "quantile"), sampleStats, verbose = FALSE)
 
 lnm(\dots)
 rnm(\dots)

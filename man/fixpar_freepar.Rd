@@ -9,11 +9,11 @@ Parameters modification
 The \code{fixpar} function can be used to fix a parameter to some value (Typically zero), and the \code{freepar} function can be used to free a parameter from being fixed to a value.
 }
 \usage{
-fixpar(x, matrix, row, col, value = 0, group, verbose = TRUE, log = TRUE, 
-      runmodel = FALSE, ...)
+fixpar(x, matrix, row, col, value = 0, group, verbose, 
+        log = TRUE, runmodel = FALSE, ...)
 
-freepar(x, matrix, row, col, start, group, verbose = TRUE, log = TRUE, 
-      runmodel = FALSE, startEPC = TRUE, ...)
+freepar(x, matrix, row, col, start, group, verbose, log =
+        TRUE, runmodel = FALSE, startEPC = TRUE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

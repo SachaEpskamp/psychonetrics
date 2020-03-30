@@ -1,5 +1,6 @@
 \name{meta_varcov}
 \alias{meta_varcov}
+\alias{meta_ggm}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 Variance-covariance and GGM meta analysis
@@ -8,16 +9,21 @@ Variance-covariance and GGM meta analysis
 Meta analysis of correlation matrices to fit a homogenous correlation matrix or Gaussian graphical model. Based on meta-analytic SEM (Jak \& Cheung, 2019).
 }
 \usage{
-meta_varcov(cors, nobs, Vmats, Vmethod = c("default", "individual", 
-  "psychonetrics_individual", "psychonetrics_pooled", "metaSEM_individual", 
-  "metaSEM_weighted"), type = c("cor", "ggm"), sigma_y = "full", kappa_y = "full", 
-  omega_y = "full", lowertri_y = "full", delta_y = "full", rho_y = "full", 
-  SD_y = "full", randomEffects = c("cov", "chol", "prec", "ggm", "cor"), 
-  sigma_randomEffects = "full", kappa_randomEffects = "full", 
-  omega_randomEffects = "full", lowertri_randomEffects = "full", 
-  delta_randomEffects = "full", rho_randomEffects = "full", SD_randomEffects = "full", 
-  vars, baseline_saturated = TRUE, optimizer = "default", estimator = c("FIML", "ML"), 
-  sampleStats, verbose = TRUE)
+meta_varcov(cors, nobs, Vmats, Vmethod = c("individual", "pooled",
+                    "metaSEM_individual", "metaSEM_weighted"), Vestimation
+                    = c("averaged", "per_study"), type = c("cor", "ggm"),
+                    sigma_y = "full", kappa_y = "full", omega_y = "full",
+                    lowertri_y = "full", delta_y = "full", rho_y = "full",
+                    SD_y = "full", randomEffects = c("chol", "cov",
+                    "prec", "ggm", "cor"), sigma_randomEffects = "full",
+                    kappa_randomEffects = "full", omega_randomEffects =
+                    "full", lowertri_randomEffects = "full",
+                    delta_randomEffects = "full", rho_randomEffects =
+                    "full", SD_randomEffects = "full", vars,
+                    baseline_saturated = TRUE, optimizer, estimator =
+                    c("FIML", "ML"), sampleStats, verbose = FALSE)
+  
+meta_ggm(...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -32,6 +38,9 @@ Optional list with 'V' matrices (sampling error variance approximations).
 }
   \item{Vmethod}{
 Which method should be used to apprixomate the sampling error variance?
+}
+\item{Vestimation}{
+How should the sampling error estimates be evaluated?
 }
   \item{type}{
 What to model? Currently only \code{"cor"} and \code{"ggm"} are supported.
@@ -98,6 +107,9 @@ An optional sample statistics object. Mostly used internally.
 }
   \item{verbose}{
 Logical, should progress be printed to the console?
+}
+\item{\dots}{
+Arguments sent to \code{meta_varcov}
 }
 }
 

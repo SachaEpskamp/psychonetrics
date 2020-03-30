@@ -24,34 +24,38 @@ matrixsetup_lambda <- function(
   for (g in 1:nGroup){
     # Current cov estimate:
     curcov <- as.matrix(spectralshift(expcov[[g]]))
-    
-    fa <- factanal(covmat = curcov, factors = nLat)
-
-    # Residual and latent varcov:
-    fa <- psych::fa(r = curcov, nfactors = nLat, rotate = "promax", covar = TRUE)
-    sigma_epsilon_start[,,g] <- diag(fa$uniquenesses)
-    
-    load <- fa$loadings
-    # Correlation between factor loadings:
-    # Generate 100 different permutations and choose the best:
-    perms <- combinat::permn(1:nLat)
-    fit <- sapply(perms, function(x)sum(diag(cor(abs(load[,x]), lambda[,,g]))))
-    best <- perms[[which.max(fit)]]
-    
-    sigma_zeta_start[,,g] <- fa$r.scores[best,best]
-    lambdaStart[,,g] <- lambda[,,g] * load[,best]
-    
-    # If loadings identification, I need to rescale ...
-    if (identification == "loadings"){
-      scaleMat <- matrix(0, nLat, nLat)
-      for (i in 1:nLat){
-       scaleMat[i,i] <- 1/lambdaStart[,,g][,i][lambdaStart[,,g][,i]!=0][1]
+    if (nObs > 3){
+      # Residual and latent varcov:
+      fa <- psych::fa(r = curcov, nfactors = nLat, rotate = "promax", covar = TRUE)
+      sigma_epsilon_start[,,g] <- diag(fa$uniquenesses)
+      
+      load <- fa$loadings
+      # Correlation between factor loadings:
+      # Generate 100 different permutations and choose the best:
+      perms <- combinat::permn(1:nLat)
+      fit <- sapply(perms, function(x)sum(diag(stats::cor(abs(load[,x]), lambda[,,g]))))
+      best <- perms[[which.max(fit)]]
+      
+      sigma_zeta_start[,,g] <- fa$r.scores[best,best]
+      lambdaStart[,,g] <- lambda[,,g] * load[,best]
+      
+      # If loadings identification, I need to rescale ...
+      if (identification == "loadings"){
+        scaleMat <- matrix(0, nLat, nLat)
+        for (i in 1:nLat){
+          scaleMat[i,i] <- 1/lambdaStart[,,g][,i][lambdaStart[,,g][,i]!=0][1]
+        }
+        
+        lambdaStart[,,g] <- lambdaStart[,,g] %*% scaleMat
+        sigma_zeta_start[,,g] <- solve(scaleMat) %*% sigma_zeta_start[,,g] %*% solve(scaleMat)
       }
       
-      lambdaStart[,,g] <- lambdaStart[,,g] %*% scaleMat
-      sigma_zeta_start[,,g] <- solve(scaleMat) %*% sigma_zeta_start[,,g] %*% solve(scaleMat)
+    } else {
+      sigma_epsilon_start[,,g] <- diag(nObs)
+      sigma_zeta_start[,,g] <- diag(nLat)
+      lambdaStart[,,g] <- lambda[,,g]
     }
-    
+
     
 # 
 #     # For all laodings:

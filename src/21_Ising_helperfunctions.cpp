@@ -41,7 +41,7 @@ double Pot(
     arma::vec tau,
     double beta
 ){
-  exp(-1.0 * beta * H(state,graph,tau));
+  return exp(-1.0 * beta * H(state,graph,tau));
 }
 
 

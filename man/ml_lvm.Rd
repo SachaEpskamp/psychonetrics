@@ -14,22 +14,31 @@ This family is the two-level random intercept variant of the \code{\link{lvm}} m
 ml_lnm(...)
 ml_rnm(...)
 ml_lrnm(...)
-ml_lvm(data, lambda, clusters, within_latent = c("cov", "chol", "prec", "ggm"), 
-  within_residual = c("cov", "chol", "prec", "ggm"), between_latent = c("cov", 
-  "chol", "prec", "ggm"), between_residual = c("cov", "chol", "prec", "ggm"), 
-  beta_within = "empty", beta_between = "empty", omega_zeta_within = "full", 
-  delta_zeta_within = "full", kappa_zeta_within = "full", sigma_zeta_within = 
-  "full", lowertri_zeta_within = "full", omega_epsilon_within = "empty", 
-  delta_epsilon_within = "empty", kappa_epsilon_within = "empty", 
-  sigma_epsilon_within = "empty", lowertri_epsilon_within = "empty", omega_zeta_between = 
-  "full", delta_zeta_between = "full", kappa_zeta_between = "full", sigma_zeta_between = 
-  "full", lowertri_zeta_between = "full", omega_epsilon_between = "empty", 
-  delta_epsilon_between = "empty", kappa_epsilon_between = "empty", 
-  sigma_epsilon_between = "empty", lowertri_epsilon_between = "empty", 
-  nu, nu_eta, identify = TRUE, identification = c("loadings", "variance"), 
-  vars, latents, groups, equal = "none", baseline_saturated = TRUE, 
-  estimator = c("FIML", "MUML"), optimizer = "default", storedata = FALSE, 
-  verbose = TRUE, standardize = c("none", "z", "quantile"), sampleStats)
+ml_lvm(data, lambda, clusters, within_latent = c("cov",
+                    "chol", "prec", "ggm"), within_residual = c("cov",
+                    "chol", "prec", "ggm"), between_latent = c("cov",
+                    "chol", "prec", "ggm"), between_residual = c("cov",
+                    "chol", "prec", "ggm"), beta_within = "empty",
+                    beta_between = "empty", omega_zeta_within = "full",
+                    delta_zeta_within = "full", kappa_zeta_within =
+                    "full", sigma_zeta_within = "full",
+                    lowertri_zeta_within = "full", omega_epsilon_within =
+                    "empty", delta_epsilon_within = "empty",
+                    kappa_epsilon_within = "empty", sigma_epsilon_within =
+                    "empty", lowertri_epsilon_within = "empty",
+                    omega_zeta_between = "full", delta_zeta_between =
+                    "full", kappa_zeta_between = "full",
+                    sigma_zeta_between = "full", lowertri_zeta_between =
+                    "full", omega_epsilon_between = "empty",
+                    delta_epsilon_between = "empty", kappa_epsilon_between
+                    = "empty", sigma_epsilon_between = "empty",
+                    lowertri_epsilon_between = "empty", nu, nu_eta,
+                    identify = TRUE, identification = c("loadings",
+                    "variance"), vars, latents, groups, equal = "none",
+                    baseline_saturated = TRUE, estimator = c("FIML",
+                    "MUML"), optimizer, storedata = FALSE, verbose =
+                    FALSE, standardize = c("none", "z", "quantile"),
+                    sampleStats)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
