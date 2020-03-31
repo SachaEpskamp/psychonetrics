@@ -3,7 +3,6 @@
 // we only include RcppArmadillo.h which pulls Rcpp.h in for us
 #include <RcppArmadillo.h>
 #include <math.h>
-#include <cstddef>
 #include <algorithm>
 #include "04_generalFit_implied_and_prepare.h"
 #include "04_generalfit_fitfunction_cpp.h"
@@ -111,10 +110,6 @@ S4 psychonetrics_optimizer(
   
   // OPTIMIZE:
   opt.minimize(rb, x);
-
-  
-  // Rcpp::Rcout << "-------------------------" << std::endl;
-  // opt.print();
 
   // Output info:
   Rcpp::List optimout = List::create(
