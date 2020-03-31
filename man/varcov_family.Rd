@@ -19,10 +19,10 @@ varcov(data, type = c("cov", "chol", "prec", "ggm", "cor"),
                     "full", mu, tau, vars, ordered = character(0), groups,
                     covs, means, nobs, missing = "listwise", equal =
                     "none", baseline_saturated = TRUE, estimator =
-                    "default", optimizer = "default", storedata = FALSE,
-                    WLS.W, sampleStats, meanstructure, corinput, verbose =
-                    TRUE, covtype = c("choose", "ML", "UB"), standardize =
-                    c("none", "z", "quantile"))
+                    "default", optimizer, storedata = FALSE, WLS.W,
+                    sampleStats, meanstructure, corinput, verbose = FALSE,
+                    covtype = c("choose", "ML", "UB"), standardize =
+                    c("none", "z", "quantile"), fullFIML = FALSE)
 cholesky(\dots)
 precision(\dots)
 prec(\dots)
@@ -120,6 +120,9 @@ Logical, should the meanstructure be modeled explicitly?
 }
 \item{corinput}{
 Logical, is the input a correlation matrix?
+}
+  \item{fullFIML}{
+Logical, should row-wise FIML be used? Not recommended!
 }
 
 \item{\dots}{

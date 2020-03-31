@@ -8,9 +8,10 @@ Run a psychonetrics model
 This is the main function  used to run a psychonetrics model.
 }
 \usage{
-runmodel(x, level = c("gradient", "fitfunction"), addfit = TRUE, addMIs = TRUE, 
-addSEs = TRUE, addInformation = TRUE, log = TRUE, verbose = TRUE, 
-optim.control = list(), maxtry = 5, analyticFisher = TRUE)
+runmodel(x, level = c("gradient", "fitfunction"), addfit =
+                    TRUE, addMIs = TRUE, addSEs = TRUE, addInformation =
+                    TRUE, log = TRUE, verbose, optim.control = list(),
+                    analyticFisher = TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -40,9 +41,6 @@ Logical, should messages be printed?
 }
   \item{optim.control}{
 A list with options for \code{optimr}
-}
-  \item{maxtry}{
-Integer indicating how often estimation should be attempted.
 }
   \item{analyticFisher}{
 Logical, should the analytic Fisher information be used? If \code{FALSE}, numeric information is used instead.

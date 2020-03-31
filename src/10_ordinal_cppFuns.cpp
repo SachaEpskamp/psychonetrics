@@ -115,7 +115,7 @@ double pearsonCov(
   int p;
   
   // Remove NA:
-  LogicalVector noMis = !is_na(y1) & !is_na(y2);
+  LogicalVector noMis = (!is_na(y1)) & (!is_na(y2));
   y1 = y1[noMis];
   y2 = y2[noMis];
   
@@ -220,7 +220,7 @@ IntegerMatrix cpp_table(
 ){
   // y1 and y2 must be correctly scored, integers starting at 0.
   // Remove NAs:
-  LogicalVector noMis = !is_na(y1) & !is_na(y2);
+  LogicalVector noMis = (!is_na(y1)) & (!is_na(y2));
   y1 = y1[noMis];
   y2 = y2[noMis];
   
@@ -564,17 +564,18 @@ double estimate_polychoric(IntegerVector y1, IntegerVector y2, NumericVector t1,
   double rho = 0.0;
   
   // Some doubles I'll need:
-  double curFit, newFit, curGrad, newGrad, delta;
+  // double curFit, newFit, curGrad, newGrad, delta;
+  double curGrad, newGrad, delta;
   
   double gamma = stepsize;
   
-  curFit = newFit = polychoric_fit_summary(rho, tabNumeric, t1, t2);
+  // curFit = newFit = polychoric_fit_summary(rho, tabNumeric, t1, t2);
   curGrad = newGrad = polychoric_grad_summary(rho, tabNumeric, t1, t2);
   
   // Start iterating:
   do {
     curIt++;
-    curFit = newFit;
+    // curFit = newFit;
     curGrad = newGrad;
     
     // Gradient descent step:
@@ -588,7 +589,7 @@ double estimate_polychoric(IntegerVector y1, IntegerVector y2, NumericVector t1,
     rho += delta;
     
     // Update fit:
-    newFit = polychoric_fit_summary(rho, tabNumeric, t1, t2);
+    // newFit = polychoric_fit_summary(rho, tabNumeric, t1, t2);
     
     // Update gradient:
     newGrad = polychoric_grad_summary(rho, tabNumeric, t1, t2);

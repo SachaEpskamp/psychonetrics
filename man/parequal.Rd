@@ -8,7 +8,8 @@ Set equality constrains across parameters
 This function can be used to set parameters equal
 }
 \usage{
-parequal(x, ..., inds = integer(0), verbose = TRUE, log = TRUE, runmodel = FALSE)
+parequal(x, ..., inds = integer(0), verbose, log = TRUE,
+                    runmodel = FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

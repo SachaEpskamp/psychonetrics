@@ -31,7 +31,7 @@ arma::mat jacobian_gaussian_group_sigmaVersion_sigmaPart_cpp(
     const arma::sp_mat& D,
     const arma::mat& kappa){
   
-  int n = S.n_cols;
+  // int n = S.n_cols;
   
   arma::mat innermat = S + (means - mu) * (means - mu).t() - sigma;
   arma::mat grad_sigma = (-D.t() * vectorise(kappa * innermat * kappa)).t();

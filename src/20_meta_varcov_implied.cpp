@@ -40,7 +40,7 @@ Rcpp::List implied_meta_varcov_cpp(
   x = impliedcovstructures_cpp(x, "y", y, all);
   x = impliedcovstructures_cpp(x, "randomEffects", randomEffects, all);
   
-  int nGroup = x.length();
+  // int nGroup = x.length();
   int g = 0;
   
   bool proper = true;

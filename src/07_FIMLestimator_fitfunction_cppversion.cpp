@@ -62,7 +62,7 @@ double fimlEstimator_Gauss_group_cpp_inner(
   // 
   // if (ispos){
   //   kappa_p = inv(sigma_p);
-  //   // logdet = log(det(kappa_p));\
+  //   // logdet = log(det(kappa_p));
   //   // logdet =  real(log_det(kappa_p));
   //   logdet =  log(det(kappa_p));
   //   if (logdet < logepsilon){

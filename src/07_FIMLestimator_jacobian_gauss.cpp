@@ -20,15 +20,15 @@ arma::mat jacobian_fiml_gaussian_subgroup_sigma_cpp_inner(
   double n_part;
   
   // Number of parameters
-  int nmeans = mu.size();
-  int nvars = nmeans * (nmeans + 1) / 2;
+  // int nmeans = mu.size();
+  // int nvars = nmeans * (nmeans + 1) / 2;
   
   // Empty Jacobian:
   // arma::mat Jac = zeros(1, nvars + nmeans);
   
   // Integers
   // int i;
-  int j;
+  // int j;
   
   // Loop over groups
   // for ( i = 0; i < fimldata.size(); i++){

@@ -20,10 +20,10 @@ tsdlvm1(data, lambda, contemporaneous = c("cov", "chol",
                     c("loadings", "variance"), latents, beepvar, dayvar,
                     idvar, vars, groups, covs, means, nobs, missing =
                     "listwise", equal = "none", baseline_saturated = TRUE,
-                    estimator = "ML", optimizer = "default", storedata =
-                    FALSE, sampleStats, covtype = c("choose", "ML", "UB"),
+                    estimator = "ML", optimizer, storedata = FALSE,
+                    sampleStats, covtype = c("choose", "ML", "UB"),
                     centerWithin = FALSE, standardize = c("none", "z",
-                    "quantile"))
+                    "quantile"), verbose = FALSE)
 
 ts_lvgvar(...)
 }
@@ -142,6 +142,9 @@ Logical, should data be within-person centered?
 }
 \item{covtype}{
   If 'covs' is used, this is the type of covariance (maximum likelihood or unbiased) the input covariance matrix represents. Set to \code{"ML"} for maximum likelihood estimates (denominator n) and \code{"UB"} to unbiased estimates (denominator n-1). The default will try to find the type used, by investigating which is most likely to result from integer valued datasets.
+}
+  \item{verbose}{
+Logical, should messages be printed?
 }
 \item{\dots}{
 Arguments sent to \code{tsdlvm1}

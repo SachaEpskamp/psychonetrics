@@ -20,7 +20,7 @@ arma::mat d_phi_theta_ml_lvm_group_cpp(
     const Rcpp::List& grouplist
 ){
   // Setup:
-  int t;
+  // int t;
   
   
   // Things I need now:
@@ -43,7 +43,7 @@ arma::mat d_phi_theta_ml_lvm_group_cpp(
   int nVar = design.n_rows;
   
   // Number of times points:
-  int nMaxInCluster = design.n_cols;
+  // int nMaxInCluster = design.n_cols;
   
   // Number of latents:
   int nLat = lambda.n_cols;

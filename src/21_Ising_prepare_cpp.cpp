@@ -20,7 +20,7 @@ Rcpp::List prepare_Ising_cpp(
     arma::vec x,
     const S4& model
 ){
-  int g, i;
+  int g;
   
   // New model:
   S4 newMod = updateModel_cpp(x,model,false);
@@ -29,8 +29,8 @@ Rcpp::List prepare_Ising_cpp(
   S4 sample = newMod.slot("sample");
   
   // Things needed:
-  bool corinput = sample.slot("corinput");
-  bool meanstructure = newMod.slot("meanstructure");
+  // bool corinput = sample.slot("corinput");
+  // bool meanstructure = newMod.slot("meanstructure");
   
   // Groups table:
   Rcpp::List group = sample.slot("groups");
@@ -38,7 +38,7 @@ Rcpp::List prepare_Ising_cpp(
   // Variables table:
   Rcpp::List variables = sample.slot("variables");
   arma::vec vars = variables["id"];
-  int nVar = vars.n_elem;
+  // int nVar = vars.n_elem;
   
   // Number of groups:
   arma::vec id = group["id"];

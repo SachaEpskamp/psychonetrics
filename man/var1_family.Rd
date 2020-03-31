@@ -15,9 +15,9 @@ var1(data, contemporaneous = c("cov", "chol", "prec",
                     lowertri_zeta = "full", mu, beepvar, dayvar, idvar,
                     vars, groups, covs, means, nobs, missing = "listwise",
                     equal = "none", baseline_saturated = TRUE, estimator =
-                    "ML", optimizer = "default", storedata = FALSE,
-                    covtype = c("choose", "ML", "UB"), standardize =
-                    c("none", "z", "quantile"), sampleStats)
+                    "ML", optimizer, storedata = FALSE, covtype =
+                    c("choose", "ML", "UB"), standardize = c("none", "z",
+                    "quantile"), sampleStats, verbose = FALSE)
 
 gvar(...)
 }
@@ -100,6 +100,9 @@ An optional sample statistics object. Mostly used internally.
 }
 \item{covtype}{
   If 'covs' is used, this is the type of covariance (maximum likelihood or unbiased) the input covariance matrix represents. Set to \code{"ML"} for maximum likelihood estimates (denominator n) and \code{"UB"} to unbiased estimates (denominator n-1). The default will try to find the type used, by investigating which is most likely to result from integer valued datasets.
+}
+  \item{verbose}{
+Logical, should messages be printed?
 }
 \item{\dots}{
 Arguments sent to \code{var1}

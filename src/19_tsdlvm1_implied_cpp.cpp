@@ -80,7 +80,7 @@ Rcpp::List implied_tsdlvm1_cpp(
       arma::mat exoCov = exo_cholesky * exo_cholesky.t();
       
       // Latent lag-0:
-      int nLatent = lambda.n_cols;
+      // int nLatent = lambda.n_cols;
       arma::mat Sigma_eta_0 = matrixform(BetaStar * vectorise(sigma_zeta));
       
       // Observed stationary:
