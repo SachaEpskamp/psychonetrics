@@ -33,6 +33,7 @@ S3method(plot, esa_manual)
 
 S3method(print, esa)
 S3method(print, esa_manual)
+S3method(print, psychonetrics_compare)
 
 import(IsingSampler)
 

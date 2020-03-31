@@ -40,7 +40,6 @@ matrixsetup_lambda <- function(
       } else {
         best <- 1
       }
-
       
       sigma_zeta_start[,,g] <- fa$r.scores[best,best]
       lambdaStart[,,g] <- lambda[,,g] * load[,best]
@@ -49,7 +48,7 @@ matrixsetup_lambda <- function(
       if (identification == "loadings"){
         scaleMat <- matrix(0, nLat, nLat)
         for (i in 1:nLat){
-          scaleMat[i,i] <- 1/lambdaStart[,,g][,i][lambdaStart[,,g][,i]!=0][1]
+          scaleMat[i,i] <- 1/lambdaStart[,,g,drop=FALSE][,i,1][lambdaStart[,,g,drop=FALSE][,i,1]!=0][1]
         }
         
         lambdaStart[,,g] <- lambdaStart[,,g] %*% scaleMat

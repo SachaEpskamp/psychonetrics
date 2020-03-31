@@ -53,6 +53,10 @@ compare <- function(...){
   # Compute p:
   Tab$p_value <- pchisq(Tab$Chisq_diff,Tab$DF_diff,lower.tail=FALSE)
   
+  # Set saturated chisquare to NA:
+  if (any(Tab$model == "saturated"))
+  Tab$Chisq[Tab$model == "saturated"] <- NA
+  
   class(Tab) <- c("psychonetrics_compare","data.frame")
   
   return(Tab)
@@ -63,12 +67,17 @@ print.psychonetrics_compare <- function(x){
 
   x$AIC <- goodNum2(x$AIC)
   x$BIC <- goodNum2(x$BIC)
+  x$RMSEA <- goodNum2(x$RMSEA)
+  x$Chisq <- goodNum2(x$Chisq)
+  x$Chisq_diff <- goodNum2(x$Chisq_diff)
+  x$DF_diff <- goodNumInt(x$DF_diff)
+  x$p_value <- goodNum(x$p_value)
   
   
   # Make all numbers nicer
-  for (i in 5:ncol(x)){
-    x[,i] <- goodNum(x[,i])
-  }
+  # for (i in 5:ncol(x)){
+    # x[,i] <- goodNum(x[,i])
+  # }
   
   # Output something:
   # cat(
