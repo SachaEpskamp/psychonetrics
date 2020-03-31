@@ -139,7 +139,8 @@ arma::mat d_sigma_omega_corinput_cpp(
   // First make the diagonal matrix needed:
   arma::vec d = diagvec(IminOinv);
   // sp_mat dmat(d.size(), d.size());
-  for (int i=0; i < d.size(); i++){
+  int dsize = d.size();
+  for (int i=0; i < dsize; i++){
     d[i] = pow(d[i], -1.5);
   }
   mat dmat = diagmat(d);
@@ -212,9 +213,11 @@ arma::mat d_phi_theta_varcov_group_cpp(
   // Check if all NA:
   bool noThresholds = true;
   
-  for (i = 0; i < tau.n_rows && noThresholds; i++){
+  int taunrows = tau.n_rows;
+  int tauncols = tau.n_cols;
+  for (i = 0; i < taunrows && noThresholds; i++){
     
-    for (j = 0; j < tau.n_cols && noThresholds; j++){
+    for (j = 0; j < tauncols && noThresholds; j++){
       
       if (is_finite(tau(i,j))){
         noThresholds = false;

@@ -8,9 +8,11 @@ Stepdown model search by pruning non-significant parameters.
 This function will (recursively) remove parameters that are not significant and refit the model. 
 }
 \usage{
-prune(x, alpha = 0.01,  adjust = c("none", "holm", "hochberg", "hommel", "bonferroni", 
-"BH", "BY", "fdr"), matrices, runmodel = TRUE, recursive = FALSE, verbose = TRUE, 
-log = TRUE, identify = TRUE, startreduce = 1, limit = Inf, ...)
+prune(x, alpha = 0.01, adjust = c("none", "holm",
+                    "hochberg", "hommel", "bonferroni", "BH", "BY",
+                    "fdr"), matrices, runmodel = TRUE, recursive = FALSE,
+                    verbose, log = TRUE, identify = TRUE, startreduce = 1,
+                    limit = Inf, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

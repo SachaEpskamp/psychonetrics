@@ -44,7 +44,8 @@ double psychonetrics_fitfunction_cpp(
       bool proper = grouplist["proper"];
       if (!proper){
         // Rf_PrintValue(wrap("a matrix was not positive definite in optimization... fit function may not be accurate."));
-        Rf_warning("A matrix was not positive definite... fit function may not be accurate. Check your results for consistency using other optimizers with setoptimizer.");
+        // FIXME:
+        // Rf_warning("A matrix was not positive definite... fit function may not be accurate. Check your results for consistency using other optimizers with setoptimizer.");
         // return(1e20);
         // return(NA_REAL);
       }

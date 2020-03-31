@@ -40,6 +40,7 @@ Objects can be created by calls of the form \code{new("psychonetrics", ...)}.
     \item{\code{Drawts}:}{Object of class \code{"list"} ~~ }
     \item{\code{types}:}{Object of class \code{"list"} ~~ }
     \item{\code{cpp}:}{Object of class \code{"logical"} ~~ }
+    \item{\code{verbose}:}{Object of class \code{"logical"} ~~ }
   }
 }
 \section{Methods}{

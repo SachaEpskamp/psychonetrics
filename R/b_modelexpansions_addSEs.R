@@ -1,9 +1,13 @@
 # Add standard errors and p-values!
 # Add the modification indices:
 addSEs <-  function(x,
-                    verbose = FALSE
+                    verbose
                     # approxHessian = FALSE # Approximate the hessian even if it is already stored
                     ){
+  
+  if (missing(verbose)){
+    verbose <- x@verbose
+  }
   
   if (verbose){
     message("Adding standard errors...")

@@ -25,6 +25,7 @@ matrixsetup_lambda <- function(
     # Current cov estimate:
     curcov <- as.matrix(spectralshift(expcov[[g]]))
     if (nObs > 3){
+      
       # Residual and latent varcov:
       fa <- psych::fa(r = curcov, nfactors = nLat, rotate = "promax", covar = TRUE)
       sigma_epsilon_start[,,g] <- diag(fa$uniquenesses)
@@ -32,9 +33,14 @@ matrixsetup_lambda <- function(
       load <- fa$loadings
       # Correlation between factor loadings:
       # Generate 100 different permutations and choose the best:
-      perms <- combinat::permn(1:nLat)
-      fit <- sapply(perms, function(x)sum(diag(stats::cor(abs(load[,x]), lambda[,,g]))))
-      best <- perms[[which.max(fit)]]
+      if (nLat > 1){
+        perms <- combinat::permn(1:nLat)
+        fit <- sapply(perms, function(x)sum(diag(stats::cor(abs(load[,x]), lambda[,,g]))))
+        best <- perms[[which.max(fit)]]        
+      } else {
+        best <- 1
+      }
+
       
       sigma_zeta_start[,,g] <- fa$r.scores[best,best]
       lambdaStart[,,g] <- lambda[,,g] * load[,best]

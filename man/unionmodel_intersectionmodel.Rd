@@ -9,9 +9,11 @@ Unify models across groups
 The \code{unionmodel} will add all parameters to all groups that are free in at least one group, and the \code{intersectionmodel} will constrain all parameters across groups to zero unless they are free to estimate in all groups.
 }
 \usage{
-unionmodel(x, runmodel = FALSE, verbose = TRUE, log = TRUE, identify = TRUE, ...)
+unionmodel(x, runmodel = FALSE, verbose, log = TRUE, identify =
+                    TRUE, ...)
 
-intersectionmodel(x, runmodel = FALSE, verbose = TRUE, log = TRUE, identify = TRUE, ...)
+intersectionmodel(x, runmodel = FALSE, verbose, log = TRUE, identify =
+                    TRUE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

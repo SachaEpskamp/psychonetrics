@@ -8,10 +8,13 @@ Stepup model search along modification indices
 This function automatically peforms step-up search by adding the parameter with the largest modification index until some criterion is reached or no modification indices are significant at alpha.
 }
 \usage{
-stepup(x, alpha = 0.01, criterion = "bic", matrices, mi = c("mi", "mi_free", "mi_equal"), 
-    greedyadjust = c("bonferroni", "none", "holm", "hochberg", "hommel", "fdr", "BH", 
-    "BY"), stopif, greedy = FALSE, verbose = TRUE, checkinformation = TRUE, 
-    singularinformation = c("tryfix", "skip", "continue", "stop"), startEPC = TRUE,...)
+stepup(x, alpha = 0.01, criterion = "bic", matrices, mi =
+                    c("mi", "mi_free", "mi_equal"), greedyadjust =
+                    c("bonferroni", "none", "holm", "hochberg", "hommel",
+                    "fdr", "BH", "BY"), stopif, greedy = FALSE, verbose,
+                    checkinformation = TRUE, singularinformation =
+                    c("tryfix", "skip", "continue", "stop"), startEPC =
+                    TRUE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

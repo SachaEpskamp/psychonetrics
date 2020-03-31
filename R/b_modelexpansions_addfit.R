@@ -5,8 +5,12 @@
 # Computes fit measures
 addfit <- function(
  x, #, ebicTuning = 0.25
- verbose = FALSE
+ verbose
 ){
+  if (missing(verbose)){
+    verbose <- x@verbose
+  }
+  
   if (verbose){
     message("Adding fit measures...")
   }

@@ -36,15 +36,15 @@ arma::mat expected_hessian_fiml_Gaussian_group_cpp_inner(
   // double log2pi = log(2*M_PI);
   
   // Number of parameters
-  int nmeans = mu.size();
-  int nvars = nmeans * (nmeans + 1) / 2;
+  // int nmeans = mu.size();
+  // int nvars = nmeans * (nmeans + 1) / 2;
   
   // Empty Jacobian:
   // arma::mat Hes = zeros(nvars + nmeans, nvars + nmeans);
   
   // Integers
   // int i;
-  int j;
+  // int j;
   // int ii;
   // int jj;
   

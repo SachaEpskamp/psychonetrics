@@ -1,5 +1,9 @@
 # Full function:
-addMIs <- function(x, matrices = "all", type =  c("normal","free","equal"),verbose = TRUE,analyticFisher=TRUE){
+addMIs <- function(x, matrices = "all", type =  c("normal","free","equal"),verbose,analyticFisher=TRUE){
+  if (missing(verbose)){
+    verbose <- x@verbose
+  }
+  
   # full <- TRUE
   # if (full){
   if (verbose){

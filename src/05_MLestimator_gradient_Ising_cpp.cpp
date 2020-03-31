@@ -25,7 +25,7 @@ arma::mat jacobian_Ising_group_cpp(
   double beta = grouplist["beta"];
   double nobs = grouplist["nobs"];
   
-  double Z = grouplist["Z"];
+  // double Z = grouplist["Z"];
   double exp_H = grouplist["exp_H"];
   arma::vec exp_v1  = grouplist["exp_v1"];
   arma::mat exp_v2  = grouplist["exp_v2"];

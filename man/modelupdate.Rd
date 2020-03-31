@@ -12,12 +12,12 @@ Model updating functions
 These functions update a psychonetrics model. Typically they are not required.
 }
 \usage{
-addMIs(x, matrices = "all", type = c("normal", "free", "equal"), verbose = TRUE, 
-        analyticFisher = TRUE)
+addMIs(x, matrices = "all", type = c("normal", "free",
+                    "equal"), verbose, analyticFisher = TRUE)
 
-addSEs(x)
+addSEs(x, verbose)
 
-addfit(x)
+addfit(x, verbose)
 
 identify(x)
 
