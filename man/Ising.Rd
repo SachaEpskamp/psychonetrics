@@ -130,7 +130,9 @@ model1 <- model1 \%>\% runmodel
 model1b <- model1 \%>\% prune(alpha = 0.05) \%>\%  stepup(alpha = 0.05)
 
 # Equal networks:
-model2 <- model1 \%>\% groupequal("omega") \%>\% runmodel
+suppressWarnings(
+  model2 <- model1 \%>\% groupequal("omega") \%>\% runmodel
+)
 
 # Prune-stepup to find a sparse model:
 model2b <- model2 \%>\% prune(alpha = 0.05) \%>\% stepup(mi = "mi_equal", alpha = 0.05)

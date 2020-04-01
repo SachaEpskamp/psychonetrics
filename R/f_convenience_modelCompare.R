@@ -63,7 +63,7 @@ compare <- function(...){
 }
 
 # Nice print function:
-print.psychonetrics_compare <- function(x){
+print.psychonetrics_compare <- function(x,...){
 
   x$AIC <- goodNum2(x$AIC)
   x$BIC <- goodNum2(x$BIC)

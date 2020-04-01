@@ -11,7 +11,7 @@ This function will print a table comparing multiple models on chi-square, AIC an
 \usage{
 compare(...)
 
-\method{print}{psychonetrics_compare}(x)
+\method{print}{psychonetrics_compare}(x, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
