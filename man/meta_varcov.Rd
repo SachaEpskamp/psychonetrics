@@ -97,7 +97,7 @@ Variables to be included.
 A logical indicating if the baseline and saturated model should be included. Mostly used internally and NOT Recommended to be used manually.
 }
   \item{optimizer}{
-The optimizer to be used. Usually either \code{"nlminb"} (with box constrains) or \code{"ucminf"} (ignoring box constrains), but any optimizer supported by \code{optimr} can be used.
+The optimizer to be used. Can be one of \code{"nlminb"} (the default R \code{nlminb} function), \code{"ucminf"} (from the \code{optimr} package), and C++ based optimizers \code{"cpp_L-BFGS-B"}, \code{"cpp_BFGS"}, \code{"cpp_CG"}, \code{"cpp_SANN"}, and \code{"cpp_Nelder-Mead"}. The C++ optimizers are faster but slightly less stable. Defaults to \code{"nlminb"}.
 }
   \item{estimator}{
 The estimator to be used. Currently implemented are \code{"ML"} for maximum likelihood estimation or \code{"FIML"} for full-information maximum likelihood estimation.

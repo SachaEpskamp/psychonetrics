@@ -24,18 +24,22 @@ matrixsetup_lambda <- function(
   for (g in 1:nGroup){
     # Current cov estimate:
     curcov <- as.matrix(spectralshift(expcov[[g]]))
-    if (nObs > 3){
+    if (nObs > 3 && nObs > nLat){
       
       # Residual and latent varcov:
       fa <- psych::fa(r = curcov, nfactors = nLat, rotate = "promax", covar = TRUE)
+      
+      # Sigma_epsilon start:
       sigma_epsilon_start[,,g] <- diag(fa$uniquenesses)
       
       load <- fa$loadings
       # Correlation between factor loadings:
       # Generate 100 different permutations and choose the best:
       if (nLat > 1){
+        # browser()
         perms <- combinat::permn(1:nLat)
-        fit <- sapply(perms, function(x)sum(diag(stats::cor(abs(load[,x]), lambda[,,g]))))
+        # fit <- sapply(perms, function(x)sum(diag(stats::cor(abs(load[,x]), lambda[,,g]))))
+        fit <- sapply(perms, function(x)sum(abs(load)[,x] * (lambda[,,g]!=0)))
         best <- perms[[which.max(fit)]]        
       } else {
         best <- 1
@@ -43,6 +47,13 @@ matrixsetup_lambda <- function(
       
       sigma_zeta_start[,,g] <- fa$r.scores[best,best]
       lambdaStart[,,g] <- lambda[,,g] * load[,best]
+      
+      # Fix potentially low  and high factor loadings:
+      ind <- abs(lambdaStart[,,g]) < 0.25 & abs(lambdaStart[,,g]) > 0
+      lambdaStart[,,g][ind] <- sign(lambdaStart[,,g][ind]) * 0.25
+      
+      ind <- abs(lambdaStart[,,g]) > 2 & abs(lambdaStart[,,g]) > 0
+      lambdaStart[,,g][ind] <- sign(lambdaStart[,,g][ind]) * 2
       
       # If loadings identification, I need to rescale ...
       if (identification == "loadings"){

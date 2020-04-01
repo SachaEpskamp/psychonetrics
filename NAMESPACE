@@ -1,6 +1,8 @@
 ### Dynlib ###
 useDynLib(psychonetrics, .registration = TRUE)
 
+export(emergencystart)
+
 importFrom(psych, fa)
 importFrom(GA, ga)
 importFrom(combinat, permn)

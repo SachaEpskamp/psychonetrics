@@ -10,29 +10,38 @@ addMIs <- function(x, matrices = "all", type =  c("normal","free","equal"),verbo
     message("Computing modification indices...")
   }
   
-  if ("normal" %in% type){
-
-    x <-  x %>% addMIs_inner_full(type = "normal",analyticFisher=analyticFisher)     
-  }
-  
-  if (nrow(x@sample@groups) > 1){
-    if ("free" %in% type){
-      # if (verbose){
-      #   message("Computing constrain-free modification indices...")
-      # }
-      x <- x %>% addMIs_inner_full(type = "free")         
-    }
-    if ("equal" %in% type){
+  tryres <- try({
+    
+    if ("normal" %in% type){
       
-      # if (verbose){
-      #   message("Computing group-constrained indices...")
-      # }
-      x <- x %>% addMIs_inner_full(type = "equal")       
+      x <-  x %>% addMIs_inner_full(type = "normal",analyticFisher=analyticFisher)     
     }
     
+    if (nrow(x@sample@groups) > 1){
+      if ("free" %in% type){
+        # if (verbose){
+        #   message("Computing constrain-free modification indices...")
+        # }
+        x <- x %>% addMIs_inner_full(type = "free")         
+      }
+      if ("equal" %in% type){
+        
+        # if (verbose){
+        #   message("Computing group-constrained indices...")
+        # }
+        x <- x %>% addMIs_inner_full(type = "equal")       
+      }
+      
+    }
+    
+  })
+  
+  if (is(tryres, "try-error")){
+    stop("Failed to compute modification indices. Try a different optimizer with setoptimizer(...) or report the problem on github.com/SachaEpskamp/psychonetrics.")
   }
+  
   return(x)
-
+  
 }
 
 
@@ -119,7 +128,7 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
     g <- psychonetrics_gradient(parVector(modCopy), modCopy)
     
   }
-# if (gradient){
+  # if (gradient){
   #   g <- x@fitfunctions$gradient(parVector(modCopy), modCopy)
   # } else {
   #   g <- numDeriv::grad(x@fitfunctions$fitfunction,parVector(modCopy), model=modCopy) 
@@ -144,11 +153,11 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
   } else {
     H <- 4 * nTotal * as(psychonetrics_FisherInformation(modCopy, analyticFisher), "matrix")    
   }
-
+  
   
   # For every new parameter:
   curMax <- max(x@parameters$par)
-
+  
   ### NEW
   curInds <- seq_len(curMax)
   newInds <- curMax + seq_len(max(modCopy@parameters$par) - curMax)
@@ -160,7 +169,7 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
   }
   # How many in total?
   nTotalPars <- length(c(curInds,newInds))
-
+  
   # 
   # 
   # # Effective N:
@@ -174,12 +183,12 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
   # } else {
   #   Neff <- rep(x@sample@groups$nobs[1],nTotalPars)
   # }
-
+  
   
   # MIs:
   # All MIs:
   mi <- numeric(nTotalPars)
-
+  
   # mi[newInds] <- ifelse(abs(V.diag) < 1e-10,0,((-Neff[newInds]*g[newInds])^2)/V.diag)
   mi[newInds] <- ifelse(abs(V.diag) < 1e-10,0,((-nTotal*g[newInds])^2)/V.diag)
   if (length(curInds) > 0){
@@ -212,6 +221,6 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
     x@parameters$pmi_equal[fillInds[!is.na(fillInds)]] <- round(p[!is.na(fillInds)], 10)
     x@parameters$epc[fillInds[!is.na(fillInds)]] <- round(epc[!is.na(fillInds)],10)
   }
- 
+  
   return(x)
 }

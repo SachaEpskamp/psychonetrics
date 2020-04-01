@@ -412,14 +412,14 @@ samplestats_norawts <- function(
       UBrest <- mean(round(unlist(lapply(UBsquares,as.matrix)),10) %% 1)
       
       if (MLrest < UBrest){
-        if (verbose){
-          message("Assuming denominator n was used in covariance computation.")
-        }
+        # if (verbose){
+          message("Assuming denominator n was used in covariance computation (covtype = 'ML').")
+        # }
         squares <- MLsquares
       } else {
-        if (verbose){
-          message("Assuming denominator n-1 was used in covariance computation.")
-        }
+        # if (verbose){
+          message("Assuming denominator n-1 was used in covariance computation (covtype = 'UB').")
+        # }
         squares <- UBsquares
       }
     } else if (covtype == "ML"){

@@ -67,5 +67,9 @@ latentgrowth <- function(
   
   # Identify:
   mod <- identify_lvm(mod)
+
+  # FIXME: Silly start values:
+  mod <- emergencystart(mod)
+  
   mod
 }
