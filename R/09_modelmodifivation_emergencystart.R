@@ -59,8 +59,8 @@ emergencystart <- function(x){
           ifelse(x@parameters$row[x@parameters$matrix == allMats$name[mat] & !x@parameters$fixed] ==
                    x@parameters$col[x@parameters$matrix == allMats$name[mat] & !x@parameters$fixed], 1, 0)
       } else {
-        x@parameters$est[x@parameters$matrix == allMats$name[mat]] <- 
-          (x@parameters$est[x@parameters$matrix == allMats$name[mat]] != 0) * 1e-7 * sign(x@parameters$est[x@parameters$matrix == allMats$name[mat]])
+        x@parameters$est[x@parameters$matrix == allMats$name[mat]& !x@parameters$fixed] <- 
+          (x@parameters$est[x@parameters$matrix == allMats$name[mat]& !x@parameters$fixed] != 0) * 1e-7 * sign(x@parameters$est[x@parameters$matrix == allMats$name[mat]& !x@parameters$fixed])
       }
       
     }

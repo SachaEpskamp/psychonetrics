@@ -9,6 +9,8 @@ matrixsetup_sigma <- function(
   name = "sigma",
   beta = array(0, c(nNode, nNode,nGroup))
 ){
+  # FIXME: correlations between endogenous latents are now removed even when sigma = "full"
+  
   # Check if sigma is character:
   ischar <- is.character(sigma)
   

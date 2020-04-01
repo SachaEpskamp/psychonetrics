@@ -12,7 +12,8 @@ These functions can be used to change some estimator options.
 \usage{
 setestimator(x, estimator)
 
-setoptimizer(x, optimizer)
+setoptimizer(x, optimizer = c("default","nlminb","ucminf","cpp_L-BFGS-B",
+            "cpp_BFGS","cpp_CG","cpp_SANN","cpp_Nelder-Mead"))
 
 usecpp(x, use = TRUE)
 }
@@ -25,7 +26,7 @@ A \code{psychonetrics} model.
 A string indicating the estimator to be used
 }
   \item{optimizer}{
-A string indicating the optimizer to be used
+The optimizer to be used. Can be one of \code{"nlminb"} (the default R \code{nlminb} function), \code{"ucminf"} (from the \code{optimr} package), and C++ based optimizers \code{"cpp_L-BFGS-B"}, \code{"cpp_BFGS"}, \code{"cpp_CG"}, \code{"cpp_SANN"}, and \code{"cpp_Nelder-Mead"}. The C++ optimizers are faster but slightly less stable. Defaults to \code{"nlminb"}.
 }
 \item{use}{
 Logical indicating if C++ should be used (currently only used in FIML)
