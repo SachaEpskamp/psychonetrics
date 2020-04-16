@@ -1,9 +1,13 @@
+Changes in version 0.7.1:
+  o Fixed a bug for Solaris
+
 Changes in version 0.7:
   o Major changes
     o Major restructuring of underlying core code. Most vital functions have been translated to C++, leading to a large speedup!
     o Added C++ based optimizers cpp_L-BFGS-B, cpp_CG, cpp_SANN, and cpp_Nelder. These are faster but slightly less stable than nlminb (now the default optimizer).
     o Verbose now defaults to FALSE everywhere. This can be set with the setverbose function for a model
     o Added meta-analysis model for varcov family (meta_varcov)
+    o The ml_tsdlvm1 function now allows for multi-kevek tsdlvm1 models (dlvm1 models) to be specified using syntax familiar to those using mlVAR and graphicalVAR
   o Minor changes
     o Numerous small bugfixes and improvements (e.g., better starting values)
     o Added function 'fullFIML' to use true FIML computing the likelihood per row

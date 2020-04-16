@@ -598,7 +598,7 @@ arma::mat blockToeplitz_cpp(
 arma::mat matrixform(
   const arma::vec& x
 ){
-  int n = sqrt(x.n_elem);
+  int n = sqrt((double)x.n_elem);
   arma::mat out(n,n);
   int curelem=0;
   for (int i=0;i<n;i++){
