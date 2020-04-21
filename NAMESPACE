@@ -3,6 +3,8 @@ useDynLib(psychonetrics, .registration = TRUE)
 
 export(emergencystart)
 
+export(factorscores)
+
 importFrom(psych, fa)
 importFrom(GA, ga)
 importFrom(combinat, permn)
