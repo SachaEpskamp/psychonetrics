@@ -25,7 +25,6 @@ matrixsetup_lambda <- function(
     # Current cov estimate:
     curcov <- as.matrix(spectralshift(expcov[[g]]))
     if (nObs > 3 && nObs > nLat){
-      
       # Residual and latent varcov:
       fa <- psych::fa(r = curcov, nfactors = nLat, rotate = "promax", covar = TRUE)
       

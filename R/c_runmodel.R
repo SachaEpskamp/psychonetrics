@@ -251,8 +251,8 @@ runmodel <- function(
       tryres <- try({
         optim.out <- do.call(optimr,optim.control)
       }, silent = TRUE)    
-      
-      if (is(tryres,"try-error") && !any(is.na(optim.out$par))){
+
+      if (is(tryres,"try-error") || any(is.na(optim.out$par))){
         # Try with emergencystart:
         x <- updateModel(oldstart, x)
         optim.control$par <- parVector(emergencystart(x))
@@ -262,14 +262,14 @@ runmodel <- function(
         }, silent = TRUE)    
         
         # If still an error, break:
-        if (is(tryres2,"try-error") && !any(is.na(optim.out$par))){
+        if (is(tryres2,"try-error") || any(is.na(optim.out$par))){
           stop(paste("Model estimation resulted in an error that could not be recovered. Try using a different optimizer with setoptimizer(...) or using different starting values. Error:\n\n",tryres2))
           
         }
         
       }
       
-      
+    
       optimresults <- optim.out
       optimresults$optimizer <- optimizer
       x@optim <- optimresults
