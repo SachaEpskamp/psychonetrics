@@ -20,11 +20,17 @@ emergencystart <- function(x){
       zeroes <- which(net & diag(ncol(net)) != 1, arr.ind = TRUE)
       
       # Glasso result:
-      suppressWarnings(glas <- glasso::glasso(as.matrix(satCovs), 0, zero = zeroes))
+      if (nrow(zeroes) > 0){
+        suppressWarnings(glas <- glasso::glasso(as.matrix(satCovs), 0, zero = zeroes))     
+        omega <- -1*cov2cor(glas$wi)
+        diag(omega) <- 0
+      } else {
+        omega <- qgraph::wi2net(solve(as.matrix(satCovs)))
+      }
+
       
       # To omega:
-      omega <- -1*cov2cor(glas$wi)
-      diag(omega) <- 0
+    
       
       # Overwrite start:
       for (i in which(x@parameters$matrix == "omega" & x@parameters$group_id == g & !x@parameters$fixed)){
