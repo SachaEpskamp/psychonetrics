@@ -25,6 +25,11 @@ matrixsetup_lambda <- function(
     # Current cov estimate:
     curcov <- as.matrix(spectralshift(expcov[[g]]))
     if (nObs > 3 && nObs > nLat){
+      simple <- TRUE
+    } else {
+      simple <- FALSE
+      
+      tryres <- try({
       # Residual and latent varcov:
       fa <- psych::fa(r = curcov, nfactors = nLat, rotate = "promax", covar = TRUE)
       
@@ -64,8 +69,11 @@ matrixsetup_lambda <- function(
         lambdaStart[,,g] <- lambdaStart[,,g] %*% scaleMat
         sigma_zeta_start[,,g] <- solve(scaleMat) %*% sigma_zeta_start[,,g] %*% solve(scaleMat)
       }
-      
-    } else {
+      })
+      if (is (tryres, "try-error")) simple <- TRUE
+    }
+    
+    if (simple){
       sigma_epsilon_start[,,g] <- diag(nObs)
       sigma_zeta_start[,,g] <- diag(nLat)
       lambdaStart[,,g] <- lambda[,,g]
