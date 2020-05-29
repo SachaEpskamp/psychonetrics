@@ -47,7 +47,8 @@ lvm <- function(
   covtype = c("choose","ML","UB"),
   standardize = c("none","z","quantile"),
   sampleStats,
-  verbose=FALSE
+  verbose=FALSE,
+  simplelambdastart = FALSE
 ){
   rawts = FALSE
   if (rawts){
@@ -156,7 +157,7 @@ lvm <- function(
    # Setup lambda:
   modMatrices$lambda <- matrixsetup_lambda(lambda, expcov=model@sample@covs, nGroup = nGroup, 
                                            observednames = sampleStats@variables$label, latentnames = latents, 
-                                           sampletable = sampleStats, identification = identification)
+                                           sampletable = sampleStats, identification = identification, simple = simplelambdastart)
   
   # Setup beta:
   modMatrices$beta <- matrixsetup_beta(beta, nNode = nLatent, nGroup = nGroup, labels = latents, sampletable = sampleStats)
