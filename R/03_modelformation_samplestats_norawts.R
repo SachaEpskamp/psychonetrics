@@ -161,7 +161,6 @@ samplestats_norawts <- function(
         
         
       } else {
-        
         cov <- (nrow(data[,c(vars)])-1)/(nrow(data[,c(vars)])) * cov(data[,c(vars)], use = switch(
           missing, "listwise" = "complete.obs", "pairwise" = "pairwise.complete.obs"
         ))

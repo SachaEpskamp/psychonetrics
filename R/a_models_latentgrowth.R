@@ -50,7 +50,7 @@ latentgrowth <- function(
   }
   
   # Form model:
-  mod <- lvm(lambda=Lambda, vars = allVars, latents = latNames, identify = FALSE, nu = rep(0,length(allVars)),...)
+  mod <- lvm(lambda=Lambda, vars = allVars, latents = latNames, identify = FALSE, nu = rep(0,length(allVars)),simplelambdastart = TRUE,...)
 
   
   # Constrain factor loadings:
@@ -69,7 +69,7 @@ latentgrowth <- function(
   mod <- identify_lvm(mod)
 
   # FIXME: Silly start values:
-  mod <- emergencystart(mod)
+  # mod <- emergencystart(mod)
   
   mod
 }
