@@ -15,7 +15,7 @@ identify_lvm <- function(x){
   
   # Always set residual (co)variance of single indicator items to zero:
   nIndicators <- x@parameters %>% filter_(~matrix == "lambda") %>% group_by_(~var2_id) %>% 
-    summarize_(nLats = ~length(unique(var1_id[!fixed])))
+    summarize_(nLats = ~length(unique(var1_id[!fixed | est != 0])))
 
   if (any(nIndicators$nLats == 1)){
     for (inds in unique(x@parameters$var1_id[x@parameters$var2_id%in%nIndicators$var2_id[nIndicators$nLats == 1] & x@parameters$matrix == "lambda" & !x@parameters$fixed])){

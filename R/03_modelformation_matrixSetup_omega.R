@@ -29,11 +29,10 @@ matrixsetup_omega <- function(
       
       zeroes <- which(omegaStart[,,g]==0 & t(omegaStart[,,g])==0 & diag(nNode) != 1,arr.ind=TRUE)
       if (nrow(zeroes) == 0){
-        wi <- solve_symmetric(covest)
+        wi <- solve_symmetric_cpp_matrixonly(covest)
         pcor <- qgraph::wi2net(as.matrix(wi))
         # FIXME: Quick check, if there is an outrageous starting value, use glasso with lasso instead:
-        
-        if (any(abs(pcor) > 0.8)){
+        if (any(is.na(pcor)) || any(abs(pcor) > 0.8)){
           wi <- glasso(as.matrix(spectralshift(covest)), rho = 0.1)$wi
           pcor <-  qgraph::wi2net(as.matrix(wi))
         }
