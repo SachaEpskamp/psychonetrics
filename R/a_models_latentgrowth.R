@@ -2,7 +2,9 @@ latentgrowth <- function(
   vars,  # design matrix
   time = seq_len(ncol(vars)) - 1,
   covariates = character(0),
+  covariates_as = c("regression","covariance"),
   ...){
+  covariates_as <- match.arg(covariates_as)
   if (missing(vars)){
     stop("'vars' argument may not be missing")
   }
@@ -48,9 +50,27 @@ latentgrowth <- function(
     Lambda[allVars %in% na.omit(vars[i,]),i] <- 1
     Lambda[allVars %in% na.omit(vars[i,]),i+nrow(vars)] <- 1
   }
-  
+
+  # If the covariates are regressions, add these:
+  nLat <- length(latNames)
+  nLat_growth <- 2*length(varnames)
+  beta <- matrix(0,nLat,nLat)
+  if (covariates_as == "regression"){
+    beta[seq_len(nLat_growth),-seq_len(nLat_growth)] <- 1
+
+    psi <- diag(nLat)
+    psi[seq_len(nLat_growth),seq_len(nLat_growth)] <- 1
+  } else {
+    psi <- matrix(1,nLat, nLat)
+  }
+    
   # Form model:
-  mod <- lvm(lambda=Lambda, vars = allVars, latents = latNames, identify = FALSE, nu = rep(0,length(allVars)),simplelambdastart = TRUE,...)
+  mod <- lvm(lambda=Lambda, vars = allVars, latents = latNames, 
+             identify = FALSE, nu = rep(0,length(allVars)),
+             simplelambdastart = TRUE,beta=beta,
+             sigma_zeta = psi,omega_zeta = psi,
+             lowertri_zeta = psi, kappa_zeta = psi,
+             ...)
 
   
   # Constrain factor loadings:
@@ -64,6 +84,8 @@ latentgrowth <- function(
       }  
     }
   }
+  
+
   
   # Identify:
   mod <- identify_lvm(mod)
