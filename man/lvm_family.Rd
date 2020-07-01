@@ -13,19 +13,20 @@ This is the family of models that models the data as a structural equation model
 }
 \usage{
 lvm(data, lambda, latent = c("cov", "chol", "prec",
-                    "ggm"), residual = c("cov", "chol", "prec", "ggm"),
-                    sigma_zeta = "full", kappa_zeta = "full", omega_zeta =
-                    "full", lowertri_zeta = "full", delta_zeta = "full",
-                    sigma_epsilon = "empty", kappa_epsilon = "empty",
-                    omega_epsilon = "empty", lowertri_epsilon = "empty",
-                    delta_epsilon = "empty", beta = "empty", nu, nu_eta,
-                    identify = TRUE, identification = c("loadings",
-                    "variance"), vars, latents, groups, covs, means, nobs,
-                    missing = "listwise", equal = "none",
-                    baseline_saturated = TRUE, estimator = "ML",
-                    optimizer, storedata = FALSE, WLS.W, covtype =
-                    c("choose", "ML", "UB"), standardize = c("none", "z",
-                    "quantile"), sampleStats, verbose = FALSE)
+                   "ggm"), residual = c("cov", "chol", "prec", "ggm"),
+                   sigma_zeta = "full", kappa_zeta = "full", omega_zeta =
+                   "full", lowertri_zeta = "full", delta_zeta = "full",
+                   sigma_epsilon = "empty", kappa_epsilon = "empty",
+                   omega_epsilon = "empty", lowertri_epsilon = "empty",
+                   delta_epsilon = "empty", beta = "empty", nu, nu_eta,
+                   identify = TRUE, identification = c("loadings",
+                   "variance"), vars, latents, groups, covs, means, nobs,
+                   missing = "listwise", equal = "none",
+                   baseline_saturated = TRUE, estimator = "ML",
+                   optimizer, storedata = FALSE, WLS.W, covtype =
+                   c("choose", "ML", "UB"), standardize = c("none", "z",
+                   "quantile"), sampleStats, verbose = FALSE,
+                   simplelambdastart = FALSE)
 
 lnm(\dots)
 rnm(\dots)
@@ -141,6 +142,7 @@ An optional sample statistics object. Mostly used internally.
   \item{standardize}{
 Which standardization method should be used? \code{"none"} (default) for no standardization, \code{"z"} for z-scores, and \code{"quantile"} for a non-parametric transformation to the quantiles of the marginal standard normal distribution.
 }
+\item{simplelambdastart}{Logical, should simple start values be used for lambda? Setting this to TRUE can avoid some estimation problems.}
 \item{\dots}{
 Arguments sent to \code{varcov}
 }
