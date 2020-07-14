@@ -14,7 +14,8 @@ generate_psychonetrics_samplestats <- setClass("psychonetrics_samplestats",  slo
   fimldata = "list",
   fullFIML = "logical",
   WLS.W = "list", # List with weights matrix per group
-  rawdata = "data.frame" # For bootstrapping!
+  rawdata = "data.frame", # For bootstrapping!
+  groupvar = "character"
 ), prototype = list(groups = data.frame(
   label = character(0),
   id = integer(0),

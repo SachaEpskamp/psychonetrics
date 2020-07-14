@@ -466,7 +466,7 @@ samplestats_norawts <- function(
   }
   
   # Generate samplestats object:
-  object <- generate_psychonetrics_samplestats(covs = covs, cors = cors, means = means, corinput = corinput, thresholds = thresholds, squares = squares, fullFIML=fullFIML)
+  object <- generate_psychonetrics_samplestats(covs = covs, cors = cors, means = means, corinput = corinput, thresholds = thresholds, squares = squares, fullFIML=fullFIML, groupvar=groups)
   
   # Fill groups:
   object@groups <- data.frame(
