@@ -94,54 +94,64 @@ identify_lvm <- function(x){
     
   } else {
     # Number of equality constrains:
-    cons <- x@parameters %>% group_by_("matrix","row","col") %>% summarize_(eq = ~!(all(fixed))&allTheSame(par))
+    cons <- x@parameters %>% group_by_("matrix","row","col") %>% summarize_(
+      eq = ~!(all(fixed))&allTheSame(par))
     consPerMat <- cons %>% group_by_("matrix") %>% summarize_(n = ~sum(eq))
     
     nLat <- max(cons$col[cons$matrix == "lambda"])
     nMan <- max(cons$row[cons$matrix == "lambda"])
     
+    # FIXME:
+    fixedingroup1 <- x@parameters %>%  group_by_("matrix","group") %>% summarize_(
+     nFixed = ~sum(fixed)) %>% group_by_("matrix") %>% summarize(nFixed = max(nFixed))
+     
+    nNuFix <- fixedingroup1$nFixed[fixedingroup1$matrix == "nu"]
+    
     ### LATENT MEANS ###
     # at least n_eta intercepts nead to be equal
-    if (consPerMat$n[consPerMat$matrix == "nu"] >= nLat){
-      means <- which(x@parameters$matrix %in% c("nu_eta") & x@parameters$group_id == 1)
-      free <-  which(x@parameters$matrix %in% c("nu_eta") & x@parameters$group_id > 1 & !(x@parameters$fixed & !x@parameters$identified))
-    } else {
-      means <- which(x@parameters$matrix %in% c("nu_eta"))
-      free <- numeric(0)
-    }
-    # Constrain means:
-    x@parameters$est[means] <- 0
-    # x@parameters$std[means] <- NA
-    x@parameters$par[means] <- 0
-    # x@parameters$se[means] <- NA
-    # x@parameters$p[means] <- NA
-    # x@parameters$mi[means] <- NA
-    # x@parameters$pmi[means] <- NA
-    # x@parameters$mi_equal[means] <- NA
-    # x@parameters$pmi_equal[means] <- NA
-    x@parameters$fixed[means] <- TRUE
-    x@parameters$identified[means] <- TRUE
-    
-    # Clear
-    
-    x@parameters <- clearpars(x@parameters, means)
-    
-    if (length(free) > 0){
-      # x@parameters$std[free] <- NA
-      x@parameters$par[free] <- max(x@parameters$par) + seq_along(free)
-      # x@parameters$se[free] <- NA
-      # x@parameters$p[free] <- NA
-      # x@parameters$mi[free] <- NA
-      # x@parameters$pmi[free] <- NA
-      # x@parameters$mi_equal[free] <- NA
-      # x@parameters$pmi_equal[free] <- NA
-      x@parameters$fixed[free] <- FALSE
-      x@parameters$identified[free] <- FALSE
+    if (!is.null(nNuFix) && nNuFix == 0){
+      if (consPerMat$n[consPerMat$matrix == "nu"] >= nLat){
+        means <- which(x@parameters$matrix %in% c("nu_eta") & x@parameters$group_id == 1)
+        free <-  which(x@parameters$matrix %in% c("nu_eta") & x@parameters$group_id > 1 & !(x@parameters$fixed & !x@parameters$identified))
+      } else {
+        means <- which(x@parameters$matrix %in% c("nu_eta"))
+        free <- numeric(0)
+      }
+      # Constrain means:
+      x@parameters$est[means] <- 0
+      # x@parameters$std[means] <- NA
+      x@parameters$par[means] <- 0
+      # x@parameters$se[means] <- NA
+      # x@parameters$p[means] <- NA
+      # x@parameters$mi[means] <- NA
+      # x@parameters$pmi[means] <- NA
+      # x@parameters$mi_equal[means] <- NA
+      # x@parameters$pmi_equal[means] <- NA
+      x@parameters$fixed[means] <- TRUE
+      x@parameters$identified[means] <- TRUE
       
       # Clear
-      x@parameters <- clearpars(x@parameters, free)
+      
+      x@parameters <- clearpars(x@parameters, means)
+      
+      if (length(free) > 0){
+        # x@parameters$std[free] <- NA
+        x@parameters$par[free] <- max(x@parameters$par) + seq_along(free)
+        # x@parameters$se[free] <- NA
+        # x@parameters$p[free] <- NA
+        # x@parameters$mi[free] <- NA
+        # x@parameters$pmi[free] <- NA
+        # x@parameters$mi_equal[free] <- NA
+        # x@parameters$pmi_equal[free] <- NA
+        x@parameters$fixed[free] <- FALSE
+        x@parameters$identified[free] <- FALSE
+        
+        # Clear
+        x@parameters <- clearpars(x@parameters, free)
+      }
+      
     }
-    
+
     
     if (type == "variance"){
       
