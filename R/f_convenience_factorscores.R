@@ -73,6 +73,7 @@ factorscores <- function(data, model,
   }
   
   eta <- as.data.frame(eta)
+  names(eta) <- latNames
   if (nGroups > 1){
     eta[[groupvar]] <- data[[groupvar]]
   }
