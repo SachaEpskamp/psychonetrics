@@ -15,12 +15,12 @@ getmatrix <- function(x,matrix,group){
   # If group is missing, all groups:
   if (missing(group)){
     group <- x@sample@groups$label
-  }
+  } else   # If group is number, get name:
+    if (is.numeric(group)){
+      group <- x@sample@groups$label[match(group,x@sample@groups$id)]
+    }
   
-  # If group is number, get name:
-  if (is.numeric(group)){
-    group <- x@sample@groups$label[match(group,x@sample@groups$id)]
-  }
+
   
   # Form group ID:
   groupID <- x@sample@groups$id[match(group,x@sample@groups$label)]
