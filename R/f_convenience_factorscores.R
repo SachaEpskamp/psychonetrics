@@ -1,14 +1,26 @@
 factorscores <- function(data, model,
-      method = c('bartlett','regression')){
-
+                         method = c('bartlett','regression')){
+  
   method <- match.arg(method)
+  
+  # Number of groups:
+  nGroups <- nrow(model@sample@groups)
+  
+  if (nGroups == 1){
+    data[['GROUPDUMMY']] <- "fullsample"
+    groupvar <- "GROUPDUMMY"
+  } else {
+    groupvar <- model@sample@groupvar
+  }
+  
   
   # Select variables:
   if (!all(model@sample@variables$label %in% names(data))){
     stop("Not all variables of model are present in data")
   }
-  data <- data[,model@sample@variables$label]
-    
+  obsVars <- model@sample@variables$label
+  data <- data[,c(obsVars,groupvar)]
+  
   # Check input:
   if (any(is.na(data))){
     stop("Missing data is not supported at the moment.")
@@ -21,41 +33,49 @@ factorscores <- function(data, model,
     stop("Only 'lvm' framework is currently supported.")
   }
   
-  # Number of groups:
-  nGroups <- nrow(model@sample@groups)
+ 
   
-  if (nGroups > 1){
-    stop("Currently only single group models are supported.")
-  }
+  # Latent names:
+  latNames <- unique(model@parameters$var2[model@parameters$matrix=="lambda"])
+  
+  # Dummy matrix with responses:
+  eta <- matrix(NA,nrow(data),length(latNames))
   
   # Extract matrices:
   if (model@model == "lvm"){
-    
-    g <- 1
-    
-    sigma_zeta <- model@modelmatrices[[g]]$sigma_zeta
-    beta <- model@modelmatrices[[g]]$beta
-    sigma_epsilon <- model@modelmatrices[[g]]$sigma_epsilon
-    lambda <- model@modelmatrices[[g]]$lambda
-    sigma <- model@modelmatrices[[g]]$sigma
-    kappa <- model@modelmatrices[[g]]$kappa
-    mu <- model@modelmatrices[[g]]$mu
-    
-    # Weights:
-    if (method == "regression"){
+    for (g in seq_len(nrow(model@sample@groups))){
       
-      W <- sigma_zeta %*% t(lambda) %*% kappa
+      sigma_zeta <- model@modelmatrices[[g]]$sigma_zeta
+      beta <- model@modelmatrices[[g]]$beta
+      sigma_epsilon <- model@modelmatrices[[g]]$sigma_epsilon
+      lambda <- model@modelmatrices[[g]]$lambda
+      sigma <- model@modelmatrices[[g]]$sigma
+      kappa <- model@modelmatrices[[g]]$kappa
+      mu <- model@modelmatrices[[g]]$mu
       
-    } else if (method == "bartlett") {
+      # Weights:
+      if (method == "regression"){
+        
+        W <- sigma_zeta %*% t(lambda) %*% kappa
+        
+      } else if (method == "bartlett") {
+        
+        W <- solve_symmetric_cpp_matrixonly(t(lambda) %*% solve_symmetric_cpp_matrixonly(sigma_epsilon) %*% lambda) %*% t(lambda) %*% solve_symmetric_cpp_matrixonly(sigma_epsilon)
+        
+      }
       
-      W <- solve_symmetric_cpp_matrixonly(t(lambda) %*% solve_symmetric_cpp_matrixonly(sigma_epsilon) %*% lambda) %*% t(lambda) %*% solve_symmetric_cpp_matrixonly(sigma_epsilon)
-      
+      # PRedict:
+      groupID <- model@sample@groups$label[g]
+      eta[data[[groupvar]] == groupID,] <- t(W %*% (t( data[data[[groupvar]] == groupID,obsVars]) - as.vector(mu)))
     }
-    
+  } else {
+    stop("Only 'lvm' models are currently supported.")
   }
   
-  # PRedict:
-  eta <- t(W %*% (t(data) - as.vector(mu)))
+  eta <- as.data.frame(eta)
+  if (nGroups > 1){
+    eta[[groupvar]] <- data[[groupvar]]
+  }
   
   return(eta)
   
