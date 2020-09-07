@@ -214,14 +214,18 @@ modelsearch <- function(x,
                                          start = x@parameters$epc[curpar], verbose = FALSE)
           
           # Run the model:
-          suppressWarnings(propMods[[i]] <- propMods[[i]] %>% runmodel(verbose = FALSE, addMIs = FALSE, ...))
+          suppressWarnings(propMods[[i]] <- propMods[[i]] %>% runmodel(verbose = FALSE, addMIs = FALSE, return_improper = TRUE,...))
           
           # Fisher information ok?
           # ev <- eigen(propMods[[i]]@information)$values
-          
+          proper <- TRUE
+          if (!is.null(propMods[[i]]@modelmatrices[[1]]$proper)){
+            propers <- sapply(propMods[[i]]@modelmatrices,"[[","proper")
+            proper <- all(propers)
+          }
           # If not, try again with different starts:
           # if (any(ev < -sqrt(.Machine$double.eps))){
-          if (!sympd_cpp(propMods[[i]]@information)){
+          if (!sympd_cpp(propMods[[i]]@information) || !proper){
             try <- 1
             repeat{
               if (try == 1){
@@ -258,13 +262,20 @@ modelsearch <- function(x,
               }
               
               # Run the model:
-              suppressWarnings(propMods[[i]] <- propMods[[i]] %>% runmodel(verbose = FALSE, addMIs = FALSE, ...))
+              suppressWarnings(propMods[[i]] <- propMods[[i]] %>% runmodel(verbose = FALSE, addMIs = FALSE,return_improper = TRUE, ...))
               
               # Fisher information ok?
               # ev <- eigen(propMods[[i]]@information)$values
               
+              # Check for properness:
+              proper <- TRUE
+              if (!is.null(propMods[[i]]@modelmatrices[[1]]$proper)){
+                propers <- sapply(propMods[[i]]@modelmatrices,"[[","proper")
+                proper <- all(propers)
+              }
+              
               # if (all(ev > -sqrt(.Machine$double.eps))){
-              if (sympd_cpp(propMods[[i]]@information)){
+              if (sympd_cpp(propMods[[i]]@information) && proper){
                 break
               } else {
                 try <- try + 1
@@ -284,7 +295,7 @@ modelsearch <- function(x,
                                         group = x@parameters$group_id[curpar], verbose = FALSE)
           
           # Run the model:
-          propMods[[i]] <- propMods[[i]] %>% runmodel(verbose = FALSE, addMIs = FALSE, ...)
+          propMods[[i]] <- propMods[[i]] %>% runmodel(verbose = FALSE, addMIs = FALSE, return_improper = TRUE, ...)
           
           # Fisher information ok?
           # ev <- eigen(propMods[[i]]@information)$values
@@ -292,7 +303,14 @@ modelsearch <- function(x,
           # If not, try again with different starts:
           # if (any(ev < -sqrt(.Machine$double.eps))){
           
-          if (!sympd_cpp(propMods[[i]]@information)){
+          proper <- TRUE
+          if (!is.null(propMods[[i]]@modelmatrices[[1]]$proper)){
+            propers <- sapply(propMods[[i]]@modelmatrices,"[[","proper")
+            proper <- all(propers)
+          }
+          
+          
+          if (!sympd_cpp(propMods[[i]]@information) || !proper){
             try <- 1
             repeat{
               if (try == 1){
@@ -322,14 +340,20 @@ modelsearch <- function(x,
               
               
               # Run the model:
-              propMods[[i]] <- propMods[[i]] %>% runmodel(verbose = FALSE, addMIs = FALSE, ...)
+              propMods[[i]] <- propMods[[i]] %>% runmodel(verbose = FALSE, addMIs = FALSE, return_improper = TRUE, ...)
               
+              
+              proper <- TRUE
+              if (!is.null(propMods[[i]]@modelmatrices[[1]]$proper)){
+                propers <- sapply(propMods[[i]]@modelmatrices,"[[","proper")
+                proper <- all(propers)
+              }
               # Fisher information ok?
               # ev <- eigen(propMods[[i]]@information)$values
               
               # if (all(ev > -sqrt(.Machine$double.eps))){
               
-              if (sympd_cpp(propMods[[i]]@information)){
+              if (sympd_cpp(propMods[[i]]@information) && proper){
                 break
               } else {
                 try <- try + 1

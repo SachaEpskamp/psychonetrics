@@ -1,3 +1,6 @@
+Changes in version 0.7.6:
+  - Model estimations that used improper estimation (pseudoinverse of variance-covariance matrix) now return with an error unless return_improper = TRUE in runmodel()
+
 Changes in version 0.7.5:
   - Fixed a bug with nu_zeta being constrained in multigroup LGC models.
   - factorscores now supports multi group models
