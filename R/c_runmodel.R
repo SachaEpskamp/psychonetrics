@@ -12,7 +12,8 @@ runmodel <- function(
   # optimizer = c("default","ucminf","nlminb"),
   optim.control = list(),
   # maxtry = 5,
-  analyticFisher = TRUE
+  analyticFisher = TRUE,
+  return_improper = FALSE
   # inverseHessian = TRUE
 ){
   if (missing(verbose)){
@@ -411,14 +412,25 @@ runmodel <- function(
       # if (verbose){
       #   message("Eigenvalues...")
       # }
-      if (!sympd_cpp(x@information)){
+      # Check if analysis was proper:
+      proper <- TRUE
+      if (!is.null(x@modelmatrices[[1]]$proper)){
+        propers <- sapply(x@modelmatrices,"[[","proper")
+        proper <- all(propers)
+      }
+      
+      if (!sympd_cpp(x@information) || !proper){
         if (trystart == 1){
           trystart <- 2
           x <- updateModel(oldstart, x)
           x <- emergencystart(x)
         } else {
           trystart <- 3
-          warning("Information matrix is not positive semi-definite. This can happen because the model is not identified, or because the optimizer encountered problems. Try running the model with a different optimizer using setoptimizer(...).")
+          if (return_improper){
+            warning("Information matrix or implied variance-covariance matrix was not positive semi-definite. This can happen because the model is not identified, or because the optimizer encountered problems. Try running the model with a different optimizer using setoptimizer(...).")  
+          } else {
+            stop("Information matrix or implied variance-covariance matrix was not positive semi-definite. This can happen because the model is not identified, or because the optimizer encountered problems. Try running the model with a different optimizer using setoptimizer(...).")
+          }
         }
         
       } else {
@@ -468,6 +480,7 @@ runmodel <- function(
     # Add log:
     x <- addLog(x, "Evaluated model")    
   }
+
   
   
   # Return model:

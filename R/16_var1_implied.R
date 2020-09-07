@@ -43,6 +43,9 @@ implied_var1 <- function(model,all = FALSE){
     x[[g]]$sigma <- 0.5*(x[[g]]$sigma + t(x[[g]]$sigma))
     
     # Precision:
+    if (!sympd_cpp(x[[g]]$sigma)){
+      stop("Non positive-definite implied variance-covariance matrix found. Aborting.")
+    }
     x[[g]]$kappa <- solve_symmetric(x[[g]]$sigma, logdet = TRUE)
     
     # FIXME: forcing symmetric, but not sure why this is needed...
@@ -64,7 +67,7 @@ implied_var1 <- function(model,all = FALSE){
     # x[[g]]$mu <- as.matrix(x[[g]]$mu)
     # x[[g]]$kappa <- as.matrix(x[[g]]$kappa)
     # x[[g]]$sigma <- as.matrix(x[[g]]$sigma)
-    
+    browser() 
   }
 
   
