@@ -50,7 +50,7 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
   type <- match.arg(type)
   
   # If no constrained parameters, nothing to do!
-  if (!any(x@parameters$par == 0)){
+  if (!any(x@parameters$par == 0) & !any(duplicated(x@parameters$par))){
     return(x)
   }
   
