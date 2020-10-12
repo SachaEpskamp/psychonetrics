@@ -32,7 +32,7 @@ implied_varcov <- function(model, all = FALSE){
         if (!sympd_cpp(x[[g]]$kappa)){
             attr(x[[g]]$kappa, "logdet") <- log(.Machine$double.eps)  
         } else {
-          attr(x[[g]]$kappa, "logdet") <- log(det(x[[g]]$kappa))
+          attr(x[[g]]$kappa, "logdet") <- determinant(x[[g]]$kappa, logarithm = TRUE)$modulus
         }
       }
     

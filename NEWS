@@ -1,3 +1,6 @@
+Changes in Version 0.7.7:
+  - The log determinant is now computer better to be able to include fit measures at higher model complexities
+
 Changes in version 0.7.6:
   - Model estimations that used improper estimation (pseudoinverse of variance-covariance matrix) now return with an error unless return_improper = TRUE in runmodel()
   - Equality-free MIs are now also computed when all edges are included

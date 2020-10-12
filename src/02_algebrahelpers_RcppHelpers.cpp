@@ -96,6 +96,9 @@ Rcpp::List solve_symmetric_cpp(
     if (logdet){
       double logepsilon = log(epsilon);
       logdetval =  log(det(inv));
+      if (logdetval == R_PosInf){
+        logdetval = real(log_det(inv));
+      }
       if (logdetval < logepsilon){
         logdetval = logepsilon;
       }
