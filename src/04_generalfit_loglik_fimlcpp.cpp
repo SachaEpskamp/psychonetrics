@@ -74,6 +74,9 @@ double logLikelihood_gaussian_subgroup_fiml_cpp_inner(
     if (logdet < logepsilon){
       logdet = logepsilon;
     }
+    if (logdet == R_PosInf){
+      logdet = real(log_det(kappa_p));
+    }
     
   } else {
     kappa_p = pinv(sigma_p);
