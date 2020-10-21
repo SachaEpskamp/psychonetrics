@@ -419,7 +419,7 @@ runmodel <- function(
         proper <- all(propers)
       }
       
-      if (!sympd_cpp(x@information) || !proper){
+      if (!sympd_cpp(x@information) || (!return_improper && !proper)){
         if (trystart == 1){
           trystart <- 2
           x <- updateModel(oldstart, x)

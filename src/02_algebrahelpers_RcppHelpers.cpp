@@ -145,8 +145,9 @@ arma::mat solve_symmetric_cpp_matrixonly(
     
   } else {
     // Small spectral shift:
+    // if (lowestEV < sqrt(epsilon)){
     if (lowestEV < sqrt(epsilon)){
-      
+
       for (i=0;i<nvar;i++){
         X(i,i) = X(i,i) - lowestEV + sqrt(epsilon);
       }
