@@ -168,6 +168,7 @@ meta_varcov <- function(
     if (Vmethod == "individual"){ 
       # For each group, make a model and obtain VCOV:
       Vmats <- lapply(seq_along(cors),function(i){
+
         # Find the missing nodes:
         obs <- !apply(cors[[i]],2,function(x)all(is.na(x)))
         
@@ -182,7 +183,7 @@ meta_varcov <- function(
         # Now obtain only the full subset correlation matrix:
         cmat <- as(cors[[i]][obs,obs], "matrix")
         
-        k <- solve(cmat)
+        k <- solve_symmetric_cpp_matrixonly(cmat)
         D2 <- duplicationMatrix(ncol(cmat), FALSE)
         v <- 0.5 * nobs[i] * t(D2) %*% (k %x% k) %*% D2
         vcov <- solve(v)
