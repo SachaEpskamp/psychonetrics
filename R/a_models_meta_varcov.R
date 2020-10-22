@@ -191,7 +191,8 @@ meta_varcov <- function(
         
         
         # Now expand using the elmination matrix:
-        as.matrix(t(L) %*% vcov %*% L)
+        res <- as.matrix(t(L) %*% vcov %*% L)
+        return(0.5 * (res + t(res)))
       })
       
       avgVmat <- Reduce("+", Vmats) / Reduce("+",lapply(Vmats,function(x)x!=0))
