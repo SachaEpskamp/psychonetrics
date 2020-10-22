@@ -186,7 +186,7 @@ meta_varcov <- function(
         k <- solve_symmetric_cpp_matrixonly(cmat)
         D2 <- duplicationMatrix(ncol(cmat), FALSE)
         v <- 0.5 * nobs[i] * t(D2) %*% (k %x% k) %*% D2
-        vcov <- solve(v)
+        vcov <- solve_symmetric_cpp_matrixonly(as.matrix(v))
         
         
         
