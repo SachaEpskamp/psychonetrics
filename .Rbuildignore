@@ -2,6 +2,7 @@
 ^\.Rproj\.user$
 readme.md
 logo.png
+logo_no_R.png
 README_figs
 \.gitignore
 psychonetrics\.Rproj
