@@ -8,7 +8,9 @@ Latnet growth curve model
 Wrapper to \code{lvm} to specify a latent growth curve model.
 }
 \usage{
-latentgrowth(vars, time = seq_len(ncol(vars)) - 1, covariates = character(0), ...)
+latentgrowth(vars, time = seq_len(ncol(vars)) - 1, covariates =
+                   character(0), covariates_as = c("regression",
+                   "covariance"), ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -20,6 +22,9 @@ A vector with the encoding of each measurement (e.g., 0, 1, 2, 3).
 }
   \item{covariates}{
 A vector with strings indicating names of between-person covariate variables in the data
+}
+\item{covariates_as}{
+Should covariates be included as regressions or actual covariates?
 }
   \item{\dots}{
 Arguments sent to \code{\link{lvm}}

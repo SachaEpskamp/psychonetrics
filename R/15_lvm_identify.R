@@ -102,6 +102,7 @@ identify_lvm <- function(x){
     nMan <- max(cons$row[cons$matrix == "lambda"])
     
     # FIXME:
+    nFixed <- NULL
     fixedingroup1 <- x@parameters %>%  group_by_("matrix","group") %>% summarize_(
      nFixed = ~sum(fixed)) %>% group_by_("matrix") %>% summarize(nFixed = max(nFixed))
      

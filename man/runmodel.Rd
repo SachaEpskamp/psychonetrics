@@ -9,9 +9,9 @@ This is the main function  used to run a psychonetrics model.
 }
 \usage{
 runmodel(x, level = c("gradient", "fitfunction"), addfit =
-                    TRUE, addMIs = TRUE, addSEs = TRUE, addInformation =
-                    TRUE, log = TRUE, verbose, optim.control = list(),
-                    analyticFisher = TRUE)
+                   TRUE, addMIs = TRUE, addSEs = TRUE, addInformation =
+                   TRUE, log = TRUE, verbose, optim.control = list(),
+                   analyticFisher = TRUE, return_improper = FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -44,6 +44,9 @@ A list with options for \code{optimr}
 }
   \item{analyticFisher}{
 Logical, should the analytic Fisher information be used? If \code{FALSE}, numeric information is used instead.
+}
+\item{return_improper}{
+Should a result in which improper computation was used be return? Improper computation can mean that a pseudoinverse of small spectral shift was used in computing the inverse of a matrix.
 }
 }
 \value{
