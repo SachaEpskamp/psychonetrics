@@ -2,6 +2,7 @@ Changes in Version 0.8:
   - The log determinant is now computer better to be able to include fit measures at higher model complexities
   - The 'return_improper' argument in runmodel( ) now returns improper estimates without trying different starting values
   - Fixed a bug in meta_varcov when using individual estimates of the sampling variation
+  - Updated optimizer default control parameters
 
 Changes in version 0.7.6:
   - Model estimations that used improper estimation (pseudoinverse of variance-covariance matrix) now return with an error unless return_improper = TRUE in runmodel()

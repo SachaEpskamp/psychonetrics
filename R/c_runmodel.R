@@ -233,18 +233,22 @@ runmodel <- function(
       # If nlminb, add lavaan controls:
       if (optimizer == "nlminb"){
         if (is.null(optim.control$control)){
-          optim.control$control<- list(eval.max=20000L,
-                                       iter.max=10000L,
-                                       trace=0L,
-                                       #abs.tol=1e-20, ### important!! fx never negative
-                                       abs.tol=(.Machine$double.eps * 10),
-                                       # rel.tol=1e-10,
-                                       rel.tol=1e-5,
-                                       #step.min=2.2e-14, # in =< 0.5-12
-                                       step.min=1.0, # 1.0 in < 0.5-21
-                                       step.max=1.0,
-                                       x.tol=1.5e-8,
-                                       xf.tol=2.2e-14)
+          # optim.control$control<- list(eval.max=20000L,
+          #                              iter.max=10000L,
+          #                              trace=0L,
+          #                              #abs.tol=1e-20, ### important!! fx never negative
+          #                              abs.tol=(.Machine$double.eps * 10),
+          #                              # rel.tol=1e-10,
+          #                              rel.tol=1e-5,
+          #                              #step.min=2.2e-14, # in =< 0.5-12
+          #                              step.min=1.0, # 1.0 in < 0.5-21
+          #                              step.max=1.0,
+          #                              x.tol=1.5e-8,
+          #                              xf.tol=2.2e-14)
+          # 
+          optim.control$control<- list(maxfeval=20000L,
+                                       maxit=10000L,
+                                       trace=0L)
         }
       }
       
