@@ -15,9 +15,11 @@ generate <- function(x, n = 500){
 }
 
 generate_gaussian <- function(x,n){
+  if(!requireNamespace("mvtnorm")) stop("'mvtnorm' package needs to be installed.")
+  
   nGroup <- length(x@sample@groups$id)
   data <- do.call(rbind,lapply(seq_len(nGroup),function(i){
-    dat <- rmvnorm(n, as.vector(x@modelmatrices[[i]]$mu),
+    dat <- mvtnorm::rmvnorm(n, as.vector(x@modelmatrices[[i]]$mu),
                     as.matrix(x@modelmatrices[[i]]$sigma))
     dat <- as.data.frame(dat)
     names(dat) <- x@sample@variables$label

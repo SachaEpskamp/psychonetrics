@@ -161,12 +161,13 @@ plot.esa_manual <- function(x,...){
     ergodicity = x$ergodicity
   )
   
+  if(!requireNamespace("ggplot2")) stop("'ggplot2' package needs to be installed.")
   
   g <- ggplot2::ggplot(df, ggplot2::aes_string(x = "ev", y = "ergodicity")) + 
     ggplot2::geom_line(lwd = 1.5) + ggplot2::geom_point(cex = 3) + ggplot2::ylim(-1,1) + 
-    ggplot2::geom_text(aes(x=mean(seq_along(x$ergodicity)), y = 1, label = "Dominantly between-subject"), colour = "black") + 
-    ggplot2::geom_text(aes(x=mean(seq_along(x$ergodicity)), y = -1, label = "Dominantly Within-subject"), colour = "black") + 
-    ggplot2::geom_text(aes(x=1.5, y = -0, label = "Ergodic"), colour = "black") + 
+    ggplot2::geom_text(ggplot2::aes(x=mean(seq_along(x$ergodicity)), y = 1, label = "Dominantly between-subject"), colour = "black") + 
+    ggplot2::geom_text(ggplot2::aes(x=mean(seq_along(x$ergodicity)), y = -1, label = "Dominantly Within-subject"), colour = "black") + 
+    ggplot2::geom_text(ggplot2::aes(x=1.5, y = -0, label = "Ergodic"), colour = "black") + 
     ggplot2::theme_bw() + 
     ggplot2::ylab("") + ggplot2::xlab("Component") +
     ggplot2::geom_hline(yintercept = -0.1, lwd = 0.5) + 
@@ -175,7 +176,7 @@ plot.esa_manual <- function(x,...){
       legend.position = c(.95, .95),
       legend.justification = c("right", "top"),
       legend.box.just = "right",
-      legend.margin = margin(6, 6, 6, 6)
+      legend.margin = ggplot2::margin(6, 6, 6, 6)
     ) + 
     ggplot2::scale_color_discrete("")
   
@@ -198,16 +199,16 @@ plot.esa <- function(x, plot = c("observed","latent"),...){
     
     # Create base plot:
     if (nGroups == 1){
-      g <- ggplot2::ggplot(df, aes_string(x = "ev", y = "ergodicity"))
+      g <- ggplot2::ggplot(df, ggplot2::aes_string(x = "ev", y = "ergodicity"))
     } else {
-      g <- ggplot2::ggplot(df, aes_string(x = "ev", y = "ergodicity", colour = "factor(group)"))
+      g <- ggplot2::ggplot(df, ggplot2::aes_string(x = "ev", y = "ergodicity", colour = "factor(group)"))
     }
     
     g <- g + 
       ggplot2::geom_line(lwd = 1.5) + ggplot2::geom_point(cex = 3) + ggplot2::ylim(-1,1) + 
-      ggplot2::geom_text(aes(x=mean(seq_along(erg)), y = 1, label = "Dominantly between-subject"), colour = "black") + 
-      ggplot2::geom_text(aes(x=mean(seq_along(erg)), y = -1, label = "Dominantly Within-subject"), colour = "black") + 
-      ggplot2::geom_text(aes(x=1.5, y = -0, label = "Ergodic"), colour = "black") + 
+      ggplot2::geom_text(ggplot2::aes(x=mean(seq_along(erg)), y = 1, label = "Dominantly between-subject"), colour = "black") + 
+      ggplot2::geom_text(ggplot2::aes(x=mean(seq_along(erg)), y = -1, label = "Dominantly Within-subject"), colour = "black") + 
+      ggplot2::geom_text(ggplot2::aes(x=1.5, y = -0, label = "Ergodic"), colour = "black") + 
       ggplot2::theme_bw() + 
       ggplot2::ylab("") + ggplot2::xlab("Component") +
       ggplot2::geom_hline(yintercept = -0.1, lwd = 0.5) + 
@@ -216,7 +217,7 @@ plot.esa <- function(x, plot = c("observed","latent"),...){
         legend.position = c(.95, .95),
         legend.justification = c("right", "top"),
         legend.box.just = "right",
-        legend.margin = margin(6, 6, 6, 6)
+        legend.margin = ggplot2::margin(6, 6, 6, 6)
       ) + 
       ggplot2::scale_color_discrete("")
     
