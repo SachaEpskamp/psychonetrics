@@ -1,3 +1,9 @@
+Changes in Version 0.8.2:
+  - Changed 'rel.tol=1e-10' in the nlminb optimizer to be in line with lavaan
+  
+Changes in Version 0.8.1:
+  - The nlminb estimator now uses more iterations.
+
 Changes in Version 0.8:
   - The log determinant is now computer better to be able to include fit measures at higher model complexities
   - The 'return_improper' argument in runmodel( ) now returns improper estimates without trying different starting values
