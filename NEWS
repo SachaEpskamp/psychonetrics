@@ -1,5 +1,5 @@
 Changes in Version 0.8.2:
-  - Changed 'rel.tol=1e-10' in the nlminb optimizer to be in line with lavaan
+  -  Relative and absolute convergence criteria now set to sqrt(.Machine$double.eps)
   
 Changes in Version 0.8.1:
   - The nlminb estimator now uses more iterations.
