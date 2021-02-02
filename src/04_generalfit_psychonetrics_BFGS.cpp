@@ -46,7 +46,8 @@ S4 psychonetrics_optimizer(
     S4 model,
     const arma::vec& lower,
     const arma::vec& upper,
-    std::string optimizer = "L-BFGS-B"
+    std::string optimizer = "L-BFGS-B",
+    bool bounded = false
 ) {
   int i;
   
@@ -87,7 +88,7 @@ S4 psychonetrics_optimizer(
   opt.control.pgtol = 1e-5;
   
   // Bounds:
-  if (optimizer == "L-BFGS-B"){
+  if (optimizer == "L-BFGS-B" && bounded){
     opt.set_lower(lower);
     opt.set_upper(upper);    
   }
@@ -106,8 +107,10 @@ S4 psychonetrics_optimizer(
     Named("message") = opt.message(),
       Named("value") = opt.value(),
       Named("fncount") = opt.fncount(),
-      Named("grcount") = opt.grcount()
+      Named("grcount") = opt.grcount(),
+      Named("optimizer") = optimizer
     );
+    
     
     // Update model:
     model = updateModel_cpp(x,model,false);

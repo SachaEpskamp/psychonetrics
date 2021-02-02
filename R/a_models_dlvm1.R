@@ -221,7 +221,7 @@ dlvm1 <- function(
                                   ),
                                   sample = sampleStats,computed = FALSE, 
                                   equal = equal,
-                                  optimizer = "nlminb", estimator = estimator, distribution = "Gaussian",
+                                  optimizer = defaultoptimizer(), estimator = estimator, distribution = "Gaussian",
                                   identification=identification, verbose = verbose)
   
   # Number of groups:

@@ -107,7 +107,7 @@ var1 <- function(
                                     ),types = list(zeta = contemporaneous),
                                   sample = sampleStats,computed = FALSE, 
                                   equal = equal,
-                                  optimizer =  "nlminb", estimator = estimator, distribution = "Gaussian",verbose=verbose)
+                                  optimizer =  defaultoptimizer(), estimator = estimator, distribution = "Gaussian",verbose=verbose)
   
   # Number of groups:
   nGroup <- nrow(model@sample@groups)

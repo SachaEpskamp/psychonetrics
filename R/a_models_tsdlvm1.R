@@ -143,7 +143,7 @@ tsdlvm1 <- function(
                                                epsilon = residual),
                                   sample = sampleStats,computed = FALSE, 
                                   equal = equal,
-                                  optimizer =  "nlminb", estimator = estimator, distribution = "Gaussian",
+                                  optimizer =  defaultoptimizer(), estimator = estimator, distribution = "Gaussian",
                                   verbose=verbose)
   
   # Number of groups:

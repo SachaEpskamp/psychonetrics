@@ -130,7 +130,7 @@ meta_varcov <- function(
   
   # Generate model object:
   model <- generate_psychonetrics(model = "meta_varcov", sample = sampleStats, computed = FALSE,
-                                  optimizer =  "nlminb", estimator = estimator, distribution = "Gaussian",
+                                  optimizer =  defaultoptimizer(), estimator = estimator, distribution = "Gaussian",
                                   types = list(y = type, randomEffects = randomEffects),
                                   submodel = type, meanstructure = TRUE, verbose = verbose)
   

@@ -1,6 +1,7 @@
 // -*- mode: C++; c-indent-level: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*-
 
 // we only include RcppArmadillo.h which pulls Rcpp.h in for us
+#define ARMA_DONT_PRINT_ERRORS
 #include <RcppArmadillo.h>
 #include <math.h>
 #include <vector>
@@ -41,14 +42,279 @@ bool sympd_cpp(
   // return:
   return(posdef);
 }
+// 
+// // Nearest PD matrix:
+// // [[Rcpp::export]]
+// void psychonetrics_nearPD(
+//     arma::mat &X
+// ){
+//   // Number of variables:
+//   int nvar = X.n_cols;
+//   
+//   // Counter:
+//   int i;
+//   
+//   // Initiate eigen values and vectors:
+//   arma::vec eigval;
+//   arma::mat eigvec;
+//   
+//   // Check if symmetric:
+//   bool issym = X.is_symmetric();
+//   
+//   // if not, make symmetric:
+//   if (!issym){
+//     X = 0.5* (X + X.t());
+//   }
+//   
+//   // Compute:
+//   arma::eig_sym(eigval, eigvec, arma::symmatl(X));
+//   
+//   // FIXME: hardcoded epsilon:
+//   double sqrt_epsilon = 1.490116e-08;
+//   
+//   // If lowest eigenvalue is > sqrt(epsilon), do nothing:
+//   if (eigval[0] < sqrt_epsilon){
+//     i = 0;
+//     while (eigval[i] < 0){
+//       eigval[i] = 0;
+//       i++;
+//     }
+//     arma::mat Lambda = diagmat(eigval);
+//     X = eigvec * Lambda * eigvec.t();
+//     
+//     // Now do a small spectral shift:
+//     for (i=0;i<nvar;i++){
+//       //X(i,i) -= lowestEV;
+//       X(i,i) = X(i,i)  + sqrt_epsilon;
+//     }
+//     
+//   } 
+// }
+// 
+// // Symmetric solve:
+// // [[Rcpp::export]]
+// Rcpp::List solve_symmetric_cpp(
+//     arma::mat X,
+//     bool logdet = false,
+//     double sqrt_epsilon  = 1.490116e-08
+// ){
+//   
+//   
+//   double logdetval = R_NegInf;
+//   Rcpp::List res;
+//   int i;
+//   int nvar = X.n_cols;
+//   
+//   // Check if symmetric:
+//   bool issym = X.is_symmetric();
+//   
+//   // if not, make symmetric:
+//   if (!issym){
+//     X = 0.5* (X + X.t());
+//   }
+//   
+//   // // Check if posdef:
+//   // bool posdef = X.is_sympd();
+//   // Check if posdef:
+//   double lowestEV = eig_sym(arma::symmatl(X))[0];
+//   
+//   bool posdef = lowestEV > -sqrt_epsilon; //X.is_sympd();
+//   
+//   // If not, pseudoinverse:
+//   if (!posdef){
+//     
+//     
+//     arma::mat inv = pinv(X);
+//     res["inv"] = inv;
+//     
+//     if (logdet){
+//       logdetval = log(sqrt_epsilon);
+//       res["logdet"] = logdetval;
+//     }
+//     
+//   } else {
+//     
+//     
+//     if (lowestEV < sqrt_epsilon){
+//       // Nearest PD matrix and small spectral shift if needed:
+//       psychonetrics_nearPD(X);
+//       // 
+//       // for (i=0;i<nvar;i++){
+//       //   //X(i,i) -= lowestEV;
+//       //   X(i,i) = X(i,i) -lowestEV + sqrt(epsilon);
+//       // }
+//     }
+//     // Rf_PrintValue(wrap(lowestEV));
+//     // invert:
+//     arma::mat inv = inv_sympd(X); // FIXME
+//     // arma::mat inv = inv(X);
+//     res["inv"] = inv;
+//     
+//     if (logdet){
+//       double logepsilon = log(sqrt_epsilon);
+//       logdetval =  log(det(inv));
+//       if (logdetval == R_PosInf){
+//         logdetval = real(log_det(inv));
+//       }
+//       if (logdetval < logepsilon){
+//         logdetval = logepsilon;
+//       }
+//       
+//       res["logdet"] = logdetval;
+//     }
+//   }
+//   
+//   return(res);
+// }
+// 
+// 
+// // [[Rcpp::export]]
+// arma::mat solve_symmetric_cpp_matrixonly(
+//     arma::mat X,
+//     double sqrt_epsilon  = 1.490116e-08
+// ){
+//   int i;
+//   int nvar = X.n_cols;
+//   
+//   // Check if symmetric:
+//   bool issym = X.is_symmetric();
+//   
+//   // if not, make symmetric:
+//   if (!issym){
+//     X = 0.5* (X + X.t());
+//   }
+//   
+//   // // Check if posdef:
+//   // bool posdef = X.is_sympd();
+//   // Check if posdef:
+//   // Rf_PrintValue(wrap(X));
+//   
+//   double lowestEV = eig_sym(arma::symmatl(X))[0];
+//   
+//   
+//   bool posdef = lowestEV > - sqrt_epsilon; //X.is_sympd();
+//   
+//   
+//   // If not, pseudoinverse:
+//   if (!posdef){
+//     
+//     
+//     arma::mat res = pinv(X);
+//     return(res);
+//     
+//   } else {
+//     // Small spectral shift:
+//     if (lowestEV < sqrt_epsilon){
+//       // Nearest PD matrix and small spectral shift if needed:
+//       psychonetrics_nearPD(X);
+//       
+//     }
+//     
+//     // invert:
+//     arma::mat res = inv_sympd(X); // FIXME
+//     return(res);
+//   }
+//   
+//   
+// }
+// 
+// 
+// 
+// // Same as above, but with extra check:
+// 
+// // [[Rcpp::export]]
+// arma::mat solve_symmetric_cpp_matrixonly_withcheck(
+//     arma::mat X,
+//     bool& proper
+// ){
+//   double sqrt_epsilon  = 1.490116e-08;
+//   int i,j;
+//   int nvar = X.n_cols;
+//   
+//   // Check if symmetric:
+//   bool issym = X.is_symmetric();
+//   
+//   // if not, make symmetric:
+//   if (!issym){
+//     X = 0.5* (X + X.t());
+//   }
+//   
+//   // Check again:
+//   issym = X.is_symmetric();
+//   
+//   // if not, loop over to fix:
+//   if (!issym){
+//     proper = false;
+//     for (i=0;i<nvar;i++){
+//       for (j=0;j<nvar;j++){
+//         if (!is_finite(X(i,j))){
+//           if (i==j){
+//             X(i,j) = 1;
+//           } else {
+//             X(i,j) = 0;
+//           }
+//         }
+//         
+//       }
+//     }
+//   }
+//   
+//   // // Check if posdef:
+//   // bool posdef = X.is_sympd();
+//   // Check if posdef:
+//   // Rf_PrintValue(wrap(X));
+//   
+//   
+//   double lowestEV = eig_sym(arma::symmatl(X))[0];
+//   
+//   
+//   bool posdef = lowestEV > - sqrt_epsilon; //X.is_sympd();
+//   
+//   // If not, pseudoinverse:
+//   if (!posdef){
+//     proper = false;
+//     
+//     arma::mat res = pinv(X);
+//     return(res);
+//     
+//   } else {
+//     // Small spectral shift:
+//     // if (lowestEV < sqrt(epsilon)){
+//     //   proper = false;
+//     //   
+//     //   for (i=0;i<nvar;i++){
+//     //     X(i,i) = X(i,i) - lowestEV + sqrt(epsilon);
+//     //   }
+//     if (lowestEV < sqrt_epsilon){
+//       
+//       proper = false;
+//       
+//       // Nearest PD matrix and small spectral shift if needed:
+//       psychonetrics_nearPD(X);
+//       
+//     }
+//     
+//     // invert:
+//     arma::mat res = inv_sympd(X); // FIXME
+//     return(res);
+//   }
+//   
+//   
+// }
+
+
+// New ways of inverting matrices (0.8.2+):
 
 // Symmetric solve:
 // [[Rcpp::export]]
 Rcpp::List solve_symmetric_cpp(
     arma::mat X,
     bool logdet = false,
-    double epsilon  = 1.490116e-08
+    double sqrt_epsilon  = 1.490116e-08
 ){
+  
+
+  
   double logdetval = R_NegInf;
   Rcpp::List res;
   int i;
@@ -62,39 +328,29 @@ Rcpp::List solve_symmetric_cpp(
     X = 0.5* (X + X.t());
   }
   
-  // // Check if posdef:
-  // bool posdef = X.is_sympd();
-  // Check if posdef:
-  double lowestEV = eig_sym(arma::symmatl(X))[0];
+  // Return value matrix:
+  mat inv(nvar,nvar);
   
-  bool posdef = lowestEV > -sqrt(epsilon); //X.is_sympd();
+  // First try a normal inverse:
+  bool success = inv_sympd(inv,X);
   
-  // If not, pseudoinverse:
-  if (!posdef){
-    arma::mat inv = pinv(X);
+  // If this failed, do pseudo-inverse:
+  if (!success){
+    
+    inv = pinv(X);
     res["inv"] = inv;
     
     if (logdet){
-      logdetval = log(epsilon);
+      logdetval = log(sqrt_epsilon);
       res["logdet"] = logdetval;
     }
     
   } else {
-    // Small spectral shift:
-    if (lowestEV < sqrt(epsilon)){
-      for (i=0;i<nvar;i++){
-        //X(i,i) -= lowestEV;
-        X(i,i) = X(i,i) -lowestEV + sqrt(epsilon);
-      }
-    }
-    // Rf_PrintValue(wrap(lowestEV));
-    // invert:
-    arma::mat inv = inv_sympd(X); // FIXME
-    // arma::mat inv = inv(X);
+    
     res["inv"] = inv;
     
     if (logdet){
-      double logepsilon = log(epsilon);
+      double logepsilon = log(sqrt_epsilon);
       logdetval =  log(det(inv));
       if (logdetval == R_PosInf){
         logdetval = real(log_det(inv));
@@ -114,7 +370,7 @@ Rcpp::List solve_symmetric_cpp(
 // [[Rcpp::export]]
 arma::mat solve_symmetric_cpp_matrixonly(
     arma::mat X,
-    double epsilon  = 1.490116e-08
+    double sqrt_epsilon  = 1.490116e-08
 ){
   int i;
   int nvar = X.n_cols;
@@ -127,38 +383,20 @@ arma::mat solve_symmetric_cpp_matrixonly(
     X = 0.5* (X + X.t());
   }
   
-  // // Check if posdef:
-  // bool posdef = X.is_sympd();
-  // Check if posdef:
-  // Rf_PrintValue(wrap(X));
+  // Return value matrix:
+  mat inv(nvar,nvar);
   
-  double lowestEV = eig_sym(arma::symmatl(X))[0];
+  // First try a normal inverse:
+  bool success = inv_sympd(inv,X);
   
-  
-  bool posdef = lowestEV > - sqrt(epsilon); //X.is_sympd();
-  
-  // If not, pseudoinverse:
-  if (!posdef){
+  // If this failed, do pseudo-inverse:
+  if (!success){
     
-    arma::mat res = pinv(X);
-    return(res);
+    inv = pinv(X);
     
-  } else {
-    // Small spectral shift:
-    // if (lowestEV < sqrt(epsilon)){
-    if (lowestEV < sqrt(epsilon)){
-
-      for (i=0;i<nvar;i++){
-        X(i,i) = X(i,i) - lowestEV + sqrt(epsilon);
-      }
-    }
-    
-    // invert:
-    arma::mat res = inv_sympd(X); // FIXME
-    return(res);
   }
   
-  
+  return(inv);
 }
 
 
@@ -170,7 +408,7 @@ arma::mat solve_symmetric_cpp_matrixonly_withcheck(
     arma::mat X,
     bool& proper
 ){
-  double epsilon  = 1.490116e-08;
+  double sqrt_epsilon  = 1.490116e-08;
   int i,j;
   int nvar = X.n_cols;
   
@@ -202,41 +440,27 @@ arma::mat solve_symmetric_cpp_matrixonly_withcheck(
     }
   }
   
-  // // Check if posdef:
-  // bool posdef = X.is_sympd();
-  // Check if posdef:
-  // Rf_PrintValue(wrap(X));
+  // Return value matrix:
+  mat inv(nvar,nvar);
   
+  // First try a normal inverse:
+  bool success = inv_sympd(inv,X);
   
-  double lowestEV = eig_sym(arma::symmatl(X))[0];
-  
-  
-  bool posdef = lowestEV > - sqrt(epsilon); //X.is_sympd();
-  
-  // If not, pseudoinverse:
-  if (!posdef){
-    proper = false;
+  // If this failed, do pseudo-inverse:
+  if (!success){
     
-    arma::mat res = pinv(X);
-    return(res);
+    inv = pinv(X);
     
-  } else {
-    // Small spectral shift:
-    if (lowestEV < sqrt(epsilon)){
-      proper = false;
-      
-      for (i=0;i<nvar;i++){
-        X(i,i) = X(i,i) - lowestEV + sqrt(epsilon);
-      }
-    }
-    
-    // invert:
-    arma::mat res = inv_sympd(X); // FIXME
-    return(res);
   }
+  
+  // proper:
+  proper = !success;
+  
+  return(inv);
   
   
 }
+
 
 // Block diag:
 // [[Rcpp::export]]
@@ -403,7 +627,7 @@ arma::mat cov2cor_cpp(
   
   arma::mat Y = eye(n,n);
   
-
+  
   for (i=0;i<n;i++){
     for (j=0;j<=i;j++){
       Y(i,j) = Y(j,i) = 
@@ -600,7 +824,7 @@ arma::mat blockToeplitz_cpp(
 
 // [[Rcpp::export]]
 arma::mat matrixform(
-  const arma::vec& x
+    const arma::vec& x
 ){
   int n = sqrt((double)x.n_elem);
   arma::mat out(n,n);

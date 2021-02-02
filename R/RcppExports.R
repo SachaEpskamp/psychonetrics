@@ -9,12 +9,12 @@ sympd_cpp <- function(X) {
     .Call(`_psychonetrics_sympd_cpp`, X)
 }
 
-solve_symmetric_cpp <- function(X, logdet = FALSE, epsilon = 1.490116e-08) {
-    .Call(`_psychonetrics_solve_symmetric_cpp`, X, logdet, epsilon)
+solve_symmetric_cpp <- function(X, logdet = FALSE, sqrt_epsilon = 1.490116e-08) {
+    .Call(`_psychonetrics_solve_symmetric_cpp`, X, logdet, sqrt_epsilon)
 }
 
-solve_symmetric_cpp_matrixonly <- function(X, epsilon = 1.490116e-08) {
-    .Call(`_psychonetrics_solve_symmetric_cpp_matrixonly`, X, epsilon)
+solve_symmetric_cpp_matrixonly <- function(X, sqrt_epsilon = 1.490116e-08) {
+    .Call(`_psychonetrics_solve_symmetric_cpp_matrixonly`, X, sqrt_epsilon)
 }
 
 solve_symmetric_cpp_matrixonly_withcheck <- function(X, proper) {
@@ -165,8 +165,8 @@ logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML <- function(sigma, kappa, mu, 
     .Call(`_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML`, sigma, kappa, mu, fimldata, epsilon)
 }
 
-psychonetrics_optimizer <- function(model, lower, upper, optimizer = "L-BFGS-B") {
-    .Call(`_psychonetrics_psychonetrics_optimizer`, model, lower, upper, optimizer)
+psychonetrics_optimizer <- function(model, lower, upper, optimizer = "L-BFGS-B", bounded = FALSE) {
+    .Call(`_psychonetrics_psychonetrics_optimizer`, model, lower, upper, optimizer, bounded)
 }
 
 expected_hessian_Gaussian_group_cpp <- function(grouplist) {
