@@ -10,13 +10,22 @@ runmodel <- function(
   log = TRUE,
   verbose,
   # optimizer = c("default","ucminf","nlminb"),
-  optim.control = list(),
+  optim.control,
   # maxtry = 5,
   analyticFisher = TRUE,
   warn_improper = TRUE,
   return_improper = TRUE,
   bounded = TRUE
 ){
+  if (!missing(optim.control)){
+    warning("'optim.control' is deprecated and will be removed in a future version. Please use setoptimizer(..., optim.args = ...).")
+    x@optim.args <- optim.control
+  }
+  
+  # Set optim args:
+  optim.control <- x@optim.args
+  
+  
   if (missing(verbose)){
     verbose <- x@verbose
   }
@@ -237,8 +246,8 @@ runmodel <- function(
           optim.control$control<- list(eval.max=20000L,
                                        iter.max=10000L,
                                        trace=0L,
-                                       abs.tol=(.Machine$double.eps * 10),
-                                       rel.tol=1e-10,
+                                       abs.tol=sqrt(.Machine$double.eps),
+                                       rel.tol=sqrt(.Machine$double.eps),
                                        step.min=1.0,
                                        step.max=1.0,
                                        x.tol=1.5e-8,
@@ -422,7 +431,6 @@ runmodel <- function(
         propers <- sapply(x@modelmatrices,"[[","proper")
         proper <- all(propers)
       }
-      
       
       
       # If information is not positive definite, try to fix:

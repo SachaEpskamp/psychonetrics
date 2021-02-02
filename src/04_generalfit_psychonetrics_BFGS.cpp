@@ -82,10 +82,25 @@ S4 psychonetrics_optimizer(
   
   // Control pars:
   opt.control.trace = 0; // <- no output
-  opt.control.maxit = 20000; 
-  opt.control.abstol = 1.490116e-08 * 10;
-  opt.control.reltol = 1e-3;
-  opt.control.pgtol = 1e-5;
+  opt.control.maxit = 20000L; 
+  
+  // 
+  // opt.control.abstol = 1.490116e-08; // Same as nlminb
+  // opt.control.reltol = 1.490116e-08; // Same as nlminb
+  // //opt.control.ndeps = ones(nPar);
+  // opt.control.pgtol = 1.490116e-08; // Same as nlminb
+  // opt.control.factr = 0; // Same as nlminb
+  // 
+  // 
+  
+  
+  opt.control.abstol = 1.490116e-08; // Same as nlminb
+  opt.control.reltol = 1.490116e-08; // Same as nlminb
+  opt.control.ndeps = ones(nPar);
+  opt.control.pgtol = 1.490116e-08; // Same as nlminb
+  opt.control.factr = 1.490116e-08; // Same as nlminb
+  
+
   
   // Bounds:
   if (optimizer == "L-BFGS-B" && bounded){
