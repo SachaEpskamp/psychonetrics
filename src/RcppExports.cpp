@@ -29,27 +29,27 @@ BEGIN_RCPP
 END_RCPP
 }
 // solve_symmetric_cpp
-Rcpp::List solve_symmetric_cpp(arma::mat X, bool logdet, double epsilon);
-RcppExport SEXP _psychonetrics_solve_symmetric_cpp(SEXP XSEXP, SEXP logdetSEXP, SEXP epsilonSEXP) {
+Rcpp::List solve_symmetric_cpp(arma::mat X, bool logdet, double sqrt_epsilon);
+RcppExport SEXP _psychonetrics_solve_symmetric_cpp(SEXP XSEXP, SEXP logdetSEXP, SEXP sqrt_epsilonSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
     Rcpp::traits::input_parameter< bool >::type logdet(logdetSEXP);
-    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
-    rcpp_result_gen = Rcpp::wrap(solve_symmetric_cpp(X, logdet, epsilon));
+    Rcpp::traits::input_parameter< double >::type sqrt_epsilon(sqrt_epsilonSEXP);
+    rcpp_result_gen = Rcpp::wrap(solve_symmetric_cpp(X, logdet, sqrt_epsilon));
     return rcpp_result_gen;
 END_RCPP
 }
 // solve_symmetric_cpp_matrixonly
-arma::mat solve_symmetric_cpp_matrixonly(arma::mat X, double epsilon);
-RcppExport SEXP _psychonetrics_solve_symmetric_cpp_matrixonly(SEXP XSEXP, SEXP epsilonSEXP) {
+arma::mat solve_symmetric_cpp_matrixonly(arma::mat X, double sqrt_epsilon);
+RcppExport SEXP _psychonetrics_solve_symmetric_cpp_matrixonly(SEXP XSEXP, SEXP sqrt_epsilonSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
-    rcpp_result_gen = Rcpp::wrap(solve_symmetric_cpp_matrixonly(X, epsilon));
+    Rcpp::traits::input_parameter< double >::type sqrt_epsilon(sqrt_epsilonSEXP);
+    rcpp_result_gen = Rcpp::wrap(solve_symmetric_cpp_matrixonly(X, sqrt_epsilon));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -505,8 +505,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // psychonetrics_optimizer
-S4 psychonetrics_optimizer(S4 model, const arma::vec& lower, const arma::vec& upper, std::string optimizer);
-RcppExport SEXP _psychonetrics_psychonetrics_optimizer(SEXP modelSEXP, SEXP lowerSEXP, SEXP upperSEXP, SEXP optimizerSEXP) {
+S4 psychonetrics_optimizer(S4 model, const arma::vec& lower, const arma::vec& upper, std::string optimizer, bool bounded);
+RcppExport SEXP _psychonetrics_psychonetrics_optimizer(SEXP modelSEXP, SEXP lowerSEXP, SEXP upperSEXP, SEXP optimizerSEXP, SEXP boundedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -514,7 +514,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::vec& >::type lower(lowerSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type upper(upperSEXP);
     Rcpp::traits::input_parameter< std::string >::type optimizer(optimizerSEXP);
-    rcpp_result_gen = Rcpp::wrap(psychonetrics_optimizer(model, lower, upper, optimizer));
+    Rcpp::traits::input_parameter< bool >::type bounded(boundedSEXP);
+    rcpp_result_gen = Rcpp::wrap(psychonetrics_optimizer(model, lower, upper, optimizer, bounded));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -2155,7 +2156,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_inner", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_inner, 5},
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp, 5},
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML, 5},
-    {"_psychonetrics_psychonetrics_optimizer", (DL_FUNC) &_psychonetrics_psychonetrics_optimizer, 4},
+    {"_psychonetrics_psychonetrics_optimizer", (DL_FUNC) &_psychonetrics_psychonetrics_optimizer, 5},
     {"_psychonetrics_expected_hessian_Gaussian_group_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_Gaussian_group_cpp, 1},
     {"_psychonetrics_expected_hessian_Gaussian_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_Gaussian_cpp, 1},
     {"_psychonetrics_maxLikEstimator_Gauss_group_cpp", (DL_FUNC) &_psychonetrics_maxLikEstimator_Gauss_group_cpp, 1},

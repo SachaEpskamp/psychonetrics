@@ -21,16 +21,17 @@ double maxLikEstimator_Gauss_group_cpp(
   arma::vec means = grouplist["means"];
   arma::vec mu = grouplist["mu"];
   
+
   double logdet;
   if (sympd_cpp(kappa) == false){
     logdet = log(1.490116e-08);
   } else {
     logdet = log(det(kappa));
-    if (logdet == R_PosInf){
-      logdet = real(log_det(kappa));
+    if (logdet == R_NegInf){
+      logdet = log(1.490116e-08);
     }
   }
-
+  
   
   arma::mat resvec = trace(S * kappa) + (means - mu).t() * kappa * (means - mu) - logdet;
   double res = resvec(0,0);

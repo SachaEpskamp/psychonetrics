@@ -97,7 +97,7 @@ lvm <- function(
   # Generate model object:
   model <- generate_psychonetrics(model = "lvm",sample = sampleStats,computed = FALSE, 
                                   equal = equal,identification=identification,
-                                  optimizer =  "nlminb", estimator = estimator, distribution = "Gaussian",
+                                  optimizer =  defaultoptimizer(), estimator = estimator, distribution = "Gaussian",
                                   rawts = rawts, types = list(latent = latent, residual = residual),
                                   verbose=verbose)
   

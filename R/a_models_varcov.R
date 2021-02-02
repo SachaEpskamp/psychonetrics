@@ -125,7 +125,7 @@ varcov <- function(
   # Generate model object:
   model <- generate_psychonetrics(model = "varcov",sample = sampleStats,computed = FALSE, 
                                   equal = equal,
-                                  optimizer =  "nlminb", estimator = estimator, distribution = "Gaussian",
+                                  optimizer =  defaultoptimizer(), estimator = estimator, distribution = "Gaussian",
                                   rawts = rawts, types = list(y = type),
                                   submodel = type, meanstructure = meanstructure, verbose=verbose)
   

@@ -9,6 +9,10 @@ matrixsetup_sigma <- function(
   name = "sigma",
   beta = array(0, c(nNode, nNode,nGroup))
 ){
+  # FIXME: lowerbound for diagonal always 0:
+  diaglower <- 0 # Lowerbound of the diagonal values
+  
+  
   # FIXME: correlations between endogenous latents are now removed even when sigma = "full"
   
   # Check if sigma is character:
@@ -18,7 +22,8 @@ matrixsetup_sigma <- function(
   sigma <- fixAdj(sigma,nGroup,nNode,equal)
   
   # For each group, form starting values:
-  sigmaStart <- sigma
+  lower <- sigmaStart <- sigma
+  lower[] <- -Inf
   for (g in 1:nGroup){
     # Current estimate:
     covest <- as.matrix(spectralshift(expcov[[g]]))
@@ -26,7 +31,15 @@ matrixsetup_sigma <- function(
     # Covs with sample covs:
     sigmaStart[,,g] <-  1*(sigmaStart[,,g]!=0) * covest  
     
-    # If Sigma was a character, remove offdiagonal for endogenous variables:
+    # Set lower bound:
+    if (dim(lower)[1]>1){
+      diag(lower[,,g]) <- diaglower  
+    } else {
+      lower[,,g] <- diaglower
+    }
+    
+    
+    # If Sigma was a character, remove off-diagonal for endogenous variables:
     if (ischar && nNode > 1){
       # Which are endogenous?
       endo <- which(rowSums(beta[,,g])>0)
@@ -47,6 +60,7 @@ matrixsetup_sigma <- function(
        sparse = TRUE,
        posdef = TRUE,
        start = sigmaStart,
-       sampletable=sampletable
+       sampletable=sampletable,
+       lower=lower
   )
 }
