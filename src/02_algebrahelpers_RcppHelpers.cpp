@@ -33,7 +33,6 @@ bool sympd_cpp(
     X = 0.5* (X + X.t());
   }
   
-  
   // Check if posdef:
   double epsilon = 1.490116e-08;
   
