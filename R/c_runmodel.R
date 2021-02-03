@@ -14,6 +14,7 @@ runmodel <- function(
   # maxtry = 5,
   analyticFisher = TRUE,
   warn_improper = TRUE,
+  warn_gradient = TRUE,
   return_improper = TRUE,
   bounded = TRUE
 ){
@@ -555,6 +556,13 @@ runmodel <- function(
     x <- addLog(x, "Evaluated model")    
   }
   
+  # Warn about the gradient?
+  if (warn_gradient){
+    grad <- psychonetrics_gradient(parVector(x),x)
+    if (mean(abs(grad)) > 1){
+      warning("Model might not have converged properly: mean(abs(gradient)) > 1.")
+    }
+  }
   
   
   # Return model:
