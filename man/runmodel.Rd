@@ -9,9 +9,12 @@ This is the main function  used to run a psychonetrics model.
 }
 \usage{
 runmodel(x, level = c("gradient", "fitfunction"), addfit =
-                   TRUE, addMIs = TRUE, addSEs = TRUE, addInformation =
-                   TRUE, log = TRUE, verbose, optim.control = list(),
-                   analyticFisher = TRUE, return_improper = FALSE)
+                 TRUE, addMIs = TRUE, addSEs = TRUE, addInformation =
+                 TRUE, log = TRUE, verbose, optim.control,
+                 analyticFisher = TRUE, warn_improper = TRUE,
+                 warn_gradient = TRUE, return_improper = TRUE, bounded
+                 = TRUE)
+
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -47,6 +50,11 @@ Logical, should the analytic Fisher information be used? If \code{FALSE}, numeri
 }
 \item{return_improper}{
 Should a result in which improper computation was used be return? Improper computation can mean that a pseudoinverse of small spectral shift was used in computing the inverse of a matrix.
+}
+\item{warn_improper}{Logical. Should a warning be given when at some point in the estimation a pseudoinverse was used?
+}
+\item{warn_gradient}{Logical. Should a warning be given when the average absolute gradient is > 1?}
+\item{bounded}{Logical. Should bounded estimation be used (e.g., variances should be positive)?
 }
 }
 \value{

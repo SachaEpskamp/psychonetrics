@@ -33,6 +33,7 @@ Objects can be created by calls of the form \code{new("psychonetrics", ...)}.
     \item{\code{information}:}{Object of class \code{"matrix"} ~~ }
     \item{\code{identification}:}{Object of class \code{"character"} ~~ }
     \item{\code{optimizer}:}{Object of class \code{"character"} ~~ }
+    \item{\code{optim.args}:}{Object of class \code{"list"} ~~ }
     \item{\code{estimator}:}{Object of class \code{"character"} ~~ }
     \item{\code{distribution}:}{Object of class \code{"character"} ~~ }
     \item{\code{extramatrices}:}{Object of class \code{"list"} ~~ }
