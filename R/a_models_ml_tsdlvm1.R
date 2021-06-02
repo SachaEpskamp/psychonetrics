@@ -60,6 +60,9 @@ ml_tsdlvm1 <- function(
   
   # If beepvar is missing, add beepvar:
   if (missing(beepvar)){
+    # First reorder by id:
+    data <- data[order(data[[idvar]]),]
+    
     beepvar <- 'BEEPVAR'
     data[[beepvar]] <- unlist(tapply(data[[idvar]],data[[idvar]],seq_along))
   } else {
@@ -97,6 +100,7 @@ ml_tsdlvm1 <- function(
       data[,vars[v]] <- quantiletransform(data[,vars[v]])
     }
   }
+  
   
   # To long format:
   datalong <- tidyr::gather(data,variable,value,vars)
