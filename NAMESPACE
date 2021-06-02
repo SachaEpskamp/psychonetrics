@@ -1,6 +1,8 @@
 ### Dynlib ###
 useDynLib(psychonetrics, .registration = TRUE)
 
+
+export(CIplot)
 export(emergencystart)
 export(partialprune)
 
