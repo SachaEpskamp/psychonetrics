@@ -207,7 +207,12 @@ dlvm1 <- function(
   #   stop("Length of 'latents' is not equal to number of latent variables in model.")
   # }
   if (missing(latents)){
-    latents <- paste0("Eta_",seq_len(nLat))
+    if (identical(lambda,diag(nVar))){
+      latents <- varnames
+    } else {
+      latents <- paste0("Eta_",seq_len(nLat))  
+    }
+    
   }
   if (length(latents) != nLat){
     stop("Length of 'latents' is not equal to number of latent variables in model.")

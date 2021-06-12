@@ -2,6 +2,7 @@ Changes in Version 0.9.1:
   - ml_tsdlvm1 now orders data by idvar if beepvar is not supplied.
   - Added 'CIplot' function
   - Standardizing in ts_dlvm1 is now more stable.
+  - dlvm1 now uses observed variable names as latent variable names when appropriate.
 
 Changes in Version 0.9:
   - Changed 'rel.tol=1e-10' in the nlminb optimizer to be in line with lavaan
