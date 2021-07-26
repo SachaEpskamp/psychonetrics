@@ -8,6 +8,7 @@ ml_tsdlvm1 <- function(
   groups,
   estimator = "FIML",
   standardize = c("none","z","quantile"),
+  # nightskip = 1,
   ...
 ){
   # CRAN Check workarounds (sorry):
@@ -45,7 +46,7 @@ ml_tsdlvm1 <- function(
   if (!idvar %in% names(data)){
     stop("'idvar' argument does not correspond to column name of 'data'")
   }
-
+  
   
   
   # Remove data with NA cluster:
@@ -57,7 +58,6 @@ ml_tsdlvm1 <- function(
   # Number of clusters:
   nCluster <- length(unique(data[[idvar]]))
   
-  
   # If beepvar is missing, add beepvar:
   if (missing(beepvar)){
     # First reorder by id:
@@ -65,21 +65,63 @@ ml_tsdlvm1 <- function(
     
     beepvar <- 'BEEPVAR'
     data[[beepvar]] <- unlist(tapply(data[[idvar]],data[[idvar]],seq_along))
-  } else {
-    # Check for integers:
-    if (any(data[[beepvar]][na.omit(data[[beepvar]])] %% 1!=0)){
-      stop("'beevar' does not encode integer values.")
-    }
-    
-    # Check for doubles:
-    if (any(tapply(data[[beepvar]],data[[idvar]],function(x)any(duplicated(x)), simplify = TRUE))){
-      stop("'beevar' contains double values for one or more cases.")
-    }
-    
-    # Overwrite minimum to always be 1:
-    data[[beepvar]] <- data[[beepvar]] - min(data[[beepvar]],na.rm = TRUE) + 1
+  } 
+  # 
+  # # Add dayvar:
+  # if (missing(dayvar)){
+  #   dayvar <- 'DAYVAR'
+  #   data[[dayvar]] <- 1
+  # } 
+  # 
+  # # Combine dayvar and beepvar:
+  # alldays <- sort(unique(data[[dayvar]]))
+  # allsubjects <- sort(unique(data[[idvar]]))
+  # 
+  # # Make first day first beeps:
+  # scaleback <- function(x, start = 1) {
+  #   x - min(x) + start
+  # }
+  # 
+  # # For every subject fix the beeps:
+  # for (p in allsubjects){
+  #   # First day:
+  #   ind1 <- data[[dayvar]] == alldays[1] & data[[idvar]] == allsubjects[p]
+  #   if (any(ind1)){
+  #     data[[beepvar]][ind1] <- scaleback(data[[beepvar]][ind1])  
+  #   }
+  #   
+  #   
+  #   # All other days:
+  #   if (length(alldays)>1){
+  #     for (i in 2:length(alldays)){
+  #       
+  #       ind_prev <- data[[dayvar]] %in% alldays[1:(i-1)] & data[[idvar]] == allsubjects[p]
+  #       ind_cur <- data[[dayvar]] == alldays[i] & data[[idvar]] == allsubjects[p]
+  #       if (any(ind_cur)){
+  #         data[[beepvar]][ind_cur] <- scaleback(data[[beepvar]][ind_cur],max(data[[beepvar]][ind_prev])+1+nightskip)  
+  #       }
+  #       
+  #       
+  #     }
+  #   }
+  #   
+  # }
+  # browser()
+  # else {
+  # Check for integers:
+  if (any(data[[beepvar]][na.omit(data[[beepvar]])] %% 1!=0)){
+    stop("'beepvar' does not encode integer values.")
   }
-
+  
+  # Check for doubles:
+  if (any(tapply(data[[beepvar]],data[[idvar]],function(x)any(duplicated(x)), simplify = TRUE))){
+    stop("'beepvar' contains double values for one or more cases.")
+  }
+  
+  # Overwrite minimum to always be 1:
+  # data[[beepvar]] <- data[[beepvar]] - min(data[[beepvar]],na.rm = TRUE) + 1
+  # }
+  
   
   # Add group:
   if (missing(groups)){
@@ -122,7 +164,7 @@ ml_tsdlvm1 <- function(
       }
     }
   }
-
+  
   
   # Form model:
   model <- dlvm1(datawide, 
@@ -130,8 +172,8 @@ ml_tsdlvm1 <- function(
                  groups = groups,
                  estimator = estimator,
                  ...
-                 )
-
+  )
+  
   # Return:
   return(model)
 }
