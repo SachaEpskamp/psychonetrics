@@ -35,7 +35,9 @@ CIplot <- function(
   labels,
   labels2,
   labelstart,
-  print = TRUE
+  print = TRUE,
+  major_break = 0.2,
+  minor_break = 0.1
 ){
 
   logs <- sapply(x@log,function(x)x@event)
@@ -240,7 +242,8 @@ CIplot <- function(
       geom_text(aes(y = labstart, label = edge, hjust = hjust), colour = rgb(0.2,0.2,0.2), cex = 2.5) +
       coord_flip() + 
       # facet_grid( ~  model) +
-      scale_y_continuous(breaks = seq(floor(min(df_cis$lower)),ceiling(max(df_cis$lower)),by=0.2),minor_breaks = seq(-1,1,by=0.1)) + 
+      scale_y_continuous(breaks = seq(floor(min(df_cis$lower)),ceiling(max(df_cis$lower)),by=major_break),
+                         minor_breaks = seq(floor(min(df_cis$lower)),ceiling(max(df_cis$lower)),by=minor_break)) + 
       theme_bw(base_size = 12) +
       scale_colour_manual("",values = c("black",colors),drop=FALSE) +  theme(legend.position = "top", # axis.text.y = element_text(size = 7),
                                                                                               axis.text.y=element_blank(),
