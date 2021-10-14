@@ -1,6 +1,7 @@
 ### Dynlib ###
 useDynLib(psychonetrics, .registration = TRUE)
 
+importFrom(rlang, .data)
 
 export(CIplot)
 export(emergencystart)
