@@ -3,6 +3,7 @@ Changes in Version 0.9.1:
   - Added 'CIplot' function
   - Standardizing in ts_dlvm1 is now more stable.
   - dlvm1 now uses observed variable names as latent variable names when appropriate.
+  - Fixed a bug with the beepvar argument in psychonetrics
 
 Changes in Version 0.9:
   - Changed 'rel.tol=1e-10' in the nlminb optimizer to be in line with lavaan
