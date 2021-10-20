@@ -1,4 +1,4 @@
-Changes in Version 0.9.1:
+Changes in Version 0.10
   - ml_tsdlvm1 now orders data by idvar if beepvar is not supplied.
   - Added 'CIplot' function
   - Standardizing in ts_dlvm1 is now more stable.
