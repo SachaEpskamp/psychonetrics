@@ -11,7 +11,6 @@ Changes in Version 0.9:
   - The argument 'return_improper' now defaults to TRUE
   - Optimizer no longer uses a spectral shift when inverting a semi-positive definite matrix
   - Detection of non positive definite matrices is now done faster and should lead to less problems
-  - The default optimizer is now cpp_L-BFGS-B!
   - Added the 'bounded' argument to runmodel() to define if bounded estimation should be used (defaults to TRUE)
   - Diagonals of symmetrical matrices can no longer be estimated to be negative (avoiding Heywood cases, although doing this with a Cholesky decomposition is nicer!)
   
