@@ -181,6 +181,9 @@ vars <- names(ConsData)[1:5]
 # Saturated estimation:
 mod_saturated <- ggm(ConsData, vars = vars)
 
+# Run the model:
+mod_saturated <- mod_saturated \%>\% runmodel
+
 # We can look at the parameters:
 mod_saturated \%>\% parameters
 
