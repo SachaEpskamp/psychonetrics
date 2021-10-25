@@ -97,8 +97,8 @@ identify_dlvm1 <- function(x){
     
   } else {
     # Number of equality constrains:
-    cons <- x@parameters %>% group_by_("matrix","row","col") %>% summarize_(eq = ~!(all(fixed))&allTheSame(par))
-    consPerMat <- cons %>% group_by_("matrix") %>% summarize_(n = ~sum(eq))
+    cons <- x@parameters %>% group_by(.data[["matrix"]],.data[["row"]],.data[["col"]]) %>% summarize(eq = !(all(.data[['fixed']]))&allTheSame(.data[['par']]))
+    consPerMat <- cons %>% group_by(.data[["matrix"]]) %>% summarize(n = sum(.data[['eq']]))
     
     nLat <- max(cons$col[cons$matrix == "lambda"])
     # nLat <- max(cons$col[cons$matrix == "lambda"])

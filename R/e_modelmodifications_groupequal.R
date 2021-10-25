@@ -50,7 +50,7 @@ groupequal <- function(
   }
   
   # Check if consistent across groups:
-  cons <- x@parameters %>% dplyr::group_by_("matrix","row","col") %>% dplyr::summarize_(consistent = ~all(fixed)|all(!fixed), anyIdentified = ~any(identified))
+  cons <- x@parameters %>% dplyr::group_by(.data[["matrix"]],.data[["row"]],.data[["col"]]) %>% dplyr::summarize(consistent = all(.data[['fixed']])|all(!.data[['fixed']]), anyIdentified = any(.data[['identified']]))
   cons <- cons$consistent[cons$matrix %in% matrix & cons$row %in% row & cons$col %in% col & !cons$anyIdentified]
   
   # which are constrained:
@@ -101,7 +101,7 @@ groupequal <- function(
   x@parameters <- clearpars(x@parameters,whichCons)
   
   # For every parameter, take mean as starting value:
-  x@parameters  <- x@parameters %>% group_by_("par") %>% mutate_(est=~ifelse(par==0,est,mean(est,na.rm=TRUE))) %>% ungroup
+  x@parameters  <- x@parameters %>% group_by(.data[["par"]]) %>% mutate(est=ifelse(.data[['par']]==0,.data[['est']],mean(.data[['est']],na.rm=TRUE))) %>% ungroup
 
   # Identify:
   if (identify){

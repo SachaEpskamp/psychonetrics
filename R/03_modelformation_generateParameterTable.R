@@ -13,7 +13,7 @@ generateAllParameterTables <- function(...){
   )
   
   # Order parameter table by group id:
-  res$partable <- res$partable %>% arrange_(~group_id)
+  res$partable <- res$partable %>% arrange(.data[['group_id']])
   # Relabel the parameter labels to be a bit more consistent:
   # res$partable$par[res$partable$par!=0] <- as.numeric(factor(res$partable$par[res$partable$par!=0], 
   #           levels = unique(res$partable$par[res$partable$par!=0])))

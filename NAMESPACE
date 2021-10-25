@@ -1,6 +1,11 @@
 ### Dynlib ###
 useDynLib(psychonetrics, .registration = TRUE)
 
+
+importFrom("grDevices", "rgb")
+    importFrom("stats", "quantile")
+    importFrom("utils", "capture.output")
+
 importFrom(rlang, .data)
 
 export(CIplot)

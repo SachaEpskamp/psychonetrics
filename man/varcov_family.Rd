@@ -178,13 +178,31 @@ ConsData <- bfi \%>\%
 # Define variables:
 vars <- names(ConsData)[1:5]
 
-# Let's fit an empty GGM:
+# Saturated estimation:
+mod_saturated <- ggm(ConsData, vars = vars)
+
+# We can look at the parameters:
+mod_saturated \%>\% parameters
+
+# Labels:
+labels <- c(
+  "indifferent to the feelings of others",
+  "inquire about others' well-being",
+  "comfort others",
+  "love children",
+  "make people feel at ease")
+  
+# Plot CIs:
+CIplot(mod_saturated,  "omega", labels = labels, labelstart = 0.2)
+
+
+\donttest{
+# We can also fit an empty network:
 mod0 <- ggm(ConsData, vars = vars, omega = "empty")
 
 # Run the model:
 mod0 <- mod0 \%>\% runmodel
 
-\donttest{
 # We can look at the modification indices:
 mod0 \%>\% MIs
 

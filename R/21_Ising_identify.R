@@ -14,8 +14,8 @@ identify_Ising <- function(x){
     # If there are equality constrains across groups in omega or tau, free all temperature
     
     # Number of equality constrains per matrix:
-    cons <- x@parameters %>% group_by_("matrix","row","col") %>% summarize_(eq = ~!(all(fixed))&allTheSame(par))
-    consPerMat <- cons %>% group_by_("matrix") %>% summarize_(n = ~sum(eq))
+    cons <- x@parameters %>% group_by(.data[["matrix"]],.data[["row"]],.data[["col"]]) %>% summarize(eq = !(all(.data[['fixed']]))&allTheSame(.data[['par']]))
+    consPerMat <- cons %>% group_by(.data[["matrix"]]) %>% summarize(n = sum(.data[['eq']]))
     
     # at least 1 intercepts nead to be equal
     if (sum(consPerMat$n[consPerMat$matrix %in% c("omega","tau")]) >= 1){

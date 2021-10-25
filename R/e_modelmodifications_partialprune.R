@@ -153,10 +153,7 @@ partialprune <- function(
     pars <- curMod@parameters
 
     # Make a data frame in which the equality free parameters are summed:
-    # miDF <- pars %>% filter(!fixed) %>% group_by_("group","row","col","matrix") %>%
-    #   summarize(mi_free = sum(mi_free)) %>% 
-    #   arrange(-mi_free)
-    miDF <- pars %>% filter(!fixed) %>% group_by_("row","col","matrix") %>%
+    miDF <- pars %>% filter(!fixed) %>% group_by(.data[["row"]],.data[["col"]],.data[["matrix"]]) %>%
       summarize(mi_free = sum(mi_free)) %>% 
       arrange(-mi_free)
     

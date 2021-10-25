@@ -4,8 +4,8 @@ labtoind <- function(x,row,col,Mat,symmetrical=FALSE){
   # Obtain all labels in rows:
   if (symmetrical){
     vars <- rbind(
-      x@parameters %>% filter_(~matrix == Mat) %>% select_(ind = ~row, var = ~var1),
-      x@parameters %>% filter_(~matrix == Mat) %>% select_(ind = ~col, var = ~var2)
+      x@parameters %>% filter(.data[['matrix']] == Mat) %>% select(ind = .data[['row']], var = .data[['var1']]),
+      x@parameters %>% filter(.data[['matrix']] == Mat) %>% select(ind = .data[['col']], var = .data[['var2']])
     )
     vars <- vars[!duplicated(vars),]
     
@@ -13,10 +13,10 @@ labtoind <- function(x,row,col,Mat,symmetrical=FALSE){
     col <- vars$ind[match(col,vars$var)]
   } else{
     
-    rows <- x@parameters %>% filter_(~matrix == Mat) %>% group_by_("row") %>%
-      summarize_(ind = ~unique(row), var = ~unique(var1))
-    cols <-  x@parameters %>% filter_(~matrix == Mat) %>% group_by_("col") %>%
-      summarize_(ind = ~unique(col), var = ~unique(var2))
+    rows <- x@parameters %>% filter(.data[['matrix']] == Mat) %>% group_by(.data[["row"]]) %>%
+      summarize(ind = unique(.data[['row']]), var = unique(.data[['var1']]))
+    cols <-  x@parameters %>% filter(.data[['matrix']] == Mat) %>% group_by(.data[["col"]]) %>%
+      summarize(ind = unique(.data[['col']]), var = unique(.data[['var2']]))
     
     
     row <- rows$ind[match(row,rows$var)]

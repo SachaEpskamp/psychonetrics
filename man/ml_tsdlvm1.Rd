@@ -16,11 +16,11 @@ ml_tsdlvm1(data, beepvar, idvar, vars, groups, estimator = "FIML",
 
 ml_ts_lvgvar(...)
 
-ml_gvar(..., contemporaneous = c("cov","chol","prec","ggm"), 
-             between = c("cov","chol","prec","ggm"))
+ml_gvar(..., contemporaneous = c("ggm", "cov", "chol", "prec"), 
+        between = c("ggm", "cov", "chol", "prec"))
              
-ml_var(..., contemporaneous = c("ggm","cov","chol","prec"), 
-             between = c("ggm","cov","chol","prec"))
+ml_var(..., contemporaneous = c("cov", "chol", "prec", "ggm"), 
+        between = c("cov", "chol", "prec", "ggm"))
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

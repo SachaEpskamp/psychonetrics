@@ -51,7 +51,7 @@ groupfree <- function(
   }
   
   # Check if consistent across groups:
-  cons <- x@parameters %>% dplyr::group_by_("matrix","row","col") %>% dplyr::summarize_(consistent = ~all(fixed)|all(!fixed))
+  cons <- x@parameters %>% dplyr::group_by(.data[["matrix"]],.data[["row"]],.data[["col"]]) %>% dplyr::summarize(consistent = all(.data[['fixed']])|all(!.data[['fixed']]))
   cons <- cons$consistent[cons$matrix %in% matrix & cons$row %in% row & cons$col %in% col]
   
   # which are to be freed:

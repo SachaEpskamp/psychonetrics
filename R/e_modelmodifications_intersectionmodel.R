@@ -24,7 +24,7 @@ intersectionmodel <- function(
   pars$id <- seq_len(nrow(pars))
   
   # Find set of parameters at least in one group:
-  pars <- pars %>%  left_join(pars %>% dplyr::group_by_("matrix","row","col") %>% dplyr::summarise_(anyFixed = ~any(fixed)),
+  pars <- pars %>%  left_join(pars %>% dplyr::group_by(.data[["matrix"]],.data[["row"]],.data[["col"]]) %>% dplyr::summarise(anyFixed = any(.data[['fixed']])),
                     by = c("matrix","row","col"))
   
   # So which to fix?
