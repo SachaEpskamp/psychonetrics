@@ -79,14 +79,14 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
   
   # Obtain the full set of parameters that are constrained across all groups:
   if (type == "equal"){
-    sum <- modCopy@parameters %>% group_by_("matrix","row","col") %>% summarize_(anyConstrained = ~any(fixed)) %>% 
-      filter_(~anyConstrained)
+    sum <- modCopy@parameters %>% group_by(.data[["matrix"]],.data[["row"]],.data[["col"]]) %>% summarize(anyConstrained = any(.data[['fixed']])) %>% 
+      filter(.data[['anyConstrained']])
     # Add a unique number to each:
     sum$par2 <-  max(modCopy@parameters$par) + seq_len(nrow(sum))
     
     # Left join back:
     modCopy@parameters <- modCopy@parameters %>% left_join(sum,by=c("matrix","row","col")) %>% 
-      mutate_(par = ~ifelse(identified,0,ifelse(par==0,par2,par)))
+      mutate(par = ifelse(.data[['identified']],0,ifelse(.data[['par']]==0,.data[['par2']],.data[['par']])))
     
   } else {
     # Add free parameter numbers:

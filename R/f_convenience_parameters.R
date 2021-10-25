@@ -20,8 +20,8 @@ parameters <- function(x){
     cols <- c("var1","op","var2","est","se","p","matrix","row","col","group","par")
     boots <- FALSE
   }
-  parTable <- parTable %>% filter_(~!fixed|est != 0) %>% 
-    select_(.dots = cols)
+  parTable <- parTable %>% filter(!.data[['fixed']]|.data[['est']] != 0) %>% 
+    select(all_of(cols))
   
   # Make var2 nicer:
   parTable$var2 <- ifelse(is.na(parTable$var2),"",parTable$var2)
@@ -39,7 +39,7 @@ parameters <- function(x){
   
   # if not computed, remove est, se and p:
   if (!x@computed){
-    parTable <- parTable %>% select_(~-est,~-se,~-p)
+    parTable <- parTable %>% select(-.data[['est']],-.data[['se']],-.data[['p']])
   }
   
   # For each group:
@@ -55,7 +55,7 @@ parameters <- function(x){
         brackets <- "" 
       }
       cat("\n\t- ",mat,brackets,"\n")
-      print.data.frame(parTable %>% filter_(~group == g,~matrix==mat) %>% select_(~-matrix,~-group), row.names=FALSE)
+      print.data.frame(parTable %>% filter(.data[['group']] == g,.data[['matrix']]==mat) %>% select(-.data[['matrix']],-.data[['group']]), row.names=FALSE)
     }
   }
   

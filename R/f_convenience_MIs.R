@@ -52,14 +52,12 @@ MIs_inner <- function(x,all = FALSE, matrices, type = c("normal","equal","free")
   )
 
   # filter only non-zero parameters and select only relevant columns:
-  # parTable <- parTable %>% filter_(~fixed,~!is.na(mi)) %>% 
-  #   select_("var1","op","var2","mi","pmi","mi_equal","pmi_equal","matrix","row","col","group")
-  parTable <- parTable %>%  filter_(~matrix %in% matrices) %>% #filter_(~mi!=0) %>% 
-    select_("var1","op","var2","est",micol,pcol,epccol,"matrix","row","col","group","group_id")
+  parTable <- parTable %>%  filter(.data[['matrix']] %in% matrices) %>% 
+    select(.data[["var1"]],.data[["op"]],.data[["var2"]],.data[["est"]],.data[[micol]],.data[[pcol]],.data[[epccol]],.data[["matrix"]],.data[["row"]],.data[["col"]],.data[["group"]],.data[["group_id"]])
   
   # nonZero:
   if (nonZero){
-    parTable <- parTable %>% filter_(~est!=0)
+    parTable <- parTable %>% filter(.data[['est']]!=0)
   }
   
   # If nothing, return:
@@ -112,7 +110,7 @@ MIs_inner <- function(x,all = FALSE, matrices, type = c("normal","equal","free")
         }  else {
           brackets <- "" 
         }
-        subTable <- parTable %>% filter_(~group_id == g,~matrix==mat) %>% select_(~-matrix,~-group,~-group_id) 
+        subTable <- parTable %>% filter(.data[['group_id']] == g,.data[['matrix']]==mat) %>% select(-.data[['matrix']],-.data[['group']],-.data[['group_id']]) 
         # subTable <- subTable[order(subTable[[sortby]],decreasing = TRUE),] 
         if (nrow(subTable) > 0){
           cat("\n\t- ",mat,brackets,"\n")
@@ -122,11 +120,7 @@ MIs_inner <- function(x,all = FALSE, matrices, type = c("normal","equal","free")
     }
     
   }
-  # cat("\nNote: mi_equal = modification index if parameter is added in all groups (constrained equal)")
   
-  
-  # invisible(x@parameters %>% filter_(~fixed,~!is.na(mi)) %>% 
-              # select_("var1","op","var2","mi","pmi","mi_equal","pmi_equal","matrix","row","col","group"))
 
   return(parTable)
 }

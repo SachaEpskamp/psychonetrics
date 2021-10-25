@@ -64,15 +64,15 @@ CIplot <- function(
       matrices <- covchooser(x@types$y,"y")
     }  else if (x@model == "lvm"){
       
-      if (model@submodel == "rnm"){
+      if (x@submodel == "rnm"){
         
         matrices <- covchooser(x@types$residual,"epsilon")
         
-      } else if (model@submodel == "lnm"){
+      } else if (x@submodel == "lnm"){
         
         matrices <- covchooser(x@types$latent,"zeta")
         
-      } else if (model@submodel == "lrnm"){
+      } else if (x@submodel == "lrnm"){
         
         matrices <- c(covchooser(x@types$latent,"zeta"), covchooser(x@types$residual,"epsilon"))
         
@@ -231,26 +231,26 @@ CIplot <- function(
     df_cis$labstart <- ifelse(df_cis$upper > labelstart, df_cis$lower, df_cis$upper)
     df_cis$hjust <- ifelse(df_cis$upper > labelstart, 1.05, -0.05)
     
-    plots <- ggplot(df_cis,
-                    aes(x = edge, y = est, colour = sig,
-                        ymin = lower, ymax = upper)) +
-      geom_hline(yintercept = 0, alpha = 0.2) +
-      geom_errorbar() + 
-      geom_point(cex = 1.5) +
+    plots <- ggplot2::ggplot(df_cis,
+                             ggplot2::aes_string(x = "edge", y = "est", colour = "sig",
+                        ymin = "lower", ymax = "upper")) +
+      ggplot2::geom_hline(yintercept = 0, alpha = 0.2) +
+      ggplot2::geom_errorbar() + 
+      ggplot2::geom_point(cex = 1.5) +
       # geom_point(cex = 1.5, aes(y = edge_pruned)) +
       # geom_point(cex = 0.5*1.5, aes(y = edge_pruned), colour = "white") +
-      geom_text(aes(y = labstart, label = edge, hjust = hjust), colour = rgb(0.2,0.2,0.2), cex = 2.5) +
-      coord_flip() + 
+      ggplot2::geom_text(ggplot2::aes_string(y = "labstart", label = "edge", hjust = "hjust"), colour = rgb(0.2,0.2,0.2), cex = 2.5) +
+      ggplot2::coord_flip() + 
       # facet_grid( ~  model) +
-      scale_y_continuous(breaks = seq(floor(min(df_cis$lower)),ceiling(max(df_cis$lower)),by=major_break),
+      ggplot2::scale_y_continuous(breaks = seq(floor(min(df_cis$lower)),ceiling(max(df_cis$lower)),by=major_break),
                          minor_breaks = seq(floor(min(df_cis$lower)),ceiling(max(df_cis$lower)),by=minor_break)) + 
-      theme_bw(base_size = 12) +
-      scale_colour_manual("",values = c("black",colors),drop=FALSE) +  theme(legend.position = "top", # axis.text.y = element_text(size = 7),
-                                                                                              axis.text.y=element_blank(),
-                                                                                              axis.ticks.y=element_blank(),
-                                                                                              panel.grid.major.y = element_blank()) + 
-      xlab("") + 
-      ylab("") 
+      ggplot2::theme_bw(base_size = 12) +
+      ggplot2::scale_colour_manual("",values = c("black",colors),drop=FALSE) +  ggplot2::theme(legend.position = "top", # axis.text.y = element_text(size = 7),
+                                                                                              axis.text.y=ggplot2::element_blank(),
+                                                                                              axis.ticks.y=ggplot2::element_blank(),
+                                                                                              panel.grid.major.y = ggplot2::element_blank()) + 
+      ggplot2::xlab("") + 
+      ggplot2::ylab("") 
     
     # Return plot:
     return(plots)
@@ -259,11 +259,11 @@ CIplot <- function(
   
   # If only one plot, plot it:
   if (length(matrices)==1){
-    if (print) print(plots)
+    if (print) print(plots[[1]])
     invisible(plots[[1]])
   } else {
     for (i in seq_along(plots)){
-      plots[[i]] <- plots[[i]] + ggtitle(matrices[i])
+      plots[[i]] <- plots[[i]] + ggplot2::ggtitle(matrices[i])
     }
     return(plots)
   }

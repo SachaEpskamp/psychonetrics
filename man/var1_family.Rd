@@ -147,6 +147,9 @@ model <- model \%>\% runmodel
 # Parameter estimates:
 model \%>\% parameters
 
+# Plot the CIs:
+CIplot(model,  "beta")
+
 # Note: this example is wrapped in a dontrun environment because the data is not 
 # available locally.
 \dontrun{

@@ -42,7 +42,7 @@ compare <- function(...){
   )
   
   # Arrange table by Df:
-  Tab <- Tab %>% arrange_(~DF)
+  Tab <- Tab %>% arrange(.data[['DF']])
   
   # Compute chis difference:
   Tab$Chisq_diff <- c(NA,abs(diff(Tab$Chisq)))

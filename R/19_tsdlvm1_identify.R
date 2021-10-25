@@ -5,8 +5,8 @@ identify_tsdlvm1 <- function(x){
   type <- x@identification
 
   # Always set residual (co)variance of single indicator items to zero:
-  nIndicators <- x@parameters %>% filter_(~matrix == "lambda") %>% group_by_(~var2_id) %>% 
-    summarize_(nLats = ~length(unique(var1_id[!fixed])))
+  nIndicators <- x@parameters %>% filter(.data[['matrix']] == "lambda") %>% group_by(.data[['var2_id']]) %>% 
+    summarize(nLats = length(unique(.data[['var1_id']][!.data[['fixed']]])))
 
   if (any(nIndicators$nLats == 1)){
     for (inds in unique(x@parameters$var1_id[x@parameters$var2_id%in%nIndicators$var2_id[nIndicators$nLats == 1] & x@parameters$matrix == "lambda"])){
@@ -85,8 +85,8 @@ identify_tsdlvm1 <- function(x){
     
   } else {
     # Number of equality constrains:
-    cons <- x@parameters %>% group_by_("matrix","row","col") %>% summarize_(eq = ~!(all(fixed))&allTheSame(par))
-    consPerMat <- cons %>% group_by_("matrix") %>% summarize_(n = ~sum(eq))
+    cons <- x@parameters %>% group_by(.data[["matrix"]],.data[["row"]],.data[["col"]]) %>% summarize(eq = !(all(.data[['fixed']]))&allTheSame(.data[['par']]))
+    consPerMat <- cons %>% group_by(.data[["matrix"]]) %>% summarize(n = sum(.data[['eq']]))
     
     nLat <- max(cons$col[cons$matrix == "lambda"])
     nMan <- max(cons$row[cons$matrix == "lambda"])
