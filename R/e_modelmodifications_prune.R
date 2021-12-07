@@ -190,11 +190,11 @@ prune <- function(
   }
   
   # Which parameters to test:
-  whichTest <- which(x@parameters$matrix %in% matrices & !x@parameters$fixed & (x@parameters$var1_id!=x@parameters$var2_id | x@parameters$matrix == "beta"))
+  whichTest <- which(x@parameters$matrix %in% matrices & !x@parameters$fixed & (NAtoTRUE(x@parameters$var1_id!=x@parameters$var2_id) | x@parameters$matrix == "beta"))
   
   # Number of tests:
   nTest <- length(unique(x@parameters$par[whichTest]))
-  
+
   # If no tests, break:
   if (nTest == 0){
     return(x)
