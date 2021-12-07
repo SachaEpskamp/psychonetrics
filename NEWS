@@ -1,3 +1,6 @@
+Changes in Version 0.10.1
+  - Fixed a bug in 'prune' which did not allow intercept/mean vectors to be pruned
+
 Changes in Version 0.10
   - ml_tsdlvm1 now orders data by idvar if beepvar is not supplied.
   - Added 'CIplot' function
