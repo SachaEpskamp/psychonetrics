@@ -22,6 +22,9 @@ modelsearch <- function(x,
     x <- x %>% runmodel(..., verbose = verbose)
   }
   
+  # Add log:
+  x <- addLog(x, "Starting modelsearch algorithm...")
+  
   # Matrices:
   if (missing(matrices)){
     if (x@model == "varcov"){
