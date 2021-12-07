@@ -41,7 +41,8 @@ CIplot <- function(
 ){
 
   logs <- sapply(x@log,function(x)x@event)
-  if (any(grepl("Pruned",logs)) | any(grepl("step-up",logs))){
+ 
+  if (any(grepl("Pruned",logs)) | any(grepl("step-up",logs))  | any(grepl("modelsearch",logs))){
     warning("A model search algorithm was used in creating this model. The CIs are likely invalid.")
   }
   
