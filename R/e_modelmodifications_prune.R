@@ -14,10 +14,13 @@ prune <- function(
   # reps = 1000,
   startreduce = 1,
   limit = Inf,
+  mode = c("tested","all"),
   ...){
   if (missing(verbose)){
     verbose <- x@verbose
   }
+  
+  mode <- match.arg(mode)
   
   reps <- 1000
   nCores <- 1
@@ -28,20 +31,20 @@ prune <- function(
     x <- x %>% runmodel(..., verbose = verbose)
   }
   
-  if (bootstrap && all(is.na(x@parameters$boot_p))){
-    if (verbose) message("Bootstrapping SEs...")
-    x <- x %>% bootstrap_SEs(nCores = nCores, reps = reps,verbose = verbose)
-  }
-  
-  # Whcih cols?
-  if (bootstrap){
-    secol <- "se_boot"
-    pcol <- "p_boot" 
-  } else {
-    secol <- "se"
-    pcol <- "p"
-  }
-  
+  # if (bootstrap && all(is.na(x@parameters$boot_p))){
+  #   if (verbose) message("Bootstrapping SEs...")
+  #   x <- x %>% bootstrap_SEs(nCores = nCores, reps = reps,verbose = verbose)
+  # }
+  # 
+  # # Whcih cols?
+  # if (bootstrap){
+  #   secol <- "se_boot"
+  #   pcol <- "p_boot" 
+  # } else {
+  #   secol <- "se"
+  #   pcol <- "p"
+  # }
+  # 
   
   if (!runmodel & recursive){
     stop("recursive = TRUE requires runmodel = TRUE")
@@ -188,28 +191,40 @@ prune <- function(
       
     }  else stop("No default argument for 'matrices' for current model.")
   }
-  
-  # Which parameters to test:
-  whichTest <- which(x@parameters$matrix %in% matrices & !x@parameters$fixed & (NAtoTRUE(x@parameters$var1_id!=x@parameters$var2_id) | x@parameters$matrix == "beta"))
-  
-  # Number of tests:
-  nTest <- length(unique(x@parameters$par[whichTest]))
-
-  # If no tests, break:
-  if (nTest == 0){
-    return(x)
-  }
-  
-  # Adjust alpha:
-  # if (bonferroni){
-  #   alpha_adjust <- alpha / nTest    
-  # } else {
-  #   alpha_adjust <- alpha
+  # 
+  # # Which parameters to test:
+  # whichTest <- which(x@parameters$matrix %in% matrices & !x@parameters$fixed & (NAtoTRUE(x@parameters$var1_id!=x@parameters$var2_id) | x@parameters$matrix == "beta"))
+  # 
+  # # Number of tests:
+  # nTest <- length(unique(x@parameters$par[whichTest]))
+  # 
+  # # If no tests, break:
+  # if (nTest == 0){
+  #   return(x)
   # }
-  # Test for significance:
-  # nonsig <- x@parameters$p > alpha_adjust & (seq_len(nrow(x@parameters)) %in% whichTest)
-  pValues <- p.adjust(x@parameters[[pcol]],method = adjust) 
-  nonsig <- p.adjust(x@parameters[[pcol]],method = adjust) > alpha & (seq_len(nrow(x@parameters)) %in% whichTest)
+  # 
+  # # Adjust alpha:
+  # # if (bonferroni){
+  # #   alpha_adjust <- alpha / nTest    
+  # # } else {
+  # #   alpha_adjust <- alpha
+  # # }
+  # # Test for significance:
+  # # nonsig <- x@parameters$p > alpha_adjust & (seq_len(nrow(x@parameters)) %in% whichTest)
+  # pValues <- p.adjust(x@parameters[[pcol]],method = adjust) 
+  # nonsig <- p.adjust(x@parameters[[pcol]],method = adjust) > alpha & (seq_len(nrow(x@parameters)) %in% whichTest)
+  # 
+  pValues <- adjust_p_values(x,
+      alpha = alpha, 
+      adjust = adjust,
+      matrices = matrices,
+      mode = mode,
+      reps = reps,
+      nCores = nCores,
+      bootstrap = bootstrap,
+      verbose = verbose)
+  
+  nonsig <- !is.na(pValues) & pValues > alpha # & (seq_len(nrow(x@parameters)) %in% whichTest)
   
   
   # If any non-sig, adjust:

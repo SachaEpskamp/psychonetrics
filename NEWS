@@ -1,3 +1,7 @@
+Changes in Version 0.10.2
+  - Added 'threshold' argument to getmatrix()
+  - Adjusting p-values is now done by default only for the tested p-values. This means that the number of tests is assumed to be the number of parameters of interest (matrices that are to be pruned), not the total number of parameters. Previous behavior can be reproduced with mode = "all" in prune(..).
+
 Changes in Version 0.10.1
   - Fixed a bug in 'prune' which did not allow intercept/mean vectors to be pruned
 
