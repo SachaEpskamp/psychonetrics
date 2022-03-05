@@ -1,7 +1,17 @@
 # obtain a model matrix:
-getmatrix <- function(x,matrix,group){
+getmatrix <- function(x,matrix,group,threshold=FALSE,
+                      alpha = 0.01, 
+                      adjust = c( "none", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr"),
+                      mode = c("tested","all")){
+  mode <- match.arg(mode)
+  
   if (!is(x,"psychonetrics")){
     stop("Input must be a 'psychonetrics' object.")
+  }
+  
+  # If not run, run model:
+  if (!x@computed){
+    x <- x %>% runmodel(..., verbose = verbose)
   }
   
   # check matrix arg:
@@ -20,7 +30,7 @@ getmatrix <- function(x,matrix,group){
       group <- x@sample@groups$label[match(group,x@sample@groups$id)]
     }
   
-
+  
   
   # Form group ID:
   groupID <- x@sample@groups$id[match(group,x@sample@groups$label)]
@@ -29,9 +39,57 @@ getmatrix <- function(x,matrix,group){
   mats <- lapply(x@modelmatrices[groupID],function(x)as.matrix(x[[matrix]]))
   names(mats) <- group
   
+  
+  # threshold:
+  if (threshold){
+    reps <- 1000
+    nCores <- 1
+    bootstrap <- FALSE
+    adjust <- match.arg(adjust)
+    
+    # Check if the matrix is modeled:
+    if (!matrix %in% x@matrices$name){
+      stop("Matrix is not modeled and can therefore not be thresholded.")
+    }
+    
+    # obtain p-values:
+    pValues <- adjust_p_values(x,
+                               alpha = alpha, 
+                               adjust = adjust,
+                               matrices = matrix,
+                               mode = mode,
+                               reps = reps,
+                               nCores = nCores,
+                               bootstrap = bootstrap,
+                               verbose = verbose)
+    
+    nonsig <- !is.na(pValues) & pValues > alpha # & (seq_len(nrow(x@parameters)) %in% whichTest)
+    
+    # Threshold all nonsig to zero:
+    copy_pars <- x@parameters
+    copy_pars$est_thresholded <- nonsig * copy_pars$est
+    
+    # Loop over groups:
+    for (g in seq_along(mats)){
+      # Obtain the relevant parameter table:
+      subPars <- copy_pars[copy_pars$matrix == matrix & copy_pars$group_id == groupID[g], ]
+      
+      # Loop over the parameters and overwrite:
+      for (i in seq_len(nrow(subPars))){
+        mats[[g]][subPars$row[i],subPars$col[i]] <- subPars$est_thresholded[i]
+        if (x@matrices$symmetrical[x@matrices$name == matrix]){
+          mats[[g]][subPars$col[i],subPars$row[i]] <- subPars$est_thresholded[i]
+        }
+      }
+    }
+  }
+  
+  
   # If length = 1, only return the matrix:
   if (length(mats)==1){
     mats <- mats[[1]]
   }
+  
+  
   return(mats)
 }
