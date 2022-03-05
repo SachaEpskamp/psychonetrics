@@ -12,7 +12,7 @@ prune(x, alpha = 0.01, adjust = c("none", "holm",
                     "hochberg", "hommel", "bonferroni", "BH", "BY",
                     "fdr"), matrices, runmodel = TRUE, recursive = FALSE,
                     verbose, log = TRUE, identify = TRUE, startreduce = 1,
-                    limit = Inf, ...)
+                    limit = Inf, mode = c("tested","all"), ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -48,6 +48,9 @@ A numeric value indicating a factor with which the starting values should be red
 }
   \item{limit}{
 The maximum number of parameters to be pruned.
+}
+\item{mode}{
+Mode for adjusting for multiple comparisons. Should all parameters be considered as the total number of tests or only the tested parameters (parameters of interest)?
 }
   \item{\dots}{
 Arguments sent to \code{\link{runmodel}}

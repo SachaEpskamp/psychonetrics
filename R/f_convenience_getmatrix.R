@@ -41,7 +41,7 @@ getmatrix <- function(x,matrix,group,threshold=FALSE,
   
   
   # threshold:
-  if (threshold){
+  if (isTRUE(threshold)){
     reps <- 1000
     nCores <- 1
     bootstrap <- FALSE
@@ -63,11 +63,11 @@ getmatrix <- function(x,matrix,group,threshold=FALSE,
                                bootstrap = bootstrap,
                                verbose = verbose)
     
-    nonsig <- !is.na(pValues) & pValues > alpha # & (seq_len(nrow(x@parameters)) %in% whichTest)
+    sig <- !is.na(pValues) & pValues <= alpha # & (seq_len(nrow(x@parameters)) %in% whichTest)
     
     # Threshold all nonsig to zero:
     copy_pars <- x@parameters
-    copy_pars$est_thresholded <- nonsig * copy_pars$est
+    copy_pars$est_thresholded <- sig * copy_pars$est
     
     # Loop over groups:
     for (g in seq_along(mats)){
@@ -81,6 +81,10 @@ getmatrix <- function(x,matrix,group,threshold=FALSE,
           mats[[g]][subPars$col[i],subPars$row[i]] <- subPars$est_thresholded[i]
         }
       }
+    }
+  } else if (is.numeric(threshold)){
+    for (g in seq_along(mats)){
+      mats[[g]][abs(mats[[g]]) < threshold] <- 0
     }
   }
   
