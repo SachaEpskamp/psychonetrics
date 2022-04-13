@@ -1,4 +1,11 @@
-panelvar <- function(data,vars,...){
+panelvar <- function(data,vars,
+                     within_latent = c("chol","cov","prec","ggm"), 
+                     between_latent = c("chol","cov","prec","ggm"), 
+                     ...){
+  # Match arg:
+  within_latent <- match.arg(within_latent)
+  between_latent <- match.arg(between_latent)
+  
   # Extract var names:
   if (missing(vars)){
     stop("'vars' argument may not be missing")
@@ -18,16 +25,23 @@ panelvar <- function(data,vars,...){
   
   dlvm1(data,vars,
         lambda = I,
-        within_latent = "chol",
+        within_latent = within_latent,
         within_residual = "cov", sigma_epsilon_within = O,
-        between_latent = "chol",
+        between_latent = between_latent,
         between_residual = "cov", sigma_epsilon_between = O,
         latents = rownames(vars),
         ...
         )
 }
 
-panelgvar <- function(data,vars,...){
+panelgvar <- function(data,vars,
+                      within_latent = c("ggm","chol","cov","prec"), 
+                      between_latent = c("ggm","chol","cov","prec"), 
+                      ...){
+  # Match arg:
+  within_latent <- match.arg(within_latent)
+  between_latent <- match.arg(between_latent)
+  
   # Extract var names:
   if (missing(vars)){
     stop("'vars' argument may not be missing")
@@ -46,9 +60,9 @@ panelgvar <- function(data,vars,...){
   
   dlvm1(data,vars,
         lambda = I,
-        within_latent = "ggm",
+        within_latent = within_latent,
         within_residual = "cov", sigma_epsilon_within = O,
-        between_latent = "ggm",
+        between_latent = between_latent,
         between_residual = "cov", sigma_epsilon_between = O,
         latents = rownames(vars),
         ...
