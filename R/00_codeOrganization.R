@@ -13,7 +13,6 @@
 # c: model execution
 # d: Stepup search
 
-
 # I copied this piece of code from Lavaan mainly:
 
 .onAttach <- function(libname, pkgname) {
