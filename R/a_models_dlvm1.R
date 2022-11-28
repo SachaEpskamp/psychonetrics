@@ -286,7 +286,6 @@ dlvm1 <- function(
     matrix(inv %*% as.vector(prior_wit_cov[[i]])/2,nLat,nLat)
   })
   
-  
   # Setup latent varcov:
   modMatrices <- c(modMatrices,
                    matrixsetup_flexcov(sigma = sigma_zeta_within,lowertri = lowertri_zeta_within,omega = omega_zeta_within,delta = delta_zeta_within,kappa = kappa_zeta_within,
