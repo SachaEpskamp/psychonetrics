@@ -173,7 +173,7 @@ varcov <- function(
   }
   
   # fixMu(mu,nGroup,nNode,"mu" %in% equal)
-  
+
   # Fix sigma
   if (type == "cov"){
     if (corinput){

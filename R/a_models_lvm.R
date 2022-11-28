@@ -54,7 +54,7 @@ lvm <- function(
   if (rawts){
     warning("'rawts' is only included for testing purposes. Please do not use!")
   }
-  
+
   # Type:
   latent <- match.arg(latent)
   residual <- match.arg(residual)

@@ -165,6 +165,11 @@ samplestats_norawts <- function(
           missing, "listwise" = "complete.obs", "pairwise" = "pairwise.complete.obs"
         ))
         cov <- 0.5*(cov + t(cov))
+        
+        if (any(is.na(cov))){
+         warning("NA sample covariances found. This will likely lead to erroneous estimates.")
+        }
+        
         # covs <- list(as(cov,"dsyMatrix"))
         covs <- list(as(cov,"matrix"))
         if (!any(is.na(cov))){
