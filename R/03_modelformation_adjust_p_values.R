@@ -7,6 +7,8 @@ adjust_p_values <- function(x,
           nCores = 1,
           bootstrap = FALSE,
           verbose){
+  
+
   # input:
   stopifnot(!missing(matrices))
   mode <- match.arg(mode)
@@ -32,7 +34,9 @@ adjust_p_values <- function(x,
   
   
   # Which parameters to test:
-  whichTest <- which(x@parameters$matrix %in% matrices & !x@parameters$fixed & (NAtoTRUE(x@parameters$var1_id!=x@parameters$var2_id) | x@parameters$matrix == "beta"))
+  # FIXME: Not sure why original version removes diagonal elements?
+  # whichTest <- which(x@parameters$matrix %in% matrices & !x@parameters$fixed & (NAtoTRUE(x@parameters$var1_id!=x@parameters$var2_id) | x@parameters$matrix == "beta"))
+  whichTest <- which(x@parameters$matrix %in% matrices & !x@parameters$fixed & (NAtoTRUE(x@parameters$var1_id!=x@parameters$var2_id) | !grepl("omega",x@parameters$matrix)))
   
   # Number of tests:
   nTest <- length(unique(x@parameters$par[whichTest]))

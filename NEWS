@@ -1,5 +1,7 @@
 Changes in Version 0.10.2
   - Built in a check to find NA sample covs
+  - added diag argument to getmatrix to obtain diagonal
+  - diagonal elements are now also thresholded when using getmatrix(..., threshold = ...)
 
 Changes in Version 0.10.2
   - Added 'threshold' argument to getmatrix()
