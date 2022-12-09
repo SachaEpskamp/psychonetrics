@@ -2,7 +2,8 @@
 getmatrix <- function(x,matrix,group,threshold=FALSE,
                       alpha = 0.01, 
                       adjust = c( "none", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr"),
-                      mode = c("tested","all")){
+                      mode = c("tested","all"),
+                      diag = TRUE){
   mode <- match.arg(mode)
   
   if (!is(x,"psychonetrics")){
@@ -62,7 +63,7 @@ getmatrix <- function(x,matrix,group,threshold=FALSE,
                                nCores = nCores,
                                bootstrap = bootstrap,
                                verbose = verbose)
-    
+
     sig <- !is.na(pValues) & pValues <= alpha # & (seq_len(nrow(x@parameters)) %in% whichTest)
     
     # Threshold all nonsig to zero:
@@ -88,6 +89,13 @@ getmatrix <- function(x,matrix,group,threshold=FALSE,
     }
   }
   
+  # Remove diagonal if needed:
+  if (!diag){
+    for (g in seq_along(mats)){
+      if (ncol(mats[[g]]) == nrow(mats[[g]]))
+      mats[[g]][diag(mats[[g]])] <- 0
+    }
+  }
   
   # If length = 1, only return the matrix:
   if (length(mats)==1){
