@@ -35,7 +35,8 @@ var1 <- function(
   covtype = c("choose","ML","UB"),
   standardize = c("none","z","quantile"),
   sampleStats,
-  verbose=FALSE
+  verbose=FALSE,
+  bootstrap = FALSE
 ){
   contemporaneous <- match.arg(contemporaneous)
   
@@ -56,6 +57,11 @@ var1 <- function(
   
   # If data is not missing, make augmented data:
   data <- tsData(data, vars = vars2, beepvar = beepvar, dayvar = dayvar, idvar = idvar, groupvar = groups)
+  
+  # Bootstrap:
+  if (bootstrap){
+    data <- data[sample(seq_len(nrow(data)),nrow(data),TRUE),]
+  }
   
   # Extract var names:
   if (is.null(groups)){
@@ -286,6 +292,8 @@ var1 <- function(
                                                    estimator = estimator,
                                                    baseline_saturated = FALSE,
                                                    sampleStats = sampleStats)
+    
+
     
     # if not FIML, Treat as computed:
     if (estimator != "FIML"){

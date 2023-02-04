@@ -522,6 +522,14 @@ runmodel <- function(
   
   
   # }
+  # Add baseline or saturated if needed:
+  if (isBaseline){
+    x@baseline_saturated$baseline <- x
+  }
+  if (isSaturated){
+    x@baseline_saturated$saturated <- x
+  }
+  
   # Add fit:
   if (addfit){
     x <- addfit(x, verbose=verbose)
@@ -543,13 +551,7 @@ runmodel <- function(
     
   }
   
-  # Add baseline or saturated if needed:
-  if (isBaseline){
-    x@baseline_saturated$baseline <- x
-  }
-  if (isSaturated){
-    x@baseline_saturated$saturated <- x
-  }
+
   
   if (log){
     # Add log:

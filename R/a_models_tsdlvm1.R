@@ -58,6 +58,7 @@ tsdlvm1 <- function(
   centerWithin = FALSE,
   standardize = c("none","z","quantile"),
   verbose = FALSE
+  # bootstrap = FALSE
 ){
   contemporaneous <- match.arg(contemporaneous)
   residual <- match.arg(residual)
@@ -80,6 +81,11 @@ tsdlvm1 <- function(
   
   # If data is not missing, make augmented data:
   data <- tsData(data, vars = vars2, beepvar = beepvar, dayvar = dayvar, idvar = idvar, groupvar = groups, centerWithin = centerWithin)
+  
+  # # Bootstrap the data if needed:
+  # if (bootstrap){
+  #   browser()
+  # }
   
   # Extract var names:
   if (is.null(groups)){
