@@ -1,3 +1,7 @@
+Changes in Version 0.10.3
+  - Added a 'bootstrap' argument to var1() family to facilitate bootstrapping the data
+  - Fixed a bug where the saturated log-likelihood under FIML estimation could be incorrect
+
 Changes in Version 0.10.2
   - Built in a check to find NA sample covs
   - added diag argument to getmatrix to obtain diagonal

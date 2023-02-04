@@ -27,6 +27,7 @@ addfit <- function(
   # Fitmeasures list:
   fitMeasures <- list()
   
+  
   # log likelihoods:
   # Saturated:
   if (x@estimator %in% c("FIML","ML")){
