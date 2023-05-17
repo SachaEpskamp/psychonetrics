@@ -1,3 +1,6 @@
+Changes in Version 0.11
+  - Optimised lambda starting value choice
+
 Changes in Version 0.10.3
   - Added a 'bootstrap' argument to var1() family to facilitate bootstrapping the data
   - Fixed a bug where the saturated log-likelihood under FIML estimation could be incorrect
