@@ -51,16 +51,16 @@ missingpatterns <- function(dat, verbose = TRUE){
     
     # Elimintation matrix:
     patterns[[i]]$L <- sparseMatrix(i=seq_along(inds),j=inds,dims=c(length(inds),nvar + nvar*(nvar+1)/2))
-    patterns[[i]]$L <- as(patterns[[i]]$L, "dgCMatrix")
+    patterns[[i]]$L <- as(patterns[[i]]$L, "dMatrix")
     
     # Duplication matrix: 
     patterns[[i]]$D <- duplicationMatrix(sum(obs))
-    # patterns[[i]]$D <- as(as.matrix(patterns[[i]]$D), "dgCMatrix")
+    # patterns[[i]]$D <- as(as.matrix(patterns[[i]]$D), "dMatrix")
     
     # Stuff that Armadillo understands:
     # Not needed, Arma already understands!
-    # patterns[[i]]$L <- as( patterns[[i]]$L , "dgCMatrix")
-    # patterns[[i]]$D <- as( patterns[[i]]$D , "dgCMatrix")
+    # patterns[[i]]$L <- as( patterns[[i]]$L , "dMatrix")
+    # patterns[[i]]$D <- as( patterns[[i]]$D , "dMatrix")
     
     # patterns[[i]]$Lmu <- sparseMatrix(i=seq_along(inds),j=inds,dims=c(length(inds),ncol(dat)))
     
@@ -92,7 +92,7 @@ fullfimldata <- function(dat, verbose = TRUE){
   
   
   # Create a dummy dataset with only missings:
-  mis <- as(is.na(dat),"dgCMatrix")
+  mis <- as(is.na(dat),"dMatrix")
   
   # DUmmy sigma for indices:
   nvar <- ncol(dat)
@@ -134,8 +134,8 @@ fullfimldata <- function(dat, verbose = TRUE){
     
   
     # Stuff that Armadillo understands:
-    patterns[[i]]$L <- as( patterns[[i]]$L , "dgCMatrix")
-    # patterns[[i]]$D <- as( patterns[[i]]$D , "dgCMatrix")
+    patterns[[i]]$L <- as( patterns[[i]]$L , "dMatrix")
+    # patterns[[i]]$D <- as( patterns[[i]]$D , "dMatrix")
     
     # patterns[[i]]$Lmu <- sparseMatrix(i=seq_along(inds),j=inds,dims=c(length(inds),ncol(dat)))
     

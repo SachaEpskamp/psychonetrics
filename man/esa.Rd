@@ -12,7 +12,7 @@
 Ergodic Subspace Analysis
 }
 \description{
-These functions implement Ergodic Subspace Analysis by von Oertzen, Schmiedek \& Voelkle (2020). The functions can be used on the output of a \code{\link{dlvm1}} model, or manually by supplying a within persons and between persons variance-covariance matrix.
+These functions implement Ergodic Subspace Analysis by von Oertzen, Schmiedek and Voelkle (2020). The functions can be used on the output of a \code{\link{dlvm1}} model, or manually by supplying a within persons and between persons variance-covariance matrix.
 }
 \usage{
 esa(x, cutoff = 0.1,
@@ -62,7 +62,7 @@ For each group a \code{esa_manual} object with the following elements:
 %% ...
 }
 \references{
-von Oertzen, T., Schmiedek, F., & Voelkle, M. C. (2020). Ergodic Subspace Analysis. Journal of Intelligence, 8(1), 3.
+von Oertzen, T., Schmiedek, F., and Voelkle, M. C. (2020). Ergodic Subspace Analysis. Journal of Intelligence, 8(1), 3.
 }
 \author{
 Sacha Epskamp <mail@sachaepskamp.com>

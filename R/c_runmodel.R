@@ -462,7 +462,7 @@ runmodel <- function(
           stop("The optimizer encountered at least one non-positive definite matrix and used a pseudoinverse in parameter estimation. To return results anyway, set return_improper = TRUE.")
         } else{
           if (warn_improper){
-            warning("The optimizer encountered at least one non-positive definite matrix and used a pseudoinverse in parameter estimation. Results may not be accurate. You could try to check for consistency with a different optimizer using 'setoptimizer'")
+            warning("The optimizer encountered at least one non-positive definite matrix and used a pseudoinverse in parameter estimation. Inspect if the parameters look reasonable before evaluating model fit.")
             trystart <- 3
           }
           
@@ -560,7 +560,14 @@ runmodel <- function(
   
   # Warn about the gradient?
   if (warn_gradient){
-    grad <- psychonetrics_gradient(parVector(x),x)
+    
+    if (x@cpp){
+      grad <- psychonetrics_gradient_cpp(parVector(x),x)
+    } else {
+      grad <- psychonetrics_gradient(parVector(x),x)
+    }
+    
+    
     if (mean(abs(grad)) > 1){
       warning("Model might not have converged properly: mean(abs(gradient)) > 1.")
     }

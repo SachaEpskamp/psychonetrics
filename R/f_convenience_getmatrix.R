@@ -6,13 +6,17 @@ getmatrix <- function(x,matrix,group,threshold=FALSE,
                       diag = TRUE){
   mode <- match.arg(mode)
   
+  # Extract verbose:
+  verbose <- x@verbose
+  
+  # Check input:
   if (!is(x,"psychonetrics")){
     stop("Input must be a 'psychonetrics' object.")
   }
   
   # If not run, run model:
   if (!x@computed){
-    x <- x %>% runmodel(..., verbose = verbose)
+    x <- x %>% runmodel(verbose = verbose)
   }
   
   # check matrix arg:

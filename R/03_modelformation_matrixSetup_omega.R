@@ -10,6 +10,7 @@ matrixsetup_omega <- function(
   beta = array(0, c(nNode, nNode,nGroup)),
   onlyStartSign = FALSE
 ){
+  
   # Check if sigma is character:
   ischar <- is.character(omega)
   

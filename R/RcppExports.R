@@ -109,6 +109,14 @@ impliedcovstructures_cpp <- function(x, name = "", type = "cov", all = FALSE) {
     .Call(`_psychonetrics_impliedcovstructures_cpp`, x, name, type, all)
 }
 
+is_sparse_cpp <- function(X) {
+    .Call(`_psychonetrics_is_sparse_cpp`, X)
+}
+
+diag_sparse_dense_cpp <- function(X) {
+    .Call(`_psychonetrics_diag_sparse_dense_cpp`, X)
+}
+
 FisherInformation_inner_cpp_DSS <- function(estimator, model, manual) {
     .Call(`_psychonetrics_FisherInformation_inner_cpp_DSS`, estimator, model, manual)
 }
@@ -133,8 +141,8 @@ gradient_inner_cpp_DDS <- function(estimator, model, manual) {
     .Call(`_psychonetrics_gradient_inner_cpp_DDS`, estimator, model, manual)
 }
 
-psychonetrics_gradient_cpp_inner <- function(x, grad, model, useM = FALSE, sparsemodel = FALSE) {
-    invisible(.Call(`_psychonetrics_psychonetrics_gradient_cpp_inner`, x, grad, model, useM, sparsemodel))
+psychonetrics_gradient_cpp_inner <- function(x, grad, model, sparsemodel = FALSE, useM = FALSE) {
+    invisible(.Call(`_psychonetrics_psychonetrics_gradient_cpp_inner`, x, grad, model, sparsemodel, useM))
 }
 
 psychonetrics_gradient_cpp <- function(x, model, useM = FALSE, sparsemodel = FALSE) {

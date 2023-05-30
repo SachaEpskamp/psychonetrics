@@ -1,58 +1,61 @@
 Changes in Version 0.11
-  - Optimised lambda starting value choice
+  o Optimised lambda starting value choice
+  o Changed warning for when a peusdoinverse was used in model estimation.
+  o Added 'threshold' argument to the matrix(...) function for significance thresholding
+  o Fixed a bug in psychonetrics:::emergencystart
 
 Changes in Version 0.10.3
-  - Added a 'bootstrap' argument to var1() family to facilitate bootstrapping the data
-  - Fixed a bug where the saturated log-likelihood under FIML estimation could be incorrect
+  o Added a 'bootstrap' argument to var1() family to facilitate bootstrapping the data
+  o Fixed a bug where the saturated log-likelihood under FIML estimation could be incorrect
 
 Changes in Version 0.10.2
-  - Built in a check to find NA sample covs
-  - added diag argument to getmatrix to obtain diagonal
-  - diagonal elements are now also thresholded when using getmatrix(..., threshold = ...)
+  o Built in a check to find NA sample covs
+  o added diag argument to getmatrix to obtain diagonal
+  o diagonal elements are now also thresholded when using getmatrix(..., threshold = ...)
 
 Changes in Version 0.10.2
-  - Added 'threshold' argument to getmatrix()
-  - Adjusting p-values is now done by default only for the tested p-values. This means that the number of tests is assumed to be the number of parameters of interest (matrices that are to be pruned), not the total number of parameters. Previous behavior can be reproduced with mode = "all" in prune(..).
-  - panelvar and panelgvar now support arguments within_latent and between_latent
+  o Added 'threshold' argument to getmatrix()
+  o Adjusting p-values is now done by default only for the tested p-values. This means that the number of tests is assumed to be the number of parameters of interest (matrices that are to be pruned), not the total number of parameters. Previous behavior can be reproduced with mode = "all" in prune(..).
+  o panelvar and panelgvar now support arguments within_latent and between_latent
 
 Changes in Version 0.10.1
-  - Fixed a bug in 'prune' which did not allow intercept/mean vectors to be pruned
+  o Fixed a bug in 'prune' which did not allow intercept/mean vectors to be pruned
 
 Changes in Version 0.10
-  - ml_tsdlvm1 now orders data by idvar if beepvar is not supplied.
-  - Added 'CIplot' function
-  - Standardizing in ts_dlvm1 is now more stable.
-  - dlvm1 now uses observed variable names as latent variable names when appropriate.
-  - Fixed a bug with the beepvar argument in psychonetrics
+  o ml_tsdlvm1 now orders data by idvar if beepvar is not supplied.
+  o Added 'CIplot' function
+  o Standardizing in ts_dlvm1 is now more stable.
+  o dlvm1 now uses observed variable names as latent variable names when appropriate.
+  o Fixed a bug with the beepvar argument in psychonetrics
 
 Changes in Version 0.9:
-  - Changed 'rel.tol=1e-10' in the nlminb optimizer to be in line with lavaan
-  - Added 'warn_improper' argument to runmodel(..)
-  - The argument 'return_improper' now defaults to TRUE
-  - Optimizer no longer uses a spectral shift when inverting a semi-positive definite matrix
-  - Detection of non positive definite matrices is now done faster and should lead to less problems
-  - Added the 'bounded' argument to runmodel() to define if bounded estimation should be used (defaults to TRUE)
-  - Diagonals of symmetrical matrices can no longer be estimated to be negative (avoiding Heywood cases, although doing this with a Cholesky decomposition is nicer!)
+  o Changed 'rel.tol=1e-10' in the nlminb optimizer to be in line with lavaan
+  o Added 'warn_improper' argument to runmodel(..)
+  o The argument 'return_improper' now defaults to TRUE
+  o Optimizer no longer uses a spectral shift when inverting a semi-positive definite matrix
+  o Detection of non positive definite matrices is now done faster and should lead to less problems
+  o Added the 'bounded' argument to runmodel() to define if bounded estimation should be used (defaults to TRUE)
+  o Diagonals of symmetrical matrices can no longer be estimated to be negative (avoiding Heywood cases, although doing this with a Cholesky decomposition is nicer!)
   
 Changes in Version 0.8.1:
-  - The nlminb estimator now uses more iterations.
+  o The nlminb estimator now uses more iterations.
 
 Changes in Version 0.8:
-  - The log determinant is now computer better to be able to include fit measures at higher model complexities
-  - The 'return_improper' argument in runmodel( ) now returns improper estimates without trying different starting values
-  - Fixed a bug in meta_varcov when using individual estimates of the sampling variation
-  - Updated optimizer default control parameters
+  o The log determinant is now computer better to be able to include fit measures at higher model complexities
+  o The 'return_improper' argument in runmodel( ) now returns improper estimates without trying different starting values
+  o Fixed a bug in meta_varcov when using individual estimates of the sampling variation
+  o Updated optimizer default control parameters
 
 Changes in version 0.7.6:
-  - Model estimations that used improper estimation (pseudoinverse of variance-covariance matrix) now return with an error unless return_improper = TRUE in runmodel()
-  - Equality-free MIs are now also computed when all edges are included
+  o Model estimations that used improper estimation (pseudoinverse of variance-covariance matrix) now return with an error unless return_improper = TRUE in runmodel()
+  o Equality-free MIs are now also computed when all edges are included
 
 Changes in version 0.7.5:
-  - Fixed a bug with nu_zeta being constrained in multigroup LGC models.
-  - factorscores now supports multi group models
+  o Fixed a bug with nu_zeta being constrained in multigroup LGC models.
+  o factorscores now supports multi group models
 
 Changes in version 0.7.3:
-  - Added the 'covariates_as' argument to latentgrowth() to model covariates with regressions (now default) or covariances
+  o Added the 'covariates_as' argument to latentgrowth() to model covariates with regressions (now default) or covariances
 
 Changes in version 0.7.2:
   o Fixed a bug with removing diagonal elements of sigma_epsilon with single indicators
@@ -131,4 +134,5 @@ Changes in version 0.3.2:
 Changes in version 0.3.1:
 	o Several help-files are now updated with executable examples
 
-Version 0.3.0: First version to be submitted to CRAN
+Changes in version 0.3.0: 
+  o First version to be submitted to CRAN
