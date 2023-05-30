@@ -125,7 +125,6 @@ psychonetrics_gradient <- function(x, model){
     Jac <- estimatorPart %*% modelPart %*% manualPart    
   }
 
-  
   # Return:
   return(as.vector(Jac))
 }

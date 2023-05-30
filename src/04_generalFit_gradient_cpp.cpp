@@ -62,8 +62,8 @@ void psychonetrics_gradient_cpp_inner(
     const arma::vec& x,
     arma::vec& grad,
     const S4& model,
-    bool useM = false,
-    bool sparsemodel = false
+    bool sparsemodel = false,
+    bool useM = false
 ){
   // Prepare model:
   Rcpp::List prep = prepareModel_cpp(x, model);
@@ -186,7 +186,7 @@ void psychonetrics_gradient_cpp_inner(
       
     } else {
       
-      innerpart =estimatorPart * modelPart;
+      innerpart = estimatorPart * modelPart;
       
     }
     
@@ -241,7 +241,7 @@ arma::vec psychonetrics_gradient_cpp(
   arma::vec grad(x.n_elem);
   
   // Run inner:
-  psychonetrics_gradient_cpp_inner(x, grad, model);
+  psychonetrics_gradient_cpp_inner(x, grad, model, sparsemodel, false);
   
   
   return(grad);

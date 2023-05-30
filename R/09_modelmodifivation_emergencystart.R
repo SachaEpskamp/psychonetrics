@@ -13,7 +13,12 @@ emergencystart <- function(x){
     g <- 1 # FIXME: Add for multiple groups!
       
       # Extract saturated covs:
+    if (!is.null(x@baseline_saturated$saturated@modelmatrices[[g]]$sigma)){
       satCovs <- spectralshift(x@baseline_saturated$saturated@modelmatrices[[g]]$sigma)
+    } else {
+      satCovs <- spectralshift(x@baseline_saturated$saturated@modelmatrices[[g]]$lowertri %*% t(x@baseline_saturated$saturated@modelmatrices[[g]]$lowertri))
+    }
+      
       
       # Model zeroes:
       net <- mats[[g]]$omega != 0

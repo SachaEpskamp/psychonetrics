@@ -178,7 +178,7 @@ meta_varcov <- function(
         
         # Elimintation matrix:
         L <- sparseMatrix(i=seq_along(inds),j=inds,dims=c(length(inds),nNode*(nNode-1)/2))
-        L <- as(L, "dgCMatrix")
+        L <- as(L, "dMatrix")
         
         # Now obtain only the full subset correlation matrix:
         cmat <- as(cors[[i]][obs,obs], "matrix")
@@ -557,18 +557,18 @@ meta_varcov <- function(
     L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
     Lstar = psychonetrics::eliminationMatrix(nNode, diag=FALSE), # Elinimation matrix
     Dstar = psychonetrics::duplicationMatrix(nNode,diag = FALSE), # Strict duplicaton matrix
-    In = as(diag(nNode),"dgCMatrix"), # Identity of dim n
+    In = as(diag(nNode),"dMatrix"), # Identity of dim n
     A = psychonetrics::diagonalizationMatrix(nNode),
-    C = as(lavaan::lav_matrix_commutation(nNode,nNode),"dgCMatrix"),
+    C = as(lavaan::lav_matrix_commutation(nNode,nNode),"dMatrix"),
     
     # Random effects:
     D_c = psychonetrics::duplicationMatrix(nCor), # non-strict duplciation matrix
     L_c = psychonetrics::eliminationMatrix(nCor), # Elinimation matrix
     Lstar_c = psychonetrics::eliminationMatrix(nCor, diag=FALSE), # Elinimation matrix
     Dstar_c = psychonetrics::duplicationMatrix(nCor,diag = FALSE), # Strict duplicaton matrix
-    In_c = as(diag(nCor),"dgCMatrix"), # Identity of dim n
+    In_c = as(diag(nCor),"dMatrix"), # Identity of dim n
     A_c = psychonetrics::diagonalizationMatrix(nCor),
-    C_c = as(lavaan::lav_matrix_commutation(nCor,nCor),"dgCMatrix"),
+    C_c = as(lavaan::lav_matrix_commutation(nCor,nCor),"dMatrix"),
     
     # Add the vmat:
     V = avgVmat,

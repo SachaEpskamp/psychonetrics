@@ -51,7 +51,7 @@ formModelMatrices <- function(x){
       #   if (mats$symmetrical[i]){
       #     mat <- as(mat, "dsCMatrix") # symmetric column-oriented numeric sparse matrix
       #   } else {
-      #     mat <- as(mat, "dgCMatrix") #  general column-oriented numeric sparse matrix          
+      #     mat <- as(mat, "dMatrix") #  general column-oriented numeric sparse matrix          
       #   }
       # 
       # }

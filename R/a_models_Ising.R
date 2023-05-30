@@ -146,7 +146,7 @@ Ising <- function(
     model@extramatrices <- list(
       D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
       L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
-      In = as(diag(nNode),"dgCMatrix"), # Identity of dim n
+      In = as(diag(nNode),"dMatrix"), # Identity of dim n
       responses = responses
     )
 

@@ -8,7 +8,7 @@ Mmatrix <- function(x){
   #   M <- Diagonal(dims[1]) # Diagonal matrix
   # } else {
     M <- sparseMatrix(i = rows, j = cols, dims = dims)
-    M <- as(M, "dgCMatrix")
+    M <- as(M, "dMatrix")
   # }
   return(M)
 }

@@ -6,7 +6,7 @@
 Variance-covariance and GGM meta analysis
 }
 \description{
-Meta analysis of correlation matrices to fit a homogenous correlation matrix or Gaussian graphical model. Based on meta-analytic SEM (Jak \& Cheung, 2019).
+Meta analysis of correlation matrices to fit a homogenous correlation matrix or Gaussian graphical model. Based on meta-analytic SEM (Jak and Cheung, 2019).
 }
 \usage{
 meta_varcov(cors, nobs, Vmats, Vmethod = c("individual", "pooled",
@@ -117,7 +117,7 @@ Arguments sent to \code{meta_varcov}
 An object of the class psychonetrics (\link{psychonetrics-class})
 }
 \references{
-Jak, S., \& Cheung, M. W. L. (2019). Meta-analytic structural equation modeling with moderating effects on SEM parameters. Psychological methods.
+Jak, S., and Cheung, M. W. L. (2019). Meta-analytic structural equation modeling with moderating effects on SEM parameters. Psychological methods.
 }
 \author{
 Sacha Epskamp <mail@sachaepskamp.com>

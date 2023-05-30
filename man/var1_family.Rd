@@ -10,14 +10,15 @@ This is the family of models that models time-series data using a lag-1 vector a
 }
 \usage{
 var1(data, contemporaneous = c("cov", "chol", "prec",
-                    "ggm"), beta = "full", omega_zeta = "full", delta_zeta
-                    = "full", kappa_zeta = "full", sigma_zeta = "full",
-                    lowertri_zeta = "full", mu, beepvar, dayvar, idvar,
-                    vars, groups, covs, means, nobs, missing = "listwise",
-                    equal = "none", baseline_saturated = TRUE, estimator =
-                    "ML", optimizer, storedata = FALSE, covtype =
-                    c("choose", "ML", "UB"), standardize = c("none", "z",
-                    "quantile"), sampleStats, verbose = FALSE)
+                   "ggm"), beta = "full", omega_zeta = "full", delta_zeta
+                   = "full", kappa_zeta = "full", sigma_zeta = "full",
+                   lowertri_zeta = "full", mu, beepvar, dayvar, idvar,
+                   vars, groups, covs, means, nobs, missing = "listwise",
+                   equal = "none", baseline_saturated = TRUE, estimator =
+                   "ML", optimizer, storedata = FALSE, covtype =
+                   c("choose", "ML", "UB"), standardize = c("none", "z",
+                   "quantile"), sampleStats, verbose = FALSE, bootstrap =
+                   FALSE)
 
 gvar(...)
 }
@@ -103,6 +104,9 @@ An optional sample statistics object. Mostly used internally.
 }
   \item{verbose}{
 Logical, should messages be printed?
+}
+\item{bootstrap}{
+ Bootstraps the data (reshuffles rows with replacement).
 }
 \item{\dots}{
 Arguments sent to \code{var1}

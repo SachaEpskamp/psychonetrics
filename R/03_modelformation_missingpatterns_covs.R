@@ -64,8 +64,8 @@ missingpatterns_covs <- function(means, covs, nobs, verbose = TRUE){
     
     
     # Stuff that Armadillo understands:
-    patterns[[1]]$L <- as( patterns[[1]]$L , "dgCMatrix")
-    # patterns[[1]]$D <- as( patterns[[1]]$D , "dgCMatrix")
+    patterns[[1]]$L <- as( patterns[[1]]$L , "dMatrix")
+    # patterns[[1]]$D <- as( patterns[[1]]$D , "dMatrix")
     
     # patterns[[1]]$Lmu <- sparseMatrix(i=seq_along(inds),j=inds,dims=c(length(inds),ncol(dat)))
     

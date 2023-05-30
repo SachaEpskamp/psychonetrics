@@ -74,6 +74,8 @@ dlvm1 <- function(
   verbose = FALSE,
   sampleStats
 ){
+
+  
   covtype <- match.arg(covtype)
   # Check for missing:
   # if (missing(lambda_within)){
@@ -138,7 +140,7 @@ dlvm1 <- function(
   
   
   # Design matrix:
-  # design <- as(1*(!is.na(vars)),"dgCMatrix")
+  # design <- as(1*(!is.na(vars)),"dMatrix")
   design <- as.matrix(1*(!is.na(vars)))
   
   # time per var:
@@ -274,17 +276,29 @@ dlvm1 <- function(
   # modMatrices$lambda_within <- matrixsetup_lambda(lambda_within, expcov=prior_wit_cov, nGroup = nGroup, observednames = sampleStats@variables$label, latentnames = latents,
   #                                          sampletable = sampleStats, name = "lambda_within")
   
-  
+
   # Quick and dirty sigma_zeta_within estimate:
   prior_sig_zeta_within <- lapply(seq_along(firstSigma1),function(i){
+    
     # Let's take a pseudoinverse:
     curLam <- matrix(as.vector(modMatrices$lambda$start[,,i,drop=FALSE]),nVar,nLat)
     
-    inv <- corpcor::pseudoinverse(as.matrix(kronecker(curLam,curLam)))
-    
-    # And obtain psi estimate:
-    matrix(inv %*% as.vector(prior_wit_cov[[i]])/2,nLat,nLat)
+    # If lambda is I then it is easy:
+    if (ncol(curLam) == nrow(curLam) && identical(curLam,diag(nrow(curLam)))){
+      # FIXME: This used to be /2, but direct estimate seems better?
+      return(prior_wit_cov[[i]]) 
+      
+      # Otherwise estimate:
+    } else {
+      
+      inv <- corpcor::pseudoinverse(as.matrix(kronecker(curLam,curLam)))
+      # And obtain psi estimate:
+      matrix(inv %*% as.vector(prior_wit_cov[[i]])/2,nLat,nLat)    
+    }
+  
   })
+  
+
   
   # Setup latent varcov:
   modMatrices <- c(modMatrices,
@@ -390,8 +404,8 @@ dlvm1 <- function(
     # Dstar_between = psychonetrics::duplicationMatrix(nLat,diag = FALSE),  
     
     # Identity matrices:
-    I_y = as(diag(nVar),"dgCMatrix"),
-    I_eta = as(diag(nLat),"dgCMatrix"),
+    I_y = as(diag(nVar),"dMatrix"),
+    I_eta = as(diag(nLat),"dMatrix"),
     # I_within = Diagonal(nLat),
     # I_between = Diagonal(nLat),
     
@@ -402,9 +416,9 @@ dlvm1 <- function(
     # A_between = psychonetrics::diagonalizationMatrix(nLat),
     
     # Commutation matrices:
-    C_y_y = as(lavaan::lav_matrix_commutation(nVar, nVar),"dgCMatrix"),
-    C_y_eta = as(lavaan::lav_matrix_commutation(nVar, nLat),"dgCMatrix"),
-    C_eta_eta = as(lavaan::lav_matrix_commutation(nLat, nLat),"dgCMatrix"),
+    C_y_y = as(lavaan::lav_matrix_commutation(nVar, nVar),"dMatrix"),
+    C_y_eta = as(lavaan::lav_matrix_commutation(nVar, nLat),"dMatrix"),
+    C_eta_eta = as(lavaan::lav_matrix_commutation(nLat, nLat),"dMatrix"),
     
     # 
     # C_y_within = as(lavaan::lav_matrix_commutation(nVar, nLat),"sparseMatrix"),
@@ -461,7 +475,7 @@ dlvm1 <- function(
     i = distVecrawts, j = distVec, dims = c(nTotal, totElements)
   )
   
-  model@extramatrices$P <- as( model@extramatrices$P, "dgCMatrix")
+  model@extramatrices$P <- as( model@extramatrices$P, "dMatrix")
   # model@extramatrices$P <- sparseMatrix(j=seq_along(inds),i=order(inds))
   
   
