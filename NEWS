@@ -1,3 +1,6 @@
+Changes in Version 0.12
+  o Fixed a bug in the identification function for ml_lvm models
+
 Changes in Version 0.11
   o Optimised lambda starting value choice
   o Changed warning for when a peusdoinverse was used in model estimation.

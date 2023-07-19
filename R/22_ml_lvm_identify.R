@@ -15,7 +15,7 @@ identify_ml_lvm <- function(x){
   x@parameters <- clearpars(x@parameters, betaDiag)
   
   # Always set residual (co)variance of single indicator items to zero:
-  nIndicators <- x@parameters %>% filter(matrix == .data[["lambda"]]) %>% group_by(.data[['var2_id']]) %>% 
+  nIndicators <- x@parameters %>% filter(matrix == "lambda") %>% group_by(.data[['var2_id']]) %>% 
     summarize(nLats = length(unique(.data[['var1_id']][!.data[['fixed']]])))
   
   if (any(nIndicators$nLats == 1)){
