@@ -629,12 +629,12 @@ Pot <- function(state, graph, tau, beta) {
     .Call(`_psychonetrics_Pot`, state, graph, tau, beta)
 }
 
-isingExpectation <- function(graph, tau, beta, responses) {
-    .Call(`_psychonetrics_isingExpectation`, graph, tau, beta, responses)
+isingExpectation <- function(graph, tau, beta, responses, min_sum) {
+    .Call(`_psychonetrics_isingExpectation`, graph, tau, beta, responses, min_sum)
 }
 
-computeZ_cpp <- function(graph, tau, beta, responses) {
-    .Call(`_psychonetrics_computeZ_cpp`, graph, tau, beta, responses)
+computeZ_cpp <- function(graph, tau, beta, responses, min_sum) {
+    .Call(`_psychonetrics_computeZ_cpp`, graph, tau, beta, responses, min_sum)
 }
 
 implied_Ising_cpp <- function(model, all = FALSE) {

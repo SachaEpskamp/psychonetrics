@@ -51,7 +51,8 @@ Rcpp::List isingExpectation(
     arma::mat graph,
     arma::vec tau,
     double beta,
-    arma::vec responses 
+    arma::vec responses,
+    double min_sum
 ){
   int nVar = graph.n_cols;
   double r1 = responses(0);
@@ -75,32 +76,46 @@ Rcpp::List isingExpectation(
   // Current exp_v2"
   arma::mat exp_v2 = zeros(nVar, nVar);
   
-  // Current expected hammiltonian:
+  // Current expected Hamiltonian:
   double exp_H = 0;
   
-  // Dumy for potential:
+  // Dummy for potential:
   double curpot, curH;
   
   // Current bool to stop:
   bool all_r2 = false;
   
+  // Do we need to update? for min_sum cutoff model
+  bool update = true;
+  bool alwaysUpdate = min_sum == R_NegInf;
+  
   // Repeat:
   do{
-    curH = H(curstate, graph, tau);
     
-    curpot = exp(-1.0 * beta * curH);
+    // First check if we need to update:
+    if (!alwaysUpdate){
+      update = sum(curstate) >= min_sum; 
+    }
     
-    // Update Z:
-    Z += curpot;
     
-    // Update exp_v1:
-    exp_v1 += curpot * curstate;
-    
-    // Update exp_v2:
-    exp_v2 += curpot * curstate * curstate.t();
-    
-    // Update exp_H:
-    exp_H += curpot * curH;
+    // Update the expected values:
+    if (update){
+      curH = H(curstate, graph, tau);
+      
+      curpot = exp(-1.0 * beta * curH);
+      
+      // Update Z:
+      Z += curpot;
+      
+      // Update exp_v1:
+      exp_v1 += curpot * curstate;
+      
+      // Update exp_v2:
+      exp_v2 += curpot * curstate * curstate.t();
+      
+      // Update exp_H:
+      exp_H += curpot * curH;
+    }
     
     // Check if leftmost state is not r2, if not, make r2:
     if (curstate(0) == r2){
@@ -138,7 +153,7 @@ Rcpp::List isingExpectation(
   exp_v1 = exp_v1 / Z;
   exp_v2 = exp_v2 / Z;
   exp_H = exp_H / Z;
-    
+  
   // Make return list:
   List L = List::create(Named("Z") = Z , Named("exp_v1") = exp_v1, Named("exp_v2") = exp_v2, Named("exp_H") = exp_H);
   
@@ -150,10 +165,11 @@ Rcpp::List isingExpectation(
 // Only Z:
 // [[Rcpp::export]]
 double computeZ_cpp(
-   arma::mat graph,
-   arma::vec tau,
-   double beta,
-   arma::vec responses 
+    arma::mat graph,
+    arma::vec tau,
+    double beta,
+    arma::vec responses,
+    double min_sum
 ){
   int nVar = graph.n_cols;
   double r1 = responses(0);
@@ -173,10 +189,21 @@ double computeZ_cpp(
   
   bool all_r2 = false;
   
+  // Do we need to update? for min_sum cutoff model
+  bool update = true;
+  bool alwaysUpdate = min_sum == R_NegInf;
+  
+  
   // Repeat:
   do{
-    // Update Z:
-    Z += Pot(curstate, graph, tau, beta);
+    if (!alwaysUpdate){
+      update = sum(curstate) >= min_sum; 
+    }
+    
+    if (update){
+      // Update Z:
+      Z += Pot(curstate, graph, tau, beta); 
+    }
     
     // Check if leftmost state is not r2, if not, make r2:
     if (curstate(0) == r2){
@@ -207,9 +234,9 @@ double computeZ_cpp(
     }
     
     
-
+    
   } while (!all_r2);
-
+  
   
   
   return(Z);

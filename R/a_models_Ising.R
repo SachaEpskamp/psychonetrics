@@ -21,13 +21,15 @@ Ising <- function(
   sampleStats, # Leave to missing
   identify = TRUE,
   verbose = FALSE,
-  maxNodes = 20
+  maxNodes = 20,
+  min_sum = -Inf # Used for threhsolded Ising model estimation
 ){
   covtype <- match.arg(covtype)
 
   if (missing(data) && missing(responses)){
     stop("'responses' argument may not be missing if 'data' is missing.")
   }
+
   
   # Determine responses:
   if (missing(responses)){
@@ -39,6 +41,19 @@ Ising <- function(
 
     if (length(responses) != 2){
       stop("Only binary responses that are encoded in the same way are supported.")
+    }
+  }
+  
+  # Check minimum sum score:
+  if (min_sum > -Inf){
+    if (missing(vars)){
+      min_sum_in_data <- min(rowSums(as.matrix(data)))
+    } else {
+      min_sum_in_data <- min(rowSums(as.matrix(data[,vars])))
+    }
+    
+    if (min_sum_in_data < min_sum){
+      stop("One or more sumscores in the data are lower than the threshold set using the 'min_sum' argument.")
     }
   }
 
@@ -83,8 +98,6 @@ Ising <- function(
                                covtype=covtype,
                                verbose=verbose)
   }
- 
-  
  
   # Check some things:
   nNode <- nrow(sampleStats@variables)
@@ -147,7 +160,8 @@ Ising <- function(
       D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
       L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
       In = as(diag(nNode),"dMatrix"), # Identity of dim n
-      responses = responses
+      responses = responses,
+      min_sum = min_sum
     )
 
   
@@ -171,7 +185,8 @@ Ising <- function(
                                                   equal = equal,
                                                   estimator = estimator,
                                                   responses = responses,
-                                                  baseline_saturated = FALSE,sampleStats=sampleStats)
+                                                  baseline_saturated = FALSE,sampleStats=sampleStats,
+                                               min_sum=min_sum)
     
     # Identify model:
     if (identify){
