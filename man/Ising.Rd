@@ -13,7 +13,8 @@ Ising(data, omega = "full", tau, beta, vars, groups, covs,
                     responses, missing = "listwise", equal = "none",
                     baseline_saturated = TRUE, estimator = "default",
                     optimizer, storedata = FALSE, WLS.W, sampleStats,
-                    identify = TRUE, verbose = FALSE, maxNodes = 20)
+                    identify = TRUE, verbose = FALSE, maxNodes = 20,
+                   min_sum = -Inf)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -82,6 +83,9 @@ Logical, should messages be printed?
 }
   \item{maxNodes}{
 The maximum number of nodes allowed in the analysis. This function will stop with an error if more nodes are used (it is not recommended to set this higher).
+}
+\item{min_sum}{
+ The minimum sum score that is artifically possible in the dataset. Defaults to -Inf. Set this only if you know a lower sum score is not possible in the data, for example due to selection bias.
 }
 }
 \details{

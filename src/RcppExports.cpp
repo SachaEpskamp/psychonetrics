@@ -2019,8 +2019,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // isingExpectation
-Rcpp::List isingExpectation(arma::mat graph, arma::vec tau, double beta, arma::vec responses);
-RcppExport SEXP _psychonetrics_isingExpectation(SEXP graphSEXP, SEXP tauSEXP, SEXP betaSEXP, SEXP responsesSEXP) {
+Rcpp::List isingExpectation(arma::mat graph, arma::vec tau, double beta, arma::vec responses, double min_sum);
+RcppExport SEXP _psychonetrics_isingExpectation(SEXP graphSEXP, SEXP tauSEXP, SEXP betaSEXP, SEXP responsesSEXP, SEXP min_sumSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -2028,13 +2028,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::vec >::type tau(tauSEXP);
     Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type responses(responsesSEXP);
-    rcpp_result_gen = Rcpp::wrap(isingExpectation(graph, tau, beta, responses));
+    Rcpp::traits::input_parameter< double >::type min_sum(min_sumSEXP);
+    rcpp_result_gen = Rcpp::wrap(isingExpectation(graph, tau, beta, responses, min_sum));
     return rcpp_result_gen;
 END_RCPP
 }
 // computeZ_cpp
-double computeZ_cpp(arma::mat graph, arma::vec tau, double beta, arma::vec responses);
-RcppExport SEXP _psychonetrics_computeZ_cpp(SEXP graphSEXP, SEXP tauSEXP, SEXP betaSEXP, SEXP responsesSEXP) {
+double computeZ_cpp(arma::mat graph, arma::vec tau, double beta, arma::vec responses, double min_sum);
+RcppExport SEXP _psychonetrics_computeZ_cpp(SEXP graphSEXP, SEXP tauSEXP, SEXP betaSEXP, SEXP responsesSEXP, SEXP min_sumSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -2042,7 +2043,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::vec >::type tau(tauSEXP);
     Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type responses(responsesSEXP);
-    rcpp_result_gen = Rcpp::wrap(computeZ_cpp(graph, tau, beta, responses));
+    Rcpp::traits::input_parameter< double >::type min_sum(min_sumSEXP);
+    rcpp_result_gen = Rcpp::wrap(computeZ_cpp(graph, tau, beta, responses, min_sum));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -2299,8 +2301,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_expHessianCpp", (DL_FUNC) &_psychonetrics_expHessianCpp, 7},
     {"_psychonetrics_H", (DL_FUNC) &_psychonetrics_H, 3},
     {"_psychonetrics_Pot", (DL_FUNC) &_psychonetrics_Pot, 4},
-    {"_psychonetrics_isingExpectation", (DL_FUNC) &_psychonetrics_isingExpectation, 4},
-    {"_psychonetrics_computeZ_cpp", (DL_FUNC) &_psychonetrics_computeZ_cpp, 4},
+    {"_psychonetrics_isingExpectation", (DL_FUNC) &_psychonetrics_isingExpectation, 5},
+    {"_psychonetrics_computeZ_cpp", (DL_FUNC) &_psychonetrics_computeZ_cpp, 5},
     {"_psychonetrics_implied_Ising_cpp", (DL_FUNC) &_psychonetrics_implied_Ising_cpp, 2},
     {"_psychonetrics_prepare_Ising_cpp", (DL_FUNC) &_psychonetrics_prepare_Ising_cpp, 2},
     {"_psychonetrics_d_phi_theta_ml_lvm_group_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_ml_lvm_group_cpp, 1},
