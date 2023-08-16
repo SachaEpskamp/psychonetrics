@@ -45,12 +45,16 @@ fixpar <- function(
   if (is.character(col)){
     col <- labs$col
   }
-  # If the matrix is symmetric, add them to each other:
+  # If the matrix is symmetric, make sure col contains the lower number:
   if (x@matrices$symmetric[x@matrices$name == matrix]){
     row0 <- row
     col0 <- col
-    row <- c(row0,col0)
-    col <- c(col0,row0)
+    
+    col <- pmin(row0,col0)
+    row <- pmax(row0,col0)
+    
+    # row <- c(row0,col0)
+    # col <- c(col0,row0)
   }
   
   # which to fix:
