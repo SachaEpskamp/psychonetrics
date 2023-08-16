@@ -156,7 +156,6 @@ modelsearch <- function(x,
   
   # Start outer loop for evaluating ALL competing models!
   repeat{
-    
     # List all parameters in matrices of interest:
     ind <- which(x@parameters$matrix %in% matrices & !x@parameters$identified)
     
