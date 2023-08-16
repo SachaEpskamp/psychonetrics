@@ -35,7 +35,7 @@ checkJacobian <- function(x, f = psychonetrics_fitfunction_cpp, jac = psychonetr
 
   # plot:
   if (plot){
-    plot(Vec(analytic),Vec(numeric),xlab="analytic",ylab="numeric")
+    plot(as.vector(as.numeric(Vec(analytic))),as.vector(as.numeric(Vec(numeric))),xlab="analytic",ylab="numeric")
     abline(0,1)
   }
   
