@@ -23,7 +23,8 @@ arma::vec eig_sym_cpp(
 // Check symmetric pd:
 // [[Rcpp::export]]
 bool sympd_cpp(
-    arma::mat X
+    arma::mat X,
+    bool semi = true
 ){
   // Check if symmetric:
   bool issym = X.is_symmetric();
@@ -36,7 +37,13 @@ bool sympd_cpp(
   // Check if posdef:
   double epsilon = 1.490116e-08;
   
-  bool posdef = eig_sym(arma::symmatl(X))[0] > -epsilon; //X.is_sympd();
+  bool posdef;
+  
+  if (semi){
+    posdef =  eig_sym(arma::symmatl(X))[0] > -epsilon; //X.is_sympd();
+  } else {
+    posdef =  eig_sym(arma::symmatl(X))[0] > epsilon;
+  }
   
   // return:
   return(posdef);

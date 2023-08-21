@@ -23,13 +23,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // sympd_cpp
-bool sympd_cpp(arma::mat X);
-RcppExport SEXP _psychonetrics_sympd_cpp(SEXP XSEXP) {
+bool sympd_cpp(arma::mat X, bool semi);
+RcppExport SEXP _psychonetrics_sympd_cpp(SEXP XSEXP, SEXP semiSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(sympd_cpp(X));
+    Rcpp::traits::input_parameter< bool >::type semi(semiSEXP);
+    rcpp_result_gen = Rcpp::wrap(sympd_cpp(X, semi));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -2145,7 +2146,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_eig_sym_cpp", (DL_FUNC) &_psychonetrics_eig_sym_cpp, 1},
-    {"_psychonetrics_sympd_cpp", (DL_FUNC) &_psychonetrics_sympd_cpp, 1},
+    {"_psychonetrics_sympd_cpp", (DL_FUNC) &_psychonetrics_sympd_cpp, 2},
     {"_psychonetrics_solve_symmetric_cpp", (DL_FUNC) &_psychonetrics_solve_symmetric_cpp, 3},
     {"_psychonetrics_solve_symmetric_cpp_matrixonly", (DL_FUNC) &_psychonetrics_solve_symmetric_cpp_matrixonly, 2},
     {"_psychonetrics_solve_symmetric_cpp_matrixonly_withcheck", (DL_FUNC) &_psychonetrics_solve_symmetric_cpp_matrixonly_withcheck, 2},
