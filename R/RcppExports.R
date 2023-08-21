@@ -5,8 +5,8 @@ eig_sym_cpp <- function(X) {
     .Call(`_psychonetrics_eig_sym_cpp`, X)
 }
 
-sympd_cpp <- function(X) {
-    .Call(`_psychonetrics_sympd_cpp`, X)
+sympd_cpp <- function(X, semi = TRUE) {
+    .Call(`_psychonetrics_sympd_cpp`, X, semi)
 }
 
 solve_symmetric_cpp <- function(X, logdet = FALSE, sqrt_epsilon = 1.490116e-08) {

@@ -16,7 +16,8 @@ arma::vec eig_sym_cpp(
 );
 
 bool sympd_cpp(
-                arma::mat X
+                arma::mat X,
+                bool semi = true
 );
 
 Rcpp::List solve_symmetric_cpp(

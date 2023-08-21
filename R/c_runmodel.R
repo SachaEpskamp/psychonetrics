@@ -435,23 +435,23 @@ runmodel <- function(
       
       
       # If information is not positive definite, try to fix:
-      if (!sympd_cpp(x@information)){
+      if (!sympd_cpp(x@information, semi = FALSE)){
         
         # Try to recover using start values:
-        if (trystart == 1){
-          trystart <- 2
-          x <- updateModel(oldstart, x)
-          x <- emergencystart(x)
-        } else {
+        # if (trystart == 1){
+        #   trystart <- 2
+        #   x <- updateModel(oldstart, x)
+        #   x <- emergencystart(x)
+        # } else {
           trystart <- 3
           if (return_improper){
             if (warn_improper){
-              warning("Information matrix or implied variance-covariance matrix was not positive semi-definite. This can happen because the model is not identified, or because the optimizer encountered problems. Try running the model with a different optimizer using setoptimizer(...).")    
+              warning("Information matrix or implied variance-covariance matrix was not positive semi-definite. This can happen because the model is not identified, or because the optimizer encountered problems. Try standardizing data or adjusting starting values.")    
             }
           } else {
-            stop("Information matrix or implied variance-covariance matrix was not positive semi-definite. This can happen because the model is not identified, or because the optimizer encountered problems. Try running the model with a different optimizer using setoptimizer(...).")
+            stop("Information matrix or implied variance-covariance matrix was not positive semi-definite. This can happen because the model is not identified, or because the optimizer encountered problems. Try standardizing data or adjusting starting values.")
           }
-        }
+        # }
         
         
       } else if (!proper){
