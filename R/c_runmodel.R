@@ -15,6 +15,7 @@ runmodel <- function(
     analyticFisher = TRUE,
     warn_improper = FALSE,
     warn_gradient = TRUE,
+    warn_bounds = TRUE,
     return_improper = TRUE,
     bounded = TRUE,
     approximate_SEs=FALSE
@@ -177,21 +178,21 @@ runmodel <- function(
   
   if (grepl("cpp",optimizer)){
     
-    
-    
-    
-    
-    tryres <- try({
-      x <- psychonetrics_optimizer(x, lower, upper, gsub("cpp_","",optimizer), bounded)
-    }, silent = TRUE)    
+    suppressWarnings({
+      tryres <- try({
+        x <- psychonetrics_optimizer(x, lower, upper, gsub("cpp_","",optimizer), bounded)
+      }, silent = TRUE) 
+    })
     
     if (is(tryres,"try-error") && !any(is.na(parVector(x)))){
       
-      tryres2 <- try({
-        # browser()
-        x <- updateModel(oldstart, x)
-        x <- psychonetrics_optimizer(emergencystart(x), lower, upper, gsub("cpp_","",optimizer))
-      }, silent = TRUE)    
+      suppressWarnings({
+        tryres2 <- try({
+          # browser()
+          x <- updateModel(oldstart, x)
+          x <- psychonetrics_optimizer(emergencystart(x), lower, upper, gsub("cpp_","",optimizer))
+        }, silent = TRUE)    
+      })
       
       # If still an error, break:
       if (is(tryres2,"try-error") && !any(is.na(parVector(x)))){
@@ -261,19 +262,22 @@ runmodel <- function(
       }
     }
     
-    
-    tryres <- try({
-      optim.out <- do.call(optimr_fake,optim.control)
-    }, silent = TRUE)    
+    suppressWarnings({
+      tryres <- try({
+        optim.out <- do.call(optimr_fake,optim.control)
+      }, silent = TRUE)    
+    })
     
     if (is(tryres,"try-error") || any(is.na(optim.out$par))){
       # Try with emergencystart:
       x <- updateModel(oldstart, x)
       optim.control$par <- parVector(emergencystart(x))
       
-      tryres2 <- try({
-        optim.out <- do.call(optimr_fake,optim.control)
-      }, silent = TRUE)    
+      suppressWarnings({
+        tryres2 <- try({
+          optim.out <- do.call(optimr_fake,optim.control)
+        }, silent = TRUE)    
+      })
       
       # If still an error, break:
       if (is(tryres2,"try-error") || any(is.na(optim.out$par))){
@@ -486,7 +490,7 @@ runmodel <- function(
   }
   
   # Check bounds:
-  if (bounded){
+  if (bounded && warn_bounds){
     if (!all(x@parameters$fixed)){
       if (any(x@parameters$est[!x@parameters$fixed] <= x@parameters$minimum[!x@parameters$fixed] + sqrt(.Machine$double.eps)) ||
           any(x@parameters$est[!x@parameters$fixed] >= x@parameters$maximum[!x@parameters$fixed] - sqrt(.Machine$double.eps))){
