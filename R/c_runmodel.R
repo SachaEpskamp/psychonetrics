@@ -13,10 +13,11 @@ runmodel <- function(
     optim.control,
     # maxtry = 5,
     analyticFisher = TRUE,
-    warn_improper = TRUE,
+    warn_improper = FALSE,
     warn_gradient = TRUE,
     return_improper = TRUE,
-    bounded = TRUE
+    bounded = TRUE,
+    approximate_SEs=FALSE
 ){
   if (!missing(optim.control)){
     warning("'optim.control' is deprecated and will be removed in a future version. Please use setoptimizer(..., optim.args = ...).")
@@ -432,17 +433,17 @@ runmodel <- function(
       propers <- sapply(x@modelmatrices,"[[","proper")
       proper <- all(propers)
     }
-    
-    
-    # If information is not positive definite, try to fix:
-    if (!sympd_cpp(x@information, semi = FALSE)){
-      
-      warning("Information matrix or implied variance-covariance matrix was not positive semi-definite. This can happen because the model is not identified, or because the optimizer encountered problems. Try standardizing data or adjusting starting values.")    
-      
-    }
+    # 
+    # 
+    # # If information is not positive definite, try to fix:
+    # if (!sympd_cpp(x@information, semi = FALSE)){
+    #   
+    #   warning("Information matrix or implied variance-covariance matrix was not positive semi-definite. This can happen because the model is not identified, or because the optimizer encountered problems. Try standardizing data or adjusting starting values.")    
+    #   
+    # }
     
     if (!proper && warn_improper){
-      warning("The optimizer encountered at least one non-positive definite matrix and used a pseudoinverse in parameter estimation. This is likely not a problem, but make sure to inspect if the parameters look reasonable before evaluating model fit.")
+      warning("The optimizer encountered at least one non-positive definite matrix and used an approximate inverse in parameter estimation. This is likely not a problem, but make sure to inspect if the parameters look reasonable before evaluating model fit.")
     }
     # 
     #   # Try to recover using start values:
@@ -553,9 +554,9 @@ runmodel <- function(
       if (verbose){
         message("Adding standard errors...")
       }
-      x <- addSEs_cpp(x)  
+      x <- addSEs_cpp(x,verbose=verbose,approximate_SEs=approximate_SEs)  
     } else {
-      x <- addSEs(x, verbose=verbose)
+      x <- addSEs(x, verbose=verbose,approximate_SEs=approximate_SEs)
     }
     
   }
