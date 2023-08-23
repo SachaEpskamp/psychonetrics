@@ -1,4 +1,5 @@
 Changes in Version 0.12
+  o Using "empty" for matrix specification is now deprecated; use "diag" or "zero" instead.
   o Changed the starting values for dlvm1 models for better convergence (hopefully)
   o The groupequal, groupfree, fixpar and freepar functions can now handle multiple rows/columns for symmetric matrices
   o Fixed a bug in the identification function for ml_lvm models
