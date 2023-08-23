@@ -23,11 +23,11 @@ bifactor <- function(data, lambda, latents,  bifactor = "g", ...){
   
   # Return model:
   mod <- lvm(data, lambda = lambda,  latents=latents, ...,
-      sigma_zeta = "empty", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
-      kappa_zeta = "empty", # Precision
-      omega_zeta = "empty", # Partial correlations
-      lowertri_zeta = "empty", # Cholesky
-      delta_zeta = "empty")
+      sigma_zeta = "diag", #
+      kappa_zeta = "diag", # Precision
+      omega_zeta = "zero", # Partial correlations
+      lowertri_zeta = "diag", # Cholesky
+      delta_zeta = "diag")
   
   # FIXME: Bad starting values
   # Adjust factor loading start values:

@@ -39,7 +39,7 @@ ConsData <- bfi \%>\%
 vars <- names(ConsData)[1:5]
 
 # Let's fit a full GGM:
-mod <- ggm(ConsData, vars = vars, omega = "empty")
+mod <- ggm(ConsData, vars = vars, omega = "zero")
 
 # Run model:
 mod <- mod \%>\% runmodel

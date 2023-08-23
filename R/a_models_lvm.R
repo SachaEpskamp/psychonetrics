@@ -6,14 +6,14 @@ lvm <- function(
   residual = c("cov","chol","prec","ggm"),
   
   # Latent matrices:
-  sigma_zeta = "full", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
+  sigma_zeta = "full",
   kappa_zeta = "full", # Precision
   omega_zeta = "full", # Partial correlations
   lowertri_zeta = "full", # Cholesky
   delta_zeta = "full", # Used for both ggm and pcor
   
   # Residual matrices:
-  sigma_epsilon = "diag", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
+  sigma_epsilon = "diag", # 
   kappa_epsilon = "diag", # Precision
   omega_epsilon = "zero", # Partial correlations
   lowertri_epsilon = "diag", # Cholesky

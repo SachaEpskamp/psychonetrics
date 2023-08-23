@@ -11,8 +11,12 @@ fixMatrix <- function(Matrix, nGroup, nrows, ncols, equal = FALSE, diag0 = FALSE
   # Make Matrix if one of the defaults is used:
   if (is.character(Matrix)){
     
-    # Empty network:
     if (Matrix == "empty"){
+      warning("Using 'empty' for matrix specification is deprecated. Please use 'full', 'diag', or 'zero' instead.")
+    }
+    
+    # Empty network:
+    if (Matrix %in% c("empty","zero")){
         # Different for all groups:
         Matrix <- array(0, c(nrows, ncols, nGroup))
     } else {

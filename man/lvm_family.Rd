@@ -16,9 +16,9 @@ lvm(data, lambda, latent = c("cov", "chol", "prec",
                    "ggm"), residual = c("cov", "chol", "prec", "ggm"),
                    sigma_zeta = "full", kappa_zeta = "full", omega_zeta =
                    "full", lowertri_zeta = "full", delta_zeta = "full",
-                   sigma_epsilon = "empty", kappa_epsilon = "empty",
-                   omega_epsilon = "empty", lowertri_epsilon = "empty",
-                   delta_epsilon = "empty", beta = "empty", nu, nu_eta,
+                   sigma_epsilon = "diag", kappa_epsilon = "diag",
+                   omega_epsilon = "zero", lowertri_epsilon = "diag",
+                   delta_epsilon = "diag", beta = "zero", nu, nu_eta,
                    identify = TRUE, identification = c("loadings",
                    "variance"), vars, latents, groups, covs, means, nobs,
                    missing = "listwise", equal = "none",
@@ -47,34 +47,34 @@ The type of latent model used. See description.
 The type of residual model used. See description.
 }
   \item{sigma_zeta}{
-Only used when \code{latent = "cov"}. Either \code{"full"} to estimate every element freely, \code{"empty"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{latent = "cov"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{kappa_zeta}{
-Only used when \code{latent = "prec"}. Either \code{"full"} to estimate every element freely, \code{"empty"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{latent = "prec"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{omega_zeta}{
-Only used when \code{latent = "ggm"}. Either \code{"full"} to estimate every element freely, \code{"empty"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{latent = "ggm"}. Either \code{"full"} to estimate every element freely, \code{"zero"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{lowertri_zeta}{
-Only used when \code{latent = "chol"}. Either \code{"full"} to estimate every element freely, \code{"empty"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{latent = "chol"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{delta_zeta}{
-Only used when \code{latent = "ggm"}. Either \code{"full"} to estimate every element freely, \code{"empty"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{latent = "ggm"}. Either \code{"diag"} or \code{"zero"}, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{sigma_epsilon}{
-Only used when \code{residual = "cov"}. Either \code{"full"} to estimate every element freely, \code{"empty"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{residual = "cov"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{kappa_epsilon}{
-Only used when \code{residual = "prec"}. Either \code{"full"} to estimate every element freely, \code{"empty"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{residual = "prec"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{omega_epsilon}{
-Only used when \code{residual = "ggm"}. Either \code{"full"} to estimate every element freely, \code{"empty"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{residual = "ggm"}. Either \code{"full"} to estimate every element freely, \code{"zero"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{lowertri_epsilon}{
-Only used when \code{residual = "chol"}. Either \code{"full"} to estimate every element freely, \code{"empty"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{residual = "chol"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{delta_epsilon}{
-Only used when \code{residual = "ggm"}. Either \code{"full"} to estimate every element freely, \code{"empty"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{residual = "ggm"}. Either \code{"diag"} or \code{"zero"}, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{beta}{
 A model matrix encoding the structural relations between latent variables. A 0 encodes a fixed to zero element, a 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
