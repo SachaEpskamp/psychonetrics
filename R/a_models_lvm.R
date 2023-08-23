@@ -13,14 +13,14 @@ lvm <- function(
   delta_zeta = "full", # Used for both ggm and pcor
   
   # Residual matrices:
-  sigma_epsilon = "empty", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
-  kappa_epsilon = "empty", # Precision
-  omega_epsilon = "empty", # Partial correlations
-  lowertri_epsilon = "empty", # Cholesky
-  delta_epsilon = "empty", # Used for both ggm and pcor
+  sigma_epsilon = "diag", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
+  kappa_epsilon = "diag", # Precision
+  omega_epsilon = "zero", # Partial correlations
+  lowertri_epsilon = "diag", # Cholesky
+  delta_epsilon = "diag", # Used for both ggm and pcor
   
   # Beta:
-  beta = "empty",
+  beta = "zero",
   
   # Mean structure:
   nu,
@@ -370,7 +370,7 @@ lvm <- function(
     # Form baseline model:
     model@baseline_saturated$baseline <- varcov(data,
                                                 type = "chol",
-                                                lowertri = "empty",
+                                                lowertri = "diag",
                                              vars = vars,
                                              groups = groups,
                                              covs = covs,

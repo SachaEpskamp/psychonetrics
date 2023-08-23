@@ -43,7 +43,7 @@ changedata <- function(x, data, covs, nobs, means, groups, missing = "listwise")
   # Form baseline model:
   x@baseline_saturated$baseline <- varcov(data,
                                               type = "chol",
-                                              lowertri = "empty",
+                                              lowertri = "diag",
                                               vars = vars,
                                               groups = groups,
                                               covs = covs,
