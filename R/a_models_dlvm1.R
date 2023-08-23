@@ -40,10 +40,10 @@ dlvm1 <- function(
     
     # Residual latent effects between:
     omega_epsilon_between = "zero", 
-    delta_epsilon_between = "default", # If missing, just full for both groups or equal
-    kappa_epsilon_between = "default",
-    sigma_epsilon_between = "default",
-    lowertri_epsilon_between = "default",
+    delta_epsilon_between = "diag", # If missing, just full for both groups or equal
+    kappa_epsilon_between = "diag",
+    sigma_epsilon_between = "diag",
+    lowertri_epsilon_between = "diag",
     
     # Mean structure:
     nu,
