@@ -18,28 +18,28 @@ dlvm1 <- function(
     beta = "full",
     
     # Contemporaneous latent effects within:
-    omega_zeta_within = "full", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
+    omega_zeta_within = "full",
     delta_zeta_within = "diag", # If missing, just full for both groups or equal
     kappa_zeta_within = "full",
     sigma_zeta_within = "full",
     lowertri_zeta_within = "full",
     
     # Residual latent effects within:
-    omega_epsilon_within = "zero", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
+    omega_epsilon_within = "zero", 
     delta_epsilon_within = "default", # If missing, just full for both groups or equal
     kappa_epsilon_within = "default",
     sigma_epsilon_within = "default",
     lowertri_epsilon_within = "default",
     
     # Contemporaneous latent effects between:
-    omega_zeta_between = "full", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
+    omega_zeta_between = "full",
     delta_zeta_between = "diag", # If missing, just full for both groups or equal
     kappa_zeta_between = "full",
     sigma_zeta_between = "full",
     lowertri_zeta_between = "full",
     
     # Residual latent effects between:
-    omega_epsilon_between = "zero", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
+    omega_epsilon_between = "zero", 
     delta_epsilon_between = "default", # If missing, just full for both groups or equal
     kappa_epsilon_between = "default",
     sigma_epsilon_between = "default",
@@ -797,7 +797,7 @@ dlvm1 <- function(
     # Form baseline model:
     model@baseline_saturated$baseline <- varcov(data,
                                                 type = "chol",
-                                                lowertri = "empty",
+                                                lowertri = "diag",
                                                 vars = allVars,
                                                 groups = groups,
                                                 covs = covs,

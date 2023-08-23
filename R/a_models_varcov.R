@@ -2,7 +2,7 @@
 varcov <- function(
   data, # Dataset
   type = c("cov","chol","prec","ggm","cor"),
-  sigma = "full", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
+  sigma = "full", 
   kappa = "full", # Precision
   # rho = "full", # Correlations
   omega = "full", # Partial correlations
