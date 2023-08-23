@@ -48,7 +48,7 @@ bootstrap <- function(x, replacement = TRUE, proportion = 1, verbose = TRUE, sto
   if (baseline_saturated){
     x@baseline_saturated$baseline <- varcov(data,
                                             type = "chol",
-                                            lowertri = "empty",
+                                            lowertri = "diag",
                                             vars = attr(data, "vars"),
                                             groups = attr(data, "groups"),
                                             missing = attr(data, "missing"),
