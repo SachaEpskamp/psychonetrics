@@ -7,7 +7,7 @@ varcov <- function(
   # rho = "full", # Correlations
   omega = "full", # Partial correlations
   lowertri = "full", # Cholesky
-  delta = "full", # Used for both ggm and pcor
+  delta = "diag", # Used for both ggm and pcor
   rho = "full", # Used for cor
   SD = "full", # Used for cor
   mu,
@@ -299,7 +299,7 @@ varcov <- function(
     if (!corinput){
       model@baseline_saturated$baseline <- varcov(data,
                                                   type = "chol",
-                                                  lowertri = "empty",
+                                                  lowertri = "diag",
                                                   vars = vars,
                                                   groups = groups,
                                                   covs = covs,
@@ -315,7 +315,7 @@ varcov <- function(
     } else {
       model@baseline_saturated$baseline <- varcov(data,
                                                   type = "cor",
-                                                  rho = "empty",
+                                                  rho = "zero",
                                                   vars = vars,
                                                   groups = groups,
                                                   covs = covs,
