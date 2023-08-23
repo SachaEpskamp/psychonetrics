@@ -290,6 +290,7 @@ runmodel <- function(
     
     optimresults <- optim.out
     optimresults$optimizer <- optimizer
+    class(optimresults) <- c("list",class(optimresults))
     x@optim <- optimresults
     # x@computed <- TRUE
     x@objective <- optimresults$value
