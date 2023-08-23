@@ -111,6 +111,11 @@ dlvm1 <- function(
   between_residual <- match.arg(between_residual)
   identification <- match.arg(identification)
   
+  # Warn for variance identification:
+  if (identification == "variance"){
+    warning("Using identification = 'variance' might lead to unexpected results for the dlvm1 family and is currenty not recommended.")
+  }
+  
   # Extract var names:
   if (missing(vars)){
     stop("'vars' argument may not be missing")
