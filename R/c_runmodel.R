@@ -18,8 +18,25 @@ runmodel <- function(
     warn_bounds = TRUE,
     return_improper = TRUE,
     bounded = TRUE,
-    approximate_SEs=FALSE
+    approximate_SEs=FALSE,
+    cholesky_start  # If TRUE, a model is formed with Cholesky decompositions first which is run for obtaining starting values.
 ){
+  # Cholesky start:
+  if (missing(cholesky_start)){
+    # # Don't do this if the model was evaluated earlier:
+    # cholesky_start <- x@distribution == "Gaussian" && !any(sapply(x@log,slot,"event")=="Evaluated model")
+    
+    # Only Gaussian:
+    cholesky_start <- x@distribution == "Gaussian"
+    
+  }
+  if (!is.logical(cholesky_start)){
+    stop("'cholesky_start' must be a logical argument")
+  }
+  if (isTRUE(cholesky_start) && x@distribution != "Gaussian"){
+    stop("'cholesky_start' is only supported for Gaussian models")
+  }
+  
   if (!missing(optim.control)){
     warning("'optim.control' is deprecated and will be removed in a future version. Please use setoptimizer(..., optim.args = ...).")
     x@optim.args <- optim.control
@@ -85,7 +102,7 @@ runmodel <- function(
     if (verbose) message("Estimating baseline model...")
     # Run:
     x@baseline_saturated$baseline@optimizer <- optimizer
-    x@baseline_saturated$baseline <- runmodel(x@baseline_saturated$baseline, addfit = FALSE, addMIs = FALSE, verbose = FALSE,addSEs=FALSE, addInformation = FALSE, analyticFisher = FALSE)
+    x@baseline_saturated$baseline <- runmodel(x@baseline_saturated$baseline, addfit = FALSE, addMIs = FALSE, verbose = FALSE,addSEs=FALSE, addInformation = FALSE, analyticFisher = FALSE, cholesky_start = FALSE)
   }
   
   # Evaluate saturated model:
@@ -94,7 +111,7 @@ runmodel <- function(
     if (verbose) message("Estimating saturated model...")
     x@baseline_saturated$saturated@optimizer <- optimizer
     # Run:
-    x@baseline_saturated$saturated <- runmodel(x@baseline_saturated$saturated, addfit = FALSE, addMIs = FALSE, verbose = FALSE,addSEs=FALSE, addInformation = FALSE, analyticFisher = FALSE)
+    x@baseline_saturated$saturated <- runmodel(x@baseline_saturated$saturated, addfit = FALSE, addMIs = FALSE, verbose = FALSE,addSEs=FALSE, addInformation = FALSE, analyticFisher = FALSE, cholesky_start = FALSE)
   }
   
   
@@ -160,7 +177,240 @@ runmodel <- function(
   # if (optimizer%in% c("ucminf") & level == "hessian"){
   #   warning("Optimizer does not support analytical Hessian. Using numeric Hessian instead.")
   #   level <- "gradient"
-  # }
+  # 
+  
+  
+  ### CHOLESKY DECOMPOSITION STARTING VALUES ###
+  if (cholesky_start){
+    
+    # FIXME: a data frame with all types and classes in psychonetrics:
+    type_df <- rbind(
+      
+      # varcov:
+      data.frame(
+        family = "varcov",
+        type = "y",
+        appendix = ""
+      ),
+      
+      # lvm:
+      data.frame(
+        family = "lvm",
+        type = c("latent","residual"),
+        appendix = c("_zeta","_epsilon")
+      ),
+      
+      # dlvm1:
+      data.frame(
+        family = "dlvm1",
+        type = c("within_latent","within_residual","between_latent","between_residual"),
+        appendix = c("_zeta_within","_epsilon_within","_zeta_between","_epsilon_between")
+      ),
+      
+      # ml_lvm:
+      data.frame(
+        family = "ml_lvm",
+        type = c("within_latent","within_residual","between_latent","between_residual"),
+        appendix = c("_zeta_within","_epsilon_within","_zeta_between","_epsilon_between")
+      ),
+      
+      # var1:
+      data.frame(
+        family = "var1",
+        type = c("zeta"),
+        appendix = c("_zeta")
+      ),
+      
+      # tsdlvm1:
+      data.frame(
+        family = "tsdlvm1",
+        type = c("zeta","epsilon"),
+        appendix = c("_zeta","_epsilon")
+      ),
+      
+      # meta_varcov
+      data.frame(
+        family = "meta_varcov",
+        type = c("y","randomEffects"),
+        appendix = c("_y","_randomEffects")
+      )
+    )
+    
+    
+    
+    # Form the Cholesky model:
+    chol_mod <- x
+    
+    # Update the matrices:
+    chol_mod@modelmatrices <- formModelMatrices_cpp(chol_mod)
+    
+    # Check if any type is not chol?
+    curtypes <- unlist(x@types)
+    
+    # New mod matrices to be stored:
+    new_modmatrices <- list()
+    
+    # look over all types that are not chol (if all are chol, do nothing):
+    for (type in which(curtypes!="chol")){
+      
+      # What is the appendix?
+      appendix <- type_df$appendix[type_df$family == x@model & type_df$type == names(curtypes!="chol")[type]]
+      
+      # Which parameters are these?
+      whichPars <- grepl(appendix,chol_mod@parameters$matrix,fixed=TRUE)
+      
+      # Is the structure saturated?
+      saturated <- all(!chol_mod@parameters$fixed[whichPars])
+      
+      # Is the structure diagonal?
+      diagonal <- all(!chol_mod@parameters$fixed[whichPars & chol_mod@parameters$row == chol_mod@parameters$col]) &
+        all(chol_mod@parameters$fixed[whichPars & chol_mod@parameters$row != chol_mod@parameters$col]) 
+      
+      # FIXME: Only do this if the model is saturated or diagonal:
+      if (saturated || diagonal){
+        
+        # Make the type a cholesky decomposition:
+        chol_mod@types[[type]] <- "chol"
+        
+        # Extract the covariance matrix:
+        # FIXME: Only sigma is needed, but I am lazy
+        all_mats <- impliedcovstructures_cpp(chol_mod@modelmatrices,gsub("^\\_","",appendix),type=x@types[[type]],all=FALSE)
+        
+        # Obtain covariance start values:
+        exp_cov <- lapply(lapply(all_mats,"[[",paste0("sigma",appendix)), spectralshift)
+        
+        # variable names:
+        varNames <- chol_mod@parameters$var1[whichPars & chol_mod@parameters$row == chol_mod@parameters$col & chol_mod@parameters$group_id == 1]
+        
+        # Obtain the new par table:
+        if (saturated){
+          new_par_tab <- generateAllParameterTables(matrixsetup_flexcov(sigma = "full",
+                                                                        lowertri = "full",
+                                                                        omega = "full",
+                                                                        delta = "diag",
+                                                                        kappa = "full",
+                                                                        type = "chol",
+                                                                        name= gsub("^\\_","",appendix),
+                                                                        sampleStats= chol_mod@sample,
+                                                                        equal = any(duplicated(chol_mod@parameters$par[whichPars & chol_mod@parameters$par > 0 & !chol_mod@parameters$fixed])),
+                                                                        nNode = length(varNames),
+                                                                        expCov = exp_cov,
+                                                                        nGroup = nrow(chol_mod@sample@groups),
+                                                                        labels = varNames)[[1]])
+        } else {
+          new_par_tab <- generateAllParameterTables(matrixsetup_flexcov(sigma = "diag",
+                                                                        lowertri = "diag",
+                                                                        omega = "zero",
+                                                                        delta = "diag",
+                                                                        kappa = "diag",
+                                                                        type = "chol",
+                                                                        name= gsub("^\\_","",appendix),
+                                                                        sampleStats= chol_mod@sample,
+                                                                        equal = any(duplicated(chol_mod@parameters$par[whichPars & chol_mod@parameters$par > 0 & !chol_mod@parameters$fixed])),
+                                                                        nNode = length(varNames),
+                                                                        expCov = exp_cov,
+                                                                        nGroup = nrow(chol_mod@sample@groups),
+                                                                        labels = varNames)[[1]])
+        }
+        
+        # overwrite the parameter numbers:
+        new_par_tab$partable$par <- chol_mod@parameters$par[whichPars]
+        
+        # overwrite the parameters:
+        chol_mod@parameters[whichPars,] <- new_par_tab$partable
+        
+        # overwrite the matrix:
+        chol_mod@matrices <- rbind(
+          chol_mod@matrices[!grepl(appendix,chol_mod@matrices$name),],
+          new_par_tab$mattable
+        )
+        
+      }
+    }
+    
+    # Remove baseline and saturated:
+    chol_mod@baseline_saturated$baseline <- NULL
+    chol_mod@baseline_saturated$saturated <- NULL
+    
+    if (verbose){
+      message("Running initial Cholesky decomposition model for starting values...")
+    }
+    
+    # After including Cholesky decompositions, run the model:
+    tryres_chol <- try({
+      suppressMessages({
+        suppressWarnings({
+          chol_mod <- runmodel(chol_mod, addfit = FALSE, addMIs = FALSE, verbose = FALSE,addSEs=FALSE, addInformation = FALSE, analyticFisher = FALSE, cholesky_start = FALSE)
+        })
+      })
+    })
+    
+    # Only if this succeeded overwrite the starting values..
+    if (!is(tryres_chol,"try-error")){
+      
+      # first overwrite most start values, this will handle intercepts, loadings, etcetera:
+      x@parameters$par[!x@parameters$fixed] <- chol_mod@parameters$par[!x@parameters$fixed]
+      
+      # FIXME: Code repitition below...
+      
+      # Then we need to loop again...
+      for (type in which(curtypes!="chol")){
+        
+        # What is the appendix?
+        appendix <- type_df$appendix[type_df$family == x@model & type_df$type == names(curtypes!="chol")[type]]
+        
+        # Which parameters are these?
+        whichPars <- grepl(appendix,x@parameters$matrix,fixed=TRUE)
+        
+        # Is the structure saturated?
+        saturated <- all(!chol_mod@parameters$fixed[whichPars])
+        
+        # Is the structure diagonal?
+        diagonal <- all(!chol_mod@parameters$fixed[whichPars & chol_mod@parameters$row == chol_mod@parameters$col]) &
+          all(chol_mod@parameters$fixed[whichPars & chol_mod@parameters$row != chol_mod@parameters$col]) 
+        
+        # FIXME: Only do this if the model is saturated or diagonal:
+        if (saturated || diagonal){
+          
+          # FIXME: Only the relevant matrices are needed, but I am lazy
+          all_mats <- impliedcovstructures_cpp(chol_mod@modelmatrices,gsub("^\\_","",appendix),type="chol",all=FALSE)
+
+          # Obtain covariance start values:
+          exp_cov <- lapply(lapply(all_mats,"[[",paste0("sigma",appendix)), spectralshift)
+          
+          # variable names:
+          varNames <- chol_mod@parameters$var1[whichPars & chol_mod@parameters$row == chol_mod@parameters$col & chol_mod@parameters$group_id == 1]
+          
+          # Obtain the new par table:
+          new_par_tab <- do.call(generateAllParameterTables,matrixsetup_flexcov(sigma = "full",
+                                                                        lowertri = "full",
+                                                                        omega = "full",
+                                                                        delta = "diag",
+                                                                        kappa = "full",
+                                                                        type = x@types[[type]],
+                                                                        name= gsub("^\\_","",appendix),
+                                                                        sampleStats= chol_mod@sample,
+                                                                        equal = FALSE,
+                                                                        nNode = length(varNames),
+                                                                        expCov = exp_cov,
+                                                                        nGroup = nrow(chol_mod@sample@groups),
+                                                                        labels = varNames))
+         
+          # Overwrite the starting values:
+          x@parameters$est[whichPars & !x@parameters$fixed] <- new_par_tab$partable$est[!x@parameters$fixed[whichPars]]
+        
+          # For the omega and rho matrices, bound parameters between -0.5 and 0.5:
+          if (x@types[[type]] %in% c("ggm","cor")){
+            edges <- whichPars & !x@parameters$fixed & grepl("(omega)|(rho)",x@parameters$matrix)
+            x@parameters$est[edges] <- pmax(pmin(x@parameters$est[edges], 0.5),-0.5)
+          }
+          
+        }
+      }
+    }
+  }
+
+  
   
   # FIXME: Ugly loop to check for start values
   # trystart <- 1
