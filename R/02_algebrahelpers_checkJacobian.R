@@ -1,5 +1,5 @@
 # Simple function to check if a gradient or hessian is correct:
-checkJacobian <- function(x, f = psychonetrics_fitfunction_cpp, jac = psychonetrics_gradient_cpp, transpose = FALSE, plot = TRUE,  perturbStart = FALSE){
+checkJacobian <- function(x, f = psychonetrics_fitfunction_cpp, jac = psychonetrics_gradient_cpp, transpose = FALSE, plot = TRUE,  perturbStart = FALSE,method="Richardson"){
   
   start <- parVector(x)
 
@@ -18,7 +18,7 @@ checkJacobian <- function(x, f = psychonetrics_fitfunction_cpp, jac = psychonetr
     analytic <- matrix(analytic)
   }
 
-  numeric <- numDeriv::jacobian(f,start,model=x)
+  numeric <- numDeriv::jacobian(f,start,model=x,method=method)
 
   
   # If not a matrix, make matrix:
