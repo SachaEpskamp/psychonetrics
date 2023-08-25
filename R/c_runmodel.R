@@ -19,7 +19,7 @@ runmodel <- function(
     return_improper = TRUE,
     bounded = TRUE,
     approximate_SEs=FALSE,
-    cholesky_start  # If TRUE, a model is formed with Cholesky decompositions first which is run for obtaining starting values.
+    cholesky_start # If TRUE, a model is formed with Cholesky decompositions first which is run for obtaining starting values.
 ){
   # Cholesky start:
   if (missing(cholesky_start)){
@@ -256,9 +256,17 @@ runmodel <- function(
       # What is the appendix?
       appendix <- type_df$appendix[type_df$family == x@model & type_df$type == names(curtypes!="chol")[type]]
       
-      # Which parameters are these?
-      whichPars <- grepl(appendix,chol_mod@parameters$matrix,fixed=TRUE)
+      # Test string:
       
+      # Which parameters are these?
+      if (appendix != ""){
+        teststring <- appendix
+      } else {
+        teststring <- switch(x@types[[type]],cov = "sigma", cor = "(rho)|(SD)", ggm = "(omega)|(delta)", prec = "kappa", chol = "lowertri"
+        )
+      }
+      whichPars <- grepl(teststring,chol_mod@parameters$matrix)
+ 
       # Is the structure saturated?
       saturated <- all(!chol_mod@parameters$fixed[whichPars])
       
@@ -280,8 +288,8 @@ runmodel <- function(
         exp_cov <- lapply(lapply(all_mats,"[[",paste0("sigma",appendix)), spectralshift)
         
         # variable names:
-        varNames <- chol_mod@parameters$var1[whichPars & chol_mod@parameters$row == chol_mod@parameters$col & chol_mod@parameters$group_id == 1]
-        
+        varNames <- chol_mod@parameters$var1[whichPars & (chol_mod@parameters$row == chol_mod@parameters$col) & chol_mod@parameters$group_id == 1]
+
         # Obtain the new par table:
         if (saturated){
           new_par_tab <- generateAllParameterTables(matrixsetup_flexcov(sigma = "full",
@@ -313,6 +321,12 @@ runmodel <- function(
                                                                         labels = varNames)[[1]])
         }
         
+        # Remove underscore:
+        if (appendix == ""){
+          new_par_tab$partable$matrix <- gsub("\\_","",new_par_tab$partable$matrix)
+          new_par_tab$mattable$name <- gsub("\\_","",new_par_tab$mattable$name)
+        }
+        
         # overwrite the parameter numbers:
         new_par_tab$partable$par <- chol_mod@parameters$par[whichPars]
         
@@ -321,12 +335,13 @@ runmodel <- function(
         
         # overwrite the matrix:
         chol_mod@matrices <- rbind(
-          chol_mod@matrices[!grepl(appendix,chol_mod@matrices$name),],
+          chol_mod@matrices[!grepl(teststring,chol_mod@matrices$name),],
           new_par_tab$mattable
         )
         
       }
     }
+  
     
     # Remove baseline and saturated:
     chol_mod@baseline_saturated$baseline <- NULL
@@ -360,7 +375,14 @@ runmodel <- function(
         appendix <- type_df$appendix[type_df$family == x@model & type_df$type == names(curtypes!="chol")[type]]
         
         # Which parameters are these?
-        whichPars <- grepl(appendix,x@parameters$matrix,fixed=TRUE)
+        if (appendix != ""){
+          teststring <- appendix
+        } else {
+          teststring <- switch(x@types[[type]],cov = "sigma", cor = "(rho)|(SD)", ggm = "(omega)|(delta)", prec = "kappa", chol = "lowertri"
+          )
+        }
+        
+        whichPars <- grepl(teststring,x@parameters$matrix)
         
         # Is the structure saturated?
         saturated <- all(!chol_mod@parameters$fixed[whichPars])

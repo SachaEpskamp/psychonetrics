@@ -261,29 +261,38 @@ varcov <- function(
   model@parameters <- pars$partable
   model@matrices <- pars$mattable
   
-  if (type == "cov" || type == "prec"){
-    model@extramatrices <- list(
-      D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
-      L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
-      In = as(diag(nNode),"dMatrix") # Identity of dim n
-    )
-  } else if (type == "chol"){
+  # if (type == "cov" || type == "prec"){
+  #   model@extramatrices <- list(
+  #     D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
+  #     L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
+  #     In = as(diag(nNode),"dMatrix") # Identity of dim n
+  #   )
+  # } else if (type == "chol"){
+  #   model@extramatrices <- list(
+  #     D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
+  #     L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
+  #     In = as(diag(nNode),"dMatrix"), # Identity of dim n
+  #     # C = as(lavaan::lav_matrix_commutation(nNode,nNode),"sparseMatrix")
+  #     C = as(lavaan::lav_matrix_commutation(nNode,nNode),"dMatrix")
+  #   )
+  # } else if (type == "ggm" || type == "cor"){
+  #   model@extramatrices <- list(
+  #     D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
+  #     L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
+  #     Dstar = psychonetrics::duplicationMatrix(nNode,diag = FALSE), # Strict duplicaton matrix
+  #     In = as(diag(nNode),"dMatrix"), # Identity of dim n
+  #     A = psychonetrics::diagonalizationMatrix(nNode)
+  #   )
+  # }
+  
     model@extramatrices <- list(
       D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
       L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
       In = as(diag(nNode),"dMatrix"), # Identity of dim n
-      # C = as(lavaan::lav_matrix_commutation(nNode,nNode),"sparseMatrix")
-      C = as(lavaan::lav_matrix_commutation(nNode,nNode),"dMatrix")
-    )
-  } else if (type == "ggm" || type == "cor"){
-    model@extramatrices <- list(
-      D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
-      L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
+      C = as(lavaan::lav_matrix_commutation(nNode,nNode),"dMatrix"),
       Dstar = psychonetrics::duplicationMatrix(nNode,diag = FALSE), # Strict duplicaton matrix
-      In = as(diag(nNode),"dMatrix"), # Identity of dim n
       A = psychonetrics::diagonalizationMatrix(nNode)
     )
-  }
   
   
   # Form the model matrices

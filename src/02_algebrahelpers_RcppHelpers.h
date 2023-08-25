@@ -11,6 +11,7 @@
 using namespace Rcpp;
 using namespace arma;
 
+
 arma::vec eig_sym_cpp(
         arma::mat X
 );

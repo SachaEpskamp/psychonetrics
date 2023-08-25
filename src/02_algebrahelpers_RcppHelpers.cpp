@@ -12,6 +12,8 @@
 using namespace Rcpp;
 using namespace arma;
 
+
+
 // Eigenvalues of symmetric matrix:
 // [[Rcpp::export]]
 arma::vec eig_sym_cpp(
@@ -27,12 +29,33 @@ bool sympd_cpp(
     bool semi = true
 ){
   // Check if symmetric:
-  bool issym = X.is_symmetric();
+  // bool issym = X.is_symmetric();
+  // 
+  // // if not, make symmetric:
+  // if (!issym){
+  //   X = 0.5* (X + X.t());
+  // }
+  // loop over all elements:
+  int i;
+  int j;
+  double v1, v2;
   
-  // if not, make symmetric:
-  if (!issym){
-    X = 0.5* (X + X.t());
+  for (i=0;i<X.n_rows;i++){
+    for (j=0;j<i;j++){
+      if (i != j){
+        v1 = X(i,j);
+        v2 = X(j,i);
+        
+        // if (v1-v2 < -0.001 || v1-v2 > 0.001){
+        //   Rf_warning("Non-symmetric matrix detected in attempt to symmetric matrix inverse");
+        // }
+        
+        X(i,j) = X(j,i) = (v1+v2)/2;
+      }
+    }
   }
+  
+  // bool issym = force_symmetric_cpp(X);
   
   // Check if posdef:
   double epsilon = 1.490116e-08;
@@ -61,45 +84,64 @@ Rcpp::List solve_symmetric_cpp(
     bool approx = true
 ){
   
-  
-  
   double logdetval = R_NegInf;
   Rcpp::List res;
-  int i;
+  // int i, j;
   int nvar = X.n_cols;
   
-  // Check if symmetric:
-  bool issym = X.is_symmetric();
-  
-  // if not, make symmetric:
-  if (!issym){
-    X = 0.5* (X + X.t());
+  // // Check if symmetric:
+  // bool issym = X.is_symmetric();
+  // 
+  // // if not, make symmetric:
+  // if (!issym){
+  //   X = 0.5* (X + X.t());
+  // }
+  // loop over all elements:
+  double v1, v2;
+  int i, j;
+  for (i=0;i<X.n_rows;i++){
+    for (j=0;j<i;j++){
+      if (i != j){
+        v1 = X(i,j);
+        v2 = X(j,i);
+        
+        // if (v1-v2 < -0.001 || v1-v2 > 0.001){
+        //   Rf_warning("Non-symmetric matrix detected in attempt to symmetric matrix inverse");
+        //   Rf_PrintValue(wrap(v1));
+        //   Rf_PrintValue(wrap(v2));
+        // }
+        
+        X(i,j) = X(j,i) = (v1+v2)/2;
+      }
+    }
   }
   
   // Return value matrix:
-  mat inv(nvar,nvar);
+  mat invMat(nvar,nvar);
   
   // First try a normal inverse:
   bool success;
   
   if (approx){
-    success = inv_sympd(inv,X,inv_opts::allow_approx); 
+    success = inv_sympd(invMat,X,inv_opts::allow_approx);
   } else {
-    success = inv_sympd(inv,X); 
+    success = inv_sympd(invMat,X);
   }
+  // success = inv_sympd(invMat, X);
+  // success = inv(invMat, X);
   
   if (!success){
     
     // If this failed, try pseudoinverse:
     if (approx){
-      if (inv.n_rows == 0){
-        inv = pinv(X); 
+      if (invMat.n_rows == 0){
+        invMat = pinv(X); 
       }
     } else {
       // If not success and pseudo, return a matrix of NAs:
-      inv = mat(nvar, nvar, fill::value(NA_REAL));
+      invMat = mat(nvar, nvar, fill::value(NA_REAL));
     }
-    res["inv"] = inv;  
+    res["inv"] = invMat;  
     
     if (logdet){
       logdetval = log(sqrt_epsilon);
@@ -108,13 +150,13 @@ Rcpp::List solve_symmetric_cpp(
     
   } else {
     
-    res["inv"] = inv;
+    res["inv"] = invMat;
     
     if (logdet){
       double logepsilon = log(sqrt_epsilon);
-      logdetval =  log(det(inv));
+      logdetval =  log(det(invMat));
       if (logdetval == R_PosInf){
-        logdetval = real(log_det(inv));
+        logdetval = real(log_det(invMat));
       }
       if (logdetval < logepsilon){
         logdetval = logepsilon;
@@ -137,43 +179,64 @@ arma::mat solve_symmetric_cpp_matrixonly(
     double sqrt_epsilon  = 1.490116e-08,
     bool approx = true
 ){
-  int i;
+
   int nvar = X.n_cols;
   
-  // Check if symmetric:
-  bool issym = X.is_symmetric();
-  
-  // if not, make symmetric:
-  if (!issym){
-    X = 0.5* (X + X.t());
+  // // Check if symmetric:
+  // bool issym = X.is_symmetric();
+  // 
+  // // if not, make symmetric:
+  // if (!issym){
+  //   X = 0.5* (X + X.t());
+  // }
+  double v1, v2;
+  int i, j;
+  for (i=0;i<X.n_rows;i++){
+    for (j=0;j<i;j++){
+      if (i != j){
+        v1 = X(i,j);
+        v2 = X(j,i);
+        
+        // if (v1-v2 < -0.001 || v1-v2 > 0.001){
+        //   Rf_warning("Non-symmetric matrix detected in attempt to symmetric matrix inverse");
+        //   Rf_PrintValue(wrap(v1));
+        //   Rf_PrintValue(wrap(v2));
+        // }
+        
+        X(i,j) = X(j,i) = (v1+v2)/2;
+      }
+    }
   }
   
   // Return value matrix:
-  mat inv(nvar,nvar);
+  mat invMat(nvar,nvar);
   
   // First try a normal inverse:
   bool success;
+
   
   if (approx){
-    success = inv_sympd(inv,X,inv_opts::allow_approx); 
+    success = inv_sympd(invMat,X,inv_opts::allow_approx);
   } else {
-    success = inv_sympd(inv,X); 
+    success = inv_sympd(invMat,X);
   }
+  // success = inv_sympd(invMat, X);
+  // success = inv(invMat, X);
   
   if (!success){
     
     if (approx){
-      if (inv.n_rows == 0){
-        inv = pinv(X); 
+      if (invMat.n_rows == 0){
+        invMat = pinv(X); 
       } 
     } else {
       // If not success and pseudo, return a matrix of NAs:
-      inv = mat(nvar, nvar, fill::value(NA_REAL));
+      invMat = mat(nvar, nvar, fill::value(NA_REAL));
     }
   }
  
   
-  return(inv);
+  return(invMat);
 }
 
 
@@ -186,61 +249,82 @@ arma::mat solve_symmetric_cpp_matrixonly_withcheck(
     bool& proper,
     bool approx = true
 ){
+
   double sqrt_epsilon  = 1.490116e-08;
   int i,j;
   int nvar = X.n_cols;
   
-  // Check if symmetric:
-  bool issym = X.is_symmetric();
-  
-  // if not, make symmetric:
-  if (!issym){
-    X = 0.5* (X + X.t());
-  }
-  
-  // Check again:
-  issym = X.is_symmetric();
-  
-  // if not, loop over to fix:
-  if (!issym){
-    proper = false;
-    for (i=0;i<nvar;i++){
-      for (j=0;j<nvar;j++){
-        if (!is_finite(X(i,j))){
-          if (i==j){
-            X(i,j) = 1;
-          } else {
-            X(i,j) = 0;
-          }
-        }
+  // // Check if symmetric:
+  // bool issym = X.is_symmetric();
+  // 
+  // // if not, make symmetric:
+  // if (!issym){
+  //   X = 0.5* (X + X.t());
+  // }
+  double v1, v2;
+  for (i=0;i<X.n_rows;i++){
+    for (j=0;j<i;j++){
+      if (i != j){
+        v1 = X(i,j);
+        v2 = X(j,i);
         
+        // if (v1-v2 < -0.001 || v1-v2 > 0.001){
+        //   Rf_warning("Non-symmetric matrix detected in attempt to invert symmetric matrix");
+        //   Rf_PrintValue(wrap(v1));
+        //   Rf_PrintValue(wrap(v2));
+        // }
+        
+        X(i,j) = X(j,i) = (v1+v2)/2;
       }
     }
   }
   
+  // Maybe not remove this?
+  // // Check again:
+  // issym = X.is_symmetric();
+  // 
+  // // if not, loop over to fix:
+  // if (!issym){
+  //   proper = false;
+  //   for (i=0;i<nvar;i++){
+  //     for (j=0;j<nvar;j++){
+  //       if (!is_finite(X(i,j))){
+  //         if (i==j){
+  //           X(i,j) = 1;
+  //         } else {
+  //           X(i,j) = 0;
+  //         }
+  //       }
+  //       
+  //     }
+  //   }
+  // }
+  
   // Return value matrix:
-  mat inv(nvar,nvar);
+  mat invMat(nvar,nvar);
   
   // First try a normal inverse:
   bool success;
   
   if (approx){
-    success = inv_sympd(inv,X,inv_opts::allow_approx); 
+    success = inv_sympd(invMat,X,inv_opts::allow_approx);
   } else {
-    success = inv_sympd(inv,X); 
+    success = inv_sympd(invMat,X);
   }
+  // success = inv_sympd(invMat, X);
+  // success = inv(invMat, X);
   
   // If this failed, do pseudo-inverse:
   if (!success){
     
     // If this failed, try pseudoinverse:
     if (approx){
-      if (inv.n_rows == 0){
-        inv = pinv(X); 
+      if (invMat.n_rows == 0){
+        invMat = pinv(X); 
       }
     } else {
       // If not success and pseudo, return a matrix of NAs:
-      inv = mat(nvar, nvar, fill::value(NA_REAL));
+      invMat = mat(nvar, nvar, fill::value(NA_REAL));
     }
     
   }
@@ -248,7 +332,7 @@ arma::mat solve_symmetric_cpp_matrixonly_withcheck(
   // proper:
   proper = !success;
   
-  return(inv);
+  return(invMat);
   
   
 }

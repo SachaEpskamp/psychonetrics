@@ -24,6 +24,7 @@ matrixsetup_lowertri <- function(
     
     # Start values:
     if (!any(is.na(covest))){
+    
       tryres <- try(
         Lest <- t(as.matrix(chol(covest))), silent = TRUE
       )
