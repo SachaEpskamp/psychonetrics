@@ -21,14 +21,15 @@ runmodel <- function(
     approximate_SEs=FALSE,
     cholesky_start # If TRUE, a model is formed with Cholesky decompositions first which is run for obtaining starting values.
 ){
+  # cholesky_start <- FALSE
   # Cholesky start:
   if (missing(cholesky_start)){
     # # Don't do this if the model was evaluated earlier:
     # cholesky_start <- x@distribution == "Gaussian" && !any(sapply(x@log,slot,"event")=="Evaluated model")
-    
+
     # Only Gaussian:
     cholesky_start <- x@distribution == "Gaussian"
-    
+
   }
   if (!is.logical(cholesky_start)){
     stop("'cholesky_start' must be a logical argument")

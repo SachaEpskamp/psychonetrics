@@ -29,31 +29,31 @@ bool sympd_cpp(
     bool semi = true
 ){
   // Check if symmetric:
-  // bool issym = X.is_symmetric();
-  // 
-  // // if not, make symmetric:
-  // if (!issym){
-  //   X = 0.5* (X + X.t());
-  // }
-  // loop over all elements:
-  int i;
-  int j;
-  double v1, v2;
-  
-  for (i=0;i<X.n_rows;i++){
-    for (j=0;j<i;j++){
-      if (i != j){
-        v1 = X(i,j);
-        v2 = X(j,i);
-        
-        // if (v1-v2 < -0.001 || v1-v2 > 0.001){
-        //   Rf_warning("Non-symmetric matrix detected in attempt to symmetric matrix inverse");
-        // }
-        
-        X(i,j) = X(j,i) = (v1+v2)/2;
-      }
-    }
+  bool issym = X.is_symmetric();
+
+  // if not, make symmetric:
+  if (!issym){
+    X = 0.5* (X + X.t());
   }
+  // loop over all elements:
+  // int i;
+  // int j;
+  // double v1, v2;
+  // 
+  // for (i=0;i<X.n_rows;i++){
+  //   for (j=0;j<i;j++){
+  //     if (i != j){
+  //       v1 = X(i,j);
+  //       v2 = X(j,i);
+  //       
+  //       // if (v1-v2 < -0.001 || v1-v2 > 0.001){
+  //       //   Rf_warning("Non-symmetric matrix detected in attempt to symmetric matrix inverse");
+  //       // }
+  //       
+  //       X(i,j) = X(j,i) = (v1+v2)/2;
+  //     }
+  //   }
+  // }
   
   // bool issym = force_symmetric_cpp(X);
   
@@ -90,31 +90,31 @@ Rcpp::List solve_symmetric_cpp(
   int nvar = X.n_cols;
   
   // // Check if symmetric:
-  // bool issym = X.is_symmetric();
-  // 
-  // // if not, make symmetric:
-  // if (!issym){
-  //   X = 0.5* (X + X.t());
-  // }
-  // loop over all elements:
-  double v1, v2;
-  int i, j;
-  for (i=0;i<X.n_rows;i++){
-    for (j=0;j<i;j++){
-      if (i != j){
-        v1 = X(i,j);
-        v2 = X(j,i);
-        
-        // if (v1-v2 < -0.001 || v1-v2 > 0.001){
-        //   Rf_warning("Non-symmetric matrix detected in attempt to symmetric matrix inverse");
-        //   Rf_PrintValue(wrap(v1));
-        //   Rf_PrintValue(wrap(v2));
-        // }
-        
-        X(i,j) = X(j,i) = (v1+v2)/2;
-      }
-    }
+  bool issym = X.is_symmetric();
+
+  // if not, make symmetric:
+  if (!issym){
+    X = 0.5* (X + X.t());
   }
+  // loop over all elements:
+  // double v1, v2;
+  // int i, j;
+  // for (i=0;i<X.n_rows;i++){
+  //   for (j=0;j<i;j++){
+  //     if (i != j){
+  //       v1 = X(i,j);
+  //       v2 = X(j,i);
+  //       
+  //       // if (v1-v2 < -0.001 || v1-v2 > 0.001){
+  //       //   Rf_warning("Non-symmetric matrix detected in attempt to symmetric matrix inverse");
+  //       //   Rf_PrintValue(wrap(v1));
+  //       //   Rf_PrintValue(wrap(v2));
+  //       // }
+  //       
+  //       X(i,j) = X(j,i) = (v1+v2)/2;
+  //     }
+  //   }
+  // }
   
   // Return value matrix:
   mat invMat(nvar,nvar);
@@ -182,39 +182,39 @@ arma::mat solve_symmetric_cpp_matrixonly(
 
   int nvar = X.n_cols;
   
-  // // Check if symmetric:
-  // bool issym = X.is_symmetric();
-  // 
-  // // if not, make symmetric:
-  // if (!issym){
-  //   X = 0.5* (X + X.t());
-  // }
-  double v1, v2;
-  int i, j;
-  for (i=0;i<X.n_rows;i++){
-    for (j=0;j<i;j++){
-      if (i != j){
-        v1 = X(i,j);
-        v2 = X(j,i);
-        
-        // if (v1-v2 < -0.001 || v1-v2 > 0.001){
-        //   Rf_warning("Non-symmetric matrix detected in attempt to symmetric matrix inverse");
-        //   Rf_PrintValue(wrap(v1));
-        //   Rf_PrintValue(wrap(v2));
-        // }
-        
-        X(i,j) = X(j,i) = (v1+v2)/2;
-      }
-    }
+  // Check if symmetric:
+  bool issym = X.is_symmetric();
+
+  // if not, make symmetric:
+  if (!issym){
+    X = 0.5* (X + X.t());
   }
-  
+  // double v1, v2;
+  // int i, j;
+  // for (i=0;i<X.n_rows;i++){
+  //   for (j=0;j<i;j++){
+  //     if (i != j){
+  //       v1 = X(i,j);
+  //       v2 = X(j,i);
+  //       
+  //       // if (v1-v2 < -0.001 || v1-v2 > 0.001){
+  //       //   Rf_warning("Non-symmetric matrix detected in attempt to symmetric matrix inverse");
+  //       //   Rf_PrintValue(wrap(v1));
+  //       //   Rf_PrintValue(wrap(v2));
+  //       // }
+  //       
+  //       X(i,j) = X(j,i) = (v1+v2)/2;
+  //     }
+  //   }
+  // }
+  // 
   // Return value matrix:
   mat invMat(nvar,nvar);
   
   // First try a normal inverse:
   bool success;
 
-  
+  // 
   if (approx){
     success = inv_sympd(invMat,X,inv_opts::allow_approx);
   } else {
@@ -254,51 +254,51 @@ arma::mat solve_symmetric_cpp_matrixonly_withcheck(
   int i,j;
   int nvar = X.n_cols;
   
-  // // Check if symmetric:
-  // bool issym = X.is_symmetric();
-  // 
-  // // if not, make symmetric:
-  // if (!issym){
-  //   X = 0.5* (X + X.t());
-  // }
-  double v1, v2;
-  for (i=0;i<X.n_rows;i++){
-    for (j=0;j<i;j++){
-      if (i != j){
-        v1 = X(i,j);
-        v2 = X(j,i);
-        
-        // if (v1-v2 < -0.001 || v1-v2 > 0.001){
-        //   Rf_warning("Non-symmetric matrix detected in attempt to invert symmetric matrix");
-        //   Rf_PrintValue(wrap(v1));
-        //   Rf_PrintValue(wrap(v2));
-        // }
-        
-        X(i,j) = X(j,i) = (v1+v2)/2;
-      }
-    }
+  // Check if symmetric:
+  bool issym = X.is_symmetric();
+
+  // if not, make symmetric:
+  if (!issym){
+    X = 0.5* (X + X.t());
   }
-  
-  // Maybe not remove this?
-  // // Check again:
-  // issym = X.is_symmetric();
-  // 
-  // // if not, loop over to fix:
-  // if (!issym){
-  //   proper = false;
-  //   for (i=0;i<nvar;i++){
-  //     for (j=0;j<nvar;j++){
-  //       if (!is_finite(X(i,j))){
-  //         if (i==j){
-  //           X(i,j) = 1;
-  //         } else {
-  //           X(i,j) = 0;
-  //         }
-  //       }
+  // double v1, v2;
+  // for (i=0;i<X.n_rows;i++){
+  //   for (j=0;j<i;j++){
+  //     if (i != j){
+  //       v1 = X(i,j);
+  //       v2 = X(j,i);
   //       
+  //       // if (v1-v2 < -0.001 || v1-v2 > 0.001){
+  //       //   Rf_warning("Non-symmetric matrix detected in attempt to invert symmetric matrix");
+  //       //   Rf_PrintValue(wrap(v1));
+  //       //   Rf_PrintValue(wrap(v2));
+  //       // }
+  //       
+  //       X(i,j) = X(j,i) = (v1+v2)/2;
   //     }
   //   }
   // }
+  
+  // Maybe not remove this?
+  // // Check again:
+  issym = X.is_symmetric();
+
+  // if not, loop over to fix:
+  if (!issym){
+    proper = false;
+    for (i=0;i<nvar;i++){
+      for (j=0;j<nvar;j++){
+        if (!is_finite(X(i,j))){
+          if (i==j){
+            X(i,j) = 1;
+          } else {
+            X(i,j) = 0;
+          }
+        }
+
+      }
+    }
+  }
   
   // Return value matrix:
   mat invMat(nvar,nvar);
