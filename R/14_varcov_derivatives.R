@@ -103,7 +103,6 @@ d_phi_theta_varcov_group <- function(cpp, sigma,y,corinput,meanstructure,tau,mu,
     # Fill mean part with diagonal:
     Jac[meanPart,meanPart] <- as.matrix(Diagonal(nMean_Thresh))
   }
-  
 
   # Now fill the sigma part:
   if (y == "cov"){
@@ -210,7 +209,7 @@ d_phi_theta_varcov <- function(prep){
   # d_phi_theta per group:
   d_per_group <- lapply(prep$groupModels,do.call,what=d_phi_theta_varcov_group)
   
-  # FIXME: Computationall it is nicer to make the whole object first then fill it
+  # FIXME: Computationally it is nicer to make the whole object first then fill it
   # Bind by colum and return: 
   sparseordense(Reduce("bdiag",d_per_group))
 }

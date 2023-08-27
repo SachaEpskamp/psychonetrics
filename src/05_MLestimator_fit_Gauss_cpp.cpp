@@ -33,6 +33,7 @@ double maxLikEstimator_Gauss_group_cpp(
   }
   
   
+  
   arma::mat resvec = trace(S * kappa) + (means - mu).t() * kappa * (means - mu) - logdet;
   double res = resvec(0,0);
 

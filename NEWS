@@ -1,4 +1,5 @@
 Changes in Version 0.12
+  o The log(det(kappa)) value used in fit function is now computed in FIML in the same way as computed in ML framework, this should lead to more stability, but might also lead to some different chi-square values
   o The startreduce argument in prune() now defaults to 0.5
   o Added the 'start' argument to the dlvm1 model family.
   o Using "empty" for matrix specification is now deprecated; use "diag" or "zero" instead.
