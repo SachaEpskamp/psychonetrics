@@ -83,7 +83,6 @@ Rcpp::List solve_symmetric_cpp(
     double sqrt_epsilon  = 1.490116e-08,
     bool approx = true
 ){
-  
   double logdetval = R_NegInf;
   Rcpp::List res;
   // int i, j;
@@ -131,7 +130,6 @@ Rcpp::List solve_symmetric_cpp(
   // success = inv(invMat, X);
   
   if (!success){
-    
     // If this failed, try pseudoinverse:
     if (approx){
       if (invMat.n_rows == 0){
@@ -153,14 +151,24 @@ Rcpp::List solve_symmetric_cpp(
     res["inv"] = invMat;
     
     if (logdet){
+      
+      // The plugin value for bad matrices:
       double logepsilon = log(sqrt_epsilon);
-      logdetval =  log(det(invMat));
-      if (logdetval == R_PosInf){
-        logdetval = real(log_det(invMat));
-      }
-      if (logdetval < logepsilon){
+      
+      // Check for pos def and either use given value or plugin value:
+      if (sympd_cpp(invMat) == false){
         logdetval = logepsilon;
+      } else {
+        logdetval = log(det(invMat));
+        if (logdetval == R_NegInf){
+          logdetval = logepsilon;
+        } 
       }
+      
+      
+      // if (logdetval < logepsilon){
+      //   logdetval = logepsilon;
+      // }
       
       res["logdet"] = logdetval;
     }
@@ -179,7 +187,6 @@ arma::mat solve_symmetric_cpp_matrixonly(
     double sqrt_epsilon  = 1.490116e-08,
     bool approx = true
 ){
-
   int nvar = X.n_cols;
   
   // Check if symmetric:
@@ -249,7 +256,6 @@ arma::mat solve_symmetric_cpp_matrixonly_withcheck(
     bool& proper,
     bool approx = true
 ){
-
   double sqrt_epsilon  = 1.490116e-08;
   int i,j;
   int nvar = X.n_cols;

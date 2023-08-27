@@ -164,7 +164,7 @@ ml_tsdlvm1 <- function(
       }
     }
   }
-  
+
   
   # Form model:
   model <- dlvm1(datawide, 
