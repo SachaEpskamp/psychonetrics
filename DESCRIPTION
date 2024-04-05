@@ -7,8 +7,8 @@ Maintainer: Sacha Epskamp <mail@sachaepskamp.com>
 Description: Multi-group (dynamical) structural equation models in combination with confirmatory network models from cross-sectional, time-series and panel data <doi:10.31234/osf.io/8ha93>. Allows for confirmatory testing and fit as well as exploratory model search.
 License: GPL-2
 LinkingTo: Rcpp (>= 0.11.3), RcppArmadillo, pbv, roptim
-Depends: R (>= 4.4.0)
-Imports: methods, qgraph, numDeriv, dplyr, abind, Matrix (>= 1.7-0), lavaan,
+Depends: R (>= 4.3.0)
+Imports: methods, qgraph, numDeriv, dplyr, abind, Matrix (>= 1.6-5), lavaan,
         corpcor, glasso, mgcv, optimx, VCA, pbapply, parallel,
         magrittr, IsingSampler, tidyr, psych, GA, combinat, rlang
 Suggests: psychTools, semPlot, graphicalVAR, metaSEM, mvtnorm, ggplot2
