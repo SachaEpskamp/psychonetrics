@@ -1,4 +1,7 @@
 Changes in Version 0.11.5
+  o Fixes to support Matrix 1.7-0
+
+Changes in Version 0.11.5
   o The groupequal, groupfree, fixpar and freepar functions can now handle multiple rows/columns for symmetric matrices
   o Fixed a bug in the identification function for ml_lvm models
   o Implemented min_sum argument for estimating Ising models on data with a minimum sum score due to selection bias. This method is further discussed in  Boot, de Ron, Haslbeck & Epskamp (in preperation). Correcting for selection bias after sum score selection in the Ising model.
