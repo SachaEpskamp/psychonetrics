@@ -72,7 +72,9 @@ dlvm1 <- function(
   optimizer,
   storedata = FALSE,
   verbose = FALSE,
-  sampleStats
+  sampleStats,
+  
+  baseline = c("stationary_random_intercept","stationary","independence","none")
 ){
 
   
@@ -482,6 +484,8 @@ dlvm1 <- function(
   # Form the model matrices
   model@modelmatrices <- formModelMatrices(model)
   
+  # Baseline model:
+  baseline <- match.arg(baseline)
   
   ### Baseline model ###
   if (is.list(baseline_saturated)){
@@ -489,19 +493,67 @@ dlvm1 <- function(
   } else if (isTRUE(baseline_saturated)){
     
     # Form baseline model:
-    model@baseline_saturated$baseline <- varcov(data,
-                                                type = "chol",
-                                                lowertri = "empty",
-                                                vars = allVars,
-                                                groups = groups,
-                                                covs = covs,
-                                                means = means,
-                                                nobs = nobs,
-                                                missing = missing,
-                                                equal = equal,
-                                                estimator = estimator,
-                                                baseline_saturated = FALSE,
-                                                sampleStats = sampleStats)
+    if (baseline ==  "stationary_random_intercept"){
+      
+      # Form the baseline model:
+      model@baseline_saturated$baseline <- panelvar(data,
+                                                 vars = vars,
+                                                 groups = groups,
+                                                 covs = covs,
+                                                 means = means,
+                                                 nobs = nobs,
+                                                 missing = missing,
+                                                 equal = equal,
+                                                 estimator = estimator,
+                                                 baseline_saturated = FALSE,
+                                                 sampleStats = sampleStats,
+                                                 
+                                                 # Empty networks:
+                                                 sigma_zeta_within = "empty",
+                                                 sigma_zeta_between = "empty",
+                                                 beta = "empty"
+                                                 )
+    
+    } else if (baseline == "stationary"){ 
+      
+      # Form the baseline model:
+      model@baseline_saturated$baseline <- panelvar(data,
+                                                    vars = vars,
+                                                    groups = groups,
+                                                    covs = covs,
+                                                    means = means,
+                                                    nobs = nobs,
+                                                    missing = missing,
+                                                    equal = equal,
+                                                    estimator = estimator,
+                                                    baseline_saturated = FALSE,
+                                                    sampleStats = sampleStats,
+                                                    
+                                                    # Empty networks:
+                                                    sigma_zeta_within = "empty",
+                                                    sigma_zeta_between = "zero",
+                                                    beta = "empty"
+      )
+      
+    } else if (baseline == "independence"){
+      
+      model@baseline_saturated$baseline <- varcov(data,
+                                                  type = "chol",
+                                                  lowertri = "empty",
+                                                  vars = allVars,
+                                                  groups = groups,
+                                                  covs = covs,
+                                                  means = means,
+                                                  nobs = nobs,
+                                                  missing = missing,
+                                                  equal = equal,
+                                                  estimator = estimator,
+                                                  baseline_saturated = FALSE,
+                                                  sampleStats = sampleStats)
+      
+    }
+    
+  
     
     # Add model:
     # model@baseline_saturated$baseline@fitfunctions$extramatrices$M <- Mmatrix(model@baseline_saturated$baseline@parameters)

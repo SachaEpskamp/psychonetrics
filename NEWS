@@ -1,3 +1,6 @@
+Changes in Version 0.11.7
+  o Added the 'baseline' argument to dlvm1 model family, which now defaults to "stationary_random_intercept". Note: this will change incremental fit indices! To recover old behavior, set baseline = "independence"
+
 Changes in Version 0.11.5
   o Fixes to support Matrix 1.7-0
 
