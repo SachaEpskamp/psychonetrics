@@ -65,7 +65,7 @@ dlvm1 <- function(
     covs, # alternative covs (array nvar * nvar * ngroup)
     means, # alternative means (matrix nvar * ngroup)
     nobs, # Alternative if data is missing (length ngroup)
-    start = "version2", # <- start values, either "chol" (default), "version 2" (defualt for the cholesky model), "version 1", "simple" or a psychonetrics model
+    start = "version2", # <- start values,  "version 2" (defualt), "version 1", "simple" or a psychonetrics model
     
     covtype = c("choose","ML","UB"),
     missing = "listwise",
