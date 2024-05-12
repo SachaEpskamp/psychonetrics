@@ -12,18 +12,18 @@ tsdlvm1 <- function(
   beta = "full",
   
   # Contemporaneous effects:
-  omega_zeta = "full", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
-  delta_zeta = "full", # If missing, just full for both groups or equal
+  omega_zeta = "full", # (only lower tri is used) "zero", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
+  delta_zeta = "diag", # If missing, just full for both groups or equal
   kappa_zeta = "full",
   sigma_zeta = "full",
   lowertri_zeta = "full",
   
   # Residual effects:
-  omega_epsilon = "empty", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
-  delta_epsilon = "empty", # If missing, just full for both groups or equal
-  kappa_epsilon = "empty",
-  sigma_epsilon = "empty",
-  lowertri_epsilon = "empty",
+  omega_epsilon = "zero", # (only lower tri is used) "zero", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
+  delta_epsilon = "diag", # If missing, just full for both groups or equal
+  kappa_epsilon = "diag",
+  sigma_epsilon = "diag",
+  lowertri_epsilon = "diag",
   
   # The rest:
   nu,

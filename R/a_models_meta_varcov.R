@@ -12,7 +12,7 @@ meta_varcov <- function(
   
   # Model setup:
   type = c("cor", "ggm"), # Same as in varcov. Currently only cor and ggm are supported.
-  sigma_y = "full", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
+  sigma_y = "full", # (only lower tri is used) "diag", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
   kappa_y = "full", # Precision
   # rho = "full", # Correlations
   omega_y = "full", # Partial correlations
@@ -23,7 +23,7 @@ meta_varcov <- function(
   
   # Random effects setup:
   randomEffects = c("chol","cov","prec","ggm","cor"),
-  sigma_randomEffects = "full", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
+  sigma_randomEffects = "full", # (only lower tri is used) "diag", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
   kappa_randomEffects = "full", # Precision
   # rho = "full", # Correlations
   omega_randomEffects = "full", # Partial correlations
@@ -602,7 +602,7 @@ meta_varcov <- function(
     model@baseline_saturated$baseline <- varcov(data,
                                                 mu = rep(0,nCor),
                                                 type = "chol",
-                                                lowertri = "empty",
+                                                lowertri = "diag",
                                                 vars = corvars,
                                                 missing = missing,
                                                 estimator = estimator,

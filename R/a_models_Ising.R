@@ -175,7 +175,7 @@ Ising <- function(
     
     # Form baseline model:
     model@baseline_saturated$baseline <- Ising(data,
-                                                  omega = "empty",
+                                                  omega = "zero",
                                                   vars = vars,
                                                   groups = groups,
                                                   covs = covs,

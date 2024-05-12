@@ -1,7 +1,8 @@
 # Add standard errors and p-values!
 # Add the modification indices:
 addSEs <-  function(x,
-                    verbose
+                    verbose,
+                    approximate_SEs = FALSE
                     # approxHessian = FALSE # Approximate the hessian even if it is already stored
                     ){
   
@@ -37,7 +38,20 @@ addSEs <-  function(x,
   # } else {
   #   Hinv <- solve_symmetric(psychonetrics_FisherInformation(x))
   # } 
-  Hinv <- getVCOV(x)
+  Hinv <- getVCOV(x,approximate_SEs=approximate_SEs)
+  
+  # If NAs, return warning and NA:
+  if (any(is.na(Hinv))){
+    if (verbose){
+      warning("Standard errors could not be obtained because the Fischer information matrix could not be inverted. This may be a symptom of a non-identified model or due to convergence issues. You can try to approximate standard errors by setting approximate_SEs = TRUE at own risk.")
+    }
+    x@parameters$se <- NA
+    x@parameters$p <- NA
+    
+    # Return:
+    return(x)
+  }
+  
   # if (!is.null(x@information)){
   #   Hinv <- solve_symmetric(x@information)
   # } else if (!is.null(x@optim$inverseHessian)){

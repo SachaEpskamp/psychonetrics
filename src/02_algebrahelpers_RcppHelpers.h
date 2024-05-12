@@ -11,28 +11,33 @@
 using namespace Rcpp;
 using namespace arma;
 
+
 arma::vec eig_sym_cpp(
         arma::mat X
 );
 
 bool sympd_cpp(
-                arma::mat X
+                arma::mat X,
+                bool semi = true
 );
 
 Rcpp::List solve_symmetric_cpp(
         arma::mat X,
         bool logdet = false,
-        double epsilon  = 1.490116e-08
+        double epsilon  = 1.490116e-08,
+        bool approx = true
 );
 
 arma::mat solve_symmetric_cpp_matrixonly(
         arma::mat X,
-        double epsilon  = 1.490116e-08
+        double epsilon  = 1.490116e-08,
+        bool approx = true
 );
 
 arma::mat solve_symmetric_cpp_matrixonly_withcheck(
                 arma::mat X,
-                bool& proper
+                bool& proper,
+                bool approx = true
 );
 
 

@@ -15,36 +15,36 @@ ml_lvm <- function(
   between_residual = c("cov","chol","prec","ggm"), 
   
   # Beta:
-  beta_within = "empty",
-  beta_between = "empty",
+  beta_within = "zero",
+  beta_between = "zero",
   
   # Contemporaneous latent effects within:
-  omega_zeta_within = "full", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
+  omega_zeta_within = "full", # 
   delta_zeta_within = "full", # If missing, just full for both groups or equal
   kappa_zeta_within = "full",
   sigma_zeta_within = "full",
   lowertri_zeta_within = "full",
   
   # Residual latent effects within:
-  omega_epsilon_within = "empty", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
-  delta_epsilon_within = "empty", # If missing, just full for both groups or equal
-  kappa_epsilon_within = "empty",
-  sigma_epsilon_within = "empty",
-  lowertri_epsilon_within = "empty",
+  omega_epsilon_within = "zero", # (only lower tri is used) "diag", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
+  delta_epsilon_within = "diag", # If missing, just full for both groups or equal
+  kappa_epsilon_within = "diag",
+  sigma_epsilon_within = "diag",
+  lowertri_epsilon_within = "diag",
   
   # Contemporaneous latent effects between:
-  omega_zeta_between = "full", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
+  omega_zeta_between = "full", # (only lower tri is used) "diag", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
   delta_zeta_between = "full", # If missing, just full for both groups or equal
   kappa_zeta_between = "full",
   sigma_zeta_between = "full",
   lowertri_zeta_between = "full",
   
   # Residual latent effects between:
-  omega_epsilon_between = "empty", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
-  delta_epsilon_between = "empty", # If missing, just full for both groups or equal
-  kappa_epsilon_between = "empty",
-  sigma_epsilon_between = "empty",
-  lowertri_epsilon_between = "empty",
+  omega_epsilon_between = "zero", # (only lower tri is used) "diag", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
+  delta_epsilon_between = "diag", # If missing, just full for both groups or equal
+  kappa_epsilon_between = "diag",
+  sigma_epsilon_between = "diag",
+  lowertri_epsilon_between = "diag",
   
   # Mean structure:
   nu,
@@ -62,7 +62,7 @@ ml_lvm <- function(
   groups, # ignored if missing. Can be character indicating groupvar, or vector with names of groups
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
-  # fitfunctions, # Leave empty
+  # fitfunctions, 
   estimator = c("FIML","MUML"),
   optimizer,
   storedata = FALSE,
@@ -496,7 +496,7 @@ ml_lvm <- function(
     # Form baseline model:
     # model@baseline_saturated$baseline <- varcov(data,
     #                                             type = "chol",
-    #                                             lowertri = "empty",
+    #                                             lowertri = "diag",
     #                                             vars = allVars,
     #                                             groups = groups,
     #                                             covs = covs,
@@ -516,9 +516,9 @@ ml_lvm <- function(
     O <- matrix(0, nVar, nVar)
     model@baseline_saturated$baseline <- ml_lvm(data,
                                                 within_latent = "chol",
-                                                lowertri_zeta_within = "empty",
+                                                lowertri_zeta_within = "diag",
                                                 between_latent = "chol",
-                                                lowertri_zeta_between = "empty",
+                                                lowertri_zeta_between = "diag",
                                                 lowertri_epsilon_within = O,
                                                 lowertri_epsilon_between = O,
                                                 lambda = I,

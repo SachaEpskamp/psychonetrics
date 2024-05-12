@@ -14,36 +14,36 @@ dlvm1 <- function(
   between_latent = c("cov","chol","prec","ggm"), 
   between_residual = c("cov","chol","prec","ggm"), 
   
-  # Temporal effects:
-  beta = "full",
-  
-  # Contemporaneous latent effects within:
-  omega_zeta_within = "full", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
-  delta_zeta_within = "full", # If missing, just full for both groups or equal
-  kappa_zeta_within = "full",
-  sigma_zeta_within = "full",
-  lowertri_zeta_within = "full",
-  
-  # Residual latent effects within:
-  omega_epsilon_within = "empty", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
-  delta_epsilon_within = "empty", # If missing, just full for both groups or equal
-  kappa_epsilon_within = "empty",
-  sigma_epsilon_within = "empty",
-  lowertri_epsilon_within = "empty",
-  
-  # Contemporaneous latent effects between:
-  omega_zeta_between = "full", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
-  delta_zeta_between = "full", # If missing, just full for both groups or equal
-  kappa_zeta_between = "full",
-  sigma_zeta_between = "full",
-  lowertri_zeta_between = "full",
-  
-  # Residual latent effects between:
-  omega_epsilon_between = "empty", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
-  delta_epsilon_between = "empty", # If missing, just full for both groups or equal
-  kappa_epsilon_between = "empty",
-  sigma_epsilon_between = "empty",
-  lowertri_epsilon_between = "empty",
+    # Temporal effects:
+    beta = "full",
+    
+    # Contemporaneous latent effects within:
+    omega_zeta_within = "full",
+    delta_zeta_within = "diag", # If missing, just full for both groups or equal
+    kappa_zeta_within = "full",
+    sigma_zeta_within = "full",
+    lowertri_zeta_within = "full",
+    
+    # Residual latent effects within:
+    omega_epsilon_within = "zero", 
+    delta_epsilon_within = "default", # If missing, just full for both groups or equal
+    kappa_epsilon_within = "default",
+    sigma_epsilon_within = "default",
+    lowertri_epsilon_within = "default",
+    
+    # Contemporaneous latent effects between:
+    omega_zeta_between = "full",
+    delta_zeta_between = "diag", # If missing, just full for both groups or equal
+    kappa_zeta_between = "full",
+    sigma_zeta_between = "full",
+    lowertri_zeta_between = "full",
+    
+    # Residual latent effects between:
+    omega_epsilon_between = "zero", 
+    delta_epsilon_between = "diag", # If missing, just full for both groups or equal
+    kappa_epsilon_between = "diag",
+    sigma_epsilon_between = "diag",
+    lowertri_epsilon_between = "diag",
   
   # Mean structure:
   nu,
@@ -75,10 +75,26 @@ dlvm1 <- function(
   sampleStats,
   
   baseline = c("stationary_random_intercept","stationary","independence","none")
+  
 ){
-
+  
   
   covtype <- match.arg(covtype)
+  
+  
+  # Check start:
+  if (is.character(start)){
+    start <- start[1]
+    if (!start %in% c("version2","version1","simple")){
+      stop("'start' can only be 'version1', 'version2' (default), 'simple', or a psychonetrics object")
+    }
+  } else if (is(start,"psychonetrics")){
+    start_mod <- start
+    start <- "psychonetrics"
+  } else {
+    stop("'start' can only be 'version1', 'version2' (default), 'simple', or a psychonetrics object")
+  }
+  
   # Check for missing:
   # if (missing(lambda_within)){
   #   stop("'lambda_within' may not be missing")
@@ -108,6 +124,11 @@ dlvm1 <- function(
   between_residual <- match.arg(between_residual)
   identification <- match.arg(identification)
   
+  # Warn for variance identification:
+  if (identification == "variance"){
+    warning("Using identification = 'variance' might lead to unexpected results for the dlvm1 family and is currenty not recommended.")
+  }
+  
   # Extract var names:
   if (missing(vars)){
     stop("'vars' argument may not be missing")
@@ -134,9 +155,9 @@ dlvm1 <- function(
                                verbose=verbose,
                                weightsmatrix = ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
                                                       switch(estimator,
-                                                        "WLS" = "full",
-                                                        "ULS" = "identity",
-                                                        "DWLS" = "diag"
+                                                             "WLS" = "full",
+                                                             "ULS" = "identity",
+                                                             "DWLS" = "diag"
                                                       )))
   }
   
@@ -246,142 +267,575 @@ dlvm1 <- function(
   # Model matrices:
   modMatrices <- list()
   
+  ### STARTING VALUES ###
+  
+  # Means the same for each variant:
+  
   # Expected means:
   expMeans <- lapply(model@sample@means, function(x)tapply(x,timePerVar,mean,na.rm=TRUE))
   
   # Fix nu
   modMatrices$nu <- matrixsetup_mu(nu,nNode = nVar, nGroup = nGroup, labels = varnames,equal = "nu" %in% equal,
-                                    expmeans = expMeans, sampletable = sampleStats, name = "nu")
+                                   expmeans = expMeans, sampletable = sampleStats, name = "nu")
   
   # Fix between-subject means:
   modMatrices$mu_eta <- matrixsetup_mu(mu_eta,nNode = nLat, nGroup = nGroup, labels = latents, equal = "mu_eta" %in% equal,
                                        expmeans = lapply(1:nGroup,function(x)rep(0, nLat)), sampletable = sampleStats, name = "mu_eta")
   
-  # FIXME: simple start values for now...
   
-  # T=1 cov structure:
-  firstVars <- apply(vars,1,function(x)na.omit(x)[1])
-  secondVars <- apply(vars,1,function(x)na.omit(x)[2])
-  firstSigma0 <- lapply(sampleStats@covs,function(x)spectralshift(x[firstVars,firstVars]))
-  firstSigma1 <- lapply(sampleStats@covs,function(x)spectralshift(x[secondVars,firstVars]))
-  
-  # Setup lambda:
-  modMatrices$lambda <- matrixsetup_lambda(lambda, expcov=firstSigma0, nGroup = nGroup, observednames = varnames, latentnames = latents,
-                                           sampletable = sampleStats, name = "lambda")
-  
-  # If beta = 0, these sort of estimate the within and between subject covs:
-  prior_bet_cov <- lapply(firstSigma1,function(x)spectralshift(0.5*(x+t(x))))
-  prior_wit_cov <- lapply(seq_along(firstSigma1),function(i)spectralshift(firstSigma0[[i]] - prior_bet_cov[[i]]))
-  
-  
-  # # Setup lambda_within:
-  # modMatrices$lambda_within <- matrixsetup_lambda(lambda_within, expcov=prior_wit_cov, nGroup = nGroup, observednames = sampleStats@variables$label, latentnames = latents,
-  #                                          sampletable = sampleStats, name = "lambda_within")
-  
-
-  # Quick and dirty sigma_zeta_within estimate:
-  prior_sig_zeta_within <- lapply(seq_along(firstSigma1),function(i){
+  # 23/08/2023: Attempt at better starting values
+  if (start == "psychonetrics"){
     
-    # Let's take a pseudoinverse:
-    curLam <- matrix(as.vector(modMatrices$lambda$start[,,i,drop=FALSE]),nVar,nLat)
+    # Makelist:
+    makelist <- function(x){
+      if (!is.list(x)) {
+        x <- list(x)
+      }
+      x
+    }
     
-    # If lambda is I then it is easy:
-    if (ncol(curLam) == nrow(curLam) && identical(curLam,diag(nrow(curLam)))){
-      # FIXME: This used to be /2, but direct estimate seems better?
-      return(prior_wit_cov[[i]]) 
+    # Setup lambda:
+    modMatrices$lambda <-  matrixsetup_lambda(lambda,
+                                       nGroup = nGroup,
+                                       # expcov = lapply(1:nGroup,function(x)diag(1,nVar)),
+                                       observednames = varnames,
+                                       latentnames = latents,
+                                       sampletable = sampleStats,
+                                       name = "lambda",
+                                       start = makelist(getmatrix(start_mod, "lambda")))
+    
+    # Setup latent varcov:
+    sigma_zeta_within_start <- 
+    modMatrices <- c(modMatrices,
+                     matrixsetup_flexcov(sigma = sigma_zeta_within,
+                                         lowertri = lowertri_zeta_within,
+                                         omega = omega_zeta_within,
+                                         delta = delta_zeta_within,
+                                         kappa = kappa_zeta_within,
+                                         type = within_latent,
+                                         name= "zeta_within",
+                                         sampleStats= sampleStats,
+                                         equal = equal,
+                                         nNode = nLat,
+                                         expCov = makelist(getmatrix(start_mod, "sigma_zeta_within")),
+                                         nGroup = nGroup,
+                                         labels = latents
+                     ))
+    
+    # Setup Beta:
+    modMatrices$beta <- matrixsetup_beta(beta, 
+                                         name = "beta",
+                                         nNode = nLat, 
+                                         nGroup = nGroup, 
+                                         labels = latents,
+                                         start = makelist(getmatrix(start_mod, "beta")),
+                                         equal = "beta" %in% equal, sampletable = sampleStats)
+    
+    
+    # Setup residuals:
+    modMatrices <- c(modMatrices,
+                     matrixsetup_flexcov(sigma_epsilon_within,lowertri_epsilon_within,omega_epsilon_within,delta_epsilon_within,kappa_epsilon_within,
+                                         type = within_residual,
+                                         name= "epsilon_within",
+                                         sampleStats= sampleStats,
+                                         equal = equal,
+                                         nNode = nVar,
+                                         expCov = makelist(getmatrix(start_mod, "sigma_epsilon_within")),
+                                         nGroup = nGroup,
+                                         labels = varnames
+                     ))
+    
+    
+    # Setup latent varcov:
+    modMatrices <- c(modMatrices,
+                     matrixsetup_flexcov(sigma_zeta_between,lowertri_zeta_between,omega_zeta_between,delta_zeta_between,kappa_zeta_between,
+                                         type = between_latent,
+                                         name= "zeta_between",
+                                         sampleStats= sampleStats,
+                                         equal = equal,
+                                         nNode = nLat,
+                                         expCov = makelist(getmatrix(start_mod, "sigma_zeta_between")),
+                                         nGroup = nGroup,
+                                         labels = latents
+                     ))
+    
+    # Setup latent residual:
+    modMatrices <- c(modMatrices,
+                     matrixsetup_flexcov(sigma_epsilon_between,lowertri_epsilon_between,omega_epsilon_between,delta_epsilon_between,kappa_epsilon_between,
+                                         type = between_residual,
+                                         name= "epsilon_between",
+                                         sampleStats= sampleStats,
+                                         equal = equal,
+                                         nNode = nVar,
+                                         expCov = makelist(getmatrix(start_mod, "sigma_epsilon_between")),
+                                         nGroup = nGroup,
+                                         labels = varnames
+                     ))
+    
+  } else if (start == "version2"){
+    
+    # The variables of the first wave are:
+    firstVars <- apply(vars,1,function(x)na.omit(x)[1])
+    
+    # The variables of the second wave are:
+    secondVars <- apply(vars,1,function(x)na.omit(x)[2])
+    
+    # The variables of the second to last wave are:
+    almostlastVars <- apply(vars,1,function(x)na.omit(x)[length(na.omit(x))-1])
+    
+    # The variables of the last wave are:
+    lastVars <- apply(vars,1,function(x)na.omit(x)[length(na.omit(x))])
+    
+    # Get some estimates per group:
+    prior_estimates <- list()
+    
+    # loop per group:
+    for (g in seq_len(nGroup)){
+      prior_estimates[[g]] <- list()
       
-      # Otherwise estimate:
-    } else {
+      # First estimate the stationary distribution by averaging waves:
+      prior_estimates[[g]]$stationary_estimate <- matrix(0,nrow(vars),nrow(vars))
+      
+      # And the lag-1 covariance structure:
+      prior_estimates[[g]]$lag1_estimate <- matrix(0,nrow(vars),nrow(vars))
+      
+      # Loop over all pairs of variables:
+      for (v in seq_len(nrow(vars))){
+        for (v2 in seq_len(nrow(vars))){
+          
+          ### stationary estimate ###
+          
+          # Reset the count of pairs to zero:
+          count <- 0
+          
+          # Loop over all time points:
+          for (t in seq_len(ncol(vars))){
+            
+            # If both variables are included, include in the estimate:
+            if (!is.na(vars[v,t]) && !is.na(vars[v2,t])){
+              count <- count + 1
+              prior_estimates[[g]]$stationary_estimate[v,v2] <- prior_estimates[[g]]$stationary_estimate[v,v2] + sampleStats@covs[[g]][vars[v,t],vars[v2,t]]
+            } 
+          }
+          
+          # Average the estimates:
+          prior_estimates[[g]]$stationary_estimate[v,v2] <-  prior_estimates[[g]]$stationary_estimate[v,v2] / count
+          
+          
+          ### lag-1 estimate ###
+          
+          # Reset the count of pairs to zero:
+          count <- 0
+          
+          # Loop over all time points:
+          for (t in seq_len(ncol(vars)-1)){
+            
+            # If both variables are included, include in the estimate:
+            if (!is.na(vars[v,t+1]) && !is.na(vars[v2,t])){
+              count <- count + 1
+              prior_estimates[[g]]$lag1_estimate[v,v2] <- prior_estimates[[g]]$lag1_estimate[v,v2] + sampleStats@covs[[g]][vars[v,t+1],vars[v2,t]]
+            } 
+          }
+          
+          # Average the estimates:
+          prior_estimates[[g]]$lag1_estimate[v,v2] <-  prior_estimates[[g]]$lag1_estimate[v,v2] / count
+        }
+      }
+      
+      # Spectral shift the stationary estimate:
+      prior_estimates[[g]]$stationary_estimate <- spectralshift(prior_estimates[[g]]$stationary_estimate)
+      
+      # Finally, we also estimate the largest lag difference covariance structure, which will be the closest to the between person covariance structure:
+      prior_estimates[[g]]$largest_lag_estimate <- sampleStats@covs[[g]][lastVars, firstVars]
+      # prior_estimates[[g]]$between_cov_estimate <- spectralshift(0.5 * (prior_estimates[[g]]$largest_lag_estimate + t(prior_estimates[[g]]$largest_lag_estimate)))
+      
+      prior_estimates[[g]]$between_cov_estimate <- spectralshift(pmin(prior_estimates[[g]]$largest_lag_estimate ,t(prior_estimates[[g]]$largest_lag_estimate )))
+      
+      # Now we take the difference as estimate for the within person lag0 covaraince matrix:
+      prior_estimates[[g]]$within_cov_estimate <- spectralshift(prior_estimates[[g]]$stationary_estimate -  prior_estimates[[g]]$between_cov_estimate)
+      
+      # And the lag1 estimate for within person model:
+      prior_estimates[[g]]$within_lag1_estimate <- prior_estimates[[g]]$lag1_estimate -  prior_estimates[[g]]$between_cov_estimate
+    }
+    
+    ### Run the lambda start values on the stationary distribution, within cov estimate and between cov estimate:
+    lambda_stationary <-  matrixsetup_lambda(lambda, 
+                                             expcov=lapply(prior_estimates,"[[","stationary_estimate"), 
+                                             nGroup = nGroup, 
+                                             observednames = varnames, 
+                                             latentnames = latents,
+                                             sampletable = sampleStats, 
+                                             name = "lambda")
+    
+    lambda_within <-  matrixsetup_lambda(lambda, 
+                                         expcov=lapply(prior_estimates,"[[","within_cov_estimate"), 
+                                         nGroup = nGroup, 
+                                         observednames = varnames, 
+                                         latentnames = latents,
+                                         sampletable = sampleStats, 
+                                         name = "lambda")
+    
+    lambda_between <-  matrixsetup_lambda(lambda, 
+                                          expcov=lapply(prior_estimates,"[[","between_cov_estimate"), 
+                                          nGroup = nGroup, 
+                                          observednames = varnames, 
+                                          latentnames = latents,
+                                          sampletable = sampleStats, 
+                                          name = "lambda")
+    
+    # Lambda start values: average the stationary, within and between person start value estimates:
+    modMatrices$lambda <- lambda_stationary
+    modMatrices$lambda$start <- (1/3) * (lambda_stationary$start + lambda_within$start + lambda_between$start)
+    
+    # Now loop again per group to estimate beta and sigma_zeta_within:
+    for (g in seq_len(nGroup)){
+      
+      # Fill in the sigma_zeta estimates:
+      prior_estimates[[g]]$within_latent_cov_estimate <- lambda_within$sigma_zeta_start[,,g]
+      prior_estimates[[g]]$between_latent_cov_estimate <- lambda_between$sigma_zeta_start[,,g] 
+      
+      # and sigma_epsilon estimates:
+      prior_estimates[[g]]$within_resid_cov_estimate <- lambda_within$sigma_epsilon_start[,,g]
+      prior_estimates[[g]]$between_resid_cov_estimate <- lambda_between$sigma_epsilon_start[,,g] 
+      
+      # Current within-person lambda estimate:
+      curLam <- matrix(as.vector(lambda_within$start[,,g,drop=FALSE]),nVar,nLat)
+      
+      # If lambda is I then it is easy:
+      if (ncol(curLam) == nrow(curLam) && identical(curLam,diag(nrow(curLam)))){
+        
+        # prior_estimates[[g]]$within_latent_cov_estimate <- prior_estimates[[g]]$within_cov_estimate 
+        # 
+        # prior_estimates[[g]]$between_latent_cov_estimate <- prior_estimates[[g]]$between_cov_estimate 
+        
+        # Lag-1 estimate:
+        prior_estimates[[g]]$within_latent_lag1_estimate <-  prior_estimates[[g]]$within_lag1_estimate
+        
+        
+        # Otherwise estimate:
+      } else {
+        
+        
+        # Pseudo inverse:
+        inv <- corpcor::pseudoinverse(as.matrix(kronecker(curLam,curLam)))
+        # # And obtain psi estimate (FIXME: this assumes no residual error...):
+        # prior_estimates[[g]]$within_latent_cov_estimate <-  spectralshift(matrix(inv %*% as.vector(prior_estimates[[g]]$within_cov_estimate),nLat,nLat))
+        # 
+        # prior_estimates[[g]]$between_latent_cov_estimate <-  spectralshift(matrix(inv %*% as.vector(prior_estimates[[g]]$between_cov_estimate),nLat,nLat))
+        # 
+        # Lag-1 estimate:
+        prior_estimates[[g]]$within_latent_lag1_estimate <-  matrix(inv %*% as.vector(prior_estimates[[g]]$within_lag1_estimate),nLat,nLat)
+        
+        # lag1 = beta * lag0
+        # beta = lag1 * lag0^-1:
+      }
+      
+      
+      # Estimate for beta:
+      prior_estimates[[g]]$beta_estimate <- prior_estimates[[g]]$within_latent_lag1_estimate  %*% solve_symmetric(prior_estimates[[g]]$within_latent_cov_estimate)
+      
+      
+      ### TO AID ESTIMATION, TRUNCATE SOME MATRICES TO NOT CONTAIN TOO LARGE EFFECTS:
+      
+      # # Bound temporal between -0.1 and 0.1:
+      # prior_estimates[[g]]$beta_estimate[diag(nrow(prior_estimates[[g]]$beta_estimate))!=1] <- pmin(0.1,pmax(-0.1, prior_estimates[[g]]$beta_estimate[diag(nrow(prior_estimates[[g]]$beta_estimate))!=1]))
+      # # And the diagonal between 0 and 0.5:
+      # prior_estimates[[g]]$beta_estimate[diag(prior_estimates[[g]]$beta_estimate)] <- pmin(0.5,pmax(0,prior_estimates[[g]]$beta_estimate[diag(prior_estimates[[g]]$beta_estimate)]))
+      # 
+      # # Bind all covariance matrices to not have absolute covariances > 0.5:
+      # prior_estimates[[g]]$within_latent_cov_estimate <- maxcor(prior_estimates[[g]]$within_latent_cov_estimate,0.1)
+      # prior_estimates[[g]]$within_resid_cov_estimate <- maxcor(prior_estimates[[g]]$within_resid_cov_estimate,0.1)
+      # prior_estimates[[g]]$between_latent_cov_estimate <- maxcor(prior_estimates[[g]]$between_latent_cov_estimate,0.1)
+      # prior_estimates[[g]]$within_resid_cov_estimate <- maxcor(prior_estimates[[g]]$within_resid_cov_estimate,0.1)
+    }
+    
+    
+    
+    # Setup latent varcov:
+    modMatrices <- c(modMatrices,
+                     matrixsetup_flexcov(sigma = sigma_zeta_within,
+                                         lowertri = lowertri_zeta_within,
+                                         omega = omega_zeta_within,
+                                         delta = delta_zeta_within,
+                                         kappa = kappa_zeta_within,
+                                         type = within_latent,
+                                         name= "zeta_within",
+                                         sampleStats= sampleStats,
+                                         equal = equal,
+                                         nNode = nLat,
+                                         expCov = lapply(prior_estimates,"[[","within_latent_cov_estimate"),
+                                         nGroup = nGroup,
+                                         labels = latents
+                     ))
+    
+    
+    # Setup Beta:
+    modMatrices$beta <- matrixsetup_beta(beta, 
+                                         name = "beta",
+                                         nNode = nLat, 
+                                         nGroup = nGroup, 
+                                         labels = latents,
+                                         equal = "beta" %in% equal, 
+                                         start = lapply(prior_estimates,"[[","beta_estimate"),
+                                         sampletable = sampleStats)
+    
+    
+    # Setup residuals:
+    modMatrices <- c(modMatrices,
+                     matrixsetup_flexcov(sigma_epsilon_within,lowertri_epsilon_within,omega_epsilon_within,delta_epsilon_within,kappa_epsilon_within,
+                                         type = within_residual,
+                                         name= "epsilon_within",
+                                         sampleStats= sampleStats,
+                                         equal = equal,
+                                         nNode = nVar,
+                                         expCov = lapply(prior_estimates,"[[","within_resid_cov_estimate"),
+                                         nGroup = nGroup,
+                                         labels = varnames
+                     ))
+    
+    
+    # Setup latent varcov:
+    modMatrices <- c(modMatrices,
+                     matrixsetup_flexcov(sigma_zeta_between,lowertri_zeta_between,omega_zeta_between,delta_zeta_between,kappa_zeta_between,
+                                         type = between_latent,
+                                         name= "zeta_between",
+                                         sampleStats= sampleStats,
+                                         equal = equal,
+                                         nNode = nLat,
+                                         expCov = lapply(prior_estimates,"[[","between_latent_cov_estimate"),
+                                         nGroup = nGroup,
+                                         labels = latents
+                     ))
+    
+    # Setup latent residual:
+    modMatrices <- c(modMatrices,
+                     matrixsetup_flexcov(sigma_epsilon_between,lowertri_epsilon_between,omega_epsilon_between,delta_epsilon_between,kappa_epsilon_between,
+                                         type = between_residual,
+                                         name= "epsilon_between",
+                                         sampleStats= sampleStats,
+                                         equal = equal,
+                                         nNode = nVar,
+                                         expCov = lapply(prior_estimates,"[[","within_resid_cov_estimate"),
+                                         nGroup = nGroup,
+                                         labels = varnames
+                     ))
+  
+  } else if (start == "version1"){
+    # Starting values as implemented up to version 0.11
+    
+    
+    # FIXME: simple start values for now...
+    
+    # T=1 cov structure:
+    firstVars <- apply(vars,1,function(x)na.omit(x)[1])
+    secondVars <- apply(vars,1,function(x)na.omit(x)[2])
+    firstSigma0 <- lapply(sampleStats@covs,function(x)spectralshift(x[firstVars,firstVars]))
+    firstSigma1 <- lapply(sampleStats@covs,function(x)spectralshift(x[secondVars,firstVars]))
+    
+    # Setup lambda:
+    modMatrices$lambda <- matrixsetup_lambda(lambda, expcov=firstSigma0, nGroup = nGroup, observednames = varnames, latentnames = latents,
+                                             sampletable = sampleStats, name = "lambda")
+    
+    # If beta = 0, these sort of estimate the within and between subject covs:
+    prior_bet_cov <- lapply(firstSigma1,function(x)spectralshift(0.5*(x+t(x))))
+    prior_wit_cov <- lapply(seq_along(firstSigma1),function(i)spectralshift(firstSigma0[[i]] - prior_bet_cov[[i]]))
+    
+    
+    # # Setup lambda_within:
+    # modMatrices$lambda_within <- matrixsetup_lambda(lambda_within, expcov=prior_wit_cov, nGroup = nGroup, observednames = sampleStats@variables$label, latentnames = latents,
+    #                                          sampletable = sampleStats, name = "lambda_within")
+    
+    
+    # Quick and dirty sigma_zeta_within estimate:
+    prior_sig_zeta_within <- lapply(seq_along(firstSigma1),function(i){
+      
+      # Let's take a pseudoinverse:
+      curLam <- matrix(as.vector(modMatrices$lambda$start[,,i,drop=FALSE]),nVar,nLat)
+      
+      # If lambda is I then it is easy:
+      if (ncol(curLam) == nrow(curLam) && identical(curLam,diag(nrow(curLam)))){
+        # FIXME: This used to be /2, but direct estimate seems better?
+        return(prior_wit_cov[[i]]) 
+        
+        # Otherwise estimate:
+      } else {
+        
+        inv <- corpcor::pseudoinverse(as.matrix(kronecker(curLam,curLam)))
+        # And obtain psi estimate:
+        matrix(inv %*% as.vector(prior_wit_cov[[i]])/2,nLat,nLat)    
+      }
+      
+    })
+    
+    
+    
+    # Setup latent varcov:
+    modMatrices <- c(modMatrices,
+                     matrixsetup_flexcov(sigma = sigma_zeta_within,lowertri = lowertri_zeta_within,omega = omega_zeta_within,delta = delta_zeta_within,kappa = kappa_zeta_within,
+                                         type = within_latent,
+                                         name= "zeta_within",
+                                         sampleStats= sampleStats,
+                                         equal = equal,
+                                         nNode = nLat,
+                                         expCov = prior_sig_zeta_within,
+                                         nGroup = nGroup,
+                                         labels = latents
+                     ))
+    
+    # Setup Beta:
+    modMatrices$beta <- matrixsetup_beta(beta, 
+                                         name = "beta",
+                                         nNode = nLat, 
+                                         nGroup = nGroup, 
+                                         labels = latents,
+                                         equal = "beta" %in% equal, sampletable = sampleStats)
+    
+    
+    # Setup residuals:
+    modMatrices <- c(modMatrices,
+                     matrixsetup_flexcov(sigma_epsilon_within,lowertri_epsilon_within,omega_epsilon_within,delta_epsilon_within,kappa_epsilon_within,
+                                         type = within_residual,
+                                         name= "epsilon_within",
+                                         sampleStats= sampleStats,
+                                         equal = equal,
+                                         nNode = nVar,
+                                         expCov = lapply(1:nGroup,function(x)diag(0.5,nVar)),
+                                         nGroup = nGroup,
+                                         labels = varnames
+                     ))
+    
+    # Between-case effects:
+    # Setup lambda_between:
+    # modMatrices$lambda_between <- matrixsetup_lambda(lambda_between, expcov=prior_bet_cov, nGroup = nGroup, observednames = sampleStats@variables$label, latentnames = latents,
+    #                                                 sampletable = sampleStats, name = "lambda_between")
+    # 
+    
+    
+    # Quick and dirty sigma_zeta_between estimate:
+    prior_sig_zeta_between <- lapply(seq_along(firstSigma1),function(i){
+      # Let's take a pseudoinverse:
+      curLam <- matrix(as.vector(modMatrices$lambda$start[,,i,drop=FALSE]),nVar,nLat)
       
       inv <- corpcor::pseudoinverse(as.matrix(kronecker(curLam,curLam)))
+      
       # And obtain psi estimate:
-      matrix(inv %*% as.vector(prior_wit_cov[[i]])/2,nLat,nLat)    
-    }
+      matrix(inv %*% as.vector(prior_bet_cov[[i]])/2,nLat,nLat)
+    })
+    
+    
+    # Setup latent varcov:
+    modMatrices <- c(modMatrices,
+                     matrixsetup_flexcov(sigma_zeta_between,lowertri_zeta_between,omega_zeta_between,delta_zeta_between,kappa_zeta_between,
+                                         type = between_latent,
+                                         name= "zeta_between",
+                                         sampleStats= sampleStats,
+                                         equal = equal,
+                                         nNode = nLat,
+                                         expCov = prior_sig_zeta_between,
+                                         nGroup = nGroup,
+                                         labels = latents
+                     ))
+    
+    # Setup latent residual:
+    modMatrices <- c(modMatrices,
+                     matrixsetup_flexcov(sigma_epsilon_between,lowertri_epsilon_between,omega_epsilon_between,delta_epsilon_between,kappa_epsilon_between,
+                                         type = between_residual,
+                                         name= "epsilon_between",
+                                         sampleStats= sampleStats,
+                                         equal = equal,
+                                         nNode = nVar,
+                                         expCov = lapply(1:nGroup,function(x)diag(0.5,nVar)),
+                                         nGroup = nGroup,
+                                         labels = varnames
+                     ))
+    
+  } else if (start == "simple"){
+    
+    # Simple starting values
+    
+    # Setup lambda:
+    modMatrices$lambda <- matrixsetup_lambda(lambda,
+                                             nGroup = nGroup,
+                                             expcov = lapply(1:nGroup,function(x)diag(1,nVar)),
+                                             observednames = varnames,
+                                             latentnames = latents,
+                                             sampletable = sampleStats,
+                                             name = "lambda",
+                                             simple = TRUE)
+    
+    # Setup latent varcov:
+    modMatrices <- c(modMatrices,
+                     matrixsetup_flexcov(sigma = sigma_zeta_within,
+                                         lowertri = lowertri_zeta_within,
+                                         omega = omega_zeta_within,
+                                         delta = delta_zeta_within,
+                                         kappa = kappa_zeta_within,
+                                         type = within_latent,
+                                         name= "zeta_within",
+                                         sampleStats= sampleStats,
+                                         equal = equal,
+                                         nNode = nLat,
+                                         expCov = lapply(1:nGroup,function(x)diag(0.5,nLat)),
+                                         nGroup = nGroup,
+                                         labels = latents
+                     ))
+    
+    # Setup Beta:
+    modMatrices$beta <- matrixsetup_beta(beta, 
+                                         name = "beta",
+                                         nNode = nLat, 
+                                         nGroup = nGroup, 
+                                         labels = latents,
+                                         start = lapply(1:nGroup,function(x)diag(0.1,nLat)),
+                                         equal = "beta" %in% equal, sampletable = sampleStats)
+    
+    
+    # Setup residuals:
+    modMatrices <- c(modMatrices,
+                     matrixsetup_flexcov(sigma_epsilon_within,lowertri_epsilon_within,omega_epsilon_within,delta_epsilon_within,kappa_epsilon_within,
+                                         type = within_residual,
+                                         name= "epsilon_within",
+                                         sampleStats= sampleStats,
+                                         equal = equal,
+                                         nNode = nVar,
+                                         expCov = lapply(1:nGroup,function(x)diag(0.5,nVar)),
+                                         nGroup = nGroup,
+                                         labels = varnames
+                     ))
+    
+    
+    # Setup latent varcov:
+    modMatrices <- c(modMatrices,
+                     matrixsetup_flexcov(sigma_zeta_between,lowertri_zeta_between,omega_zeta_between,delta_zeta_between,kappa_zeta_between,
+                                         type = between_latent,
+                                         name= "zeta_between",
+                                         sampleStats= sampleStats,
+                                         equal = equal,
+                                         nNode = nLat,
+                                         expCov = lapply(1:nGroup,function(x)diag(0.5,nLat)),
+                                         nGroup = nGroup,
+                                         labels = latents
+                     ))
+    
+    # Setup latent residual:
+    modMatrices <- c(modMatrices,
+                     matrixsetup_flexcov(sigma_epsilon_between,lowertri_epsilon_between,omega_epsilon_between,delta_epsilon_between,kappa_epsilon_between,
+                                         type = between_residual,
+                                         name= "epsilon_between",
+                                         sampleStats= sampleStats,
+                                         equal = equal,
+                                         nNode = nVar,
+                                         expCov = lapply(1:nGroup,function(x)diag(0.5,nVar)),
+                                         nGroup = nGroup,
+                                         labels = varnames
+                     ))
+    
+  }
   
-  })
-  
-
-  
-  # Setup latent varcov:
-  modMatrices <- c(modMatrices,
-                   matrixsetup_flexcov(sigma = sigma_zeta_within,lowertri = lowertri_zeta_within,omega = omega_zeta_within,delta = delta_zeta_within,kappa = kappa_zeta_within,
-                                       type = within_latent,
-                                       name= "zeta_within",
-                                       sampleStats= sampleStats,
-                                       equal = equal,
-                                       nNode = nLat,
-                                       expCov = prior_sig_zeta_within,
-                                       nGroup = nGroup,
-                                       labels = latents
-                   ))
-  
-  # Setup Beta:
-  modMatrices$beta <- matrixsetup_beta(beta, 
-                                       name = "beta",
-                                       nNode = nLat, 
-                                       nGroup = nGroup, 
-                                       labels = latents,
-                                       equal = "beta" %in% equal, sampletable = sampleStats)
+  ### OLD STARTING VALUES BELOW ###
   
   
-  # Setup residuals:
-  modMatrices <- c(modMatrices,
-                   matrixsetup_flexcov(sigma_epsilon_within,lowertri_epsilon_within,omega_epsilon_within,delta_epsilon_within,kappa_epsilon_within,
-                                       type = within_residual,
-                                       name= "epsilon_within",
-                                       sampleStats= sampleStats,
-                                       equal = equal,
-                                       nNode = nVar,
-                                       expCov = lapply(1:nGroup,function(x)diag(0.5,nVar)),
-                                       nGroup = nGroup,
-                                       labels = varnames
-                   ))
-  
-  # Between-case effects:
-  # Setup lambda_between:
-  # modMatrices$lambda_between <- matrixsetup_lambda(lambda_between, expcov=prior_bet_cov, nGroup = nGroup, observednames = sampleStats@variables$label, latentnames = latents,
-  #                                                 sampletable = sampleStats, name = "lambda_between")
   # 
-  
-  
-  # Quick and dirty sigma_zeta_between estimate:
-  prior_sig_zeta_between <- lapply(seq_along(firstSigma1),function(i){
-    # Let's take a pseudoinverse:
-    curLam <- matrix(as.vector(modMatrices$lambda$start[,,i,drop=FALSE]),nVar,nLat)
-    
-    inv <- corpcor::pseudoinverse(as.matrix(kronecker(curLam,curLam)))
-    
-    # And obtain psi estimate:
-    matrix(inv %*% as.vector(prior_bet_cov[[i]])/2,nLat,nLat)
-  })
-  
-  
-  # Setup latent varcov:
-  modMatrices <- c(modMatrices,
-                   matrixsetup_flexcov(sigma_zeta_between,lowertri_zeta_between,omega_zeta_between,delta_zeta_between,kappa_zeta_between,
-                                       type = between_latent,
-                                       name= "zeta_between",
-                                       sampleStats= sampleStats,
-                                       equal = equal,
-                                       nNode = nLat,
-                                       expCov = prior_sig_zeta_between,
-                                       nGroup = nGroup,
-                                       labels = latents
-                   ))
-  
-  # Setup latent residual:
-  modMatrices <- c(modMatrices,
-                   matrixsetup_flexcov(sigma_epsilon_between,lowertri_epsilon_between,omega_epsilon_between,delta_epsilon_between,kappa_epsilon_between,
-                                       type = between_residual,
-                                       name= "epsilon_between",
-                                       sampleStats= sampleStats,
-                                       equal = equal,
-                                       nNode = nVar,
-                                       expCov = lapply(1:nGroup,function(x)diag(0.5,nVar)),
-                                       nGroup = nGroup,
-                                       labels = varnames
-                   ))
-  
   # Generate the full parameter table:
   pars <- do.call(generateAllParameterTables, modMatrices)
   
@@ -553,7 +1007,6 @@ dlvm1 <- function(
       
     }
     
-  
     
     # Add model:
     # model@baseline_saturated$baseline@fitfunctions$extramatrices$M <- Mmatrix(model@baseline_saturated$baseline@parameters)

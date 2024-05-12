@@ -105,5 +105,3 @@ Rcpp::List prepare_dlvm1_cpp(
   return(result);
 }
 
-
-

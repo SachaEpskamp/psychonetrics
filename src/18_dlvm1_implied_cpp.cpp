@@ -67,6 +67,7 @@ Rcpp::List implied_dlvm1_cpp(
     arma::mat mu_eta = grouplist["mu_eta"];
     arma::mat lambda = grouplist["lambda"];
     arma::mat beta = grouplist["beta"];
+    
     arma::mat sigma_zeta_within = grouplist["sigma_zeta_within"];
     arma::mat sigma_zeta_between = grouplist["sigma_zeta_between"];
     arma::mat sigma_epsilon_within = grouplist["sigma_epsilon_within"];

@@ -17,7 +17,7 @@ jacobian_gaussian_group_sigmaVersion_sigmaPart <- function(S,means,mu,sigma,D,ka
   # mat <- Matrix(as.vector(Vec(S) + Vec((means - mu) %*% t(means - mu)) - Vec(sigma)),n,n)
   mat <- S + (means - mu) %*% t(means - mu) - sigma
   grad_sigma <- t(-t(D) %*% Vec(kappa %*% mat %*% kappa))
-
+  
   as.matrix(grad_sigma)
 }
 

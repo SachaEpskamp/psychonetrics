@@ -5,20 +5,20 @@ eig_sym_cpp <- function(X) {
     .Call(`_psychonetrics_eig_sym_cpp`, X)
 }
 
-sympd_cpp <- function(X) {
-    .Call(`_psychonetrics_sympd_cpp`, X)
+sympd_cpp <- function(X, semi = TRUE) {
+    .Call(`_psychonetrics_sympd_cpp`, X, semi)
 }
 
-solve_symmetric_cpp <- function(X, logdet = FALSE, sqrt_epsilon = 1.490116e-08) {
-    .Call(`_psychonetrics_solve_symmetric_cpp`, X, logdet, sqrt_epsilon)
+solve_symmetric_cpp <- function(X, logdet = FALSE, sqrt_epsilon = 1.490116e-08, approx = TRUE) {
+    .Call(`_psychonetrics_solve_symmetric_cpp`, X, logdet, sqrt_epsilon, approx)
 }
 
-solve_symmetric_cpp_matrixonly <- function(X, sqrt_epsilon = 1.490116e-08) {
-    .Call(`_psychonetrics_solve_symmetric_cpp_matrixonly`, X, sqrt_epsilon)
+solve_symmetric_cpp_matrixonly <- function(X, sqrt_epsilon = 1.490116e-08, approx = TRUE) {
+    .Call(`_psychonetrics_solve_symmetric_cpp_matrixonly`, X, sqrt_epsilon, approx)
 }
 
-solve_symmetric_cpp_matrixonly_withcheck <- function(X, proper) {
-    .Call(`_psychonetrics_solve_symmetric_cpp_matrixonly_withcheck`, X, proper)
+solve_symmetric_cpp_matrixonly_withcheck <- function(X, proper, approx = TRUE) {
+    .Call(`_psychonetrics_solve_symmetric_cpp_matrixonly_withcheck`, X, proper, approx)
 }
 
 bdiag_psychonetrics <- function(mats) {
@@ -665,7 +665,7 @@ updateModel_cpp <- function(x, model, updateMatrices) {
     .Call(`_psychonetrics_updateModel_cpp`, x, model, updateMatrices)
 }
 
-addSEs_cpp <- function(xOld) {
-    .Call(`_psychonetrics_addSEs_cpp`, xOld)
+addSEs_cpp <- function(xOld, verbose = TRUE, approximate_SEs = FALSE) {
+    .Call(`_psychonetrics_addSEs_cpp`, xOld, verbose, approximate_SEs)
 }
 

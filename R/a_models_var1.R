@@ -9,7 +9,7 @@ var1 <- function(
   beta = "full",
   
   # Contemporaneous effects:
-  omega_zeta = "full", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
+  omega_zeta = "full", # (only lower tri is used) "zero", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
   delta_zeta = "full", # If missing, just full for both groups or equal
   kappa_zeta = "full",
   sigma_zeta = "full",
@@ -28,7 +28,7 @@ var1 <- function(
   missing = "listwise",
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
-  # fitfunctions, # Leave empty
+  # fitfunctions, 
   estimator = "ML",
   optimizer,
   storedata = FALSE,
