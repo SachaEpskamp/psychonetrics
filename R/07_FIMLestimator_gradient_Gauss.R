@@ -4,10 +4,8 @@ jacobian_fiml_gaussian_subgroup_sigma <- function(dat,sigma,kappa,mu,...){
   obs <- !as.vector(dat$pattern)
   
   sig_p <- sigma[obs,obs,drop=FALSE]
+  
   kappa_p <- solve_symmetric(sig_p, logdet = TRUE)
-  
-  
-  
   
   # Means:
   mu_p <- mu[obs]

@@ -2,12 +2,12 @@
 varcov <- function(
   data, # Dataset
   type = c("cov","chol","prec","ggm","cor"),
-  sigma = "full", # (only lower tri is used) "empty", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
+  sigma = "full", 
   kappa = "full", # Precision
   # rho = "full", # Correlations
   omega = "full", # Partial correlations
   lowertri = "full", # Cholesky
-  delta = "full", # Used for both ggm and pcor
+  delta = "diag", # Used for both ggm and pcor
   rho = "full", # Used for cor
   SD = "full", # Used for cor
   mu,
@@ -261,29 +261,38 @@ varcov <- function(
   model@parameters <- pars$partable
   model@matrices <- pars$mattable
   
-  if (type == "cov" || type == "prec"){
-    model@extramatrices <- list(
-      D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
-      L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
-      In = as(diag(nNode),"dMatrix") # Identity of dim n
-    )
-  } else if (type == "chol"){
+  # if (type == "cov" || type == "prec"){
+  #   model@extramatrices <- list(
+  #     D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
+  #     L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
+  #     In = as(diag(nNode),"dMatrix") # Identity of dim n
+  #   )
+  # } else if (type == "chol"){
+  #   model@extramatrices <- list(
+  #     D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
+  #     L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
+  #     In = as(diag(nNode),"dMatrix"), # Identity of dim n
+  #     # C = as(lavaan::lav_matrix_commutation(nNode,nNode),"sparseMatrix")
+  #     C = as(lavaan::lav_matrix_commutation(nNode,nNode),"dMatrix")
+  #   )
+  # } else if (type == "ggm" || type == "cor"){
+  #   model@extramatrices <- list(
+  #     D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
+  #     L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
+  #     Dstar = psychonetrics::duplicationMatrix(nNode,diag = FALSE), # Strict duplicaton matrix
+  #     In = as(diag(nNode),"dMatrix"), # Identity of dim n
+  #     A = psychonetrics::diagonalizationMatrix(nNode)
+  #   )
+  # }
+  
     model@extramatrices <- list(
       D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
       L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
       In = as(diag(nNode),"dMatrix"), # Identity of dim n
-      # C = as(lavaan::lav_matrix_commutation(nNode,nNode),"sparseMatrix")
-      C = as(lavaan::lav_matrix_commutation(nNode,nNode),"dMatrix")
-    )
-  } else if (type == "ggm" || type == "cor"){
-    model@extramatrices <- list(
-      D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
-      L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
+      C = as(lavaan::lav_matrix_commutation(nNode,nNode),"dMatrix"),
       Dstar = psychonetrics::duplicationMatrix(nNode,diag = FALSE), # Strict duplicaton matrix
-      In = as(diag(nNode),"dMatrix"), # Identity of dim n
       A = psychonetrics::diagonalizationMatrix(nNode)
     )
-  }
   
   
   # Form the model matrices
@@ -299,7 +308,7 @@ varcov <- function(
     if (!corinput){
       model@baseline_saturated$baseline <- varcov(data,
                                                   type = "chol",
-                                                  lowertri = "empty",
+                                                  lowertri = "diag",
                                                   vars = vars,
                                                   groups = groups,
                                                   covs = covs,
@@ -315,7 +324,7 @@ varcov <- function(
     } else {
       model@baseline_saturated$baseline <- varcov(data,
                                                   type = "cor",
-                                                  rho = "empty",
+                                                  rho = "zero",
                                                   vars = vars,
                                                   groups = groups,
                                                   covs = covs,

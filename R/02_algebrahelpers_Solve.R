@@ -1,5 +1,5 @@
-solve_symmetric <- function(x, logdet = FALSE){
-  res <- solve_symmetric_cpp(as.matrix(x), logdet, sqrt(.Machine$double.eps))
+solve_symmetric <- function(x, logdet = FALSE,approx=TRUE){
+  res <- solve_symmetric_cpp(as.matrix(x), logdet, sqrt(.Machine$double.eps),approx=approx)
   inv <- res$inv
   if(logdet){
     attr(inv, "logdet") <- res$logdet

@@ -4,6 +4,11 @@ fixAdj <- function(kappa, nGroup, nNode, equal = FALSE, diag0 = FALSE, diagonal 
   # Make kappa if one of the defaults is used:
   if (is.character(kappa)){
     
+    # Warn for deprecated 
+    if (kappa == "empty"){
+      warning("Using 'empty' for matrix specification is deprecated. Please use 'full', 'diag', or 'zero' instead.")
+    }
+    
     # Empty network:
     if (kappa %in% c("diag","empty")){
       

@@ -23,50 +23,54 @@ BEGIN_RCPP
 END_RCPP
 }
 // sympd_cpp
-bool sympd_cpp(arma::mat X);
-RcppExport SEXP _psychonetrics_sympd_cpp(SEXP XSEXP) {
+bool sympd_cpp(arma::mat X, bool semi);
+RcppExport SEXP _psychonetrics_sympd_cpp(SEXP XSEXP, SEXP semiSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(sympd_cpp(X));
+    Rcpp::traits::input_parameter< bool >::type semi(semiSEXP);
+    rcpp_result_gen = Rcpp::wrap(sympd_cpp(X, semi));
     return rcpp_result_gen;
 END_RCPP
 }
 // solve_symmetric_cpp
-Rcpp::List solve_symmetric_cpp(arma::mat X, bool logdet, double sqrt_epsilon);
-RcppExport SEXP _psychonetrics_solve_symmetric_cpp(SEXP XSEXP, SEXP logdetSEXP, SEXP sqrt_epsilonSEXP) {
+Rcpp::List solve_symmetric_cpp(arma::mat X, bool logdet, double sqrt_epsilon, bool approx);
+RcppExport SEXP _psychonetrics_solve_symmetric_cpp(SEXP XSEXP, SEXP logdetSEXP, SEXP sqrt_epsilonSEXP, SEXP approxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
     Rcpp::traits::input_parameter< bool >::type logdet(logdetSEXP);
     Rcpp::traits::input_parameter< double >::type sqrt_epsilon(sqrt_epsilonSEXP);
-    rcpp_result_gen = Rcpp::wrap(solve_symmetric_cpp(X, logdet, sqrt_epsilon));
+    Rcpp::traits::input_parameter< bool >::type approx(approxSEXP);
+    rcpp_result_gen = Rcpp::wrap(solve_symmetric_cpp(X, logdet, sqrt_epsilon, approx));
     return rcpp_result_gen;
 END_RCPP
 }
 // solve_symmetric_cpp_matrixonly
-arma::mat solve_symmetric_cpp_matrixonly(arma::mat X, double sqrt_epsilon);
-RcppExport SEXP _psychonetrics_solve_symmetric_cpp_matrixonly(SEXP XSEXP, SEXP sqrt_epsilonSEXP) {
+arma::mat solve_symmetric_cpp_matrixonly(arma::mat X, double sqrt_epsilon, bool approx);
+RcppExport SEXP _psychonetrics_solve_symmetric_cpp_matrixonly(SEXP XSEXP, SEXP sqrt_epsilonSEXP, SEXP approxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
     Rcpp::traits::input_parameter< double >::type sqrt_epsilon(sqrt_epsilonSEXP);
-    rcpp_result_gen = Rcpp::wrap(solve_symmetric_cpp_matrixonly(X, sqrt_epsilon));
+    Rcpp::traits::input_parameter< bool >::type approx(approxSEXP);
+    rcpp_result_gen = Rcpp::wrap(solve_symmetric_cpp_matrixonly(X, sqrt_epsilon, approx));
     return rcpp_result_gen;
 END_RCPP
 }
 // solve_symmetric_cpp_matrixonly_withcheck
-arma::mat solve_symmetric_cpp_matrixonly_withcheck(arma::mat X, bool& proper);
-RcppExport SEXP _psychonetrics_solve_symmetric_cpp_matrixonly_withcheck(SEXP XSEXP, SEXP properSEXP) {
+arma::mat solve_symmetric_cpp_matrixonly_withcheck(arma::mat X, bool& proper, bool approx);
+RcppExport SEXP _psychonetrics_solve_symmetric_cpp_matrixonly_withcheck(SEXP XSEXP, SEXP properSEXP, SEXP approxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
     Rcpp::traits::input_parameter< bool& >::type proper(properSEXP);
-    rcpp_result_gen = Rcpp::wrap(solve_symmetric_cpp_matrixonly_withcheck(X, proper));
+    Rcpp::traits::input_parameter< bool >::type approx(approxSEXP);
+    rcpp_result_gen = Rcpp::wrap(solve_symmetric_cpp_matrixonly_withcheck(X, proper, approx));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -2132,23 +2136,25 @@ BEGIN_RCPP
 END_RCPP
 }
 // addSEs_cpp
-S4 addSEs_cpp(const S4& xOld);
-RcppExport SEXP _psychonetrics_addSEs_cpp(SEXP xOldSEXP) {
+S4 addSEs_cpp(const S4& xOld, bool verbose, bool approximate_SEs);
+RcppExport SEXP _psychonetrics_addSEs_cpp(SEXP xOldSEXP, SEXP verboseSEXP, SEXP approximate_SEsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const S4& >::type xOld(xOldSEXP);
-    rcpp_result_gen = Rcpp::wrap(addSEs_cpp(xOld));
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    Rcpp::traits::input_parameter< bool >::type approximate_SEs(approximate_SEsSEXP);
+    rcpp_result_gen = Rcpp::wrap(addSEs_cpp(xOld, verbose, approximate_SEs));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_eig_sym_cpp", (DL_FUNC) &_psychonetrics_eig_sym_cpp, 1},
-    {"_psychonetrics_sympd_cpp", (DL_FUNC) &_psychonetrics_sympd_cpp, 1},
-    {"_psychonetrics_solve_symmetric_cpp", (DL_FUNC) &_psychonetrics_solve_symmetric_cpp, 3},
-    {"_psychonetrics_solve_symmetric_cpp_matrixonly", (DL_FUNC) &_psychonetrics_solve_symmetric_cpp_matrixonly, 2},
-    {"_psychonetrics_solve_symmetric_cpp_matrixonly_withcheck", (DL_FUNC) &_psychonetrics_solve_symmetric_cpp_matrixonly_withcheck, 2},
+    {"_psychonetrics_sympd_cpp", (DL_FUNC) &_psychonetrics_sympd_cpp, 2},
+    {"_psychonetrics_solve_symmetric_cpp", (DL_FUNC) &_psychonetrics_solve_symmetric_cpp, 4},
+    {"_psychonetrics_solve_symmetric_cpp_matrixonly", (DL_FUNC) &_psychonetrics_solve_symmetric_cpp_matrixonly, 3},
+    {"_psychonetrics_solve_symmetric_cpp_matrixonly_withcheck", (DL_FUNC) &_psychonetrics_solve_symmetric_cpp_matrixonly_withcheck, 3},
     {"_psychonetrics_bdiag_psychonetrics", (DL_FUNC) &_psychonetrics_bdiag_psychonetrics, 1},
     {"_psychonetrics_cbind_psychonetrics", (DL_FUNC) &_psychonetrics_cbind_psychonetrics, 1},
     {"_psychonetrics_vech", (DL_FUNC) &_psychonetrics_vech, 2},
@@ -2310,7 +2316,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_implied_ml_lvm_cpp", (DL_FUNC) &_psychonetrics_implied_ml_lvm_cpp, 2},
     {"_psychonetrics_prepare_ml_lvm_cpp", (DL_FUNC) &_psychonetrics_prepare_ml_lvm_cpp, 2},
     {"_psychonetrics_updateModel_cpp", (DL_FUNC) &_psychonetrics_updateModel_cpp, 3},
-    {"_psychonetrics_addSEs_cpp", (DL_FUNC) &_psychonetrics_addSEs_cpp, 1},
+    {"_psychonetrics_addSEs_cpp", (DL_FUNC) &_psychonetrics_addSEs_cpp, 3},
     {NULL, NULL, 0}
 };
 

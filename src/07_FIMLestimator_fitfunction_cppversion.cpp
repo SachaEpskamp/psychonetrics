@@ -76,6 +76,7 @@ double fimlEstimator_Gauss_group_cpp_inner(
   arma::mat kappa_p = invres["inv"];
   double logdet = invres["logdet"];
   
+  
   // Rf_PrintValue(wrap(log_det(kappa_p)));
   
   // Likelihood:

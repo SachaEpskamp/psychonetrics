@@ -1,5 +1,10 @@
-Changes in Version 0.11.7
+Changes in Version 0.12
   o Added the 'baseline' argument to dlvm1 model family, which now defaults to "stationary_random_intercept". Note: this will change incremental fit indices! To recover old behavior, set baseline = "independence"
+  o The log(det(kappa)) value used in fit function is now computed in FIML in the same way as computed in ML framework, this should lead to more stability, but might also lead to some different chi-square values
+  o The startreduce argument in prune() now defaults to 0.5
+  o Added the 'start' argument to the dlvm1 model family.
+  o Using "empty" for matrix specification is now deprecated; use "diag" or "zero" instead.
+  o Changed the starting values for dlvm1 models for better convergence (hopefully)
 
 Changes in Version 0.11.5
   o Fixes to support Matrix 1.7-0
@@ -8,6 +13,9 @@ Changes in Version 0.11.5
   o The groupequal, groupfree, fixpar and freepar functions can now handle multiple rows/columns for symmetric matrices
   o Fixed a bug in the identification function for ml_lvm models
   o Implemented min_sum argument for estimating Ising models on data with a minimum sum score due to selection bias. This method is further discussed in  Boot, de Ron, Haslbeck & Epskamp (in preperation). Correcting for selection bias after sum score selection in the Ising model.
+  o The 'warn_improper' argument in runmodel now defaults to FALSE, omitting the warning that a non-positive defnite matrix was encountered in parameter estimation.
+  o SEs are now set to NA if the Fischer information matrix could not be inverted normally
+  o Added an argument 'approximate_SEs' to runmodel to allow for SEs to be approximated using a pseudoinverse
 
 Changes in Version 0.11
   o Optimised lambda starting value choice

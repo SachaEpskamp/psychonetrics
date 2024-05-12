@@ -1,5 +1,8 @@
 sparseordense <- function(x){
 
+  # Make matrix:
+  if (!is.matrix(x)) x <- as.matrix(x)
+  
   # Obtain attribute:
   logdet <- attr(x, "logdet")
   

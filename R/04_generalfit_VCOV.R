@@ -1,4 +1,4 @@
-getVCOV <- function(model){
+getVCOV <- function(model,approximate_SEs = FALSE){
   if (!is.null(model@information)){
     Info <- model@information
   } else {
@@ -10,5 +10,6 @@ getVCOV <- function(model){
 
   }
   
-  1/sum(model@sample@groups$nobs) * as.matrix(solve_symmetric(Info))
+  # Attempt to invert:
+  1/sum(model@sample@groups$nobs) * as.matrix(solve_symmetric(Info,approx=approximate_SEs))
 }

@@ -14,7 +14,9 @@ using namespace arma;
 
 // [[Rcpp::export]]
 S4 addSEs_cpp(
-    const S4& xOld
+    const S4& xOld,
+    bool verbose = true,
+    bool approximate_SEs = false
 ){
   
   // Setup:
@@ -70,6 +72,8 @@ S4 addSEs_cpp(
     
     // Assuming information has been computed ....
     arma::mat Fisher = x.slot("information");
+
+/*
     arma::mat Hinv = 1.0/n * solve_symmetric_cpp_matrixonly(Fisher);
       
       
@@ -90,8 +94,46 @@ S4 addSEs_cpp(
         p[i] = 2.0 * R::pnorm(absest[i], 0.0, se[i], 0, 0);
       }
     }
+    */
+
+    arma::mat Hinv;
     
+    if (approximate_SEs){
+      Hinv = 1.0/n * solve_symmetric_cpp_matrixonly(Fisher, 1.490116e-08, true);  
+    } else {
+      Hinv = 1.0/n * solve_symmetric_cpp_matrixonly(Fisher, 1.490116e-08, false);
+    }
     
+    // Check for NA:
+    double first_element = (double)Hinv(0,0);
+
+    if (R_IsNA(first_element)){
+        Rf_warning("Standard errors could not be obtained because the Fischer information matrix could not be inverted. This may be a symptom of a non-identified model or due to convergence issues. You can try to approximate standard errors by setting approximate_SEs = TRUE at own risk.");
+
+      // Write NAs:
+      for (i=0; i<nparTotal;i++){
+        if (par[i] > 0){
+          se[i] = NA_REAL;
+          p[i] = NA_REAL;
+        }
+      }
+      
+    } else {
+      
+      // Obtain SEs
+      arma::vec SEs = sqrt(abs(Hinv.diag()));
+      
+      // Add standard errors:
+      for (i=0; i<nparTotal;i++){
+        if (par[i] > 0){
+          se[i] = SEs(par[i]-1);
+          p[i] = 2.0 * R::pnorm(absest[i], 0.0, se[i], 0, 0);
+        }
+      }
+      
+    }
+
+
     // Write back:
     parameters["se"] = se;
     parameters["p"] = p;
