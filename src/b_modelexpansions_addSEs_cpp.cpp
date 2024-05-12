@@ -72,6 +72,30 @@ S4 addSEs_cpp(
     
     // Assuming information has been computed ....
     arma::mat Fisher = x.slot("information");
+
+/*
+    arma::mat Hinv = 1.0/n * solve_symmetric_cpp_matrixonly(Fisher);
+      
+      
+    // Obtain SEs
+    arma::vec SEs = sqrt(abs(Hinv.diag()));
+    
+    // 
+    // 
+    // x =sqrt(abs(diag(solve_symmetric(H))))
+    // sqrt(2/n) * x -
+    // SEs
+
+    
+    // Add standard errors:
+    for (i=0; i<nparTotal;i++){
+      if (par[i] > 0){
+        se[i] = SEs(par[i]-1);
+        p[i] = 2.0 * R::pnorm(absest[i], 0.0, se[i], 0, 0);
+      }
+    }
+    */
+
     arma::mat Hinv;
     
     if (approximate_SEs){
@@ -108,6 +132,7 @@ S4 addSEs_cpp(
       }
       
     }
+
 
     // Write back:
     parameters["se"] = se;

@@ -1,19 +1,19 @@
 # Latent network model creator
 dlvm1 <- function(
-    data, # Dataset
-    vars, # Must be a matrix!
-    
-    # Factor loadings:
-    lambda, # May not be missing
-    # lambda_within, # May not be missing
-    # lambda_between, # May not be missing
-    
-    # Type:
-    within_latent = c("cov","chol","prec","ggm"), 
-    within_residual = c("cov","chol","prec","ggm"), 
-    between_latent = c("cov","chol","prec","ggm"), 
-    between_residual = c("cov","chol","prec","ggm"), 
-    
+  data, # Dataset
+  vars, # Must be a matrix!
+  
+  # Factor loadings:
+  lambda, # May not be missing
+  # lambda_within, # May not be missing
+  # lambda_between, # May not be missing
+  
+  # Type:
+  within_latent = c("cov","chol","prec","ggm"), 
+  within_residual = c("cov","chol","prec","ggm"), 
+  between_latent = c("cov","chol","prec","ggm"), 
+  between_residual = c("cov","chol","prec","ggm"), 
+  
     # Temporal effects:
     beta = "full",
     
@@ -44,39 +44,38 @@ dlvm1 <- function(
     kappa_epsilon_between = "diag",
     sigma_epsilon_between = "diag",
     lowertri_epsilon_between = "diag",
-    
-    # Mean structure:
-    nu,
-    mu_eta,
-    
-    # Identification:
-    identify = TRUE,
-    identification = c("loadings","variance"),
-    
-    # single_indicator_residuals = FALSE, # <- Include residuals even for variables with single indicators?
-    
-    # Latents:
-    # latents,
-    # latents,
-    latents,
-    
-    # The rest:
-    groups, # ignored if missing. Can be character indicating groupvar, or vector with names of groups
-    covs, # alternative covs (array nvar * nvar * ngroup)
-    means, # alternative means (matrix nvar * ngroup)
-    nobs, # Alternative if data is missing (length ngroup)
-    start = "version2", # <- start values,  "version 2" (defualt), "version 1", "simple" or a psychonetrics model
-    
-    covtype = c("choose","ML","UB"),
-    missing = "listwise",
-    equal = "none", # Can also be any of the matrices
-    baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
-    # fitfunctions, # Leave empty
-    estimator = "ML",
-    optimizer,
-    storedata = FALSE,
-    verbose = FALSE,
-    sampleStats
+  
+  # Mean structure:
+  nu,
+  mu_eta,
+  
+  # Identification:
+  identify = TRUE,
+  identification = c("loadings","variance"),
+  
+  # Latents:
+  # latents,
+  # latents,
+  latents,
+  
+  # The rest:
+  groups, # ignored if missing. Can be character indicating groupvar, or vector with names of groups
+  covs, # alternative covs (array nvar * nvar * ngroup)
+  means, # alternative means (matrix nvar * ngroup)
+  nobs, # Alternative if data is missing (length ngroup)
+  covtype = c("choose","ML","UB"),
+  missing = "listwise",
+  equal = "none", # Can also be any of the matrices
+  baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
+  # fitfunctions, # Leave empty
+  estimator = "ML",
+  optimizer,
+  storedata = FALSE,
+  verbose = FALSE,
+  sampleStats,
+  
+  baseline = c("stationary_random_intercept","stationary","independence","none")
+  
 ){
   
   
@@ -939,6 +938,8 @@ dlvm1 <- function(
   # Form the model matrices
   model@modelmatrices <- formModelMatrices(model)
   
+  # Baseline model:
+  baseline <- match.arg(baseline)
   
   ### Baseline model ###
   if (is.list(baseline_saturated)){
@@ -946,19 +947,66 @@ dlvm1 <- function(
   } else if (isTRUE(baseline_saturated)){
     
     # Form baseline model:
-    model@baseline_saturated$baseline <- varcov(data,
-                                                type = "chol",
-                                                lowertri = "diag",
-                                                vars = allVars,
-                                                groups = groups,
-                                                covs = covs,
-                                                means = means,
-                                                nobs = nobs,
-                                                missing = missing,
-                                                equal = equal,
-                                                estimator = estimator,
-                                                baseline_saturated = FALSE,
-                                                sampleStats = sampleStats)
+    if (baseline ==  "stationary_random_intercept"){
+      
+      # Form the baseline model:
+      model@baseline_saturated$baseline <- panelvar(data,
+                                                 vars = vars,
+                                                 groups = groups,
+                                                 covs = covs,
+                                                 means = means,
+                                                 nobs = nobs,
+                                                 missing = missing,
+                                                 equal = equal,
+                                                 estimator = estimator,
+                                                 baseline_saturated = FALSE,
+                                                 sampleStats = sampleStats,
+                                                 
+                                                 # Empty networks:
+                                                 sigma_zeta_within = "empty",
+                                                 sigma_zeta_between = "empty",
+                                                 beta = "empty"
+                                                 )
+    
+    } else if (baseline == "stationary"){ 
+      
+      # Form the baseline model:
+      model@baseline_saturated$baseline <- panelvar(data,
+                                                    vars = vars,
+                                                    groups = groups,
+                                                    covs = covs,
+                                                    means = means,
+                                                    nobs = nobs,
+                                                    missing = missing,
+                                                    equal = equal,
+                                                    estimator = estimator,
+                                                    baseline_saturated = FALSE,
+                                                    sampleStats = sampleStats,
+                                                    
+                                                    # Empty networks:
+                                                    sigma_zeta_within = "empty",
+                                                    sigma_zeta_between = "zero",
+                                                    beta = "empty"
+      )
+      
+    } else if (baseline == "independence"){
+      
+      model@baseline_saturated$baseline <- varcov(data,
+                                                  type = "chol",
+                                                  lowertri = "empty",
+                                                  vars = allVars,
+                                                  groups = groups,
+                                                  covs = covs,
+                                                  means = means,
+                                                  nobs = nobs,
+                                                  missing = missing,
+                                                  equal = equal,
+                                                  estimator = estimator,
+                                                  baseline_saturated = FALSE,
+                                                  sampleStats = sampleStats)
+      
+    }
+    
     
     # Add model:
     # model@baseline_saturated$baseline@fitfunctions$extramatrices$M <- Mmatrix(model@baseline_saturated$baseline@parameters)

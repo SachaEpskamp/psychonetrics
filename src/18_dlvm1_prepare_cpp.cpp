@@ -45,7 +45,6 @@ Rcpp::List prepare_dlvm1_cpp(
   
   // Number of observations per group:
   arma::vec nPerGroup = group["nobs"];
-
   
   // Compute implied matrices:
   Rcpp::List imp = implied_dlvm1_cpp(newMod, false);
@@ -105,6 +104,4 @@ Rcpp::List prepare_dlvm1_cpp(
   
   return(result);
 }
-
-
 
