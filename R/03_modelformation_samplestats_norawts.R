@@ -173,7 +173,7 @@ samplestats_norawts <- function(
         # covs <- list(as(cov,"dsyMatrix"))
         covs <- list(as(cov,"matrix"))
         if (!any(is.na(cov))){
-          cors <- list(as(new("corMatrix", cov2cor(cov), sd = diag(cov)),"matrix"))         
+          cors <- list(as(as(cov2cor(cov), "symmetricMatrix"),"matrix"))         
         } else {
           cors <- list()
         }
@@ -245,7 +245,7 @@ samplestats_norawts <- function(
           
           if (!any(is.na(cov))){
 
-            cors[[g]] <- as(new("corMatrix", cov2cor(cov), sd = diag(cov)),"matrix")         
+            cors[[g]] <- as(as(cov2cor(cov), "symmetricMatrix"),"matrix")         
           } else {
             cors[[g]] <- NA
           }
@@ -329,7 +329,7 @@ samplestats_norawts <- function(
         # cors <- list(new("corMatrix", cov2cor(covs), sd = diag(covs)))
         
         if (!any(is.na(covs))){
-          cors <- list(as(new("corMatrix", cov2cor(covs), sd = diag(covs)),"matrix"))
+          cors <- list(as(as(cov2cor(covs), "symmetricMatrix"),"matrix"))
         } else {
           cors <- list(NA)
         }
@@ -338,7 +338,7 @@ samplestats_norawts <- function(
         cors <- lapply(covs,function(x){
           
           if (!any(is.na(x))){
-            return(as(new("corMatrix", cov2cor(x), sd = diag(x)),"matrix"))
+            return(as(as(cov2cor(x), "symmetricMatrix"),"matrix"))
           } else {
             return(NA)
           }
@@ -367,7 +367,7 @@ samplestats_norawts <- function(
       cors <- list()
       for (g in 1:nGroup){
         covs[[g]] <- as(covsArray[,,g],"matrix")
-        cors[[g]] <- as(new("corMatrix", cov2cor(covsArray[,,g]), sd = diag(covsArray[,,g])), "matrix")
+        cors[[g]] <- as(as(cov2cor(covsArray[,,g]), "symmetricMatrix"), "matrix")
       }
     }
     

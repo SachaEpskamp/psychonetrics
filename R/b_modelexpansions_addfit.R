@@ -99,7 +99,7 @@ addfit <- function(
     } else  if (x@estimator %in% c("WLS","DWLS","ULS")){
       fitMeasures$baseline.chisq <- x@baseline_saturated$baseline@objective  * (sampleSize)
     } 
-
+    fitMeasures$baseline.npar <- max(x@baseline_saturated$baseline@parameters$par)
     fitMeasures$baseline.df <- fitMeasures$nobs - max(x@baseline_saturated$baseline@parameters$par)
     fitMeasures$baseline.pvalue <- pchisq(fitMeasures$baseline.chisq, fitMeasures$baseline.df, lower.tail = FALSE)
     
