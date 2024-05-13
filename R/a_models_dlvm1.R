@@ -964,9 +964,9 @@ dlvm1 <- function(
                                                  sampleStats = sampleStats,
                                                  
                                                  # Empty networks:
-                                                 sigma_zeta_within = "empty",
-                                                 sigma_zeta_between = "empty",
-                                                 beta = "empty"
+                                                 sigma_zeta_within = "diag",
+                                                 sigma_zeta_between = "diag",
+                                                 beta = "zero"
                                                  )
     
     } else if (baseline == "stationary"){ 
@@ -985,9 +985,9 @@ dlvm1 <- function(
                                                     sampleStats = sampleStats,
                                                     
                                                     # Empty networks:
-                                                    sigma_zeta_within = "empty",
+                                                    sigma_zeta_within = "diag",
                                                     sigma_zeta_between = "zero",
-                                                    beta = "empty"
+                                                    beta = "zero"
       )
       
     } else if (baseline == "independence"){
