@@ -5,6 +5,7 @@ Changes in Version 0.12
   o Added the 'start' argument to the dlvm1 model family.
   o Using "empty" for matrix specification is now deprecated; use "diag" or "zero" instead.
   o Changed the starting values for dlvm1 models for better convergence (hopefully)
+  o getmatrix will no longer evaluate a model if it is not computed (now returns start values)
 
 Changes in Version 0.11.5
   o Fixes to support Matrix 1.7-0
