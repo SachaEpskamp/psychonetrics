@@ -233,6 +233,7 @@ prune <- function(
       # Add log:
       x <- addLog(x, paste("Pruned all parameters in matrices ",paste0(matrices,collapse=", ")," at alpha = ",alpha," (none were removed)")) 
     }    
+    x@computed <- FALSE
     return(x)
   } 
   
@@ -255,7 +256,7 @@ prune <- function(
   # x@parameters$pmi[nonsig] <- NA
   # x@parameters$mi_equal[nonsig] <- NA
   # x@parameters$pmi_equal[nonsig] <- NA
-  
+
   # FIXME: Reduce parameter estimates from remainder of matrix a bit to avoid problems:
   x@parameters$est[x@parameters$matrix %in% matrices & !x@parameters$fixed & !x@parameters$identified & x@parameters$est != 0] <- 
     startreduce * x@parameters$est[x@parameters$matrix %in% matrices & !x@parameters$fixed & !x@parameters$identified & x@parameters$est != 0] 
@@ -291,6 +292,9 @@ prune <- function(
       # cat("EMERGENCYSTART")
       x <- emergencystart(xOld) %>% runmodel(verbose=verbose,...)
     }
+  }  else {
+    x@computed <- FALSE
+    x@modelmatrices <- impliedModel(x, x@types, all = TRUE) 
   }
   
   # Recurse if needed:

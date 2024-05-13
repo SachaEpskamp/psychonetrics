@@ -18,7 +18,8 @@ getmatrix <- function(x,matrix,group,threshold=FALSE,
   
   # If not run, run model:
   if (!x@computed){
-    x <- x %>% runmodel(verbose = verbose)
+    warning("Model has not been computed! Returning start-values.")
+  #   x <- x %>% runmodel(verbose = verbose)
   }
   
   # check matrix arg:
