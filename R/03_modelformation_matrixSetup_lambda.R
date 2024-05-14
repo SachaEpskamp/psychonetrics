@@ -26,9 +26,34 @@ matrixsetup_lambda <- function(
     sigma_zeta_start <- array(0, dim = c(nLat, nLat, nGroup))
     
     for (g in 1:nGroup){
+      
       # Current cov estimate:
       curcov <- as.matrix(spectralshift(expcov[[g]]))
-      if (!(nObs > 3 && nObs > nLat) || simple){
+      if (nObs == nLat){
+        
+        
+        # Equal number of observations and latents (likely no measurement error modeled):
+        simple <- FALSE
+        
+        # Sigma_zeta start:
+        sigma_zeta_start[,,g] <- curcov
+        
+        # Identity matrix:
+        lambdaStart[,,g] <- lambda[,,g] <- diag(nObs)
+        
+        # If variance identification, I need to rescale ...
+        if (identification == "variance"){
+          # Obtain SDs:
+          S <- diag(sqrt(diag(sigma_zeta_start[,,g])))
+          
+          # Standardize sigma_zeta:
+          sigma_zeta_start[,,g] <- cov2cor(sigma_zeta_start[,,g])
+          
+          # Rescale lambda:
+          lambdaStart[,,g] <- lambda[,,g] <-  lambda[,,g] %*% S
+        }
+        
+      } else if (!(nObs > 3 && nObs >= nLat) || simple){
         simple <- TRUE
       } else {
         simple <- FALSE
@@ -105,7 +130,7 @@ matrixsetup_lambda <- function(
         })
         if (is (tryres, "try-error")) simple <- TRUE
       }
-      
+
       if (simple){
         sigma_epsilon_start[,,g] <- diag(nObs)
         sigma_zeta_start[,,g] <- diag(nLat)
