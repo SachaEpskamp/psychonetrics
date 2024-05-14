@@ -12,7 +12,7 @@ prune <- function(
   identify = TRUE,
   # nCores = 1,
   # reps = 1000,
-  startreduce = 0.5,
+  startreduce = 1,
   limit = Inf,
   mode = c("tested","all"),
   ...){

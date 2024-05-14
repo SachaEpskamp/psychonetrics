@@ -549,8 +549,7 @@ dlvm1 <- function(
       # prior_estimates[[g]]$between_latent_cov_estimate <- maxcor(prior_estimates[[g]]$between_latent_cov_estimate,0.1)
       # prior_estimates[[g]]$within_resid_cov_estimate <- maxcor(prior_estimates[[g]]$within_resid_cov_estimate,0.1)
     }
-    
-    
+  
     
     # Setup latent varcov:
     modMatrices <- c(modMatrices,
