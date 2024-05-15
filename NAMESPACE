@@ -8,6 +8,8 @@ importFrom("grDevices", "rgb")
 
 importFrom(rlang, .data)
 
+export(fixstart)
+
 export(CIplot)
 export(emergencystart)
 export(partialprune)

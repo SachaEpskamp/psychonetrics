@@ -12,6 +12,22 @@ getmatrix <- function(x,matrix,group,threshold=FALSE,
     stop("Input must be a 'psychonetrics' object.")
   }
   
+  # IF matrix is PDC, run recursive:
+  if (matrix == "PDC" & !identical(threshold,FALSE)){
+    beta <- getmatrix(x,"beta",group,threshold=threshold,alpha=alpha,adjust=adjust,mode=mode,diag=diag)
+    PDC <- getmatrix(x,"PDC",group,threshold=FALSE,mode=mode,diag=diag)
+    
+    if (is.list(PDC)){
+      reslist <- PDC
+      for (g in seq_along(reslist)){
+        reslist[[g]] <- PDC[[g]] * t(beta[[g]]!=0)
+      }
+    } else {
+      reslist <- PDC * t(beta!=0)
+    }
+    return(reslist)
+  }
+  
   # Extract verbose:
   verbose <- x@verbose
   
@@ -56,10 +72,16 @@ getmatrix <- function(x,matrix,group,threshold=FALSE,
     adjust <- match.arg(adjust)
     
     # Check if the matrix is modeled:
+    # matrix <- matrix
+    # if (matrix == "PDC"){
+    #   # FIXME: 
+    #   stop("PDC thresholding is not directly implemented. For now, use getmatrix(mod,'PDC') * t(getmatrix(mod,'beta',threshold=TRUE,...)!=0)")
+    #   # matrix <- "beta"
+    # }
     if (!matrix %in% x@matrices$name){
       stop("Matrix is not modeled and can therefore not be thresholded.")
     }
-    
+
     # obtain p-values:
     pValues <- adjust_p_values(x,
                                alpha = alpha, 

@@ -540,6 +540,9 @@ dlvm1 <- function(
       scalar <- min(1,(1/(nLat+1)) / mean(abs(c(prior_estimates[[g]]$beta_estimate))))
       prior_estimates[[g]]$beta_estimate <- scalar * prior_estimates[[g]]$beta_estimate 
       
+      # Hard truncate any above 0.5:
+      prior_estimates[[g]]$beta_estimate[prior_estimates[[g]]$beta_estimate > 0.5] <- 0.5
+      prior_estimates[[g]]$beta_estimate[prior_estimates[[g]]$beta_estimate < -0.5] <- -0.5
       
       ### TO AID ESTIMATION, TRUNCATE SOME MATRICES TO NOT CONTAIN TOO LARGE EFFECTS:
       
