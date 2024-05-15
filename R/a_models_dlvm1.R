@@ -535,6 +535,11 @@ dlvm1 <- function(
       # Estimate for beta:
       prior_estimates[[g]]$beta_estimate <- prior_estimates[[g]]$within_latent_lag1_estimate  %*% solve_symmetric(prior_estimates[[g]]$within_latent_cov_estimate)
       
+      # Truncate beta estimate:
+      
+      scalar <- min(1,(1/(nLat+1)) / mean(abs(c(prior_estimates[[g]]$beta_estimate))))
+      prior_estimates[[g]]$beta_estimate <- scalar * prior_estimates[[g]]$beta_estimate 
+      
       
       ### TO AID ESTIMATION, TRUNCATE SOME MATRICES TO NOT CONTAIN TOO LARGE EFFECTS:
       
