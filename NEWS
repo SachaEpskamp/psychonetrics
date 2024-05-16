@@ -1,14 +1,15 @@
-Changes in Version 0.12
-  o Added the 'baseline' argument to dlvm1 model family, which now defaults to "stationary_random_intercept". Note: this will change incremental fit indices! To recover old behavior, set baseline = "independence"
+Changes in Version 1.0.0
+  o Updates for the dlvm1 model family:
+    o Changed the starting values for dlvm1 models for better convergence
+    o Added the 'start' argument to the dlvm1 model family. Use start = "version1" to use pre 0.12 start values
+    o Added the 'baseline' argument to dlvm1 model family, which now defaults to "stationary_random_intercept". Note: this will change incremental fit indices! To recover old behavior, set baseline = "independence"
   o The log(det(kappa)) value used in fit function is now computed in FIML in the same way as computed in ML framework, this should lead to more stability, but might also lead to some different chi-square values
-  o The startreduce argument in prune() now defaults to 0.5
-  o Added the 'start' argument to the dlvm1 model family.
+  o The startreduce argument in prune() now defaults to 1
   o Using "empty" for matrix specification is now deprecated; use "diag" or "zero" instead.
-  o Changed the starting values for dlvm1 models for better convergence (hopefully)
   o getmatrix will no longer evaluate a model if it is not computed (now returns start values)
   o the 'startreduce' argument in 'prune' now defaults to 1
   o Added the 'fixstart' function that can aide in fixing startvalues
-  o getmatrix now supports thresholded PDC matrices
+  o The 'getmatrix' function now supports thresholded PDC matrices
   o Diagnostic functions 'checkJacobian' and 'checkFischer' are now exported
 
 Changes in Version 0.11.5
