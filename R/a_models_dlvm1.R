@@ -536,7 +536,8 @@ dlvm1 <- function(
       prior_estimates[[g]]$beta_estimate <- prior_estimates[[g]]$within_latent_lag1_estimate  %*% solve_symmetric(prior_estimates[[g]]$within_latent_cov_estimate)
       
       # Scale by eigenvalue:
-      ev_beta <- max(abs(eigen(prior_estimates[[g]]$beta_estimate)$values))
+      EVs <- eigen(prior_estimates[[g]]$beta_estimate)$values
+      ev_beta <- max(sqrt(Re(EVs)^2 + Im(EVs)^2))
       if (ev_beta > 0.9){
         scalar <- 0.9 / ev_beta
         prior_estimates[[g]]$beta_estimate <- scalar * prior_estimates[[g]]$beta_estimate 
