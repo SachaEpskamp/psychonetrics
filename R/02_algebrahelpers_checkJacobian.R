@@ -1,7 +1,15 @@
 # Simple function to check if a gradient or hessian is correct:
-checkJacobian <- function(x, f = psychonetrics_fitfunction_cpp, jac = psychonetrics_gradient_cpp, transpose = FALSE, plot = TRUE,  perturbStart = FALSE,method="Richardson"){
+checkJacobian <- function(x, f = "default", jac = "default", transpose = FALSE, plot = TRUE,  perturbStart = FALSE,method="Richardson"){
   
   start <- parVector(x)
+  
+  if (identical(f,"default")){
+    f <- psychonetrics_fitfunction_cpp
+  }
+  
+  if (identical(jac,"default")){
+    jac <- psychonetrics_gradient_cpp
+  }
 
   if (perturbStart){
     start <- start + runif(length(start),0,0.25)
@@ -48,7 +56,7 @@ checkJacobian <- function(x, f = psychonetrics_fitfunction_cpp, jac = psychonetr
 
 
 # Same, but first replaces observed values with their implied ones
-checkFisher <- function(x, f = psychonetrics_gradient_cpp, fis = psychonetrics_FisherInformation_cpp, transpose = FALSE, plot = TRUE,  perturbStart = FALSE){
+checkFisher <- function(x, f = "default", fis = "default", transpose = FALSE, plot = TRUE,  perturbStart = FALSE){
   # x <- expectedmodel(x)
   # start <- parVector(x)
   # prep <- prepareModel(start, x)
@@ -72,6 +80,16 @@ checkFisher <- function(x, f = psychonetrics_gradient_cpp, fis = psychonetrics_F
   # if (perturbStart){
   #   start <- start + runif(length(start),0,0.25)
   # }
+  
+  if (identical(f,"default")){
+    f <- psychonetrics_fitfunction_cpp
+  }
+  
+  if (identical(fis,"default")){
+    fis <- psychonetrics_FisherInformation_cpp
+  }
+  
+  
   
   # Analytic:
   analytic <- fis(x)

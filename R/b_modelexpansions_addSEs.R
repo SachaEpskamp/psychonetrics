@@ -39,7 +39,7 @@ addSEs <-  function(x,
   #   Hinv <- solve_symmetric(psychonetrics_FisherInformation(x))
   # } 
   Hinv <- getVCOV(x,approximate_SEs=approximate_SEs)
-  
+
   # If NAs, return warning and NA:
   if (any(is.na(Hinv))){
     if (verbose){

@@ -8,7 +8,8 @@ Changes in Version 0.12
   o getmatrix will no longer evaluate a model if it is not computed (now returns start values)
   o the 'startreduce' argument in 'prune' now defaults to 1
   o Added the 'fixstart' function that can aide in fixing startvalues
-  o getmatrix now supports thresholded PDC matrices.
+  o getmatrix now supports thresholded PDC matrices
+  o Diagnostic functions 'checkJacobian' and 'checkFischer' are now exported
 
 Changes in Version 0.11.5
   o Fixes to support Matrix 1.7-0
