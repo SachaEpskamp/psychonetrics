@@ -10,6 +10,10 @@ importFrom(rlang, .data)
 
 export(fixstart)
 
+export(checkJacobian)
+export(checkJacobian)
+export(checkFisher)
+
 export(CIplot)
 export(emergencystart)
 export(partialprune)

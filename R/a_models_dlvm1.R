@@ -26,10 +26,10 @@ dlvm1 <- function(
     
     # Residual latent effects within:
     omega_epsilon_within = "zero", 
-    delta_epsilon_within = "default", # If missing, just full for both groups or equal
-    kappa_epsilon_within = "default",
-    sigma_epsilon_within = "default",
-    lowertri_epsilon_within = "default",
+    delta_epsilon_within = "diag", # If missing, just full for both groups or equal
+    kappa_epsilon_within = "diag",
+    sigma_epsilon_within = "diag",
+    lowertri_epsilon_within = "diag",
     
     # Contemporaneous latent effects between:
     omega_zeta_between = "full",
@@ -535,11 +535,19 @@ dlvm1 <- function(
       # Estimate for beta:
       prior_estimates[[g]]$beta_estimate <- prior_estimates[[g]]$within_latent_lag1_estimate  %*% solve_symmetric(prior_estimates[[g]]$within_latent_cov_estimate)
       
-      # Truncate beta estimate:
-      
-      scalar <- min(1,(1/(nLat+1)) / mean(abs(c(prior_estimates[[g]]$beta_estimate))))
-      prior_estimates[[g]]$beta_estimate <- scalar * prior_estimates[[g]]$beta_estimate 
-      
+      # Scale by eigenvalue:
+      ev_beta <- max(abs(eigen(prior_estimates[[g]]$beta_estimate)$values))
+      if (ev_beta > 0.9){
+        scalar <- 0.9 / ev_beta
+        prior_estimates[[g]]$beta_estimate <- scalar * prior_estimates[[g]]$beta_estimate 
+      }
+      # 
+      # 
+      # # Truncate beta estimate:
+      # 
+      # scalar <- min(1,(1/(nLat+1)) / mean(abs(c(prior_estimates[[g]]$beta_estimate))))
+      # prior_estimates[[g]]$beta_estimate <- scalar * prior_estimates[[g]]$beta_estimate 
+      # 
       # Hard truncate any above 0.5:
       prior_estimates[[g]]$beta_estimate[prior_estimates[[g]]$beta_estimate > 0.5] <- 0.5
       prior_estimates[[g]]$beta_estimate[prior_estimates[[g]]$beta_estimate < -0.5] <- -0.5
