@@ -7,7 +7,8 @@ matrixsetup_kappa <- function(
   equal = FALSE,
   sampletable,
   name = "kappa",
-  beta = array(0, c(nNode, nNode,nGroup))
+  beta = array(0, c(nNode, nNode,nGroup)),
+  lassofix = TRUE
 ){
   # Check if kappa is character:
   ischar <- is.character(kappa)
@@ -27,7 +28,7 @@ matrixsetup_kappa <- function(
       wi <- solve_symmetric(covest)
       
       # FIXME: Quick check, if there is an outrageous starting value, use glasso with lasso instead:
-      if (any(abs(qgraph::wi2net(wi)[lower.tri(wi,diag=FALSE)]) > 0.8)){
+      if (lassofix && (any(abs(qgraph::wi2net(wi)[lower.tri(wi,diag=FALSE)]) > 0.8))){
         wi <- glasso(as.matrix(spectralshift(covest)), rho = 0.1)$wi
       }
       

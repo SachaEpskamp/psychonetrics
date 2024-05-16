@@ -13,6 +13,7 @@ export(fixstart)
 export(checkJacobian)
 export(checkJacobian)
 export(checkFisher)
+export(transmod)
 
 export(CIplot)
 export(emergencystart)

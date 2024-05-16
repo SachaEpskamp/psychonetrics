@@ -8,7 +8,8 @@ matrixsetup_omega <- function(
   sampletable,
   name = "omega",
   beta = array(0, c(nNode, nNode,nGroup)),
-  onlyStartSign = FALSE
+  onlyStartSign = FALSE,
+  lassofix = TRUE 
 ){
   
   # Check if sigma is character:
@@ -32,8 +33,9 @@ matrixsetup_omega <- function(
       if (nrow(zeroes) == 0){
         wi <- solve_symmetric_cpp_matrixonly(covest)
         pcor <- qgraph::wi2net(as.matrix(wi))
+        
         # FIXME: Quick check, if there is an outrageous starting value, use glasso with lasso instead:
-        if (any(is.na(pcor)) || any(abs(pcor) > 0.8)){
+        if (lassofix && (any(is.na(pcor)) || any(abs(pcor) > 0.8))){
           wi <- glasso(as.matrix(spectralshift(covest)), rho = 0.1)$wi
           pcor <-  qgraph::wi2net(as.matrix(wi))
         }
