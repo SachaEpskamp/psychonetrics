@@ -12,6 +12,8 @@ Changes in Version 1.0.0
   o The 'getmatrix' function now supports thresholded PDC matrices
   o Diagnostic functions 'checkJacobian' and 'checkFischer' are now exported
   o Added the transmod function, which can be used to transform one model type (e.g., using a Cholesky decomposition) to another model type (e.g., a GGM).
+  o Improved support for models with only one (latent) variable
+  o Added the 'logbook' function which can be used to more easily retrieve the psychonetrics logbook
 
 Changes in Version 0.11.5
   o Fixes to support Matrix 1.7-0

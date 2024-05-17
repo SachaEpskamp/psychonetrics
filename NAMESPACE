@@ -2,6 +2,8 @@
 useDynLib(psychonetrics, .registration = TRUE)
 
 
+export(logbook)
+
 importFrom("grDevices", "rgb")
     importFrom("stats", "quantile")
     importFrom("utils", "capture.output")
@@ -56,6 +58,8 @@ S3method(plot, esa_manual)
 S3method(print, esa)
 S3method(print, esa_manual)
 S3method(print, psychonetrics_compare)
+
+S3method(print, psychonetrics_log)
 
 import(IsingSampler)
 

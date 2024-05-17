@@ -61,7 +61,7 @@ identify_lvm <- function(x){
        "ggm" = "delta_zeta",
        "chol" = "lowertri_zeta"
       )
-      
+
       # Set all latent variances to 1:
       vars <- which(x@parameters$matrix == mat & x@parameters$row == x@parameters$col)
       x@parameters$est[vars] <- 1

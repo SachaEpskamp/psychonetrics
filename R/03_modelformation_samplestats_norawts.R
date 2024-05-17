@@ -63,6 +63,11 @@ samplestats_norawts <- function(
     if (missing(groups)|| is.null(groups)){
       groups <- "group"
       data[[groups]] <- "fullsample"
+    } else {
+      if (!groups %in% names(data)){
+        stop("'groups' object does not refer to a column in the data")
+      }
+      
     }
     # Extract group names:
     groupNames <- unique(data[[groups]])
