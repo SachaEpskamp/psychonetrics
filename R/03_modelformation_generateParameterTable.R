@@ -5,8 +5,13 @@ generateAllParameterTables <- function(...){
   res <- list()
   for (i in seq_along(dots)){
     res[[i]] <- do.call(generateParameterTable,c(dots[[i]],list(curMaxPar=curMaxPar)))
-    curMaxPar <- max(curMaxPar,res[[i]]$partable$par)
+    
+    if (length(res[[i]]$partable$par)>0){
+      curMaxPar <- max(curMaxPar,res[[i]]$partable$par)  
+    }
+    
   }
+  
   res <- list(
     partable = do.call(rbind,lapply(res,"[[","partable")),
     mattable = do.call(rbind,lapply(res,"[[","mattable"))
@@ -25,7 +30,7 @@ generateAllParameterTables <- function(...){
 # Parameter relabel:
 parRelabel <- function(x){
   x$par[x$par!=0] <- as.numeric(factor(x$par[x$par!=0], 
-               levels = unique(x$par[x$par!=0])))
+                                       levels = unique(x$par[x$par!=0])))
   x
 }
 
@@ -33,7 +38,7 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
                                    lower = -Inf, upper = Inf, start, lowertri=FALSE, allFixed = FALSE,
                                    incomplete = FALSE,
                                    ... # Ignored dummy arguments
-                                   ){
+){
   # rowid and colid can be missing:
   if (missing(rowid)){
     rowid <- seq_along(rownames)
@@ -48,7 +53,7 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
   } else if (diagonal){
     ind <- array(FALSE,dim=dim(x))
     for (i in 1:dim(ind)[3]){
-      ind[,,i] <- diag(nrow(ind[,,i])) == 1
+      ind[,,i] <- diag(nrow(ind[,,i,drop=FALSE])) == 1
     }
   } else if (symmetrical || lowertri){
     ind <- array(TRUE,dim=dim(x))
@@ -61,7 +66,7 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
   }
   # Obtain row:
   row <- slice.index(x,1)[ind]
-
+  
   if (length(dim(x)) == 3){
     # Obtain col:
     col <- slice.index(x,2)[ind]
@@ -73,14 +78,14 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
     # Obtain group:
     group <- slice.index(x,2)[ind]
   }
-
+  
   # Est = 0 if matrix != symmetrical, 1 for diagonals if matrix = symmetrical:
   if (symmetrical || lowertri || incomplete){
     est <- array(diag(nrow(x)),dim(x))[ind]
   } else {
     est <- rep(0,length(x))
   }
-
+  
   # Fixed are values that are zero:
   fixed <- x[ind] == 0
   
@@ -95,7 +100,7 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
     par[x[ind]==1] <- curMaxPar + seq_len(sum(x[ind]==1))
     curMaxPar <- max(par)    
   }
-
+  
   # Now loop if needed:
   if (any(x[ind] > 1)){
     for (p in unique(x[ind & x!=0 & x!=1])){
@@ -103,7 +108,7 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
       curMaxPar <- curMaxPar + 1
     }
   }
-   
+  
   # var1:
   var1 <- rownames[row]
   var1_id <- rowid[row]
@@ -135,9 +140,11 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
   if (length(upper)==1){
     upper <-  array(upper,dim = dim(x))
   }
-
+  
+  
   # Make the table:
-  # if (length(est) > 0){
+  if (length(est) > 0){
+    
     partable <- data.frame(
       var1 = var1,
       var1_id = var1_id,
@@ -182,13 +189,13 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
     if (!missing(start)){
       partable$est <- start[ind]
     }
-
+    
     # Table for matrices:
     mattable <- data.frame(
       name = mat,
       nrow = dim(x)[1],
       ncol = ifelse(length(dim(x)) > 2,dim(x)[2],1),
-      ngroup = max(group_id),
+      # ngroup = max(group_id),
       symmetrical = symmetrical,
       sparse = sparse,
       posdef=posdef,
@@ -196,62 +203,66 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
       lowertri = lowertri,
       incomplete = incomplete
     )
-  #   
-  # } else {
-  #   
-  #   partable <-data.frame(
-  #     var1 = character(0),
-  #     var1_id = integer(0),
-  #     op = character(0),
-  #     var2 = character(0),
-  #     var2_id = integer(0),
-  #     est = numeric(0),
-  #     std = numeric(0),
-  #     se = numeric(0),
-  #     p = numeric(0),
-  #     matrix = character(0),
-  #     row = numeric(0),
-  #     col = numeric(0),
-  #     par = integer(0),
-  #     group = character(0),
-  #     group_id = integer(0),
-  #     fixed = logical(0),
-  #     symmetrical = logical(0), # Used to determine if matrix is symmetrical
-  #     mi = numeric(0), # Modification index
-  #     pmi = numeric(0), #p-value modification index
-  #     epc = numeric(0),
-  #     mi_free = numeric(0), # Modification index
-  #     pmi_free = numeric(0), #p-value modification index
-  #     epc_free = numeric(0),
-  #     mi_equal = numeric(0), # Modification index constraning groups to be equal
-  #     pmi_equal = numeric(0), #p-value modification index constraining groups to be equal
-  #     pmi_free = numeric(0), #p-value modification index constraining groups to be equal
-  #     minimum = numeric(0),
-  #     maximum = numeric(0),
-  #     identified = logical(0), # Indicating a parameter is fixed to identify the model!
-  #     stringsAsFactors = FALSE
-  #   )
-  #   
-  #   # Table for matrices:
-  #   mattable <- data.frame(
-  #     name = mat,
-  #     nrow = dim(x)[1],
-  #     ncol = ifelse(length(dim(x)) > 2,dim(x)[2],1),
-  #     ngroup = NA,
-  #     symmetrical = symmetrical,
-  #     sparse = sparse,
-  #     posdef=posdef,
-  #     diagonal= diagonal
-  #   )
-  # }
-
-
+    #   
+  } else {
+    
+    
+    partable <-data.frame(
+      var1 = character(0),
+      var1_id = integer(0),
+      op = character(0),
+      var2 = character(0),
+      var2_id = integer(0),
+      est = numeric(0),
+      std = numeric(0),
+      se = numeric(0),
+      p = numeric(0),
+      se_boot = numeric(0),
+      p_boot = numeric(0),
+      matrix = character(0),
+      row = numeric(0),
+      col = numeric(0),
+      par = integer(0),
+      group = character(0),
+      group_id = integer(0),
+      fixed = logical(0),
+      mi = numeric(0), # Modification index
+      pmi = numeric(0), #p-value modification index
+      epc = numeric(0),
+      mi_free = numeric(0), # Modification index
+      pmi_free = numeric(0), #p-value modification index
+      epc_free = numeric(0),
+      mi_equal = numeric(0), # Modification index constraning groups to be equal
+      pmi_equal = numeric(0), #p-value modification index constraining groups to be equal
+      epc_equal = numeric(0), #p-value modification index constraining groups to be equal
+      minimum = numeric(0),
+      maximum = numeric(0),
+      identified = logical(0), # Indicating a parameter is fixed to identify the model!
+      stringsAsFactors = FALSE
+    )
+    
+    # Table for matrices:
+    mattable <- data.frame(
+      name = mat,
+      nrow = dim(x)[1],
+      ncol = ifelse(length(dim(x)) > 2,dim(x)[2],1),
+      # ngroup = max(group_id),
+      symmetrical = symmetrical,
+      sparse = sparse,
+      posdef=posdef,
+      diagonal= diagonal,
+      lowertri = lowertri,
+      incomplete = incomplete
+    )
+  }
+  
+  
   # #FIXME: Temporary fix to make diagonals of symmetrical matrices non-negative:
   # if (symmetrical){
   #   partable$minimum[partable$var1_id == partable$var2_id] <- 1e-14
   # }
   
-
+  
   
   return(list(
     partable = partable,

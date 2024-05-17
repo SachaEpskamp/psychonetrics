@@ -1,4 +1,4 @@
-transmod <- function(x,...,verbose,keep_computed = FALSE){
+transmod <- function(x,...,verbose,keep_computed = FALSE, log=TRUE, identify = TRUE){
   
   # Check if psychonetrics object:
   stopifnot(is(x, "psychonetrics"))
@@ -6,6 +6,11 @@ transmod <- function(x,...,verbose,keep_computed = FALSE){
   # Set verbose:
   if (missing(verbose)){
     verbose <- x@verbose
+  }
+  
+  # check if model is not scaled using variances:
+  if (x@identification == "variance" && isTRUE(keep_computed)){
+    stop("'keep_computed' cannot be used with identification = 'variance'; the transformed model needs to be run again.")
   }
   
   # Type of model:
@@ -143,13 +148,18 @@ transmod <- function(x,...,verbose,keep_computed = FALSE){
     }
     whichPars <- grepl(teststring,newmod@parameters$matrix)
     
+    # FIXME: Not yet supported for models with equality constrains:
+    if (any(duplicated(x@parameters$par[whichPars][x@parameters$par[whichPars]!=0]))){
+      stop("'transmod' is not yet supported for models with equality constrains")
+    }
+    
     # Is the model diagonal or saturated?
     # Is the structure saturated?
-    saturated <- all(!newmod@parameters$fixed[whichPars])
+    saturated <- all(newmod@parameters$est[whichPars]!=0)
     
     # Is the structure diagonal?
-    diagonal <- all(!newmod@parameters$fixed[whichPars & newmod@parameters$row == newmod@parameters$col]) &
-      all(newmod@parameters$fixed[whichPars & newmod@parameters$row != newmod@parameters$col])
+    diagonal <- all(newmod@parameters$est[whichPars & newmod@parameters$row == newmod@parameters$col]!=0) &
+      all(newmod@parameters$est[whichPars & newmod@parameters$row != newmod@parameters$col]==0)
     
     # If not saturated or diagonal, stop:
     if (!(saturated || diagonal)){
@@ -169,36 +179,38 @@ transmod <- function(x,...,verbose,keep_computed = FALSE){
     
     # Obtain the new par table:
     if (saturated){
+
       new_par_tab <- do.call(generateAllParameterTables,matrixsetup_flexcov(sigma = "full",
-                                                                    lowertri = "full",
-                                                                    omega = "full",
-                                                                    delta = "diag",
-                                                                    kappa = "full",
-                                                                    type = new_type,
-                                                                    name= gsub("^\\_","",appendix),
-                                                                    sampleStats= newmod@sample,
-                                                                    equal = any(duplicated(newmod@parameters$par[whichPars & newmod@parameters$par > 0 & !newmod@parameters$fixed])),
-                                                                    nNode = length(varNames),
-                                                                    expCov = exp_cov,
-                                                                    nGroup = nrow(newmod@sample@groups),
-                                                                    labels = varNames,
-                                                                    lassofix = FALSE))
+                                                                            lowertri = "full",
+                                                                            omega = "full",
+                                                                            delta = "diag",
+                                                                            kappa = "full",
+                                                                            type = new_type,
+                                                                            name= gsub("^\\_","",appendix),
+                                                                            sampleStats= newmod@sample,
+                                                                            equal = any(duplicated(newmod@parameters$par[whichPars & newmod@parameters$par > 0 & !newmod@parameters$fixed])),
+                                                                            nNode = length(varNames),
+                                                                            expCov = exp_cov,
+                                                                            nGroup = nrow(newmod@sample@groups),
+                                                                            labels = varNames,
+                                                                            lassofix = FALSE))
     } else {
       new_par_tab <- do.call(generateAllParameterTables,matrixsetup_flexcov(sigma = "diag",
-                                                                    lowertri = "diag",
-                                                                    omega = "zero",
-                                                                    delta = "diag",
-                                                                    kappa = "diag",
-                                                                    type = new_type,
-                                                                    name= gsub("^\\_","",appendix),
-                                                                    sampleStats= newmod@sample,
-                                                                    equal = any(duplicated(newmod@parameters$par[whichPars & newmod@parameters$par > 0 & !newmod@parameters$fixed])),
-                                                                    nNode = length(varNames),
-                                                                    expCov = exp_cov,
-                                                                    nGroup = nrow(newmod@sample@groups),
-                                                                    labels = varNames,
-                                                                    lassofix = FALSE))
+                                                                            lowertri = "diag",
+                                                                            omega = "zero",
+                                                                            delta = "diag",
+                                                                            kappa = "diag",
+                                                                            type = new_type,
+                                                                            name= gsub("^\\_","",appendix),
+                                                                            sampleStats= newmod@sample,
+                                                                            equal = any(duplicated(newmod@parameters$par[whichPars & newmod@parameters$par > 0 & !newmod@parameters$fixed])),
+                                                                            nNode = length(varNames),
+                                                                            expCov = exp_cov,
+                                                                            nGroup = nrow(newmod@sample@groups),
+                                                                            labels = varNames,
+                                                                            lassofix = FALSE))
     }
+    
     
     # Remove underscore:
     if (appendix == ""){
@@ -207,10 +219,13 @@ transmod <- function(x,...,verbose,keep_computed = FALSE){
     }
     
     # overwrite the parameter numbers:
-    new_par_tab$partable$par <- x@parameters$par[whichPars]
- 
+    new_par_tab$partable$par <- max(x@parameters$par) + new_par_tab$partable$par
+    
     # overwrite the parameters:
     newmod@parameters[whichPars,] <- new_par_tab$partable
+    
+    # Fix labels:
+    newmod@parameters <- parRelabel(newmod@parameters)
     
     # overwrite the matrix:
     newmod@matrices <- rbind(
@@ -219,16 +234,24 @@ transmod <- function(x,...,verbose,keep_computed = FALSE){
     )
     
     # Add log entry:
-    newmod <- addLog(newmod,paste0("Transformed type ",names(dots)[t]," from ",old_type," to ",new_type,"."))
+    if (log){
+      newmod <- addLog(newmod,paste0("Transformed type ",names(dots)[t]," from ",old_type," to ",new_type))  
+    }
+    
     
   }
   
   # Add all matrices to the model:
   newmod@modelmatrices <- formModelMatrices_cpp(newmod)
+
+  # Identify:
+  if (identify){
+    newmod <- identify(newmod)
+  }
   
   # If the model was run, re-compute SEs:
-  if (x@computed){
-    
+  if (x@computed && x@identification != "variance"){
+  
     # Add SEs:
     if (!all(is.na(x@parameters$se))){
       if (x@cpp){
@@ -241,16 +264,23 @@ transmod <- function(x,...,verbose,keep_computed = FALSE){
       }
     }
     
+    
+    
+    
     # Add MIs:
     if (!all(is.na(x@parameters$mi))){
       newmod <- addMIs(newmod)
     }
     
-    if (!keep_computed){
-      newmod@computed <- FALSE
-    }
     
   }
+  
+  # Keep computed?
+  if (!keep_computed){
+    newmod@computed <- FALSE
+  }
+  
+
   
   # Return the new model:
   return(newmod)

@@ -32,6 +32,7 @@ matrixsetup_flexcov <- function(
                                                       labels = labels,
                                                       equal = mat %in% equal, sampletable = sampleStats)
   } else if (type == "ggm"){
+
     mat <- paste0("omega_",name)
     # Add omega matrix:
     modMatrices[[mat]] <- matrixsetup_omega(omega, 
