@@ -4,6 +4,9 @@ partialprune <- function(
   matrices, # Automatically chosen
   verbose,
   combinefun = unionmodel,
+  return = c("best","partialprune","union_equal","prune"),
+  criterion = "bic",
+  best = c("lowest","highest"),
   ...){
   # Verbose:
   if (missing(verbose)){
@@ -12,6 +15,19 @@ partialprune <- function(
   fixed <- NULL
   mi_free <- NULL
   
+  # If not run, run model:
+  if (!x@computed){
+    x <- x %>% runmodel(..., verbose = verbose)
+  }
+  
+  # Test criterion:
+  if (!criterion %in% names( x@fitmeasures)){
+    stop("'criterion' is not a valid psychonetrics fit measure \ information criterion")
+  }
+  
+  # Return argument:
+  return <- match.arg(return)
+  best <- match.arg(best)
   
   # Matrices:
   if (missing(matrices)){
@@ -73,7 +89,7 @@ partialprune <- function(
         matrices <- c(matrices,"omega_zeta")
       }
       
-    } else if (x@model == "panelvar1"){
+    } else if (x@model == "panelvar1"){mod_2
       matrices <- c("beta")
       if (x@types$contemporaneous == "prec"){
         matrices <- c(matrices,"kappa_zeta")
@@ -139,49 +155,80 @@ partialprune <- function(
   
   # Prune first:
   if (verbose) message("Pruning model...")
-  mod_prune <- prune(x,alpha=alpha,verbose=FALSE,runmodel=TRUE,...) 
+  mod_prune <- prune(x,alpha=alpha,verbose=FALSE,runmodel=TRUE,matrices=matrices,...) 
   
-  
-  # Combine models:
-  if (verbose) message("Combining models...")
-  mod_union <- runmodel(groupequal(combinefun(mod_prune),matrices, verbose = FALSE), verbose = FALSE)
-  
-  if (verbose) message("Partial pruning...")
-  curMod <- mod_union
-  
-  repeat{
-    pars <- curMod@parameters
-
-    # Make a data frame in which the equality free parameters are summed:
-    miDF <- pars %>% filter(!fixed) %>% group_by(.data[["row"]],.data[["col"]],.data[["matrix"]]) %>%
-      summarize(mi_free = sum(mi_free)) %>% 
-      arrange(-mi_free)
+  # if not empty, look for equality:
+  if (!all(mod_prune@parameters$est[mod_prune@parameters$matrix%in%matrices&!mod_prune@parameters$fixed]==0)){
     
-    # Free the best parameter:
-    propMod <- curMod %>% 
-      groupfree(miDF$matrix[1],miDF$row[1],miDF$col[1]) %>% 
-      runmodel
     
-    # Test BIC:
-    if (propMod@fitmeasures$bic < curMod@fitmeasures$bic){
-      curMod <- propMod
-    } else {
-      break
+    # Combine models:
+    if (verbose) message("Combining models...")
+    mod_union <- runmodel(groupequal(combinefun(mod_prune),matrices, verbose = FALSE), verbose = FALSE)
+    
+    if (verbose) message("Partial pruning...")
+    curMod <- mod_union
+    
+    
+    repeat{
+      pars <- curMod@parameters
+      
+      # Make a data frame in which the equality free parameters are summed:
+      miDF <- pars %>% filter(!fixed) %>% group_by(.data[["row"]],.data[["col"]],.data[["matrix"]]) %>%
+        filter(matrix %in% matrices) %>%
+        summarize(mi_free = sum(mi_free)) %>% 
+        arrange(-mi_free)
+      
+      # break if empty:
+      if (nrow(miDF)==0){
+        break
+      }
+      
+      # Free the best parameter:
+      propMod <- curMod %>% 
+        groupfree(miDF$matrix[1],miDF$row[1],miDF$col[1]) %>% 
+        runmodel
+      
+      # Test BIC:
+      if (propMod@fitmeasures$bic < curMod@fitmeasures$bic){
+        curMod <- propMod
+      } else {
+        break
+      }
     }
+    mod_partialpooled <- curMod %>% prune(alpha=alpha,verbose=FALSE,runmodel=TRUE,matrices=matrices,...) 
+    
+    # Select best model:
+    mods <- list(x, mod_prune, mod_union, mod_partialpooled)
+    
+    best <- which.min(c(
+      x@fitmeasures[[criterion]],
+      mod_prune@fitmeasures[[criterion]],
+      mod_union@fitmeasures[[criterion]],
+      mod_partialpooled@fitmeasures[[criterion]]
+    ))
+    
+    bestmod <- mods[[best]]
+    
+    # Which model to return?
+    if (return == "best"){
+      return(bestmod)  
+    } else if (return == "partialprune") {
+      return(mod_partialpooled)  
+    } else if (return == "union_equal") {
+      return(mod_union)  
+    } else if (return == "prune") {
+      return(mod_prune)  
+    } else {
+      stop("Incorrect 'return' argument.")
+    }
+    
+    
+  } else {
+    
+    if (verbose) message("Model matrices are empty after pruning, returning empty matrices")
+    return(mod_prune)
   }
-  mod_partialpooled <- curMod %>% prune(alpha=alpha,verbose=FALSE,runmodel=TRUE,...) 
+
   
-  # Select best model:
-  mods <- list(x, mod_prune, mod_union, mod_partialpooled)
-  
-  best <- which.min(c(
-    x@fitmeasures$bic,
-    mod_prune@fitmeasures$bic,
-    mod_union@fitmeasures$bic,
-    mod_partialpooled@fitmeasures$bic
-  ))
-  
-  bestmod <- mods[[best]]
-  
-  return(bestmod)
+
 }

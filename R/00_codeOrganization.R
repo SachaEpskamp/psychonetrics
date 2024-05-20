@@ -18,5 +18,5 @@
 .onAttach <- function(libname, pkgname) {
   version <- read.dcf(file=system.file("DESCRIPTION", package=pkgname),
                       fields="Version")
-  packageStartupMessage("This is ",paste(pkgname, version),"! Note: this is BETA software! Please mind that the package may not be stable and report any bugs! For more information, please see psychonetrics.org, for questions and issues, please see github.com/SachaEpskamp/psychonetrics.")
+  packageStartupMessage("This is ",paste(pkgname, version),"! For questions, issues, and bug reports, please see github.com/SachaEpskamp/psychonetrics.")
 }
