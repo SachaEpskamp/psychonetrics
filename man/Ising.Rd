@@ -125,15 +125,14 @@ vars <- names(Jonas)[1:10]
 Jonas <- Jonas[order(Jonas$group),]
 
 # Form saturated model:
-model1 <- Ising(Jonas, vars = vars, groups = "group", approximate_SEs = TRUE)
+model1 <- Ising(Jonas, vars = vars, groups = "group")
+
+# Run model:
+model1 <- model1 \%>\% runmodel(approximate_SEs = TRUE)
 # We approximate the SEs because there are zeroes in the crosstables
 # of people that know Jonas. This leads to uninterpretable edge
 # estimates, but as can be seen below only in the model with
 # non-equal estimates across groups.
-
-
-# Run model:
-model1 <- model1 \%>\% runmodel
 
 # Prune-stepup to find a sparse model:
 model1b <- model1 \%>\% prune(alpha = 0.05) \%>\%  stepup(alpha = 0.05)

@@ -9,11 +9,12 @@ This is the main function  used to run a psychonetrics model.
 }
 \usage{
 runmodel(x, level = c("gradient", "fitfunction"), addfit =
-                 TRUE, addMIs = TRUE, addSEs = TRUE, addInformation =
-                 TRUE, log = TRUE, verbose, optim.control,
-                 analyticFisher = TRUE, warn_improper = TRUE,
-                 warn_gradient = TRUE, return_improper = TRUE, bounded
-                 = TRUE)
+                   TRUE, addMIs = TRUE, addSEs = TRUE, addInformation =
+                   TRUE, log = TRUE, verbose, optim.control,
+                   analyticFisher = TRUE, warn_improper = FALSE,
+                   warn_gradient = TRUE, warn_bounds = TRUE,
+                   return_improper = TRUE, bounded = TRUE,
+                   approximate_SEs = FALSE)
 
 }
 %- maybe also 'usage' for other objects documented here.
@@ -55,6 +56,12 @@ Should a result in which improper computation was used be return? Improper compu
 }
 \item{warn_gradient}{Logical. Should a warning be given when the average absolute gradient is > 1?}
 \item{bounded}{Logical. Should bounded estimation be used (e.g., variances should be positive)?
+}
+\item{approximate_SEs}{
+Logical, should standard errors be approximated? If true, an approximate matrix inverse of the Fischer information is used to obtain the standard errors.
+}
+\item{warn_bounds}{
+Should a warning be given when a parameter is estimated near its bounds?
 }
 }
 \value{

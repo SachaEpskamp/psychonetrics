@@ -14,15 +14,15 @@ This is the family of models that models only a variance-covariance matrix with 
 }
 \usage{
 varcov(data, type = c("cov", "chol", "prec", "ggm", "cor"),
-                    sigma = "full", kappa = "full", omega = "full",
-                    lowertri = "full", delta = "full", rho = "full", SD =
-                    "full", mu, tau, vars, ordered = character(0), groups,
-                    covs, means, nobs, missing = "listwise", equal =
-                    "none", baseline_saturated = TRUE, estimator =
-                    "default", optimizer, storedata = FALSE, WLS.W,
-                    sampleStats, meanstructure, corinput, verbose = FALSE,
-                    covtype = c("choose", "ML", "UB"), standardize =
-                    c("none", "z", "quantile"), fullFIML = FALSE)
+                   sigma = "full", kappa = "full", omega = "full",
+                   lowertri = "full", delta = "diag", rho = "full", SD =
+                   "full", mu, tau, vars, ordered = character(0), groups,
+                   covs, means, nobs, missing = "listwise", equal =
+                   "none", baseline_saturated = TRUE, estimator =
+                   "default", optimizer, storedata = FALSE, WLS.W,
+                   sampleStats, meanstructure, corinput, verbose = FALSE,
+                   covtype = c("choose", "ML", "UB"), standardize =
+                   c("none", "z", "quantile"), fullFIML = FALSE)
 cholesky(\dots)
 precision(\dots)
 prec(\dots)

@@ -8,7 +8,8 @@ Transform between model types
 This function allows to transform a model variance--covariance structure from one type to another. Its main uses are to (1) use a Cholesky decomposition to estimate a saturated covariance matrix or GGM, and (2) to transform between conditional (ggm) and marginal associations (cov).
 }
 \usage{
-transmod(x, ..., verbose, log=TRUE, keep_computed = FALSE)
+transmod(x, ..., verbose, keep_computed = FALSE, log = TRUE,
+                   identify = TRUE
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -21,11 +22,14 @@ Named arguments with the new types to use (e.g., \code{between = "ggm"} or \code
   \item{verbose}{
 Logical, should messages be printed?
 }
+  \item{keep_computed}{
+Logical, should the model be stated to be uncomputed adter the transformation? In general, a model does not need to be re-computed as transformed parameters should be at the maximum likelihood estimate.
+}
   \item{log}{
 Logical, should a logbook entry be made?
 }
-  \item{keep_computed}{
-Logical, should the model be stated to be uncomputed adter the transformation? In general, a model does not need to be re-computed as transformed parameters should be at the maximum likelihood estimate.
+ \item{identify}{
+Logical, should the model be identified after transforming?
 }
 }
 \details{

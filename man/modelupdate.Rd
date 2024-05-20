@@ -15,7 +15,7 @@ These functions update a psychonetrics model. Typically they are not required.
 addMIs(x, matrices = "all", type = c("normal", "free",
                     "equal"), verbose, analyticFisher = TRUE)
 
-addSEs(x, verbose)
+addSEs(model, approximate_SEs = FALSE)
 
 addfit(x, verbose)
 
@@ -39,6 +39,9 @@ Logical, should messages be printed?
 }
   \item{analyticFisher}{
 Logical indicating if an analytic Fisher information matrix should be used.
+}
+\item{approximate_SEs}{
+Logical, should standard errors be approximated? If true, an approximate matrix inverse of the Fischer information is used to obtain the standard errors.
 }
 }
 \author{

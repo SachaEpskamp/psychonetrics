@@ -233,7 +233,7 @@ prune <- function(
       # Add log:
       x <- addLog(x, paste("Pruned all parameters in matrices ",paste0(matrices,collapse=", ")," at alpha = ",alpha," (none were removed)")) 
     }    
-    x@computed <- FALSE
+    # x@computed <- FALSE
     return(x)
   } 
   
