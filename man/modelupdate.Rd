@@ -15,7 +15,7 @@ These functions update a psychonetrics model. Typically they are not required.
 addMIs(x, matrices = "all", type = c("normal", "free",
                     "equal"), verbose, analyticFisher = TRUE)
 
-addSEs(model, approximate_SEs = FALSE)
+addSEs(x, verbose, approximate_SEs = FALSE)
 
 addfit(x, verbose)
 

@@ -16,6 +16,7 @@ Objects can be created by calls of the form \code{new("psychonetrics_log", ...)}
   \describe{
     \item{\code{event}:}{Object of class \code{"character"} ~~ }
     \item{\code{time}:}{Object of class \code{"POSIXct"} ~~ }
+    \item{\code{sessionInfo}:}{Object of class \code{"sessionInfo"} ~~ }
   }
 }
 \section{Methods}{

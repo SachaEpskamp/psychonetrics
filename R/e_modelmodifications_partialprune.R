@@ -89,7 +89,7 @@ partialprune <- function(
         matrices <- c(matrices,"omega_zeta")
       }
       
-    } else if (x@model == "panelvar1"){mod_2
+    } else if (x@model == "panelvar1"){
       matrices <- c("beta")
       if (x@types$contemporaneous == "prec"){
         matrices <- c(matrices,"kappa_zeta")
