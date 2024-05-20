@@ -10,20 +10,20 @@ This is the family of models that models a dynamic factor model on time-series. 
 }
 \usage{
 tsdlvm1(data, lambda, contemporaneous = c("cov", "chol",
-                    "prec", "ggm"), residual = c("cov", "chol", "prec",
-                    "ggm"), beta = "full", omega_zeta = "full", delta_zeta
-                    = "full", kappa_zeta = "full", sigma_zeta = "full",
-                    lowertri_zeta = "full", omega_epsilon = "zero",
-                    delta_epsilon = "diag", kappa_epsilon = "diag",
-                    sigma_epsilon = "diag", lowertri_epsilon = "diag",
-                    nu, mu_eta, identify = TRUE, identification =
-                    c("loadings", "variance"), latents, beepvar, dayvar,
-                    idvar, vars, groups, covs, means, nobs, missing =
-                    "listwise", equal = "none", baseline_saturated = TRUE,
-                    estimator = "ML", optimizer, storedata = FALSE,
-                    sampleStats, covtype = c("choose", "ML", "UB"),
-                    centerWithin = FALSE, standardize = c("none", "z",
-                    "quantile"), verbose = FALSE)
+                   "prec", "ggm"), residual = c("cov", "chol", "prec",
+                   "ggm"), beta = "full", omega_zeta = "full", delta_zeta
+                   = "diag", kappa_zeta = "full", sigma_zeta = "full",
+                   lowertri_zeta = "full", omega_epsilon = "zero",
+                   delta_epsilon = "diag", kappa_epsilon = "diag",
+                   sigma_epsilon = "diag", lowertri_epsilon = "diag", nu,
+                   mu_eta, identify = TRUE, identification =
+                   c("loadings", "variance"), latents, beepvar, dayvar,
+                   idvar, vars, groups, covs, means, nobs, missing =
+                   "listwise", equal = "none", baseline_saturated = TRUE,
+                   estimator = "ML", optimizer, storedata = FALSE,
+                   sampleStats, covtype = c("choose", "ML", "UB"),
+                   centerWithin = FALSE, standardize = c("none", "z",
+                   "quantile"), verbose = FALSE)
 
 ts_lvgvar(...)
 }

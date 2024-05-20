@@ -28,7 +28,7 @@ fixstart <- function(x, reduce = 0.5, maxdiff = 0.1, tol =  0.01, maxtry = 25){
       ))
     )]
     x@parameters$est[x@parameters$par %in% adjust] <- reduce * x@parameters$est[x@parameters$par %in% adjust]
-    check <- psychonetrics:::checkJacobian(x,plot = FALSE)
+    check <- checkJacobian(x,plot = FALSE)
 
   }
   

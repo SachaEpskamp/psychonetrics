@@ -12,29 +12,32 @@ This is the family of models that models a dynamic factor model on panel data. T
 }
 \usage{
 dlvm1(data, vars, lambda, within_latent = c("cov", "chol",
-                    "prec", "ggm"), within_residual = c("cov", "chol",
-                    "prec", "ggm"), between_latent = c("cov", "chol",
-                    "prec", "ggm"), between_residual = c("cov", "chol",
-                    "prec", "ggm"), beta = "full", omega_zeta_within =
-                    "full", delta_zeta_within = "full", kappa_zeta_within
-                    = "full", sigma_zeta_within = "full",
-                    lowertri_zeta_within = "full", omega_epsilon_within =
-                    "zero", delta_epsilon_within = "diag",
-                    kappa_epsilon_within = "diag", sigma_epsilon_within =
-                    "diag", lowertri_epsilon_within = "diag",
-                    omega_zeta_between = "full", delta_zeta_between =
-                    "full", kappa_zeta_between = "full",
-                    sigma_zeta_between = "full", lowertri_zeta_between =
-                    "full", omega_epsilon_between = "zero",
-                    delta_epsilon_between = "diag", kappa_epsilon_between
-                    = "diag", sigma_epsilon_between = "diag",
-                    lowertri_epsilon_between = "diag", nu, mu_eta,
-                    identify = TRUE, identification = c("loadings",
-                    "variance"), latents, groups, covs, means, nobs,
-                    covtype = c("choose", "ML", "UB"), missing =
-                    "listwise", equal = "none", baseline_saturated = TRUE,
-                    estimator = "ML", optimizer, storedata = FALSE,
-                    verbose = FALSE, sampleStats)
+                   "prec", "ggm"), within_residual = c("cov", "chol",
+                   "prec", "ggm"), between_latent = c("cov", "chol",
+                   "prec", "ggm"), between_residual = c("cov", "chol",
+                   "prec", "ggm"), beta = "full", omega_zeta_within =
+                   "full", delta_zeta_within = "diag", kappa_zeta_within
+                   = "full", sigma_zeta_within = "full",
+                   lowertri_zeta_within = "full", omega_epsilon_within =
+                   "zero", delta_epsilon_within = "diag",
+                   kappa_epsilon_within = "diag", sigma_epsilon_within =
+                   "diag", lowertri_epsilon_within = "diag",
+                   omega_zeta_between = "full", delta_zeta_between =
+                   "diag", kappa_zeta_between = "full",
+                   sigma_zeta_between = "full", lowertri_zeta_between =
+                   "full", omega_epsilon_between = "zero",
+                   delta_epsilon_between = "diag", kappa_epsilon_between
+                   = "diag", sigma_epsilon_between = "diag",
+                   lowertri_epsilon_between = "diag", nu, mu_eta,
+                   identify = TRUE, identification = c("loadings",
+                   "variance"), latents, groups, covs, means, nobs, start
+                   = "version2", covtype = c("choose", "ML", "UB"),
+                   missing = "listwise", equal = "none",
+                   baseline_saturated = TRUE, estimator = "ML",
+                   optimizer, storedata = FALSE, verbose = FALSE,
+                   sampleStats, baseline =
+                   c("stationary_random_intercept", "stationary",
+                   "independence", "none"))
 
 panelgvar(data, vars, within_latent = c("ggm","chol","cov","prec"), 
           between_latent = c("ggm","chol","cov","prec"), ...)
