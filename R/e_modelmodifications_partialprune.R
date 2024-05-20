@@ -200,12 +200,22 @@ partialprune <- function(
     # Select best model:
     mods <- list(x, mod_prune, mod_union, mod_partialpooled)
     
-    best <- which.min(c(
-      x@fitmeasures[[criterion]],
-      mod_prune@fitmeasures[[criterion]],
-      mod_union@fitmeasures[[criterion]],
-      mod_partialpooled@fitmeasures[[criterion]]
-    ))
+    if (best == "lowest"){
+      best <- which.min(c(
+        x@fitmeasures[[criterion]],
+        mod_prune@fitmeasures[[criterion]],
+        mod_union@fitmeasures[[criterion]],
+        mod_partialpooled@fitmeasures[[criterion]]
+      ))
+    } else {
+      best <- which.max(c(
+        x@fitmeasures[[criterion]],
+        mod_prune@fitmeasures[[criterion]],
+        mod_union@fitmeasures[[criterion]],
+        mod_partialpooled@fitmeasures[[criterion]]
+      ))
+      
+    }
     
     bestmod <- mods[[best]]
     
