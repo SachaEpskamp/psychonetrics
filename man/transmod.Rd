@@ -9,7 +9,7 @@ This function allows to transform a model variance--covariance structure from on
 }
 \usage{
 transmod(x, ..., verbose, keep_computed = FALSE, log = TRUE,
-                   identify = TRUE
+         identify = TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

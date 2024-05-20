@@ -32,9 +32,6 @@ Function used to combine models of different groups.
   \item{return}{
 What model to retur? \code{"best"} for best fitting model (according to BIC, \code{"partialprune"} for the partialpruned model, \code{"union_equal"} for the union model with equality constraints, and \code{"prune"} for the originally pruned model without equality constraints.)
 }
-\item{criterion}{
-Which criterion should be used for the final model selection step? Defaults to BIC.
-}
 \item{best}{
 Should the lowest or the highest index of \code{criterion} be used to select the final model?
 }
