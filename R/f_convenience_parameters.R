@@ -39,6 +39,7 @@ parameters <- function(x){
   
   # if not computed, remove est, se and p:
   if (!x@computed){
+    warning("Model has not been computed! Not returning estimates, standard errors and p-values. Use runmodel() to compute the model.")
     parTable <- parTable %>% select(-.data[['est']],-.data[['se']],-.data[['p']])
   }
   
