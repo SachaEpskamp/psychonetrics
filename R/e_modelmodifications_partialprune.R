@@ -163,7 +163,17 @@ partialprune <- function(
     
     # Combine models:
     if (verbose) message("Combining models...")
-    mod_union <- runmodel(groupequal(combinefun(mod_prune),matrices, verbose = FALSE), verbose = FALSE)
+    
+    # First union or intersection:
+    mod_union <- combinefun(mod_prune, matrices = matrices)
+    
+    # Then set equal:
+    for (m in seq_along(matrices)){
+      mod_union <- groupequal(mod_union,matrices[m], verbose = FALSE)  
+    }
+  
+    # Then run:
+    mod_union <- runmodel(mod_union, verbose = FALSE)
     
     if (verbose) message("Partial pruning...")
     curMod <- mod_union
