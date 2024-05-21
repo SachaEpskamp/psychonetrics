@@ -231,7 +231,7 @@ prune <- function(
   if (all(is.na(nonsig)) || !any(nonsig[!is.na(nonsig)])){
     if (log){
       # Add log:
-      x <- addLog(x, paste("Pruned all parameters in matrices ",paste0(matrices,collapse=", ")," at alpha = ",alpha," (none were removed)")) 
+      x <- addLog(x, paste("Attempted pruning all parameters in matrices ",paste0(matrices,collapse=", ")," at alpha = ",alpha," (none were removed)")) 
     }    
     # x@computed <- FALSE
     return(x)

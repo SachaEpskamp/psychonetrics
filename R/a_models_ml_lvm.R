@@ -313,6 +313,7 @@ ml_lvm <- function(
   # Setup lambda:
   modMatrices$lambda <- matrixsetup_lambda(lambda, expcov=start_covs, nGroup = nGroup, 
                                            observednames = varnames, latentnames = latents,
+                                           equal = "lambda" %in% equal,
                                            sampletable = sampleStats, name = "lambda")
   
   #### Within-person model ####

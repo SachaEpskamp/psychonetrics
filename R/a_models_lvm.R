@@ -155,12 +155,12 @@ lvm <- function(
                                     expmeans = lapply(seq_len(nGroup),function(x)rep(0,nLatent)), sampletable = sampleStats, name = "nu_eta")
   
    # Setup lambda:
-  modMatrices$lambda <- matrixsetup_lambda(lambda, expcov=model@sample@covs, nGroup = nGroup, 
+  modMatrices$lambda <- matrixsetup_lambda(lambda, expcov=model@sample@covs, nGroup = nGroup, equal = "lambda" %in% equal,
                                            observednames = sampleStats@variables$label, latentnames = latents, 
                                            sampletable = sampleStats, identification = identification, simple = simplelambdastart)
   
   # Setup beta:
-  modMatrices$beta <- matrixsetup_beta(beta, nNode = nLatent, nGroup = nGroup, labels = latents, sampletable = sampleStats)
+  modMatrices$beta <- matrixsetup_beta(beta, nNode = nLatent, nGroup = nGroup, labels = latents, sampletable = sampleStats, equal = "beta" %in% equal)
   
   # Compute the expected latent and residual cov matrices:
   expLatSigma <- lapply(1:nGroup,function(x)matrix(0,nLatent,nLatent))
