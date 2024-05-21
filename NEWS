@@ -1,4 +1,4 @@
-Changes in Version 1.0.0
+Changes in Version 0.12
   o Updates for the dlvm1 model family:
     o Changed the starting values for dlvm1 models for better convergence
     o Added the 'start' argument to the dlvm1 model family. Use start = "version1" to use pre 0.12 start values
