@@ -302,6 +302,7 @@ dlvm1 <- function(
                                        observednames = varnames,
                                        latentnames = latents,
                                        sampletable = sampleStats,
+                                       equal = "lambda" %in% equal,
                                        name = "lambda",
                                        start = makelist(getmatrix(start_mod, "lambda")))
     
@@ -466,6 +467,7 @@ dlvm1 <- function(
                                              observednames = varnames, 
                                              latentnames = latents,
                                              sampletable = sampleStats, 
+                                             equal = "lambda" %in% equal,
                                              name = "lambda")
     
     lambda_within <-  matrixsetup_lambda(lambda, 
@@ -474,6 +476,7 @@ dlvm1 <- function(
                                          observednames = varnames, 
                                          latentnames = latents,
                                          sampletable = sampleStats, 
+                                         equal = "lambda" %in% equal,
                                          name = "lambda")
     
     lambda_between <-  matrixsetup_lambda(lambda, 
@@ -482,6 +485,7 @@ dlvm1 <- function(
                                           observednames = varnames, 
                                           latentnames = latents,
                                           sampletable = sampleStats, 
+                                          equal = "lambda" %in% equal,
                                           name = "lambda")
     
     # Lambda start values: average the stationary, within and between person start value estimates:
@@ -777,6 +781,7 @@ dlvm1 <- function(
                                              observednames = varnames,
                                              latentnames = latents,
                                              sampletable = sampleStats,
+                                             equal = "lambda" %in% equal,
                                              name = "lambda",
                                              simple = TRUE)
     
