@@ -18,7 +18,8 @@ Changes in Version 0.12
   o Fixed some instances where the 'equal' argument wasn't working
   o 'partialprune' now supports multiple matrices
   o 'unionmodel' and 'intersectionmodel' now support the 'matrices' argument
-  o Changed lambda starting value choice to the following: Run an EFA, set the starting values to the loadigs of the factor that has the strongest loadings in the indicators, and set correlations between factors that use the same EFA factor for starting values to 0.8.
+  o Changed lambda starting value choice to the following: Run an EFA, set the starting values to the loadigs of the factor that has the strongest loadings in the indicators, and set correlations between factors that use the same EFA factor for starting values to 0.8
+  o added warning for non computed model in parameters()
 
 Changes in Version 0.11.5
   o Fixes to support Matrix 1.7-0
