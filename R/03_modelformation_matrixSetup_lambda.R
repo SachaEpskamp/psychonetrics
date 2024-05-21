@@ -68,6 +68,8 @@ matrixsetup_lambda <- function(
           sigma_epsilon_start[,,g] <- diag(fa$uniquenesses)
           
           load <- fa$loadings
+          
+  
           # Correlation between factor loadings:
           # Generate 100 different permutations and choose the best:
           if (nLat > 1){
@@ -80,27 +82,36 @@ matrixsetup_lambda <- function(
             # best <- perms[[which.max(fit)]]        
             
             ### FIXME: NEW CODE (CHECK):
-            corFL_LY <- cor(lambda[,,g] + rnorm(prod(dim(lambda[,,g])),0,0.0001), load)
+            # REMOVED IN VERSION 0.12, make simpler#
+            # corFL_LY <- cor(lambda[,,g] + rnorm(prod(dim(lambda[,,g])),0,0.0001), load)
+            # 
+            # 
+            # best_per_lat <- apply(corFL_LY, 1, order, decreasing=TRUE)
+            # 
+            # # FIXME: Not optimal, but put all duplicated factors to second choice (better is to do optimisation algoritm)
+            # row <- 1
+            # 
+            # while (any(duplicated(best_per_lat[1,]))){
+            #   row <- row + 1
+            #   if (row > nrow(best_per_lat)){
+            #     warning("No proper starting values found for lambda, using simple starting values.")
+            #     simple <- TRUE
+            #     break
+            #   } 
+            #   best_per_lat[1,duplicated(best_per_lat[1,])] <- best_per_lat[row,duplicated(best_per_lat[1,])]
+            # }
+            # 
+            # 
+            # 
+            # best <- best_per_lat[1,]
             
+            ### FIXME: NEWER NEW CODE:
+            # Simply pick the factor with strongest loadings for each latent variable:
+            best <- numeric(nLat)
             
-            best_per_lat <- apply(corFL_LY, 1, order, decreasing=TRUE)
-            
-            # FIXME: Not optimal, but put all duplicated factors to second choice (better is to do optimisation algoritm)
-            row <- 1
-            
-            while (any(duplicated(best_per_lat[1,]))){
-              row <- row + 1
-              if (row > nrow(best_per_lat)){
-                warning("No proper starting values found for lambda, using simple starting values.")
-                simple <- TRUE
-                break
-              } 
-              best_per_lat[1,duplicated(best_per_lat[1,])] <- best_per_lat[row,duplicated(best_per_lat[1,])]
+            for (l in seq_len(nLat)){
+              best[l] <- which.max(colSums(abs(lambda[,l,g] * load)))
             }
-            
-            
-            
-            best <- best_per_lat[1,]
             
             
           } else {
@@ -108,6 +119,19 @@ matrixsetup_lambda <- function(
           }
           
           sigma_zeta_start[,,g] <- fa$r.scores[best,best]
+          
+          # If there are duplicated latents here, reduce the covariances by 20%:
+          if (any(duplicated(best))){
+            doubles <- duplicated(best)|rev(duplicated(rev(best)))
+            doublesmat <- outer(doubles,doubles,"==")
+            diag(doublesmat) <- FALSE
+            sigma_zeta_start[,,g][doublesmat] <- sigma_zeta_start[,,g][doublesmat] * 0.8
+          }
+          
+          # Force positive definite:
+          sigma_zeta_start[,,g] <- spectralshift(sigma_zeta_start[,,g])
+          
+          
           lambdaStart[,,g] <- lambda[,,g] * load[,best]
           
           # Fix potentially low  and high factor loadings:
