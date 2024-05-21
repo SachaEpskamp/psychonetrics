@@ -10,10 +10,10 @@ The \code{unionmodel} will add all parameters to all groups that are free in at 
 }
 \usage{
 unionmodel(x, runmodel = FALSE, verbose, log = TRUE, identify =
-                    TRUE, ...)
+                    TRUE, matrices, ...)
 
 intersectionmodel(x, runmodel = FALSE, verbose, log = TRUE, identify =
-                    TRUE, ...)
+                    TRUE, matrices, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -31,6 +31,9 @@ Logical, should the log be updated?
 }
   \item{identify}{
 Logical, should the model be identified?
+}
+  \item{matrices}{
+Which matrices should be used to form the union/intersection model?
 }
  \item{\dots}{
 Arguments sent to \code{runmodel}
