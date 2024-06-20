@@ -9,7 +9,8 @@ definition = function(object){
                                   fields="Version")
   
   # Obtain some information:
-  n_boots <- length(object@models)
+  n_boots <- object@n_success
+  n_fail <- object@n_fail
   boot_sub <-  object@boot_sub
   boot_resample <-  object@boot_resample
   last_run <- format(as.POSIXct(max(sapply(object@models,function(x)x@log[[length(x@log)]]@time))), "%Y-%m-%d %H:%M:%S")
@@ -29,7 +30,8 @@ definition = function(object){
   
   # output some sample specific stats:
   cat("\n\nBootstrap design:",
-      "\n\t- Number of bootstraps:",n_boots,
+      "\n\t- Number of included bootstraps:",n_boots,
+      "\n\t- Number of removed (non-converged) bootstraps:",n_fail,
       "\n\t- Proportion of cases sampled",boot_sub,
       "\n\t- Sampling with replacement:",boot_resample)
   

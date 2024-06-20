@@ -24,6 +24,9 @@ Objects can be created by calls of the form \code{new("psychonetrics_bootstrap",
     \item{\code{verbose}:}{Object of class \code{"logical"} ~~ }
     \item{\code{boot_sub}:}{Object of class \code{"numeric"} ~~ }
     \item{\code{boot_resample}:}{Object of class \code{"logical"} ~~ }
+    \item{\code{n_fail}:}{Object of class \code{"numeric"} ~~ }
+    \item{\code{n_success}:}{Object of class \code{"numeric"} ~~ }
+    \item{\code{types}:}{Object of class \code{"list"} ~~ }
   }
 }
 \section{Methods}{
