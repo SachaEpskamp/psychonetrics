@@ -2,7 +2,7 @@
 fit <- function(x){
   
   if (is(x,"psychonetrics_bootstrap")){
-    fittable <- x@fitmeasures
+    fittable <- x@fitmeasures[,c("measure","min","q2.5","q97.5","max")]
     for (j in 2:ncol(fittable)){
       fittable[[j]] <- goodNum2(fittable[[j]])
     }

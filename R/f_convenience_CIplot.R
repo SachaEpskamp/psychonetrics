@@ -271,8 +271,8 @@ CIplot <- function(
         ggplot2::geom_text(ggplot2::aes_string(y = "labstart", label = "edge", hjust = "hjust"), colour = rgb(0.2,0.2,0.2), cex = 2.5) +
         ggplot2::coord_flip() + 
         # facet_grid( ~  model) +
-        ggplot2::scale_y_continuous(breaks = seq(floor(min(df_cis$lower)),ceiling(max(df_cis$lower)),by=major_break),
-                                    minor_breaks = seq(floor(min(df_cis$lower)),ceiling(max(df_cis$lower)),by=minor_break)) + 
+        ggplot2::scale_y_continuous(breaks = seq(floor(min(df_cis$lower)),ceiling(max(df_cis$upper)),by=major_break),
+                                    minor_breaks = seq(floor(min(df_cis$lower)),ceiling(max(df_cis$upper)),by=minor_break)) + 
         ggplot2::theme_bw(base_size = 12) +
         ggplot2::scale_colour_manual("",values = c("black",colors),drop=FALSE) +  ggplot2::theme(legend.position = "top", # axis.text.y = element_text(size = 7),
                                                                                                  axis.text.y=ggplot2::element_blank(),
@@ -357,7 +357,7 @@ CIplot <- function(
       df_cis$upper[is.na(df_cis$upper)] <- df_cis$est[is.na(df_cis$upper)]
       
       # Order edges by estimate:
-      df_cis$edge <- factor(df_cis$edge, levels = df_cis_boot$edge[order(df_cis_boot$est)])
+      df_cis$edge <- factor(df_cis$edge, levels = df_cis_sample$edge[order(df_cis_sample$est)])
       
       # Bounds:
       bound_upper <- max(df_cis$upper, na.rm=TRUE)
@@ -395,8 +395,8 @@ CIplot <- function(
         ggplot2::geom_text(ggplot2::aes_string(y = "labstart", label = "edge", hjust = "hjust"), colour = rgb(0.2,0.2,0.2), cex = 2.5) +
         ggplot2::coord_flip() + 
         # facet_grid( ~  model) +
-        ggplot2::scale_y_continuous(breaks = seq(floor(min(df_cis$lower)),ceiling(max(df_cis$lower)),by=major_break),
-                                    minor_breaks = seq(floor(min(df_cis$lower)),ceiling(max(df_cis$lower)),by=minor_break)) + 
+        ggplot2::scale_y_continuous(breaks = seq(floor(min(df_cis$lower)),ceiling(max(df_cis$upper)),by=major_break),
+                                    minor_breaks = seq(floor(min(df_cis$lower)),ceiling(max(df_cis$upper)),by=minor_break)) + 
         ggplot2::theme_bw(base_size = 12) +
         ggplot2::scale_color_manual("",values = c("black","darkred"), labels = c("Bootstrap mean","Sample")) +
         ggplot2::theme(legend.position = "top", # axis.text.y = element_text(size = 7),

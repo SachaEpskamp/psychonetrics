@@ -96,15 +96,14 @@ parameters_bootstrap <- function(x){
   # }
   
   # columns for all pars:
-  cols_incl0 <- c("var1", "op", "var2", "est_sample", "avg", "se_boot", 
-            "min", "q1", "q2.5", "q5", "median", "q95", "q97.5", "q99", "max", 
+  cols_incl0 <- c("var1", "op", "var2", "est_sample", "se_boot", 
+             "q2.5", "q97.5", "q99", 
             "matrix", "row", 
             "col", "group")
 
   # columns for non-zero pars:
-  cols_non0 <- c("var1", "op", "var2", "est_sample", "avg_non0", "se_boot_non0", "prop_non0", "prop_non0_pos", "prop_non0_neg", 
-            "min_non0", "q1_non0", "q2.5_non0", "q5_non0", "median_non0", 
-            "q95_non0", "q97.5_non0", "q99_non0", "max_non0", 
+  cols_non0 <- c("var1", "op", "var2", "est_sample", "se_boot_non0", "prop_non0", "prop_non0_pos", "prop_non0_neg", 
+             "q2.5_non0", "q97.5_non0", 
             "matrix", "row", 
             "col", "group")
   

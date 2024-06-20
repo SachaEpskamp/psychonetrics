@@ -1,8 +1,10 @@
 # Function to aggregate bootstraps:
 aggregate_bootstraps <- function(
     sample,
-    bootstraps
+    bootstraps,
+    remove_problematic = TRUE
 ){
+  
   # If not missing sample, check if it is a psychonetrics object:
   if (!missing(sample)){
     stopifnot(is(sample,"psychonetrics"))
@@ -19,17 +21,41 @@ aggregate_bootstraps <- function(
   new_dots <- bootstraps
   
   # Now check if all are psychonetrics bootstap objects:
-  all_good <- all(sapply(new_dots,function(x){
+  ok_boot <- sapply(new_dots,function(x){
     if (!is(x,"psychonetrics")){
       return(FALSE)
     } else 
       return(x@sample@bootstrap)
-  }))
+  })
+  all_good <- all(ok_boot)
   
   # check:
   if (!all_good){
-    stop("Input 'bootstraps' is not a list of 'psychonetrics' objects that are bootstrapped.")
+    if (sum(ok_boot)==0){
+      stop("Input 'bootstraps' is not a list of 'psychonetrics' objects that are bootstrapped.")  
+    } else {
+      warning(paste0("Removing ",sum(!ok_boot)," bootstraps that are not valid bootstrapped models."))
+      new_dots <- new_dots[ok_boot]
+    }
+    
   }
+  
+  # Remove problematic bootstraps:
+  remove <- numeric(0)
+  for (i in seq_along(new_dots)){
+    grad <- psychonetrics_gradient(parVector(new_dots[[i]]),new_dots[[i]])
+    if (mean(abs(grad)) > 1){
+      remove <- c(remove,i)
+    }
+  }
+  if (length(remove)>0){
+    new_dots <- new_dots[-remove]    
+  }
+
+  
+  # Store n success and fail:
+  n_success <- length(new_dots)
+  n_fail <- length(remove)
   
   # Next check if the size of the model is the same for each bootstrap:
   n_pars <- sapply(new_dots,function(x) nrow(x@parameters))
@@ -55,6 +81,10 @@ aggregate_bootstraps <- function(
   
   # Empty aggregate model:
   agg_mod <- generate_psychonetrics_bootstrap()
+  
+  # n success and fail:
+  agg_mod@n_success <- n_success
+  agg_mod@n_fail <- n_fail
   
   # Overwrite info from first model:
   agg_mod@model <- models[1]
@@ -83,11 +113,17 @@ aggregate_bootstraps <- function(
   pars <- dplyr::bind_rows(pars)
   
   minNA <- function(x,na.rm=TRUE){
+    if (na.rm){
+      x <- x[!is.na(x)&is.finite(x)]
+    }
     if (length(x)==0) return(NA) else return(min(x,na.rm=na.rm))
   }
   
   
   maxNA <- function(x,na.rm=TRUE){
+    if (na.rm){
+      x <- x[!is.na(x)&is.finite(x)]
+    }
     if (length(x)==0) return(NA) else return(max(x,na.rm=na.rm))
   }
   
@@ -152,15 +188,15 @@ aggregate_bootstraps <- function(
     summarize(
      avg = mean(.data[["value"]], na.rm=TRUE),
      sd = sd(.data[["value"]], na.rm=TRUE),
-     min = min(.data[["value"]], na.rm=TRUE),
+     min = minNA(.data[["value"]], na.rm=TRUE),
      q1 = quantile(.data[["value"]], 1/100, na.rm=TRUE),
      q2.5 = quantile(.data[["value"]], 2.5/100, na.rm=TRUE),
      q5 = quantile(.data[["value"]], 5/100, na.rm=TRUE),
      median = median(.data[["value"]], na.rm=TRUE),
-     q90 = quantile(.data[["value"]], 90/100, na.rm=TRUE),
      q95 = quantile(.data[["value"]], 95/100, na.rm=TRUE),
+     q97.5 = quantile(.data[["value"]], 97.5/100, na.rm=TRUE),
      q99 = quantile(.data[["value"]], 99/100, na.rm=TRUE),
-     max = max(.data[["value"]], na.rm=TRUE)
+     max = maxNA(.data[["value"]], na.rm=TRUE)
     ) 
   
   agg_mod@fitmeasures <- fit_measures

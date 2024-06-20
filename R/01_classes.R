@@ -167,7 +167,9 @@ generate_psychonetrics_bootstrap <- setClass("psychonetrics_bootstrap", slots = 
   verbose = "logical",
   types = "list",
   boot_sub = "numeric",
-  boot_resample = "logical"
+  boot_resample = "logical",
+  n_success = "numeric",
+  n_fail = "numeric"
 ),
 prototype = list(
   model = "dummy", submodel = "none",
