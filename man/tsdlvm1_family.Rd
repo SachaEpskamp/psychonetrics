@@ -23,7 +23,8 @@ tsdlvm1(data, lambda, contemporaneous = c("cov", "chol",
                    estimator = "ML", optimizer, storedata = FALSE,
                    sampleStats, covtype = c("choose", "ML", "UB"),
                    centerWithin = FALSE, standardize = c("none", "z",
-                   "quantile"), verbose = FALSE)
+                   "quantile"), verbose = FALSE, bootstrap = FALSE,
+                   boot_sub, boot_resample)
 
 ts_lvgvar(...)
 }
@@ -145,6 +146,15 @@ Logical, should data be within-person centered?
 }
   \item{verbose}{
 Logical, should messages be printed?
+}
+\item{bootstrap}{
+Should the data be bootstrapped? If \code{TRUE} the data are resampled and a bootstrap sample is created. These must be aggregated using \code{\link{aggregate_bootstraps}}! Can be \code{TRUE} or \code{FALSE}. Can also be \code{"nonparametric"} (which sets \code{boot_sub = 1} and \code{boot_resample = TRUE}) or \code{"case"} (which sets \code{boot_sub = 0.75} and \code{boot_resample = FALSE}).
+}
+\item{boot_sub}{
+Proportion of cases to be subsampled (\code{round(boot_sub * N)}).
+}
+\item{boot_resample}{
+Logical, should the bootstrap be with replacement (\code{TRUE}) or without replacement (\code{FALSE})
 }
 \item{\dots}{
 Arguments sent to \code{tsdlvm1}

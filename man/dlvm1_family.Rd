@@ -37,7 +37,8 @@ dlvm1(data, vars, lambda, within_latent = c("cov", "chol",
                    optimizer, storedata = FALSE, verbose = FALSE,
                    sampleStats, baseline =
                    c("stationary_random_intercept", "stationary",
-                   "independence", "none"))
+                   "independence", "none"), bootstrap = FALSE, boot_sub,
+                   boot_resample)
 
 panelgvar(data, vars, within_latent = c("ggm","chol","cov","prec"), 
           between_latent = c("ggm","chol","cov","prec"), ...)
@@ -189,6 +190,15 @@ An optional sample statistics object. Mostly used internally.
   If 'covs' is used, this is the type of covariance (maximum likelihood or unbiased) the input covariance matrix represents. Set to \code{"ML"} for maximum likelihood estimates (denominator n) and \code{"UB"} to unbiased estimates (denominator n-1). The default will try to find the type used, by investigating which is most likely to result from integer valued datasets.
 }
 \item{baseline}{What baseline model should be used? \code{"stationary_random_intercept"} includes both within- and between person variances constrained equal across time (default), \code{"stationary"} only includes within-person variances constrained equal across time, \code{"independence"} (default up to version 0.11) includes a variance for every variable at every time point (not constrained equal across time), and \code{"none"} includes no baseline model.}
+\item{bootstrap}{
+Should the data be bootstrapped? If \code{TRUE} the data are resampled and a bootstrap sample is created. These must be aggregated using \code{\link{aggregate_bootstraps}}! Can be \code{TRUE} or \code{FALSE}. Can also be \code{"nonparametric"} (which sets \code{boot_sub = 1} and \code{boot_resample = TRUE}) or \code{"case"} (which sets \code{boot_sub = 0.75} and \code{boot_resample = FALSE}).
+}
+\item{boot_sub}{
+Proportion of cases to be subsampled (\code{round(boot_sub * N)}).
+}
+\item{boot_resample}{
+Logical, should the bootstrap be with replacement (\code{TRUE}) or without replacement (\code{FALSE})
+}
 \item{\dots}{
 Arguments sent to \code{dlvm1}.
 }

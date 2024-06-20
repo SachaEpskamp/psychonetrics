@@ -9,12 +9,13 @@ This is the family of Ising models fit to dichotomous datasets. Note that the in
 }
 \usage{
 Ising(data, omega = "full", tau, beta, vars, groups, covs,
-                    means, nobs, covtype = c("choose", "ML", "UB"),
-                    responses, missing = "listwise", equal = "none",
-                    baseline_saturated = TRUE, estimator = "default",
-                    optimizer, storedata = FALSE, WLS.W, sampleStats,
-                    identify = TRUE, verbose = FALSE, maxNodes = 20,
-                   min_sum = -Inf)
+                   means, nobs, covtype = c("choose", "ML", "UB"),
+                   responses, missing = "listwise", equal = "none",
+                   baseline_saturated = TRUE, estimator = "default",
+                   optimizer, storedata = FALSE, WLS.W, sampleStats,
+                   identify = TRUE, verbose = FALSE, maxNodes = 20,
+                   min_sum = -Inf, bootstrap = FALSE, boot_sub,
+                   boot_resample)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -86,6 +87,15 @@ The maximum number of nodes allowed in the analysis. This function will stop wit
 }
 \item{min_sum}{
  The minimum sum score that is artifically possible in the dataset. Defaults to -Inf. Set this only if you know a lower sum score is not possible in the data, for example due to selection bias.
+}
+\item{bootstrap}{
+Should the data be bootstrapped? If \code{TRUE} the data are resampled and a bootstrap sample is created. These must be aggregated using \code{\link{aggregate_bootstraps}}! Can be \code{TRUE} or \code{FALSE}. Can also be \code{"nonparametric"} (which sets \code{boot_sub = 1} and \code{boot_resample = TRUE}) or \code{"case"} (which sets \code{boot_sub = 0.75} and \code{boot_resample = FALSE}).
+}
+\item{boot_sub}{
+Proportion of cases to be subsampled (\code{round(boot_sub * N)}).
+}
+\item{boot_resample}{
+Logical, should the bootstrap be with replacement (\code{TRUE}) or without replacement (\code{FALSE})
 }
 }
 \details{

@@ -15,7 +15,10 @@ generate_psychonetrics_samplestats <- setClass("psychonetrics_samplestats",  slo
   fullFIML = "logical",
   WLS.W = "list", # List with weights matrix per group
   rawdata = "data.frame", # For bootstrapping!
-  groupvar = "character"
+  groupvar = "character",
+  bootstrap = "logical",
+  boot_sub = "numeric",
+  boot_resample = "logical"
 ), prototype = list(groups = data.frame(
   label = character(0),
   id = integer(0),
@@ -28,7 +31,10 @@ variables = data.frame(
   ordered = logical(0)
 ),
 corinput = FALSE,
-fullFIML = FALSE
+fullFIML = FALSE,
+bootstrap = FALSE,
+boot_sub = 1,
+boot_resample = TRUE
 ))
 
 # Timestamp:
@@ -147,5 +153,68 @@ prototype = list(
   meanstructure = TRUE,
   verbose = FALSE
 ))
+
+
+### Bootstrap aggregate model:
+generate_psychonetrics_bootstrap <- setClass("psychonetrics_bootstrap", slots = c(
+  model = "character", # Model framework
+  submodel = "character",
+  parameters = "data.frame", # Parameter table data.frame(from,  edge, to,  est,  std,  se,  matrix,  row,  col,  par)
+  models = "list",
+  matrices = "data.frame",
+  fitmeasures = "data.frame",
+  distribution = "character",
+  verbose = "logical",
+  types = "list",
+  boot_sub = "numeric",
+  boot_resample = "logical"
+),
+prototype = list(
+  model = "dummy", submodel = "none",
+  parameters = data.frame(
+    var1 = character(0),
+    var1_id = integer(0),
+    op = character(0),
+    var2 = character(0),
+    var2_id = integer(0),
+    est_sample = numeric(0),
+    fixed_sample = logical(0),
+    avg = numeric(0),
+    se_boot = numeric(0),
+    min = numeric(0),
+    q1 = numeric(0),
+    q2.5 = numeric(0),
+    q5 = numeric(0),
+    median = numeric(0),
+    q95 = numeric(0),
+    q97.5 = numeric(0),
+    q99 = numeric(0),
+    max = numeric(0),
+    avg_non0 = numeric(0),
+    se_boot_non0 = numeric(0),
+    prop_non0 = numeric(0),
+    prop_non0_pos = numeric(0),
+    prop_non0_neg = numeric(0),
+    min_non0 = numeric(0),
+    q1_non0 = numeric(0),
+    q2.5_non0 = numeric(0),
+    q5_non0 = numeric(0),
+    median_non0 = numeric(0),
+    q95_non0 = numeric(0),
+    q97.5_non0 = numeric(0),
+    q99_non0 = numeric(0),
+    max_non0 = numeric(0),
+    matrix = character(0),
+    row = numeric(0),
+    col = numeric(0),
+    group = character(0),
+    group_id = integer(0),
+    stringsAsFactors = FALSE
+  ),
+  verbose = FALSE,
+  boot_sub = 1,
+  boot_resample = TRUE
+))
+
 
 # generate_psychonetrics()

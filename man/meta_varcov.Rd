@@ -10,18 +10,19 @@ Meta analysis of correlation matrices to fit a homogenous correlation matrix or 
 }
 \usage{
 meta_varcov(cors, nobs, Vmats, Vmethod = c("individual", "pooled",
-                    "metaSEM_individual", "metaSEM_weighted"), Vestimation
-                    = c("averaged", "per_study"), type = c("cor", "ggm"),
-                    sigma_y = "full", kappa_y = "full", omega_y = "full",
-                    lowertri_y = "full", delta_y = "full", rho_y = "full",
-                    SD_y = "full", randomEffects = c("chol", "cov",
-                    "prec", "ggm", "cor"), sigma_randomEffects = "full",
-                    kappa_randomEffects = "full", omega_randomEffects =
-                    "full", lowertri_randomEffects = "full",
-                    delta_randomEffects = "full", rho_randomEffects =
-                    "full", SD_randomEffects = "full", vars,
-                    baseline_saturated = TRUE, optimizer, estimator =
-                    c("FIML", "ML"), sampleStats, verbose = FALSE)
+                   "metaSEM_individual", "metaSEM_weighted"), Vestimation
+                   = c("averaged", "per_study"), type = c("cor", "ggm"),
+                   sigma_y = "full", kappa_y = "full", omega_y = "full",
+                   lowertri_y = "full", delta_y = "full", rho_y = "full",
+                   SD_y = "full", randomEffects = c("chol", "cov",
+                   "prec", "ggm", "cor"), sigma_randomEffects = "full",
+                   kappa_randomEffects = "full", omega_randomEffects =
+                   "full", lowertri_randomEffects = "full",
+                   delta_randomEffects = "full", rho_randomEffects =
+                   "full", SD_randomEffects = "full", vars,
+                   baseline_saturated = TRUE, optimizer, estimator =
+                   c("FIML", "ML"), sampleStats, verbose = FALSE,
+                   bootstrap = FALSE, boot_sub, boot_resample)
   
 meta_ggm(...)
 }
@@ -107,6 +108,15 @@ An optional sample statistics object. Mostly used internally.
 }
   \item{verbose}{
 Logical, should progress be printed to the console?
+}
+\item{bootstrap}{
+Should the data be bootstrapped? If \code{TRUE} the data are resampled and a bootstrap sample is created. These must be aggregated using \code{\link{aggregate_bootstraps}}! Can be \code{TRUE} or \code{FALSE}. Can also be \code{"nonparametric"} (which sets \code{boot_sub = 1} and \code{boot_resample = TRUE}) or \code{"case"} (which sets \code{boot_sub = 0.75} and \code{boot_resample = FALSE}).
+}
+\item{boot_sub}{
+Proportion of cases to be subsampled (\code{round(boot_sub * N)}).
+}
+\item{boot_resample}{
+Logical, should the bootstrap be with replacement (\code{TRUE}) or without replacement (\code{FALSE})
 }
 \item{\dots}{
 Arguments sent to \code{meta_varcov}

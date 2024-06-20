@@ -15,30 +15,31 @@ ml_lnm(...)
 ml_rnm(...)
 ml_lrnm(...)
 ml_lvm(data, lambda, clusters, within_latent = c("cov",
-                    "chol", "prec", "ggm"), within_residual = c("cov",
-                    "chol", "prec", "ggm"), between_latent = c("cov",
-                    "chol", "prec", "ggm"), between_residual = c("cov",
-                    "chol", "prec", "ggm"), beta_within = "zero",
-                    beta_between = "zero", omega_zeta_within = "full",
-                    delta_zeta_within = "full", kappa_zeta_within =
-                    "full", sigma_zeta_within = "full",
-                    lowertri_zeta_within = "full", omega_epsilon_within =
-                    "zero", delta_epsilon_within = "diag",
-                    kappa_epsilon_within = "diag", sigma_epsilon_within =
-                    "diag", lowertri_epsilon_within = "diag",
-                    omega_zeta_between = "full", delta_zeta_between =
-                    "full", kappa_zeta_between = "full",
-                    sigma_zeta_between = "full", lowertri_zeta_between =
-                    "full", omega_epsilon_between = "zero",
-                    delta_epsilon_between = "diag", kappa_epsilon_between
-                    = "diag", sigma_epsilon_between = "diag",
-                    lowertri_epsilon_between = "diag", nu, nu_eta,
-                    identify = TRUE, identification = c("loadings",
-                    "variance"), vars, latents, groups, equal = "none",
-                    baseline_saturated = TRUE, estimator = c("FIML",
-                    "MUML"), optimizer, storedata = FALSE, verbose =
-                    FALSE, standardize = c("none", "z", "quantile"),
-                    sampleStats)
+                   "chol", "prec", "ggm"), within_residual = c("cov",
+                   "chol", "prec", "ggm"), between_latent = c("cov",
+                   "chol", "prec", "ggm"), between_residual = c("cov",
+                   "chol", "prec", "ggm"), beta_within = "zero",
+                   beta_between = "zero", omega_zeta_within = "full",
+                   delta_zeta_within = "full", kappa_zeta_within =
+                   "full", sigma_zeta_within = "full",
+                   lowertri_zeta_within = "full", omega_epsilon_within =
+                   "zero", delta_epsilon_within = "diag",
+                   kappa_epsilon_within = "diag", sigma_epsilon_within =
+                   "diag", lowertri_epsilon_within = "diag",
+                   omega_zeta_between = "full", delta_zeta_between =
+                   "full", kappa_zeta_between = "full",
+                   sigma_zeta_between = "full", lowertri_zeta_between =
+                   "full", omega_epsilon_between = "zero",
+                   delta_epsilon_between = "diag", kappa_epsilon_between
+                   = "diag", sigma_epsilon_between = "diag",
+                   lowertri_epsilon_between = "diag", nu, nu_eta,
+                   identify = TRUE, identification = c("loadings",
+                   "variance"), vars, latents, groups, equal = "none",
+                   baseline_saturated = TRUE, estimator = c("FIML",
+                   "MUML"), optimizer, storedata = FALSE, verbose =
+                   FALSE, standardize = c("none", "z", "quantile"),
+                   sampleStats, bootstrap = FALSE, boot_sub,
+                   boot_resample)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -173,6 +174,15 @@ Which standardization method should be used? \code{"none"} (default) for no stan
 }
   \item{sampleStats}{
 An optional sample statistics object. Mostly used internally. 
+}
+\item{bootstrap}{
+Should the data be bootstrapped? If \code{TRUE} the data are resampled and a bootstrap sample is created. These must be aggregated using \code{\link{aggregate_bootstraps}}! Can be \code{TRUE} or \code{FALSE}. Can also be \code{"nonparametric"} (which sets \code{boot_sub = 1} and \code{boot_resample = TRUE}) or \code{"case"} (which sets \code{boot_sub = 0.75} and \code{boot_resample = FALSE}).
+}
+\item{boot_sub}{
+Proportion of cases to be subsampled (\code{round(boot_sub * N)}).
+}
+\item{boot_resample}{
+Logical, should the bootstrap be with replacement (\code{TRUE}) or without replacement (\code{FALSE})
 }
 \item{\dots}{
 Arguments sent to 'ml_lvm'

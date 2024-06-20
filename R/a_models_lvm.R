@@ -48,7 +48,10 @@ lvm <- function(
   standardize = c("none","z","quantile"),
   sampleStats,
   verbose=FALSE,
-  simplelambdastart = FALSE
+  simplelambdastart = FALSE,
+  bootstrap = FALSE,
+  boot_sub,
+  boot_resample
 ){
   rawts = FALSE
   if (rawts){
@@ -87,7 +90,10 @@ lvm <- function(
                                covtype=covtype,
                                weightsmatrix = WLS.W,
                                verbose=verbose,
-                               standardize=standardize)
+                               standardize=standardize,
+                               bootstrap=bootstrap,
+                               boot_sub = boot_sub,
+                               boot_resample = boot_resample)
   }
 
 

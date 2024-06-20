@@ -3,14 +3,28 @@ getmatrix <- function(x,matrix,group,threshold=FALSE,
                       alpha = 0.01, 
                       adjust = c( "none", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr"),
                       mode = c("tested","all"),
-                      diag = TRUE){
+                      diag = TRUE
+                      # inclusion = c("any","positive","negative")
+                      ){
   mode <- match.arg(mode)
   
 
-  # Check input:
+  
+  # # Check input:
+  # if (is(x,"psychonetrics_bootstrap")){
+  #   boot_aggregate <- TRUE
+  #   if (!(is.logical(threshold) && threshold == FALSE)){
+  #     stop("Thresholding not supported for bootstrap aggregates")
+  #   }
+  # } else if (!is(x,"psychonetrics")){
+  #   stop("Input must be a 'psychonetrics' object.")
+  # } else {
+  #   boot_aggregate <- FALSE
+  # }
+  
   if (!is(x,"psychonetrics")){
     stop("Input must be a 'psychonetrics' object.")
-  }
+  } 
   
   # IF matrix is PDC, run recursive:
   if (matrix == "PDC" & !identical(threshold,FALSE)){

@@ -31,7 +31,10 @@ varcov <- function(
   verbose = FALSE,
   covtype = c("choose","ML","UB"),
   standardize = c("none","z","quantile"),
-  fullFIML=FALSE
+  fullFIML=FALSE,
+  bootstrap = FALSE,
+  boot_sub,
+  boot_resample
 ){
   rawts = FALSE
   if (rawts){
@@ -113,7 +116,10 @@ varcov <- function(
                                covtype=covtype,
                                verbose=verbose,
                                standardize=standardize,
-                               fullFIML=fullFIML)
+                               fullFIML=fullFIML,
+                               bootstrap=bootstrap,
+                               boot_sub = boot_sub,
+                               boot_resample = boot_resample)
   }
  
   # Overwrite corinput:
