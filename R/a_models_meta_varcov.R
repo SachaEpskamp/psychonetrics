@@ -40,7 +40,10 @@ meta_varcov <- function(
   estimator = c("FIML","ML"),
   
   sampleStats, # Leave to missing
-  verbose = FALSE
+  verbose = FALSE,
+  bootstrap = FALSE,
+  boot_sub,
+  boot_resample
 ){
 
   # warning("'meta_varcov' is still experimental.")
@@ -116,7 +119,10 @@ meta_varcov <- function(
                                storedata = FALSE,
                                meanstructure = TRUE,
                                verbose=verbose,
-                               fullFIML = (Vestimation == "per_study")
+                               fullFIML = (Vestimation == "per_study"),
+                               bootstrap=bootstrap,
+                               boot_sub = boot_sub,
+                               boot_resample = boot_resample
                                # fullFIML = (Vmethod == "individual")
                                )
   }

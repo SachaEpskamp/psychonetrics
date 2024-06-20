@@ -75,7 +75,11 @@ dlvm1 <- function(
   verbose = FALSE,
   sampleStats,
   
-  baseline = c("stationary_random_intercept","stationary","independence","none")
+  baseline = c("stationary_random_intercept","stationary","independence","none"),
+  
+  bootstrap = FALSE,
+  boot_sub,
+  boot_resample
   
 ){
   
@@ -159,7 +163,10 @@ dlvm1 <- function(
                                                              "WLS" = "full",
                                                              "ULS" = "identity",
                                                              "DWLS" = "diag"
-                                                      )))
+                                                      )),
+                               bootstrap=bootstrap,
+                               boot_sub = boot_sub,
+                               boot_resample = boot_resample)
   }
   
   

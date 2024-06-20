@@ -26,7 +26,8 @@ lvm(data, lambda, latent = c("cov", "chol", "prec",
                    optimizer, storedata = FALSE, WLS.W, covtype =
                    c("choose", "ML", "UB"), standardize = c("none", "z",
                    "quantile"), sampleStats, verbose = FALSE,
-                   simplelambdastart = FALSE)
+                   simplelambdastart = FALSE, bootstrap = FALSE,
+                   boot_sub, boot_resample)
 
 lnm(\dots)
 rnm(\dots)
@@ -143,6 +144,15 @@ An optional sample statistics object. Mostly used internally.
 Which standardization method should be used? \code{"none"} (default) for no standardization, \code{"z"} for z-scores, and \code{"quantile"} for a non-parametric transformation to the quantiles of the marginal standard normal distribution.
 }
 \item{simplelambdastart}{Logical, should simple start values be used for lambda? Setting this to TRUE can avoid some estimation problems.}
+\item{bootstrap}{
+Should the data be bootstrapped? If \code{TRUE} the data are resampled and a bootstrap sample is created. These must be aggregated using \code{\link{aggregate_bootstraps}}! Can be \code{TRUE} or \code{FALSE}. Can also be \code{"nonparametric"} (which sets \code{boot_sub = 1} and \code{boot_resample = TRUE}) or \code{"case"} (which sets \code{boot_sub = 0.75} and \code{boot_resample = FALSE}).
+}
+\item{boot_sub}{
+Proportion of cases to be subsampled (\code{round(boot_sub * N)}).
+}
+\item{boot_resample}{
+Logical, should the bootstrap be with replacement (\code{TRUE}) or without replacement (\code{FALSE})
+}
 \item{\dots}{
 Arguments sent to \code{varcov}
 }

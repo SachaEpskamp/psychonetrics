@@ -57,7 +57,10 @@ tsdlvm1 <- function(
   covtype = c("choose","ML","UB"),
   centerWithin = FALSE,
   standardize = c("none","z","quantile"),
-  verbose = FALSE
+  verbose = FALSE,
+  bootstrap = FALSE,
+  boot_sub,
+  boot_resample
   # bootstrap = FALSE
 ){
   contemporaneous <- match.arg(contemporaneous)
@@ -113,7 +116,10 @@ tsdlvm1 <- function(
                                                              "WLS" = "full",
                                                              "ULS" = "identity",
                                                              "DWLS" = "diag"
-                                                      )))    
+                                                      )),
+                               bootstrap=bootstrap,
+                               boot_sub = boot_sub,
+                               boot_resample = boot_resample)    
   }
   
   

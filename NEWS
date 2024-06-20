@@ -1,3 +1,13 @@
+Changes in Version 0.13
+  o Added bootstrap support:
+    o Every model now supports 'bootstrap' (to enable bootstrap), 'boot_sub' (for subsampling) and 'boot_resample' (to resample)
+    o Enabling these will bootstrap the data *once* and create a psychonetrics object for the bootstrap sample
+    o The function 'aggregate_bootstraps' can be used to aggregate bootstraps:
+      o use print(...) for some general info
+      o use parameters(...) for the bootstrap results on the parameters
+      o use fit(...) for the bootstrap results on the fit indices
+      o use CIplot(...) for the bootstrap results on the confidence intervals (enable split0=TRUE if model selection is used)
+
 Changes in Version 0.12
   o Updates for the dlvm1 model family:
     o Changed the starting values for dlvm1 models for better convergence

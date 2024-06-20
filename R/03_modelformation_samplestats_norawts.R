@@ -16,8 +16,62 @@ samplestats_norawts <- function(
   covtype = c("choose","ML","UB"),
   corinput,
   standardize = c("none","z","quantile"),
-  fullFIML = FALSE # <- if estimator is FIML, do full FIML. Usually not needed...
+  fullFIML = FALSE, # <- if estimator is FIML, do full FIML. Usually not needed...
+  bootstrap = FALSE,
+  boot_sub,
+  boot_resample
 ){
+  # bootstrap defaults:
+  if (bootstrap == "nonparametric"){
+    bootstrap <- TRUE
+    
+    if (!missing(boot_sub)){
+       warning("bootstrap = 'nonparametric' overwrites boot_sub = 1")
+    }
+    boot_sub <- 1
+    
+    if (!missing(boot_resample)){
+      warning("bootstrap = 'nonparametric' overwrites boot_resample = TRUE")
+    }
+    boot_resample <- TRUE
+  } else if (bootstrap == "case"){
+    bootstrap <- TRUE
+    
+    if (!missing(boot_sub)){
+      warning("bootstrap = 'case' overwrites boot_sub = 0.75")
+    }
+    boot_sub <- 0.75
+    
+    if (!missing(boot_resample)){
+      warning("bootstrap = 'case' overwrites boot_resample = FALSE")
+    }
+    boot_resample <- FALSE
+  } else if (!is.logical(bootstrap)){
+    stop("'bootstrap' must be TRUE, FALSE, 'nonparametric' or 'case'")
+  } else {
+    if (missing(boot_sub)){
+      boot_sub <- 1
+    }
+    if (missing(boot_resample)){
+      boot_resample <- TRUE
+    }
+    
+    if (boot_sub < 0 || boot_sub > 1){
+      stop("'boot_sub' must be between 0 and 1.")
+    }
+    
+    if (!is.logical(boot_resample)){
+      stop("'boot_resample' must be logical.")
+    }
+  }
+  
+  
+  # Error if missing data for bootstrap:
+  if (isTRUE(bootstrap) && missing(data)){
+    stop("Bootstrap requires data to be supplied")
+  }
+    
+    
   missing <- match.arg(missing)
   covtype <- match.arg(covtype)
   standardize <- match.arg(standardize)
@@ -129,6 +183,16 @@ samplestats_norawts <- function(
     } else {
       needWLSV <- FALSE
     }
+    
+    ### Bootstrap the data ###
+    
+    if (isTRUE(bootstrap)){
+      
+      data <- data[sample(seq_len(nrow(data)), round(boot_sub*nrow(data)), replace = boot_resample),]
+      
+    }
+    
+    ###
     
     # Create covs and means arguments:
     if (nGroup == 1){
@@ -476,7 +540,10 @@ samplestats_norawts <- function(
   }
   
   # Generate samplestats object:
-  object <- generate_psychonetrics_samplestats(covs = covs, cors = cors, means = means, corinput = corinput, thresholds = thresholds, squares = squares, fullFIML=fullFIML, groupvar=groups)
+  object <- generate_psychonetrics_samplestats(covs = covs, cors = cors, means = means, corinput = corinput, 
+                                               thresholds = thresholds, squares = squares, fullFIML=fullFIML, 
+                                               groupvar=groups, bootstrap = bootstrap, boot_sub = boot_sub,
+                                               boot_resample = boot_resample)
   
   # Fill groups:
   object@groups <- data.frame(

@@ -8,10 +8,11 @@ Plot Analytic Confidence Intervals
 Function to plot analytic confidence intervals (CI) of matrix elements estimated in psychonetrics.
 }
 \usage{
-CIplot(x, matrices, alpha_ci = 0.05, 
-      alpha_color = c(0.05, 0.01, 0.001, 1e-04), 
-      labels, labels2, labelstart, print = TRUE, 
-      major_break = 0.2, minor_break = 0.1)
+CIplot(x, matrices, alpha_ci = 0.05, alpha_color = c(0.05,
+                   0.01, 0.001, 1e-04), labels, labels2, labelstart,
+                   print = TRUE, major_break = 0.2, minor_break = 0.1,
+                   split0, prop0, prop0_cex = 1, prop0_alpha = 0.95,
+                   prop0_minAlpha = 0.25)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -45,6 +46,11 @@ Numeric indicating the step size between major breaks
   \item{minor_break}{
 Numeric indicating the step size between minor breaks
 }
+  \item{split0}{Logical only used for results of \code{aggregate_bootstraps}. When set to TRUE, the displayed intervals are based on occasions when the parameter was not estimated to be zero, and an extra box is added indicating the number of times a parameter is estimated to be zero. Defaults to \code{TRUE} when model selection is used and \code{FALSE} otherwise.}
+   \item{prop0}{Logical only used for results of \code{aggregate_bootstraps}, should boxes indicating the proportion of times parameters were estimated to be zero be added to the plot? Defaults to the value of \code{split0}.}
+    \item{prop0_cex}{Only used for results of \code{aggregate_bootstraps}. Size of the boxes indicating number of times a parameter was set to zero.}
+    \item{prop0_alpha}{Only used for results of \code{aggregate_bootstraps}. Transparency of the boxes indicating number of times a parameter was set to zero.}
+    \item{prop0_minAlpha}{Only used for results of \code{aggregate_bootstraps}. Minimal transparency of the *lines* of plotted intervals as the proportion of times an edge was not included goes to 0.}
 }
 \value{
 A single ggplot2 object, or a list of ggplot2 objects for each matrix requested.

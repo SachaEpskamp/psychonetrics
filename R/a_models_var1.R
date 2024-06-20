@@ -36,7 +36,9 @@ var1 <- function(
   standardize = c("none","z","quantile"),
   sampleStats,
   verbose=FALSE,
-  bootstrap = FALSE
+  bootstrap = FALSE,
+  boot_sub,
+  boot_resample
 ){
   contemporaneous <- match.arg(contemporaneous)
   
@@ -59,9 +61,9 @@ var1 <- function(
   data <- tsData(data, vars = vars2, beepvar = beepvar, dayvar = dayvar, idvar = idvar, groupvar = groups)
   
   # Bootstrap:
-  if (bootstrap){
-    data <- data[sample(seq_len(nrow(data)),nrow(data),TRUE),]
-  }
+  # if (bootstrap){
+  #   data <- data[sample(seq_len(nrow(data)),nrow(data),TRUE),]
+  # }
   
   # Extract var names:
   if (is.null(groups)){
@@ -89,7 +91,10 @@ var1 <- function(
                                                         "WLS" = "full",
                                                         "ULS" = "identity",
                                                         "DWLS" = "diag"
-                                                      )))    
+                                                      )),
+                               bootstrap=bootstrap,
+                               boot_sub = boot_sub,
+                               boot_resample = boot_resample)    
   }
 
   

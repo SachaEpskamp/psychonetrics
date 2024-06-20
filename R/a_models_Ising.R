@@ -22,7 +22,10 @@ Ising <- function(
   identify = TRUE,
   verbose = FALSE,
   maxNodes = 20,
-  min_sum = -Inf # Used for threhsolded Ising model estimation
+  min_sum = -Inf, # Used for threhsolded Ising model estimation
+  bootstrap = FALSE,
+  boot_sub,
+  boot_resample
 ){
   covtype <- match.arg(covtype)
 
@@ -96,7 +99,10 @@ Ising <- function(
                                weightsmatrix = WLS.W,
                                # corinput = corinput,
                                covtype=covtype,
-                               verbose=verbose)
+                               verbose=verbose,
+                               bootstrap=bootstrap,
+                               boot_sub = boot_sub,
+                               boot_resample = boot_resample)
   }
  
   # Check some things:

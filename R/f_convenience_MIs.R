@@ -1,4 +1,12 @@
 MIs <- function(x, all = FALSE, matrices, type = c("normal","equal","free"), top = 10,verbose = TRUE, nonZero = FALSE){
+  
+  
+  # Bootstrap warning:
+  if (x@sample@bootstrap){
+    boot_warning()
+  }
+  
+  
   # Check if equal and free are needed:
   if (any(type != "normal")){
     if (nrow(x@sample@groups) == 1){

@@ -12,6 +12,8 @@ importFrom(rlang, .data)
 
 export(fixstart)
 
+export(aggregate_bootstraps)
+
 export(checkJacobian)
 export(checkJacobian)
 export(checkFisher)
@@ -153,7 +155,7 @@ export(parameters)
 export(duplicationMatrix, eliminationMatrix, diagonalizationMatrix)
 
 # export Classes
-exportClasses("psychonetrics","psychonetrics_log")
+exportClasses("psychonetrics","psychonetrics_log","psychonetrics_bootstrap")
 #exportClasses("psychonetrics_samplestats","psychonetrics_log","psychonetrics" )
 
 # export Methods
@@ -193,3 +195,5 @@ import(magrittr)
      importFrom("stats", "qnorm")
      
      importFrom("stats", "cor", "weighted.mean")
+     
+     importFrom("stats", "median")

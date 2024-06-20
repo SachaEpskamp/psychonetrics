@@ -68,7 +68,10 @@ ml_lvm <- function(
   storedata = FALSE,
   verbose = FALSE,
   standardize = c("none","z","quantile"),
-  sampleStats
+  sampleStats,
+  bootstrap = FALSE,
+  boot_sub,
+  boot_resample
 ){
 
   # CRAN Check workarounds (sorry):
@@ -228,7 +231,10 @@ ml_lvm <- function(
                                groups = groups,
                                fimldata = estimator == "FIML",
                                storedata = storedata,
-                               verbose=verbose)
+                               verbose=verbose,
+                               bootstrap=bootstrap,
+                               boot_sub = boot_sub,
+                               boot_resample = boot_resample)
   }
   
   
