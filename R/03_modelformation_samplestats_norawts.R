@@ -144,6 +144,16 @@ samplestats_norawts <- function(
     # Remove all rows with full missing:
     data <- data[rowSums(is.na(data[,vars])) < nVars,]
     
+    ### Bootstrap the data ###
+    
+    if (isTRUE(bootstrap)){
+      
+      data <- data[sample(seq_len(nrow(data)), round(boot_sub*nrow(data)), replace = boot_resample),]
+      
+    }
+    
+    ###
+    
     # Standardize the data:
     if (standardize == "z"){
       for (v in seq_along(vars)){
@@ -184,15 +194,7 @@ samplestats_norawts <- function(
       needWLSV <- FALSE
     }
     
-    ### Bootstrap the data ###
-    
-    if (isTRUE(bootstrap)){
-      
-      data <- data[sample(seq_len(nrow(data)), round(boot_sub*nrow(data)), replace = boot_resample),]
-      
-    }
-    
-    ###
+   
     
     # Create covs and means arguments:
     if (nGroup == 1){

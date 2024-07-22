@@ -1,3 +1,6 @@
+Changes in Version 1.0.0
+  o Bootstrapping now occurs before standardizing the data
+
 Changes in Version 0.13
   o Added bootstrap support:
     o Every model now supports 'bootstrap' (to enable bootstrap), 'boot_sub' (for subsampling) and 'boot_resample' (to resample)
