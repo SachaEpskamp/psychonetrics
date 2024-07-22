@@ -1,5 +1,5 @@
 Changes in Version 1.0.0
-  o Bootstrapping now occurs before standardizing the data
+  o Bootstrapping now occurs before standardizing the data (thanks to Yiwei Yang and Amanda Montoya)
 
 Changes in Version 0.13
   o Added bootstrap support:
