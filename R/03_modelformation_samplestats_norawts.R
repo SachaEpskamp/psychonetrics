@@ -235,6 +235,12 @@ samplestats_norawts <- function(
         cov <- (nrow(data[,c(vars)])-1)/(nrow(data[,c(vars)])) * cov(data[,c(vars)], use = switch(
           missing, "listwise" = "complete.obs", "pairwise" = "pairwise.complete.obs"
         ))
+        
+        # For n=1, make the covariances 0:
+        if (nrow(data)==1){
+          cov[is.na(cov)] <- 0
+        }
+        
         cov <- 0.5*(cov + t(cov))
         
         if (any(is.na(cov))){
@@ -529,7 +535,6 @@ samplestats_norawts <- function(
   
   # Determine corinput (will also detect if standardized data was used as input):
   if (missing(corinput)){
-    
     if (all(
       sapply(covs,function(x){
         all(abs(diag(x) - 1) < sqrt(.Machine$double.eps))
