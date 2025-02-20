@@ -1,6 +1,8 @@
 ### Dynlib ###
 useDynLib(psychonetrics, .registration = TRUE)
 
+export(ri_clpm)
+export(ri_clpm_stationary)
 
 export(logbook)
 
