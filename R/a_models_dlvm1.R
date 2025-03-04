@@ -542,6 +542,8 @@ dlvm1 <- function(
         # beta = lag1 * lag0^-1:
       }
       
+      # Fix NA / NaN in lag-1 estimate:
+      prior_estimates[[g]]$within_latent_lag1_estimate <- ifelse(is.finite(prior_estimates[[g]]$within_latent_lag1_estimate ), prior_estimates[[g]]$within_latent_lag1_estimate , 0)
       
       # Estimate for beta:
       prior_estimates[[g]]$beta_estimate <- prior_estimates[[g]]$within_latent_lag1_estimate  %*% solve_symmetric(prior_estimates[[g]]$within_latent_cov_estimate)
