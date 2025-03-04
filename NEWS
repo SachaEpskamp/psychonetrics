@@ -1,6 +1,7 @@
-Changes in Version 1.0.0
+Changes in Version 0.13.1
   o Bootstrapping now occurs before standardizing the data (thanks to Yiwei Yang and Amanda Montoya)
   o Improved support for N=1 models in dlvm1 (e.g., for true ML estimation)
+  o Fixed a bug with missing values in the beta starting values matrix for dlvm1 models
 
 Changes in Version 0.13
   o Added bootstrap support:
