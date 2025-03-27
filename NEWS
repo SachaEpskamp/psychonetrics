@@ -2,6 +2,8 @@ Changes in Version 0.13.1
   o Bootstrapping now occurs before standardizing the data (thanks to Yiwei Yang and Amanda Montoya)
   o Improved support for N=1 models in dlvm1 (e.g., for true ML estimation)
   o Fixed a bug with missing values in the beta starting values matrix for dlvm1 models
+  o Changed partialprune() default for 'return' to "partialprune"; set to "best" to mimic old behavior
+  o Added 'final_prune' argument to partialprune() and changed the default to "saturated"; set to "partialprune" to mimic old behavior
 
 Changes in Version 0.13
   o Added bootstrap support:
