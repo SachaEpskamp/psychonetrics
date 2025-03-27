@@ -4,9 +4,10 @@ partialprune <- function(
   matrices, # Automatically chosen
   verbose,
   combinefun = unionmodel,
-  return = c("best","partialprune","union_equal","prune"),
+  return = c("partialprune","best","union_equal","prune"),
   criterion = "bic",
   best = c("lowest","highest"),
+  final_prune = c("saturated","partialprune"),
   ...){
   # Verbose:
   if (missing(verbose)){
@@ -28,6 +29,7 @@ partialprune <- function(
   # Return argument:
   return <- match.arg(return)
   best <- match.arg(best)
+  final_prune <- match.arg(final_prune)
   
   # Matrices:
   if (missing(matrices)){
@@ -205,7 +207,63 @@ partialprune <- function(
         break
       }
     }
-    mod_partialpooled <- curMod %>% prune(alpha=alpha,verbose=FALSE,runmodel=TRUE,matrices=matrices,...) 
+    
+    # Final prune step:
+    if (final_prune=="partialprune"){
+      mod_partialpooled <- curMod %>% prune(alpha=alpha,verbose=FALSE,runmodel=TRUE,matrices=matrices,...)   
+    } else {
+      
+     # loop over all parameters in the matrices:
+      all_pars <- which(curMod@parameters$matrix%in% matrices)
+      
+      # Start loop:
+      it <- 1
+      while(length(all_pars) >= 1){
+        # Parameter:
+        p <- all_pars[1]
+        
+        # If already fixed skio:
+        if (curMod@parameters$fixed[p]){
+          all_pars <- all_pars[-1]
+          next
+        }
+        
+        # If constrained equal, fix all groups to zero if not significant at alpha:
+        all_groups_pars <- which(curMod@parameters$matrix ==  curMod@parameters$matrix[p] & 
+                                   curMod@parameters$row == curMod@parameters$row[p] & 
+                                   curMod@parameters$col == curMod@parameters$col[p])
+        
+        # Equal constrained?
+        eq_constrained <- length(unique(curMod@parameters$par[all_groups_pars])) == 1
+        
+        # If equal:
+        if (eq_constrained){
+          # Non-significant?
+          sig <- curMod@parameters$p[p] < alpha
+          if (!sig){
+            curMod <- curMod %>% fixpar(curMod@parameters$matrix[p],curMod@parameters$row[p],curMod@parameters$col[p])
+          }
+          
+          # Remove all parameters from the vector:
+          all_pars <- all_pars[!all_pars %in% all_groups_pars]
+        } else {
+          # If not equal, fix to zero if par was removed in the pruned model:
+          if (mod_prune@parameters$fixed[p]){
+            curMod <- curMod %>% fixpar(matrix = curMod@parameters$matrix[p],
+                                        row = curMod@parameters$row[p],
+                                        col = curMod@parameters$col[p],
+                                        group = curMod@parameters$group_id[p])
+          }
+          
+          # Remove parameter from the vector:
+          all_pars <- all_pars[all_pars != p]
+        }
+      }
+      
+      # Run the model again:
+      mod_partialpooled <- curMod %>% runmodel(..., verbose = verbose)
+    }
+    
     
     # Select best model:
     mods <- list(x, mod_prune, mod_union, mod_partialpooled)
