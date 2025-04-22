@@ -188,7 +188,6 @@ partialprune <- function(
       
     }
     
-    browser()
     # # Then set equal:
     # for (m in seq_along(matrices)){
     #   mod_union <- groupequal(mod_union,matrices[m], verbose = FALSE)  
