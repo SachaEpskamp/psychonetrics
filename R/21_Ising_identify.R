@@ -17,7 +17,7 @@ identify_Ising <- function(x){
     cons <- x@parameters %>% group_by(.data[["matrix"]],.data[["row"]],.data[["col"]]) %>% summarize(eq = !(all(.data[['fixed']]))&allTheSame(.data[['par']]))
     consPerMat <- cons %>% group_by(.data[["matrix"]]) %>% summarize(n = sum(.data[['eq']]))
     
-    # at least 1 intercepts nead to be equal
+    # at least 1 intercepts need to be equal
     if (sum(consPerMat$n[consPerMat$matrix %in% c("omega","tau")]) >= 1){
       fix <- which(x@parameters$matrix %in% c("beta") & x@parameters$group_id == 1)
       free <-  which(x@parameters$matrix %in% c("beta") & x@parameters$group_id > 1 & !(x@parameters$fixed & !x@parameters$identified))
