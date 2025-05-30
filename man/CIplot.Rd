@@ -59,6 +59,7 @@ A single ggplot2 object, or a list of ggplot2 objects for each matrix requested.
 Sacha Epskamp
 }
 \examples{
+\donttest{
 ### Example from ?ggm ###
 # Load bfi data from psych package:
 library("psychTools")
@@ -111,5 +112,5 @@ model <- model \%>\% runmodel
 
 # Plot the CIs:
 CIplot(model,  "beta")
-
+}
 }
