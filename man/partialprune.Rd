@@ -52,7 +52,9 @@ Epskamp, S., Isvoranu, A. M., & Cheung, M. (2020). Meta-analytic gaussian networ
 
 Haslbeck, J. (2020). Estimating Group Differences in Network Models using Moderation Analysis. PsyArXiv preprint. DOI:10.31234/osf.io/926pv.
 }
-\example{
+
+\examples{
+\donttest{
 # Load bfi data from psych package:
 library("psychTools")
 data(bfi)
@@ -61,8 +63,8 @@ data(bfi)
 library("dplyr")
 
 # Let's take the extroversion items, and gender:
-ExData <- bfi %>% 
-  select(E1:E5, gender) %>% 
+ExData <- bfi \%>\%
+  select(E1:E5, gender) \%>\% 
   na.omit # Let's remove missingness (otherwise use Estimator = "FIML)
 
 # Define variables:
@@ -81,10 +83,11 @@ mod_partial <- mod_saturated %>%
 getmatrix(mod_partial, "omega")
 
 # Differences:
-getmatrix(mod_partial, "omega")[[1]] - 
+getmatrix(mod_partial, "omega")[[1]] -
   getmatrix(mod_partial, "omega")[[2]]
 
 # Difference detected in edge 4 - 5
+}
 }
 \author{
 Sacha Epskamp <mail@sachaepskamp.com>
