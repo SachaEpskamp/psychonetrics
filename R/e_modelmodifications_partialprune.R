@@ -3,7 +3,7 @@ partialprune <- function(
   alpha = 0.01, # Significance
   matrices, # Automatically chosen
   verbose,
-  combinefun = unionmodel,
+  combinefun = c("unionmodel","intersectionmodel","identity"), # Allowed options: unionmodel, intersectionmodel, or identity
   return = c("partialprune","best","union_equal","prune"),
   criterion = "bic",
   best = c("lowest","highest"),
@@ -30,6 +30,15 @@ partialprune <- function(
   return <- match.arg(return)
   best <- match.arg(best)
   final_prune <- match.arg(final_prune)
+  
+  if (identical(combinefun,unionmodel)){
+    combinefun <- "unionmodel"
+  }
+  if (identical(combinefun,intersectionmodel)){
+    combinefun <- "intersectionmodel"
+  }
+  
+  combinefun <- match.arg(combinefun)
   
   # Matrices:
   if (missing(matrices)){
@@ -166,16 +175,42 @@ partialprune <- function(
     # Combine models:
     if (verbose) message("Combining models...")
     
+ 
     # First union or intersection:
-    mod_union <- combinefun(mod_prune, matrices = matrices)
+    if (combinefun == "unionmodel"){
+      mod_union <- unionmodel(mod_prune, matrices = matrices)
+    } else if (combinefun == "intersectionmodel"){
+      mod_union <- intersectionmodel(mod_prune, matrices = matrices)
+    } else {
+      
+      # for each parameter in the relevant matrices, make equal if both included:
+      mod_union <- mod_prune
+      
+    }
     
-    # Then set equal:
+    # # Then set equal:
+    # for (m in seq_along(matrices)){
+    #   mod_union <- groupequal(mod_union,matrices[m], verbose = FALSE)  
+    # }
+    # FIXME: Set only the parameters equal that are included in all groups:
     for (m in seq_along(matrices)){
-      mod_union <- groupequal(mod_union,matrices[m], verbose = FALSE)  
+      for (p in which(mod_union@parameters$matrix == matrices[m] & mod_union@parameters$group_id==1)){
+        if (!any(mod_union@parameters$fixed[mod_union@parameters$matrix == mod_union@parameters$matrix[p] &
+                                            mod_union@parameters$row == mod_union@parameters$row[p] &
+                                            mod_union@parameters$col == mod_union@parameters$col[p]])){
+          mod_union <- mod_union %>% groupequal(
+            matrix = mod_union@parameters$matrix[p],
+            row = mod_union@parameters$row[p],
+            col = mod_union@parameters$col[p], verbose = FALSE)
+        }
+        
+      }
     }
   
     # Then run:
     mod_union <- runmodel(mod_union, verbose = FALSE)
+    
+    
     
     if (verbose) message("Partial pruning...")
     curMod <- mod_union
