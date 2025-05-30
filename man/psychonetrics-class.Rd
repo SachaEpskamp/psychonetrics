@@ -5,6 +5,9 @@
 \alias{resid,psychonetrics-method}
 \alias{residuals,psychonetrics-method}
 \alias{show,psychonetrics-method}
+\alias{psychonetrics_samplestats-class}
+\alias{sessionInfo-class}
+
 
 \title{Class \code{"psychonetrics"}}
 \description{
