@@ -175,7 +175,7 @@ partialprune <- function(
     # Combine models:
     if (verbose) message("Combining models...")
     
- 
+ # browser()
     # First union or intersection:
     if (combinefun == "unionmodel"){
       mod_union <- unionmodel(mod_prune, matrices = matrices)
@@ -185,6 +185,9 @@ partialprune <- function(
       
       # for each parameter in the relevant matrices, make equal if both included:
       mod_union <- mod_prune
+      
+      # But obtain starting values from unionmodel function:
+      mod_union@parameters$est <- unionmodel(mod_prune, matrices = matrices)@parameters$est
       
     }
     
