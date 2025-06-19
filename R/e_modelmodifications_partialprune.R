@@ -187,7 +187,10 @@ partialprune <- function(
       mod_union <- mod_prune
       
       # But obtain starting values from unionmodel function:
-      mod_union@parameters$est <- unionmodel(mod_prune, matrices = matrices)@parameters$est
+      mod_union@parameters$est <- intersectionmodel(mod_prune, matrices = matrices, runmodel = TRUE) %>%
+        groupequal(matrices) %>%
+        runmodel %>% 
+        '@'('parameters') %>% '$'('est')
       
     }
     
