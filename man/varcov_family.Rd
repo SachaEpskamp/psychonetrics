@@ -147,7 +147,7 @@ The model used in this family is:
 
 in which the covariance matrix can further be modeled in three ways. With \code{type = "chol"} as Cholesky decomposition:
 
-\eqn{\boldsymbol{\Sigma} = \boldsymbol{L}\boldsymbol{L}}{sigma = lowertri * lowertri},
+\eqn{\boldsymbol{\Sigma} = \boldsymbol{L}\boldsymbol{L}^{\top}}{sigma = lowertri * lowertri'},
 
 with \code{type = "prec"} as Precision matrix:
 

@@ -1,3 +1,6 @@
+Changes in Version 0.13.2
+  o Fixed a bug in 'intersectionmodel' not properly clearing removed parameters
+
 Changes in Version 0.13.1
   o Bootstrapping now occurs before standardizing the data (thanks to Yiwei Yang and Amanda Montoya)
   o Improved support for N=1 models in dlvm1 (e.g., for true ML estimation)

@@ -175,7 +175,7 @@ intersectionmodel <- function(
   # x@parameters$pmi[whichFix] <- NA
   # x@parameters$mi_equal[whichFix] <- NA
   # x@parameters$pmi_equal[whichFix] <- NA
-  # x@parameters$est[whichFix] <- 0
+  x@parameters$est[whichFix] <- 0
   # x@parameters$std[whichFix] <- 0
   # x@parameters$se[whichFix] <- 0
   x@parameters <- clearpars(x@parameters,whichFix)
