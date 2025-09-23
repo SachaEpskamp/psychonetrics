@@ -246,12 +246,12 @@ partialprune <- function(
         runmodel
       })
       
-      if (inherits(tryres, "try-error")){
-        browser()
-      }
+      # if (inherits(tryres, "try-error")){
+      #   browser()
+      # }
       
       # Test BIC:
-      if (propMod@fitmeasures$bic < curMod@fitmeasures$bic){
+      if (propMod@fitmeasures$objective > 0 && propMod@fitmeasures$bic < curMod@fitmeasures$bic){
         curMod <- propMod
       } else {
         break
@@ -290,7 +290,7 @@ partialprune <- function(
         if (eq_constrained){
           # Non-significant?
           sig <- curMod@parameters$p[p] < alpha
-          if (!sig){
+          if (!is.na(sig) && !sig){
             curMod <- curMod %>% fixpar(curMod@parameters$matrix[p],curMod@parameters$row[p],curMod@parameters$col[p])
           }
           
