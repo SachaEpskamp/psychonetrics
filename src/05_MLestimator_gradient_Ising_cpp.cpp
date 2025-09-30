@@ -33,7 +33,7 @@ arma::mat jacobian_Ising_group_cpp(
   arma::vec v1 = means * nobs;
   arma::mat v2 = squares;
   
-  // Hamiltionian:  
+  // Hamiltonian:  
   arma::vec part1 = thresholds % v1;
   arma::mat part2 = graph % v2;
   

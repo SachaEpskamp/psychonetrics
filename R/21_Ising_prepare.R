@@ -1,6 +1,6 @@
 # Prepare all matrices for the fit, gradient and hessian of Ising models:
 prepare_Ising <- function(x, model){
-  
+
   # New model:
   newMod <- updateModel(x,model,updateMatrices = FALSE)
   
@@ -45,7 +45,8 @@ prepare_Ising <- function(x, model){
       groupModels[[g]]$omega,
       groupModels[[g]]$tau,
       groupModels[[g]]$beta,
-      groupModels[[g]]$responses
+      groupModels[[g]]$responses,
+      groupModels[[g]]$min_sum
     )    
     groupModels[[g]]$Z <- exp$Z
     groupModels[[g]]$exp_v1 <- exp$exp_v1
