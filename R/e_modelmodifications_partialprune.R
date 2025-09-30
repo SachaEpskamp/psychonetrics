@@ -166,7 +166,7 @@ partialprune <- function(
   
   # Prune first:
   if (verbose) message("Pruning model...")
-  mod_prune <- prune(x,alpha=alpha,verbose=FALSE,runmodel=TRUE,matrices=matrices,...) 
+  mod_prune <- prune(x,alpha=alpha,verbose=FALSE,runmodel=TRUE,matrices=matrices,...) %>% runmodel
   
   # if not empty, look for equality:
   if (!all(mod_prune@parameters$est[mod_prune@parameters$matrix%in%matrices&!mod_prune@parameters$fixed]==0)){
@@ -336,7 +336,7 @@ partialprune <- function(
     }
     
     bestmod <- mods[[best]]
-    
+
     # Which model to return?
     if (return == "best"){
       return(bestmod)  
