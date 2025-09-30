@@ -28,7 +28,8 @@ prepare_Ising <- function(x, model){
   
   # Extra mats:
   mMat <- list(
-    M = Mmatrix(model@parameters)
+    M = Mmatrix(model@parameters),
+    beta_model = model@types$beta_model
   )
   
   # Fill per group:

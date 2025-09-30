@@ -1,11 +1,16 @@
 # Full jacobian of phi (distribution parameters) with respect to theta (model parameters) for a group
-d_phi_theta_Ising_group <- function(omega,...){
-  
+d_phi_theta_Ising_group <- function(omega,beta_model,log_beta,...){
+
   # Number of variables:
   nvar <- nrow(omega)
   
   # Jacobian is simply an identity matrix of the correct dimension:
   Jac <- Diagonal(nvar + (nvar*(nvar-1)/2) + 1)
+  
+  # Fix log beta:
+  if (beta_model == "log_beta"){
+    Jac[nrow(Jac),ncol(Jac)] <- exp(log_beta)
+  }
     
   # Return jacobian:
   return(Jac)
