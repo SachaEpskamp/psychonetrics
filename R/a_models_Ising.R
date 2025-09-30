@@ -4,6 +4,7 @@ Ising <- function(
   omega = "full", # Partial correlations
   tau,
   beta,
+  beta_model = c("beta","log_beta"),
   vars, # character indicating the variables Extracted if missing from data - group variable
   groups, # ignored if missing. Can be character indicating groupvar, or vector with names of groups
   covs, # alternative covs (array nvar * nvar * ngroup)
@@ -28,7 +29,8 @@ Ising <- function(
   boot_resample
 ){
   covtype <- match.arg(covtype)
-
+  beta_model <- match.arg(beta_model)
+  
   if (missing(data) && missing(responses)){
     stop("'responses' argument may not be missing if 'data' is missing.")
   }
@@ -117,10 +119,10 @@ Ising <- function(
   type <- paste0("(",responses[1]," & ",responses[2],")")
   
   # Generate model object:
-  model <- generate_psychonetrics(model = "Ising",sample = sampleStats, computed = FALSE, 
+  model <- generate_psychonetrics(model = "Ising", sample = sampleStats, computed = FALSE, 
                                   equal = equal,
                                   optimizer =  "nlminb", estimator = estimator, distribution = "Ising",
-                                  rawts = FALSE, types = list(),
+                                  rawts = FALSE, types = list(beta_model = beta_model),
                                   submodel = type, verbose=verbose)
   
   # Number of groups:
@@ -152,7 +154,7 @@ Ising <- function(
  
   # Setup temperature:
   modMatrices$beta <- matrixsetup_isingbeta(beta, nGroup = nGroup, equal = "beta" %in% equal,
-                                         sampletable = sampleStats)
+                                         sampletable = sampleStats, log = (beta_model == "log_beta"))
   
 
   # Generate the full parameter table:
@@ -163,8 +165,8 @@ Ising <- function(
   model@matrices <- pars$mattable
   
     model@extramatrices <- list(
-      D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
-      L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
+      D = psychonetrics::duplicationMatrix(nNode), # non-strict duplication matrix
+      L = psychonetrics::eliminationMatrix(nNode), # Elimination matrix
       In = as(diag(nNode),"dMatrix"), # Identity of dim n
       responses = responses,
       min_sum = min_sum
@@ -181,6 +183,7 @@ Ising <- function(
     
     # Form baseline model:
     model@baseline_saturated$baseline <- Ising(data,
+                                                  beta_model = beta_model,
                                                   omega = "zero",
                                                   vars = vars,
                                                   groups = groups,
@@ -205,6 +208,7 @@ Ising <- function(
     
     ### Saturated model ###
     model@baseline_saturated$saturated <- Ising(data,
+                                               beta_model = beta_model,
                                                omega = "full",
                                                vars = vars,
                                                groups = groups,

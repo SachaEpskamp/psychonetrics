@@ -3,7 +3,7 @@
 identify_Ising <- function(x){
 
   # Which parameters are the beta parameters?
-  betas <- which(x@parameters$matrix == "beta")
+  betas <- grep("beta",x@parameters$matrix)
   
   # In a single group analysis, beta is always fixed and identified:
   if (nrow(x@sample@groups) == 1){
@@ -19,14 +19,18 @@ identify_Ising <- function(x){
     
     # at least 1 intercepts need to be equal
     if (sum(consPerMat$n[consPerMat$matrix %in% c("omega","tau")]) >= 1){
-      fix <- which(x@parameters$matrix %in% c("beta") & x@parameters$group_id == 1)
-      free <-  which(x@parameters$matrix %in% c("beta") & x@parameters$group_id > 1 & !(x@parameters$fixed & !x@parameters$identified))
+      fix <- which(x@parameters$matrix %in% c("beta","log_beta") & x@parameters$group_id == 1)
+      free <-  which(x@parameters$matrix %in% c("beta","log_beta") & x@parameters$group_id > 1 & !(x@parameters$fixed & !x@parameters$identified))
     } else {
-      fix <- which(x@parameters$matrix %in% c("beta"))
+      fix <- which(x@parameters$matrix %in% c("beta","log_beta"))
       free <- numeric(0)
     }
     # Constrain means:
-    x@parameters$est[fix] <- 1
+    if (x@types$beta_model == "log_beta"){
+      x@parameters$est[fix] <- 0  
+    } else {
+      x@parameters$est[fix] <- 1
+    }
     # x@parameters$std[means] <- NA
     x@parameters$par[fix] <- 0
     # x@parameters$se[means] <- NA
