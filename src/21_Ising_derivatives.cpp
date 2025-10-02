@@ -21,7 +21,20 @@ arma::mat d_phi_theta_Ising_group_cpp(
   int ntotal = n +  n * (n-1) / 2 + 1;
 
   arma::mat Jac = eye(ntotal,ntotal);
+  
+  
+  // Types:
+  std::string beta_model = grouplist["beta_model"];
+  bool log_beta  = beta_model == "log_beta";
 
+  if (log_beta){
+    // Fix last derivative if needed:
+    arma::mat log_beta = grouplist["log_beta"];
+    Jac(ntotal-1, ntotal-1) = exp(log_beta(0,0));
+  }
+  
+  
+  
   // Return:
   return(Jac);
 }

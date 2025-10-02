@@ -18,11 +18,50 @@ Rcpp::List implied_Ising_cpp(
     bool all = false
 ){
   
-  // Silly function ...
-  
   // Form basic model matrices:
   Rcpp::List x = formModelMatrices_cpp(model);
+
+
+  // Types:
+  Rcpp::List types = model.slot("types");
+  std::string beta_model = types["beta_model"];
+  bool log_beta  = beta_model == "log_beta";
   
+  int nGroup = x.length();
+  int g, i, j;
+  
+  for (g=0; g<nGroup; g++){
+    // Grouplist
+    Rcpp::List grouplist = x[g];  
+    
+   if (log_beta){
+     arma::mat beta = grouplist["log_beta"];
+     
+     for (i=0;i<beta.n_rows;i++){
+       for (j=0;j<beta.n_cols;j++){
+           beta(i,j) = exp(beta(i,j));
+       }
+     }
+     
+     grouplist["beta"] = beta;
+   } else {
+     
+     arma::mat log_beta = grouplist["beta"];
+     
+     for (i=0;i<log_beta.n_rows;i++){
+       for (j=0;j<log_beta.n_cols;j++){
+         log_beta(i,j) = log(log_beta(i,j));
+       }
+     }
+     
+     grouplist["log_beta"] = log_beta;
+     
+     
+   }
+   
+   x[g] = grouplist;
+  }
+
   
   return(x);
 }

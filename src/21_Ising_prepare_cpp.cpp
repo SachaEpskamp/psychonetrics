@@ -53,6 +53,9 @@ Rcpp::List prepare_Ising_cpp(
   // Extra matrices:
   Rcpp::List extramatrices = model.slot("extramatrices");
   
+  // Types:
+  Rcpp::List types = model.slot("types");
+  
   // Total sample:
   double nTotal = sum(nPerGroup);
         
@@ -68,10 +71,12 @@ Rcpp::List prepare_Ising_cpp(
   for (g=0; g<nGroup; g++){
     Rcpp::List grouplist = imp[g];
     growlist(grouplist, extramatrices);
+    growlist(grouplist, types);
     
     grouplist["squares"] = squares[g];
     grouplist["means"] = means[g];
     grouplist["nobs"] = nPerGroup(g);
+    
     
     // Compute expectation:
     Rcpp::List exp = isingExpectation(
