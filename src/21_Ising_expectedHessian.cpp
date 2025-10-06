@@ -265,11 +265,13 @@ arma::mat expHessianCpp(
   }
   
   // Fil the beta - threshold part:
+  // FIXME: Added part suggested by chatGPT:
   for (i=0;i<nvar;i++){
     Hessian(nElement-1,i) =  2.0 * (fir(i) * expH - fir_H(i));
   }
   
   // Fil the beta - graph part:
+  // FIXME: Added part suggested by chatGPT:
   curcol = nvar;
   for (j=0;j<nvar;j++){
     for (i=j+1;i<nvar;i++){
