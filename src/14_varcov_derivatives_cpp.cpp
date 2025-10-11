@@ -219,7 +219,7 @@ arma::mat d_phi_theta_varcov_group_cpp(
     
     for (j = 0; j < tauncols && noThresholds; j++){
       
-      if (is_finite(tau(i,j))){
+      if (std::isfinite(tau(i,j))){
         noThresholds = false;
       }
     }  
@@ -242,12 +242,12 @@ arma::mat d_phi_theta_varcov_group_cpp(
   
   for (i=0;i<nvar;i++){
     
-    if (arma::is_finite(mu(i,0))){
+    if (std::isfinite(mu(i,0))){
       nMean++;
     }
     
     for (j = 0; j < nrow_tau; j++){
-      if (arma::is_finite(tau(j,i))){
+      if (std::isfinite(tau(j,i))){
         nThresh++;
       }
     }
