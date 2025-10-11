@@ -59,7 +59,7 @@ double ULS_Gauss_cpp_pergroup(
     arma::mat tau = grouplist["tau"];
     
     for (i = 0; i < nvar; i++){
-      if (is_finite(means(i))){
+      if (std::isfinite(means(i))){
         // FIXME:  This is just silly ...
         arma::vec obselem(1);
         obselem(0) = means(i);
