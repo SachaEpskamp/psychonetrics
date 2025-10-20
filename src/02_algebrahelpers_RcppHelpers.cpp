@@ -256,7 +256,7 @@ arma::mat solve_symmetric_cpp_matrixonly_withcheck(
     bool& proper,
     bool approx = true
 ){
-  double sqrt_epsilon  = 1.490116e-08;
+  //double sqrt_epsilon  = 1.490116e-08;
   int i,j;
   int nvar = X.n_cols;
   
@@ -294,7 +294,7 @@ arma::mat solve_symmetric_cpp_matrixonly_withcheck(
     proper = false;
     for (i=0;i<nvar;i++){
       for (j=0;j<nvar;j++){
-        if (!is_finite(X(i,j))){
+        if (!std::isfinite(X(i,j))){
           if (i==j){
             X(i,j) = 1;
           } else {
