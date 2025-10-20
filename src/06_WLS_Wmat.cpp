@@ -36,7 +36,7 @@ arma::mat WLS_wmat(
         }
         
         // Check for NA:
-        if (arma::is_finite(data(p,g)) && arma::is_finite(data(p,h))){
+        if (std::isfinite(data(p,g)) && std::isfinite(data(p,h))){
           sec(g,h) += std::pow((double)ncase,-1.0) * (data(p,g) - means(g)) * (data(p,h) - means(h));
           for (i = 0; i < nvar; i++){
             if (p==0){
@@ -44,7 +44,7 @@ arma::mat WLS_wmat(
             }
             
             // Check NA:
-            if (arma::is_finite(data(p,i))){
+            if (std::isfinite(data(p,i))){
               thi(g,h,i) += std::pow((double)ncase,-1.0) * (data(p,g) - means(g)) * (data(p,h) - means(h)) * (data(p,i) - means(i)) ;
               for (j = i; j < nvar; j ++){
                 if (p==0){
@@ -52,7 +52,7 @@ arma::mat WLS_wmat(
                 }
                 
                 // Check NA:
-                if (arma::is_finite(data(p,j))){
+                if (std::isfinite(data(p,j))){
                   four(i,j,g,h) +=  std::pow((double)ncase,-1.0) *(data(p,i) - means(i)) * (data(p,j) - means(j)) * (data(p,g) - means(g)) * (data(p,h) - means(h)); 
                 }
               }
