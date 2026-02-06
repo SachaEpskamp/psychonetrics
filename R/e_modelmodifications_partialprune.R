@@ -15,6 +15,7 @@ partialprune <- function(
   }
   fixed <- NULL
   mi_free <- NULL
+  equal <- NULL
   
   # If not run, run model:
   if (!x@computed){

@@ -17,3 +17,4 @@ URL: http://psychonetrics.org/
 BugReports: https://github.com/SachaEpskamp/psychonetrics/issues
 StagedInstall: true
 NeedsCompilation: yes
+RoxygenNote: 7.3.3

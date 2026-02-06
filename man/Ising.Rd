@@ -8,14 +8,15 @@ Ising model
 This is the family of Ising models fit to dichotomous datasets. Note that the input matters (see also https://arxiv.org/abs/1811.02916) in this model! Models based on a dataset that is encoded with -1 and 1 are not entirely equivalent to models based on datasets encoded with 0 and 1 (non-equivalences occur in multi-group settings with equality constrains). 
 }
 \usage{
-Ising(data, omega = "full", tau, beta, vars, groups, covs,
-                   means, nobs, covtype = c("choose", "ML", "UB"),
-                   responses, missing = "listwise", equal = "none",
-                   baseline_saturated = TRUE, estimator = "default",
-                   optimizer, storedata = FALSE, WLS.W, sampleStats,
-                   identify = TRUE, verbose = FALSE, maxNodes = 20,
-                   min_sum = -Inf, bootstrap = FALSE, boot_sub,
-                   boot_resample)
+Ising(data, omega = "full", tau, beta, beta_model =
+                 c("beta", "log_beta"), vars, groups, covs, means,
+                 nobs, covtype = c("choose", "ML", "UB"), responses,
+                 missing = "listwise", equal = "none",
+                 baseline_saturated = TRUE, estimator = "default",
+                 optimizer, storedata = FALSE, WLS.W, sampleStats,
+                 identify = TRUE, verbose = FALSE, maxNodes = 20,
+                 min_sum = -Inf, bootstrap = FALSE, boot_sub,
+                 boot_resample)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -31,6 +32,7 @@ Optional vector encoding the threshold/intercept structure. Set elements to 0 to
   \item{beta}{
 Optional scalar encoding the inverse temperature. 1 indicate free beta parameters, and higher integers to indicate equality constrains. For multiple groups, this argument can be a list or array with each element/column encoding such scalers.
 }
+\item{beta_model}{How should beta be modeled? Set \code{beta_model = "log_beta"} to model the log of beta rather than beta directly.}
   \item{vars}{
 An optional character vector encoding the variables used in the analyis. Must equal names of the dataset in \code{data}.
 }
