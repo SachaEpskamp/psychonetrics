@@ -1,3 +1,7 @@
+Changes in Version 0.14.3
+  o Cache-aware prepareModel_cpp: skip redundant prepare when fit and gradient are called at the same parameter vector
+  o ~24% speedup in full model fitting (e.g., 9-variable CFA: ~155ms -> ~118ms)
+
 Changes in Version 0.14.2
   o Expanded OptimWorkspace to cache all constant S4 model/sample data (extramatrices, types, sample stats, etc.)
   o All prepare_*_cpp and implied_*_cpp_core functions now read from cached workspace instead of S4 slots
