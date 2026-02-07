@@ -7,6 +7,7 @@
 #include "02_algebrahelpers_RcppHelpers.h"
 #include "03_modelformation_formModelMatrices_cpp.h"
 #include "03_modelformation_impliedcovstructures.h"
+#include "04_generalfit_optimWorkspace.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -20,28 +21,27 @@ Rcpp::List implied_dlvm1_cpp_core(
 ){
   int i, t, tt;
 
-  S4 sample = model.slot("sample");
-  Rcpp::List means = sample.slot("means");
+  // Read constant data from cached workspace:
+  const OptimWorkspace& ws = getOrBuildWorkspace(model);
+  const Rcpp::List& means = ws.sampleMeans;
+  const Rcpp::List& types = ws.types;
 
-  // Types:
-  Rcpp::List types = model.slot("types");
-  
   std::string within_latent = types["within_latent"];
   std::string within_residual = types["within_residual"];
   std::string between_latent = types["between_latent"];
   std::string between_residual = types["between_residual"];
-  
+
   // Add implied cov structure:
   x = impliedcovstructures_cpp(x, "zeta_within", within_latent, all);
   x = impliedcovstructures_cpp(x, "epsilon_within", within_residual, all);
   x = impliedcovstructures_cpp(x, "zeta_between", between_latent, all);
   x = impliedcovstructures_cpp(x, "epsilon_between", between_residual, all);
-  
+
   int nGroup = x.length();
   int g;
-  
+
   // General stuff:
-  Rcpp::List extramats = model.slot("extramatrices");
+  const Rcpp::List& extramats = ws.extramatrices;
   arma::mat design = extramats["design"];
   
   int nVar = design.n_rows;

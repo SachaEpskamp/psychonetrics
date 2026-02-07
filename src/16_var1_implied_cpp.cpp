@@ -7,6 +7,7 @@
 #include "02_algebrahelpers_RcppHelpers.h"
 #include "03_modelformation_formModelMatrices_cpp.h"
 #include "03_modelformation_impliedcovstructures.h"
+#include "04_generalfit_optimWorkspace.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -20,16 +21,13 @@ Rcpp::List implied_var1_cpp_core(
 ){
   int i,j;
 
-  S4 sample = model.slot("sample");
-  Rcpp::List means = sample.slot("means");
-
-  // Extra matrices:
-  Rcpp::List extramats = model.slot("extramatrices");
+  // Read constant data from cached workspace:
+  const OptimWorkspace& ws = getOrBuildWorkspace(model);
+  const Rcpp::List& means = ws.sampleMeans;
+  const Rcpp::List& extramats = ws.extramatrices;
   arma::sp_mat L = extramats["L"];
-  
-  
-  // Types:
-  Rcpp::List types = model.slot("types");
+
+  const Rcpp::List& types = ws.types;
   std::string zeta = types["zeta"];
   
   // Add implied cov structure:

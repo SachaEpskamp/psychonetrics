@@ -23,6 +23,31 @@ struct OptimWorkspace {
     int nParTotal;          // parnum.n_elem
     int nFreePar;           // max(parnum)
 
+    // --- Constant model slot data (Opt 3) ---
+    // From model slots:
+    std::string framework;        // model.slot("model")
+    std::string estimator;        // model.slot("estimator")
+    std::string distribution;     // model.slot("distribution")
+    bool meanstructure;           // model.slot("meanstructure")
+    Rcpp::List extramatrices;     // model.slot("extramatrices")
+    Rcpp::List types;             // model.slot("types")
+
+    // From sample slots:
+    bool corinput;                // sample.slot("corinput")
+    bool fullFIML;                // sample.slot("fullFIML")
+    Rcpp::List sampleCovs;        // sample.slot("covs")
+    Rcpp::List sampleMeans;       // sample.slot("means")
+    Rcpp::List sampleThresholds;  // sample.slot("thresholds")
+    Rcpp::List sampleSquares;     // sample.slot("squares") - Ising only
+    Rcpp::List fimldata;          // sample.slot("fimldata")
+    Rcpp::List WLS_W;             // sample.slot("WLS.W")
+
+    // Pre-computed from groups/variables:
+    int nGroup;                   // groups["id"].n_elem
+    arma::vec nPerGroup;          // groups["nobs"]
+    double nTotal;                // sum(nPerGroup)
+    int nVar;                     // variables["id"].n_elem
+
     // Cache key: raw SEXP pointer of the model object
     SEXP modelSEXP;
 };

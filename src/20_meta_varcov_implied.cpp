@@ -7,6 +7,7 @@
 #include "02_algebrahelpers_RcppHelpers.h"
 #include "03_modelformation_formModelMatrices_cpp.h"
 #include "03_modelformation_impliedcovstructures.h"
+#include "04_generalfit_optimWorkspace.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -20,14 +21,13 @@ Rcpp::List implied_meta_varcov_cpp_core(
 ){
   int s;
 
-  S4 sample = model.slot("sample");
-  Rcpp::List means = sample.slot("means");
-  bool corinput = sample.slot("corinput");
-  Rcpp::List groupslist = sample.slot("groups");
-  NumericVector nPerGroup = groupslist["nobs"];
+  // Read constant data from cached workspace:
+  const OptimWorkspace& ws = getOrBuildWorkspace(model);
+  const Rcpp::List& means = ws.sampleMeans;
+  bool corinput = ws.corinput;
+  const arma::vec& nPerGroupVec = ws.nPerGroup;
 
-  // Types:
-  Rcpp::List types = model.slot("types");
+  const Rcpp::List& types = ws.types;
 
   std::string y = types["y"];
   std::string randomEffects = types["randomEffects"];
@@ -42,7 +42,7 @@ Rcpp::List implied_meta_varcov_cpp_core(
   bool proper = true;
 
   // General stuff:
-  Rcpp::List extramats = model.slot("extramatrices");
+  const Rcpp::List& extramats = ws.extramatrices;
 
   std::string est = extramats["Vestimation"];
 
@@ -71,7 +71,7 @@ Rcpp::List implied_meta_varcov_cpp_core(
     grouplist["kappa"] = solve_symmetric_cpp_matrixonly_withcheck(sigma, proper);
 
   } else {
-    int nStudy = nPerGroup[g];
+    int nStudy = (int)nPerGroupVec(g);
 
     arma::mat mu;
     if (corinput){

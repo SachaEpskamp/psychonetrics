@@ -28,41 +28,18 @@ Rcpp::List prepare_ml_lvm_cpp(
   // Compute implied matrices using core function:
   Rcpp::List imp = implied_ml_lvm_cpp_core(mats, model, false);
 
-  // sample slot (read from original model - unchanged by parameter updates):
-  S4 sample = model.slot("sample");
-
-  // Things needed:
-  bool corinput = sample.slot("corinput");
-  bool meanstructure = model.slot("meanstructure");
-
-  // Groups table:
-  Rcpp::List group = sample.slot("groups");
-
-  // Variables table:
-  Rcpp::List variables = sample.slot("variables");
-  arma::vec vars = variables["id"];
-  int nVar = vars.n_elem;
-
-  // Number of groups:
-  arma::vec id = group["id"];
-  int nGroup = id.n_elem;
-
-  // Number of observations per group:
-  arma::vec nPerGroup = group["nobs"];
-  
-  // Extra matrices:
-  Rcpp::List extramatrices = model.slot("extramatrices");
-  
-  // Types:
-  Rcpp::List types = model.slot("types");
-  
-  // Total sample:
-  double nTotal = sum(nPerGroup);
-        
-  // Sample stats:
-  Rcpp::List S = sample.slot("covs");
-  Rcpp::List means =  sample.slot("means");
-  Rcpp::List thresholds = sample.slot("thresholds");
+  // Read constant data from cached workspace (no S4 slot reads):
+  bool corinput = ws.corinput;
+  bool meanstructure = ws.meanstructure;
+  int nVar = ws.nVar;
+  int nGroup = ws.nGroup;
+  arma::vec nPerGroup = ws.nPerGroup;
+  const Rcpp::List& extramatrices = ws.extramatrices;
+  const Rcpp::List& types = ws.types;
+  double nTotal = ws.nTotal;
+  const Rcpp::List& S = ws.sampleCovs;
+  const Rcpp::List& means = ws.sampleMeans;
+  const Rcpp::List& thresholds = ws.sampleThresholds;
 
   
   // Group models:

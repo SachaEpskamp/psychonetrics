@@ -7,6 +7,7 @@
 #include "02_algebrahelpers_RcppHelpers.h"
 #include "03_modelformation_formModelMatrices_cpp.h"
 #include "03_modelformation_impliedcovstructures.h"
+#include "04_generalfit_optimWorkspace.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -18,25 +19,23 @@ Rcpp::List implied_tsdlvm1_cpp_core(
     const S4& model,
     bool all = false
 ){
-  S4 sample = model.slot("sample");
-  Rcpp::List means = sample.slot("means");
+  // Read constant data from cached workspace:
+  const OptimWorkspace& ws = getOrBuildWorkspace(model);
+  const Rcpp::List& means = ws.sampleMeans;
+  const Rcpp::List& types = ws.types;
 
-  // Types:
-  Rcpp::List types = model.slot("types");
-  
   std::string zeta = types["zeta"];
   std::string epsilon = types["epsilon"];
-  
-  
+
   // Add implied cov structure:
   x = impliedcovstructures_cpp(x, "zeta", zeta, all);
   x = impliedcovstructures_cpp(x, "epsilon", epsilon, all);
-  
+
   int nGroup = x.length();
   int g;
-  
+
   // General stuff:
-  Rcpp::List extramats = model.slot("extramatrices");
+  const Rcpp::List& extramats = ws.extramatrices;
   
   
   

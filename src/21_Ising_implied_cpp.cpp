@@ -7,6 +7,7 @@
 #include "02_algebrahelpers_RcppHelpers.h"
 #include "03_modelformation_formModelMatrices_cpp.h"
 #include "03_modelformation_impliedcovstructures.h"
+#include "04_generalfit_optimWorkspace.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -18,8 +19,9 @@ Rcpp::List implied_Ising_cpp_core(
     const S4& model,
     bool all = false
 ){
-  // Types:
-  Rcpp::List types = model.slot("types");
+  // Read constant data from cached workspace:
+  const OptimWorkspace& ws = getOrBuildWorkspace(model);
+  const Rcpp::List& types = ws.types;
   std::string beta_model = types["beta_model"];
   bool log_beta  = beta_model == "log_beta";
 
