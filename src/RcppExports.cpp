@@ -560,6 +560,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// invalidateWorkspaceCache
+void invalidateWorkspaceCache();
+RcppExport SEXP _psychonetrics_invalidateWorkspaceCache() {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    invalidateWorkspaceCache();
+    return R_NilValue;
+END_RCPP
+}
 // psychonetrics_optimizer
 S4 psychonetrics_optimizer(S4 model, const arma::vec& lower, const arma::vec& upper, std::string optimizer, bool bounded);
 RcppExport SEXP _psychonetrics_psychonetrics_optimizer(SEXP modelSEXP, SEXP lowerSEXP, SEXP upperSEXP, SEXP optimizerSEXP, SEXP boundedSEXP) {
@@ -2220,6 +2229,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_inner", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_inner, 5},
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp, 5},
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML, 5},
+    {"_psychonetrics_invalidateWorkspaceCache", (DL_FUNC) &_psychonetrics_invalidateWorkspaceCache, 0},
     {"_psychonetrics_psychonetrics_optimizer", (DL_FUNC) &_psychonetrics_psychonetrics_optimizer, 5},
     {"_psychonetrics_expected_hessian_Gaussian_group_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_Gaussian_group_cpp, 1},
     {"_psychonetrics_expected_hessian_Gaussian_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_Gaussian_cpp, 1},

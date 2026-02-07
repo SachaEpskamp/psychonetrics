@@ -181,6 +181,10 @@ logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML <- function(sigma, kappa, mu, 
     .Call(`_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML`, sigma, kappa, mu, fimldata, epsilon)
 }
 
+invalidateWorkspaceCache <- function() {
+    invisible(.Call(`_psychonetrics_invalidateWorkspaceCache`))
+}
+
 psychonetrics_optimizer <- function(model, lower, upper, optimizer = "L-BFGS-B", bounded = FALSE) {
     .Call(`_psychonetrics_psychonetrics_optimizer`, model, lower, upper, optimizer, bounded)
 }
