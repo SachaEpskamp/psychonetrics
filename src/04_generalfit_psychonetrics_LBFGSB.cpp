@@ -164,7 +164,7 @@ S4 psychonetrics_lbfgsb_optimizer(
         Rcpp::Named("value")       = fx,
         Rcpp::Named("fncount")     = fun.fncount(),
         Rcpp::Named("grcount")     = fun.grcount(),
-        Rcpp::Named("optimizer")   = "cpp_L-BFGS-B_v2"
+        Rcpp::Named("optimizer")   = "LBFGS++"
     );
 
     // ---- Update model with optimal parameters ----
