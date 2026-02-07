@@ -1,3 +1,11 @@
+Changes in Version 0.14.10
+  o Added nloptr_TNEWTON as a new optimizer, available via setoptimizer(x, "nloptr_TNEWTON"):
+    o Uses NLopt's preconditioned truncated Newton with restarts (NLOPT_LD_TNEWTON_PRECOND_RESTART)
+    o Builds a local quadratic model and solves the Newton system via preconditioned conjugate-gradient
+    o Supports box constraints and analytic gradients
+    o Added nloptr to Imports
+  o Fixed CRAN NOTE: commented out stray std::cout in vendored LBFGS++ header (LineSearchMoreThuente.h)
+
 Changes in Version 0.14.9
   o Tuned LBFGS++ convergence parameters for better performance on ill-conditioned models:
     o Switched primary convergence criterion from gradient norm to relative function change (delta = 1e-8), matching nlminb behavior

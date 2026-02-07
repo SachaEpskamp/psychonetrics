@@ -501,13 +501,105 @@ runmodel <- function(
     x@objective <- x@optim$value
 
     x <- updateModel(parVector(x),x,updateMatrices = TRUE) # FIXME: Move this to C++!
-    
-    
-    
-    
-    
-    
-    
+
+  } else if (grepl("nloptr", optimizer)) {
+    # nloptr-based optimizers (truncated Newton etc.)
+
+    # Build closure wrappers that capture the model:
+    model_for_nloptr <- x
+    if (x@cpp) {
+      fn_nloptr <- function(par) psychonetrics_fitfunction_cpp(par, model_for_nloptr)
+      gr_nloptr <- function(par) psychonetrics_gradient_cpp(par, model_for_nloptr)
+    } else {
+      fn_nloptr <- function(par) psychonetrics_fitfunction(par, model_for_nloptr)
+      gr_nloptr <- function(par) psychonetrics_gradient(par, model_for_nloptr)
+    }
+
+    # Set default control options (matching nlminb convergence behavior):
+    nloptr_control <- list(
+      xtol_rel = 1.5e-8,
+      ftol_rel = sqrt(.Machine$double.eps),
+      ftol_abs = sqrt(.Machine$double.eps),
+      maxeval  = 20000L
+    )
+
+    # Allow user to override via optim.args:
+    if (!is.null(optim.control$control)) {
+      nloptr_control <- modifyList(nloptr_control, optim.control$control)
+    }
+
+    # Set bounds (NULL if unbounded):
+    nloptr_lower <- if (bounded) lower else NULL
+    nloptr_upper <- if (bounded) upper else NULL
+
+    # Run optimizer with error recovery:
+    suppressWarnings({
+      tryres <- try({
+        nloptr_out <- tnewton(
+          x0      = start,
+          fn      = fn_nloptr,
+          gr      = gr_nloptr,
+          lower   = nloptr_lower,
+          upper   = nloptr_upper,
+          precond = TRUE,
+          restart = TRUE,
+          control = nloptr_control
+        )
+      }, silent = TRUE)
+    })
+
+    if (is(tryres, "try-error") || any(is.na(nloptr_out$par))) {
+      # Emergency recovery with different starting values:
+      x <- updateModel(oldstart, x)
+      model_for_nloptr <- emergencystart(x)
+      estart <- parVector(model_for_nloptr)
+
+      # Rebuild closures with emergency model:
+      if (x@cpp) {
+        fn_nloptr <- function(par) psychonetrics_fitfunction_cpp(par, model_for_nloptr)
+        gr_nloptr <- function(par) psychonetrics_gradient_cpp(par, model_for_nloptr)
+      } else {
+        fn_nloptr <- function(par) psychonetrics_fitfunction(par, model_for_nloptr)
+        gr_nloptr <- function(par) psychonetrics_gradient(par, model_for_nloptr)
+      }
+
+      suppressWarnings({
+        tryres2 <- try({
+          nloptr_out <- tnewton(
+            x0      = estart,
+            fn      = fn_nloptr,
+            gr      = gr_nloptr,
+            lower   = nloptr_lower,
+            upper   = nloptr_upper,
+            precond = TRUE,
+            restart = TRUE,
+            control = nloptr_control
+          )
+        }, silent = TRUE)
+      })
+
+      if (is(tryres2, "try-error") || any(is.na(nloptr_out$par))) {
+        stop(paste("Model estimation resulted in an error that could not be recovered. Try using a different optimizer with setoptimizer(...) or using different starting values. Error:\n\n", tryres2))
+      }
+    }
+
+    # Standardize output to match psychonetrics @optim format:
+    # nloptr convergence: positive (1-4) = success, 5 = maxeval, negative = error
+    nloptr_convergence <- if (nloptr_out$convergence > 0 && nloptr_out$convergence < 5) 0L else nloptr_out$convergence
+    optimresults <- list(
+      par         = nloptr_out$par,
+      value       = nloptr_out$value,
+      convergence = nloptr_convergence,
+      message     = nloptr_out$message,
+      fncount     = nloptr_out$iter,
+      grcount     = nloptr_out$iter,
+      optimizer   = optimizer
+    )
+    class(optimresults) <- c("list", class(optimresults))
+    x@optim <- optimresults
+    x@objective <- optimresults$value
+    x <- updateModel(nloptr_out$par, x, updateMatrices = TRUE)
+
   } else {
     optim.control$par <- start
     if (x@cpp){
