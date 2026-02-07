@@ -124,17 +124,25 @@ S4 psychonetrics_lbfgsb_optimizer(
     }
 
     // ---- Configure LBFGS++ parameters ----
+    // Key insight: nlminb converges primarily on relative change in objective
+    // (rel.tol ~ 1.49e-8) and x-change (x.tol = 1.5e-8), NOT on gradient norm.
+    // LBFGS++ has two convergence criteria:
+    //   1) Gradient: ||Pg||_inf < max(epsilon, epsilon_rel * ||x||)
+    //   2) Delta:    |f_{k-d} - f_k| < delta * max(1, |f_k|, |f_{k-d}|)
+    // For SEM/FIML, criterion 2 (function change) is more appropriate because
+    // the gradient can remain non-negligible at the optimum for ill-conditioned
+    // problems, while the objective stabilises early.
     LBFGSpp::LBFGSBParam<double> param;
-    param.m              = 6;        // history size
-    param.epsilon        = 1.490116e-08; // match nlminb tolerance
-    param.epsilon_rel    = 1.490116e-08;
-    param.past           = 1;
-    param.delta          = 1e-10;
+    param.m              = 10;       // more history for better Hessian approx on larger models
+    param.epsilon        = 1e-5;     // gradient tolerance (less aggressive than before)
+    param.epsilon_rel    = 1e-5;     // relative gradient tolerance
+    param.past           = 1;        // look back 1 iteration for function change test
+    param.delta          = 1e-8;     // stop when relative f-change < 1e-8 (≈ nlminb rel.tol)
     param.max_iterations = 10000;
     param.max_linesearch = 40;       // generous line-search budget
     param.max_submin     = 10;
-    param.ftol           = 1e-4;
-    param.wolfe          = 0.9;
+    param.ftol           = 1e-4;     // sufficient decrease (Armijo condition)
+    param.wolfe          = 0.9;      // curvature condition
 
     // ---- Create solver and functor ----
     LBFGSpp::LBFGSBSolver<double> solver(param);
