@@ -1,3 +1,10 @@
+Changes in Version 0.14.8
+  o Added LBFGS++ (LBFGSpp) as a new pure C++ optimizer, available via setoptimizer(x, "cpp_L-BFGS-B_v2"):
+    o Vendored header-only LBFGS++ library (MIT license) into inst/include/
+    o Combined function+gradient evaluation exploits the prepareModel cache for efficiency
+    o ~1.6x faster than the existing roptim-based cpp_L-BFGS-B optimizer on benchmark models
+    o Added RcppEigen to LinkingTo for Eigen header support
+
 Changes in Version 0.14.7
   o Fixed R CMD check --as-cran issues:
     o Guarded semPlot example with requireNamespace() since it is a Suggested package

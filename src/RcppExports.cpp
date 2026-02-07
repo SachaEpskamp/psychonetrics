@@ -2,6 +2,7 @@
 // Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #include <RcppArmadillo.h>
+#include <RcppEigen.h>
 #include <Rcpp.h>
 
 using namespace Rcpp;
@@ -560,6 +561,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// invalidateWorkspaceCache
+void invalidateWorkspaceCache();
+RcppExport SEXP _psychonetrics_invalidateWorkspaceCache() {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    invalidateWorkspaceCache();
+    return R_NilValue;
+END_RCPP
+}
 // psychonetrics_optimizer
 S4 psychonetrics_optimizer(S4 model, const arma::vec& lower, const arma::vec& upper, std::string optimizer, bool bounded);
 RcppExport SEXP _psychonetrics_psychonetrics_optimizer(SEXP modelSEXP, SEXP lowerSEXP, SEXP upperSEXP, SEXP optimizerSEXP, SEXP boundedSEXP) {
@@ -572,6 +582,20 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::string >::type optimizer(optimizerSEXP);
     Rcpp::traits::input_parameter< bool >::type bounded(boundedSEXP);
     rcpp_result_gen = Rcpp::wrap(psychonetrics_optimizer(model, lower, upper, optimizer, bounded));
+    return rcpp_result_gen;
+END_RCPP
+}
+// psychonetrics_lbfgsb_optimizer
+S4 psychonetrics_lbfgsb_optimizer(S4 model, const arma::vec& lower, const arma::vec& upper, bool bounded);
+RcppExport SEXP _psychonetrics_psychonetrics_lbfgsb_optimizer(SEXP modelSEXP, SEXP lowerSEXP, SEXP upperSEXP, SEXP boundedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< S4 >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type lower(lowerSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type upper(upperSEXP);
+    Rcpp::traits::input_parameter< bool >::type bounded(boundedSEXP);
+    rcpp_result_gen = Rcpp::wrap(psychonetrics_lbfgsb_optimizer(model, lower, upper, bounded));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -2220,7 +2244,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_inner", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_inner, 5},
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp, 5},
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML, 5},
+    {"_psychonetrics_invalidateWorkspaceCache", (DL_FUNC) &_psychonetrics_invalidateWorkspaceCache, 0},
     {"_psychonetrics_psychonetrics_optimizer", (DL_FUNC) &_psychonetrics_psychonetrics_optimizer, 5},
+    {"_psychonetrics_psychonetrics_lbfgsb_optimizer", (DL_FUNC) &_psychonetrics_psychonetrics_lbfgsb_optimizer, 4},
     {"_psychonetrics_expected_hessian_Gaussian_group_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_Gaussian_group_cpp, 1},
     {"_psychonetrics_expected_hessian_Gaussian_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_Gaussian_cpp, 1},
     {"_psychonetrics_maxLikEstimator_Gauss_group_cpp", (DL_FUNC) &_psychonetrics_maxLikEstimator_Gauss_group_cpp, 1},
