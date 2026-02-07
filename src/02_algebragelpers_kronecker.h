@@ -21,6 +21,17 @@ arma::sp_mat kronecker_X_I(
     int n
 );
 
+// Dense versions (return arma::mat directly, faster when result is used as dense):
+arma::mat kronecker_I_X_dense(
+    const arma::mat& X,
+    int n
+);
+
+arma::mat kronecker_X_I_dense(
+    const arma::mat& X,
+    int n
+);
+
 arma::sp_mat kronecker_diag_sparse(
     arma::sp_mat X
 );

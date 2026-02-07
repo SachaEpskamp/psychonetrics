@@ -18,37 +18,60 @@ using namespace arma;
 arma::mat d_mu_lambda_dlvm1_cpp(
     const arma::mat& mu_eta,
     const arma::sp_mat& I_y){
-  arma::mat res = (arma::mat)kronecker_X_I(mu_eta.t(), I_y.n_rows);
-  return(res);
+  return kronecker_X_I_dense(mu_eta.t(), I_y.n_rows);
 }
 
 
 // [[Rcpp::export]]
 arma::mat d_sigmak_lambda_dlvm1_cpp(
-    const arma::mat& lambda, 
-    int k,  
+    const arma::mat& lambda,
+    int k,
     const Rcpp::List allSigmas_within,
-    const arma::sp_mat& C_y_eta, 
-    const arma::sp_mat& I_y, 
+    const arma::sp_mat& C_y_eta,
+    const arma::sp_mat& I_y,
     const arma::sp_mat& L_y,
     const arma::mat& sigma_zeta_between){
-  
+
   arma::mat sigmak = allSigmas_within[k];
-  
-  arma::sp_mat within = (
-    kronecker_I_X(lambda * sigmak, I_y.n_rows) * C_y_eta + 
-      kronecker_X_I(lambda * sigmak.t(),I_y.n_rows)  
-  );
-  
-  arma::sp_mat between = kronecker_I_X(lambda * sigma_zeta_between,I_y.n_rows) * C_y_eta + 
-    kronecker_X_I(lambda * sigma_zeta_between, I_y.n_rows);  
-  
-  arma::mat res = (arma::mat)(within + between);
-  
+  int nVar = I_y.n_rows;
+  arma::mat C_y_eta_dense = (arma::mat)C_y_eta;
+
+  arma::mat within =
+    kronecker_I_X_dense(lambda * sigmak, nVar) * C_y_eta_dense +
+      kronecker_X_I_dense(lambda * sigmak.t(), nVar);
+
+  arma::mat lambda_sigBetween = lambda * sigma_zeta_between;
+  arma::mat between =
+    kronecker_I_X_dense(lambda_sigBetween, nVar) * C_y_eta_dense +
+      kronecker_X_I_dense(lambda_sigBetween, nVar);
+
+  arma::mat res = within + between;
+
   if (k == 0){
-    return(L_y * res);
+    return((arma::mat)(L_y * res));
   } else {
     return(res);
+  }
+}
+
+// Internal helper: computes only the "within" part of d_sigmak_lambda
+// (the "between" part is constant across lags and handled by the caller)
+arma::mat d_sigmak_lambda_within_dlvm1_cpp(
+    const arma::mat& lambda,
+    const arma::mat& sigmak,
+    const arma::mat& C_y_eta_dense,
+    int nVar,
+    const arma::sp_mat& L_y,
+    bool apply_L_y){
+
+  arma::mat within =
+    kronecker_I_X_dense(lambda * sigmak, nVar) * C_y_eta_dense +
+      kronecker_X_I_dense(lambda * sigmak.t(), nVar);
+
+  if (apply_L_y){
+    return((arma::mat)(L_y * within));
+  } else {
+    return(within);
   }
 }
 
@@ -125,13 +148,29 @@ arma::mat d_phi_theta_dlvm1_group_cpp(
   std::string between_residual  = grouplist["between_residual"];
   
   arma::mat lambda  = grouplist["lambda"];
-  
-  
+
+
   arma::mat design = grouplist["design"];
   arma::sp_mat P = grouplist["P"];
   arma::sp_mat L_eta = grouplist["L_eta"];
   arma::sp_mat L_y = grouplist["L_y"];
   arma::sp_mat D_y = grouplist["D_y"];
+
+  // Pre-extract loop-invariant matrices (OPT-D: avoid repeated string lookups):
+  arma::sp_mat C_y_eta = grouplist["C_y_eta"];
+  arma::sp_mat I_y = grouplist["I_y"];
+  arma::sp_mat I_eta = grouplist["I_eta"];
+  arma::sp_mat D_eta = grouplist["D_eta"];
+  arma::sp_mat C_eta_eta = grouplist["C_eta_eta"];
+  Rcpp::List allSigmas_within = grouplist["allSigmas_within"];
+  arma::mat sigma_zeta_between = grouplist["sigma_zeta_between"];
+  arma::mat mu_eta = grouplist["mu_eta"];
+  arma::mat BetaStar = grouplist["BetaStar"];
+  arma::mat lamWkronlamW = grouplist["lamWkronlamW"];
+  arma::sp_mat IkronBeta = grouplist["IkronBeta"];
+
+  // Pre-convert C_y_eta to dense (used in every lambda Jacobian call):
+  arma::mat C_y_eta_dense = (arma::mat)C_y_eta;
   
   
   // Number of variables:
@@ -335,20 +374,28 @@ arma::mat d_phi_theta_dlvm1_group_cpp(
   Jac.submat(meanInds(0),mu_eta_inds(0),meanInds(1),mu_eta_inds(1)) =  lambda;
   
   // Fill mean to factor loading part:
-  Jac.submat(meanInds(0),lambda_inds(0),meanInds(1),lambda_inds(1)) = d_mu_lambda_dlvm1_cpp(grouplist["mu_eta"], grouplist["I_y"]);
+  Jac.submat(meanInds(0),lambda_inds(0),meanInds(1),lambda_inds(1)) = d_mu_lambda_dlvm1_cpp(mu_eta, I_y);
   
-  // Fill s0 to lambda part:
+  // Precompute constant "between" block for lambda Jacobian (OPT-A):
+  arma::mat lambda_sigBetween = lambda * sigma_zeta_between;
+  arma::mat between_block =
+    kronecker_I_X_dense(lambda_sigBetween, nVar) * C_y_eta_dense +
+      kronecker_X_I_dense(lambda_sigBetween, nVar);
+
+  // Fill s0 to lambda part (within + L_y * between):
   arma::vec curSigInds = sigInds[0];
-  Jac.submat(curSigInds(0),lambda_inds(0),curSigInds(1),lambda_inds(1)) = d_sigmak_lambda_dlvm1_cpp(lambda, 0, grouplist["allSigmas_within"], grouplist["C_y_eta"], grouplist["I_y"], grouplist["L_y"], grouplist["sigma_zeta_between"]);
-  
-  
+  arma::mat sigmak0 = allSigmas_within[0];
+  Jac.submat(curSigInds(0),lambda_inds(0),curSigInds(1),lambda_inds(1)) =
+    d_sigmak_lambda_within_dlvm1_cpp(lambda, sigmak0, C_y_eta_dense, nVar, L_y, true) +
+    (arma::mat)(L_y * between_block);
+
+
   // Fill s0  to sigma_zeta_within part (and store for later use):
-  arma::mat lamWkronlamW = grouplist["lamWkronlamW"];
   
   
   
-  arma::mat J_sigma_zeta_within = d_sigma0_sigma_zeta_within_dlvm1_cpp( 
-    grouplist["BetaStar"], grouplist["D_eta"]
+  arma::mat J_sigma_zeta_within = d_sigma0_sigma_zeta_within_dlvm1_cpp(
+    BetaStar, D_eta
   ) * aug_within_latent;
   
   
@@ -356,7 +403,7 @@ arma::mat d_phi_theta_dlvm1_group_cpp(
   Jac.submat(curSigInds(0),sigma_zeta_within_inds(0),curSigInds(1),sigma_zeta_within_inds(1)) = L_y * lamWkronlamW * J_sigma_zeta_within;
   
   // Fill s0 to beta part (and store for later use):
-  arma::mat J_sigma_beta = d_sigma0_beta_dlvm1_cpp( grouplist["BetaStar"],  grouplist["I_eta"],  grouplist["allSigmas_within"],  grouplist["C_eta_eta"]);
+  arma::mat J_sigma_beta = d_sigma0_beta_dlvm1_cpp(BetaStar, I_eta, allSigmas_within, C_eta_eta);
   Jac.submat(curSigInds(0),beta_inds(0),curSigInds(1),beta_inds(1)) =  L_y  * lamWkronlamW * J_sigma_beta;
   
   // Fill s0 to sigma_epsilon_within:
@@ -365,7 +412,7 @@ arma::mat d_phi_theta_dlvm1_group_cpp(
   
   // Fill s0 to sigma_zeta_between, and store for later use:
   arma::mat J_sigmak_sigma_zeta_between = d_sigmak_sigma_zeta_between_dlvm1_cpp(
-    lambda,  grouplist["D_eta"]
+    lambda, D_eta
   )  * aug_between_latent;
   
   Jac.submat(curSigInds(0),sigma_zeta_between_inds(0),curSigInds(1),sigma_zeta_between_inds(1)) =  L_y * J_sigmak_sigma_zeta_between;
@@ -374,33 +421,30 @@ arma::mat d_phi_theta_dlvm1_group_cpp(
   // Fill sigma_epsilon_between inds:
   Jac.submat(curSigInds(0),sigma_epsilon_between_inds(0),curSigInds(1),sigma_epsilon_between_inds(1))  =  aug_between_residual;
   
-  // Obtain IkronBeta:
-  arma::sp_mat IkronBeta = grouplist["IkronBeta"];
-  
   // Now for every further lag ...
   for (t=1; t<nTime;t++){
     arma::vec curSigInds = sigInds[t];
-    
-    // Fill sk to lambda part:
-    Jac.submat(curSigInds(0),lambda_inds(0),curSigInds(1),lambda_inds(1))  = d_sigmak_lambda_dlvm1_cpp(lambda, t, grouplist["allSigmas_within"], grouplist["C_y_eta"], grouplist["I_y"], grouplist["L_y"], grouplist["sigma_zeta_between"]);
+
+    // Fill sk to lambda part (within varies per lag, between is constant):
+    arma::mat sigmak_t = allSigmas_within[t];
+    Jac.submat(curSigInds(0),lambda_inds(0),curSigInds(1),lambda_inds(1)) =
+      d_sigmak_lambda_within_dlvm1_cpp(lambda, sigmak_t, C_y_eta_dense, nVar, L_y, false) +
+      between_block;
 
     // Fill sk  to sigma_zeta_within part (and store for later use):
     J_sigma_zeta_within = IkronBeta * J_sigma_zeta_within;
     Jac.submat(curSigInds(0),sigma_zeta_within_inds(0),curSigInds(1),sigma_zeta_within_inds(1))  = lamWkronlamW * J_sigma_zeta_within;
-    
+
     // Fill sk to beta part (and store for later use):
-    J_sigma_beta = d_sigmak_beta_dlvm1_cpp(J_sigma_beta,IkronBeta,t, grouplist["allSigmas_within"],  grouplist["I_eta"]);
+    J_sigma_beta = d_sigmak_beta_dlvm1_cpp(J_sigma_beta, IkronBeta, t, allSigmas_within, I_eta);
     Jac.submat(curSigInds(0),beta_inds(0),curSigInds(1),beta_inds(1)) = lamWkronlamW * J_sigma_beta;
-    
-    // Fill s0 to sigma_zeta_between
+
+    // Fill sk to sigma_zeta_between (OPT-C: removed duplicate write):
     Jac.submat(curSigInds(0),sigma_zeta_between_inds(0),curSigInds(1),sigma_zeta_between_inds(1)) = J_sigmak_sigma_zeta_between;
 
-    // Fill s0 to sigma_zeta_between, and store for later use:
-    Jac.submat(curSigInds(0),sigma_zeta_between_inds(0),curSigInds(1),sigma_zeta_between_inds(1)) = J_sigmak_sigma_zeta_between;
-      
     // Fill sigma_epsilon_between inds:
     Jac.submat(curSigInds(0),sigma_epsilon_between_inds(0),curSigInds(1),sigma_epsilon_between_inds(1)) = D_y * aug_between_residual;
-    
+
   }
   
   // Permute:

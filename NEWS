@@ -1,3 +1,10 @@
+Changes in Version 0.14.5
+  o Optimized dlvm1 Jacobian construction (d_phi_theta_dlvm1_group_cpp):
+    o Added dense Kronecker helpers (kronecker_I_X_dense, kronecker_X_I_dense) to avoid slow sparse element-by-element insertion when the result is used as a dense matrix
+    o Precompute the constant "between" Kronecker block once instead of recomputing it for every lag
+    o Pre-extract all grouplist values before the loop to eliminate repeated string-based hash lookups
+    o Fixed copy-paste bug: removed duplicate Jac.submat write for sigma_zeta_between in the lag loop
+
 Changes in Version 0.14.4
   o Fixed dplyr 1.1.0 deprecation warning about one-column matrices in filter() calls
 
