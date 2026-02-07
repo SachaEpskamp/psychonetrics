@@ -7,3 +7,4 @@ README_figs
 \.gitignore
 psychonetrics\.Rproj
 
+^READINGS$
