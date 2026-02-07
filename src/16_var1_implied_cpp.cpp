@@ -23,7 +23,6 @@ Rcpp::List implied_var1_cpp_core(
 
   // Read constant data from cached workspace:
   const OptimWorkspace& ws = getOrBuildWorkspace(model);
-  const Rcpp::List& means = ws.sampleMeans;
   const Rcpp::List& extramats = ws.extramatrices;
   arma::sp_mat L = extramats["L"];
 

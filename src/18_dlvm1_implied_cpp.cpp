@@ -23,7 +23,6 @@ Rcpp::List implied_dlvm1_cpp_core(
 
   // Read constant data from cached workspace:
   const OptimWorkspace& ws = getOrBuildWorkspace(model);
-  const Rcpp::List& means = ws.sampleMeans;
   const Rcpp::List& types = ws.types;
 
   std::string within_latent = types["within_latent"];

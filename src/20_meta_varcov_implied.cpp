@@ -23,7 +23,6 @@ Rcpp::List implied_meta_varcov_cpp_core(
 
   // Read constant data from cached workspace:
   const OptimWorkspace& ws = getOrBuildWorkspace(model);
-  const Rcpp::List& means = ws.sampleMeans;
   bool corinput = ws.corinput;
   const arma::vec& nPerGroupVec = ws.nPerGroup;
 

@@ -21,7 +21,6 @@ Rcpp::List implied_tsdlvm1_cpp_core(
 ){
   // Read constant data from cached workspace:
   const OptimWorkspace& ws = getOrBuildWorkspace(model);
-  const Rcpp::List& means = ws.sampleMeans;
   const Rcpp::List& types = ws.types;
 
   std::string zeta = types["zeta"];
@@ -34,13 +33,6 @@ Rcpp::List implied_tsdlvm1_cpp_core(
   int nGroup = x.length();
   int g;
 
-  // General stuff:
-  const Rcpp::List& extramats = ws.extramatrices;
-  
-  
-  
-  
-  
   for (g=0; g<nGroup; g++){
     bool proper = true;
     
