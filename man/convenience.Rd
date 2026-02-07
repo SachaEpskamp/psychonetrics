@@ -13,8 +13,8 @@ These functions can be used to change some estimator options.
 setestimator(x, estimator)
 
 setoptimizer(x, optimizer = c("default", "nlminb", "ucminf",
-                 "cpp_L-BFGS-B", "cpp_BFGS", "cpp_CG", "cpp_SANN",
-                 "cpp_Nelder-Mead"), optim.args)
+                 "cpp_L-BFGS-B", "LBFGS++", "cpp_BFGS", "cpp_CG",
+                 "cpp_SANN", "cpp_Nelder-Mead"), optim.args)
 
 
 usecpp(x, use = TRUE)
@@ -28,7 +28,29 @@ A \code{psychonetrics} model.
 A string indicating the estimator to be used
 }
   \item{optimizer}{
-The optimizer to be used. Can be one of \code{"nlminb"} (the default R \code{nlminb} function), \code{"ucminf"} (from the \code{optimr} package), and C++ based optimizers \code{"cpp_L-BFGS-B"}, \code{"cpp_BFGS"}, \code{"cpp_CG"}, \code{"cpp_SANN"}, and \code{"cpp_Nelder-Mead"}. The C++ optimizers are faster but slightly less stable. Defaults to \code{"nlminb"}.
+The optimizer to be used. The following optimizers are available:
+
+\bold{R-based optimizers:}
+\describe{
+  \item{\code{"nlminb"}}{Port trust-region Newton-like optimizer from base R. Uses analytic gradients and a trust-region method that adaptively controls step sizes, making it very stable for SEM problems. This is the default and recommended optimizer for most models.}
+  \item{\code{"ucminf"}}{Unconstrained minimization using a quasi-Newton method (via the \code{optimr} package). Does not support box constraints. Fast for unconstrained problems.}
+}
+
+\bold{C++ based optimizers (via roptim, wrapping R's \code{optim()} C routines):}
+\describe{
+  \item{\code{"cpp_L-BFGS-B"}}{Limited-memory BFGS with box constraints. Calls R's internal L-BFGS-B implementation from C++ via the \code{roptim} package.}
+  \item{\code{"cpp_BFGS"}}{BFGS quasi-Newton method without box constraints.}
+  \item{\code{"cpp_CG"}}{Conjugate gradient method.}
+  \item{\code{"cpp_SANN"}}{Simulated annealing. Does not use gradients.}
+  \item{\code{"cpp_Nelder-Mead"}}{Nelder-Mead simplex method. Does not use gradients.}
+}
+
+\bold{Pure C++ optimizer:}
+\describe{
+  \item{\code{"LBFGS++"}}{L-BFGS-B optimizer from the LBFGSpp library (Yixuan Qiu). This is a pure C++ implementation that computes the objective function and gradient in a single combined call, avoiding redundant computation via internal caching. Supports box constraints. Approximately 1.6x faster than \code{"cpp_L-BFGS-B"} on benchmark models. Recommended when speed is important.}
+}
+
+Defaults to \code{"nlminb"}.
 }
 \item{use}{
 Logical indicating if C++ should be used (currently only used in FIML)

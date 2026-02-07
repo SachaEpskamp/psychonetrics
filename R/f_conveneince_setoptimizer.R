@@ -1,4 +1,4 @@
-setoptimizer <- function(x, optimizer = c("default","nlminb","ucminf","cpp_L-BFGS-B","cpp_L-BFGS-B_v2","cpp_BFGS","cpp_CG","cpp_SANN","cpp_Nelder-Mead"),
+setoptimizer <- function(x, optimizer = c("default","nlminb","ucminf","cpp_L-BFGS-B","LBFGS++","cpp_BFGS","cpp_CG","cpp_SANN","cpp_Nelder-Mead"),
                          optim.args){
   optimizer <- match.arg(optimizer)
   if (optimizer == "default"){

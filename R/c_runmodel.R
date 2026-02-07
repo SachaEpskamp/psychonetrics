@@ -449,9 +449,9 @@ runmodel <- function(
   # Form optimizer arguments:
   
   
-  if (grepl("cpp",optimizer)){
+  if (grepl("cpp",optimizer) || optimizer == "LBFGS++"){
 
-    if (optimizer == "cpp_L-BFGS-B_v2") {
+    if (optimizer == "LBFGS++") {
       # LBFGS++ pure C++ optimizer:
       suppressWarnings({
         tryres <- try({
