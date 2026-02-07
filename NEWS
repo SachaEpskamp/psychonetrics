@@ -1,12 +1,14 @@
-Changes in Version 0.14
+Changes in Version 0.14.2
+  o Expanded OptimWorkspace to cache all constant S4 model/sample data (extramatrices, types, sample stats, etc.)
+  o All prepare_*_cpp and implied_*_cpp_core functions now read from cached workspace instead of S4 slots
+  o prepareModel_cpp post-processing now reads from workspace instead of S4 slots
+
+Changes in Version 0.14.1
   o Performance optimization: replaced O(nMat * nPar) parameter-to-matrix mapping with O(nFreePar) direct index mapping
   o Eliminated S4 model cloning during optimization iterations by bypassing updateModel_cpp in all prepare functions
   o Refactored all 8 implied_*_cpp functions into _core variants that accept pre-formed matrices
   o All 8 prepare_*_cpp functions now use formModelMatrices_cpp_direct + implied_*_cpp_core pipeline
   o Added OptimWorkspace: static cache for MatrixMapping, M matrix, and parameter indices across optimization iterations
-  o Expanded OptimWorkspace to cache all constant S4 model/sample data (extramatrices, types, sample stats, etc.)
-  o All prepare_*_cpp and implied_*_cpp_core functions now read from cached workspace instead of S4 slots
-  o prepareModel_cpp post-processing now reads from workspace instead of S4 slots
   o ~25% speedup in full model fitting (e.g., 9-variable CFA: ~200ms -> ~155ms)
 
 Changes in Version 0.13.2
