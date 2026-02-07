@@ -26,6 +26,38 @@ OptimWorkspace buildOptimWorkspace(const S4& model) {
     ws.nParTotal = ws.parnum.n_elem;
     ws.nFreePar = (int)max(ws.parnum);
 
+    // --- Constant model slot data (Opt 3) ---
+    // From model slots:
+    ws.framework = Rcpp::as<std::string>(model.slot("model"));
+    ws.estimator = Rcpp::as<std::string>(model.slot("estimator"));
+    ws.distribution = Rcpp::as<std::string>(model.slot("distribution"));
+    ws.meanstructure = Rcpp::as<bool>(model.slot("meanstructure"));
+    ws.extramatrices = Rcpp::as<Rcpp::List>(model.slot("extramatrices"));
+    ws.types = Rcpp::as<Rcpp::List>(model.slot("types"));
+
+    // From sample slots:
+    S4 sample = model.slot("sample");
+    ws.corinput = Rcpp::as<bool>(sample.slot("corinput"));
+    ws.fullFIML = Rcpp::as<bool>(sample.slot("fullFIML"));
+    ws.sampleCovs = Rcpp::as<Rcpp::List>(sample.slot("covs"));
+    ws.sampleMeans = Rcpp::as<Rcpp::List>(sample.slot("means"));
+    ws.sampleThresholds = Rcpp::as<Rcpp::List>(sample.slot("thresholds"));
+    if (sample.hasSlot("squares")) {
+        ws.sampleSquares = Rcpp::as<Rcpp::List>(sample.slot("squares"));
+    }
+    ws.fimldata = Rcpp::as<Rcpp::List>(sample.slot("fimldata"));
+    ws.WLS_W = Rcpp::as<Rcpp::List>(sample.slot("WLS.W"));
+
+    // Pre-computed from groups/variables:
+    Rcpp::List groups = Rcpp::as<Rcpp::List>(sample.slot("groups"));
+    arma::vec groupId = Rcpp::as<arma::vec>(groups["id"]);
+    ws.nGroup = groupId.n_elem;
+    ws.nPerGroup = Rcpp::as<arma::vec>(groups["nobs"]);
+    ws.nTotal = arma::sum(ws.nPerGroup);
+    Rcpp::List variables = Rcpp::as<Rcpp::List>(sample.slot("variables"));
+    arma::vec varId = Rcpp::as<arma::vec>(variables["id"]);
+    ws.nVar = varId.n_elem;
+
     // Store cache key
     ws.modelSEXP = (SEXP)model;
 

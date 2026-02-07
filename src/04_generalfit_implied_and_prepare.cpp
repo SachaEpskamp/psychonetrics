@@ -5,6 +5,7 @@
 #include <math.h>
 #include "02_algebrahelpers_RcppHelpers.h"
 #include "03_modelformation_formModelMatrices_cpp.h"
+#include "04_generalfit_optimWorkspace.h"
 #include "14_varcov_implied_cpp.h"
 #include "14_varcov_prepare_cpp.h"
 #include "15_lvm_prepare_cpp.h"
@@ -125,14 +126,15 @@ Rcpp::List prepareModel_cpp(
     const S4& model
 ){
   int g;
-  
-  // What model:
-  std::string framework= model.slot("model");
-  
+
+  // Read constant data from cached workspace:
+  const OptimWorkspace& ws = getOrBuildWorkspace(model);
+  const std::string& framework = ws.framework;
+
   // Output list:
   Rcpp::List prep;
-  
-  
+
+
   // Run:
   if (framework == "varcov"){
     
@@ -211,63 +213,56 @@ Rcpp::List prepareModel_cpp(
     // 
   }
   
-  // Sample
-  S4 sample = model.slot("sample");
-  Rcpp::List fimldata = sample.slot("fimldata");
-  Rcpp::List WLS_W = sample.slot("WLS.W");
-  
-  // PArameters:
-  Rcpp::List parList = model.slot("parameters");
-  arma::vec pars = parList["par"];
-  
-  // Groups
-  Rcpp::List groups = sample.slot("groups");
-  arma::vec nobspergroup = groups["nobs"];
-  
+  // Read constant data from workspace (no S4 slot reads):
+  const Rcpp::List& fimldata = ws.fimldata;
+  const Rcpp::List& WLS_W = ws.WLS_W;
+  const arma::vec& pars = ws.parnum;
+  const arma::vec& nobspergroup = ws.nPerGroup;
+
   // Number of groups:
   Rcpp::List groupModels = prep["groupModels"];
   int nGroup = groupModels.length();
-  
+
   // Estimator:
-  std::string estimator = model.slot("estimator");
-  
+  const std::string& estimator = ws.estimator;
+
   // If the estimator is FIML, add the raw data:
   for (g=0;g<nGroup;g++){
     Rcpp::List groupmod = groupModels[g];
-    
+
     groupmod["cpp"] = true;
-    
+
     if (estimator == "FIML"){
       // Add the raw data to each group:
       groupmod["fimldata"] = fimldata[g];
       groupmod["fulln"] = nobspergroup[g];
-      
+
     } else   if (estimator == "WLS" || estimator == "DWLS" || estimator == "ULS"){
       groupmod["WLS.W"] = WLS_W[g];
-      
+
     }
-    
+
     groupmod["estimator"] = estimator;
-    
+
     // Return back:
     groupModels[g] = groupmod;
   }
-  
+
   // Write back:
   prep["groupModels"] = groupModels;
-  
-  prep["fullFIML"] = sample.slot("fullFIML");
-  
+
+  prep["fullFIML"] = ws.fullFIML;
+
   // FIXME Add WLS.W:
-  
-  
+
+
   // Add number of parameters:
-  prep["nParFull"] = pars.n_elem;
-  prep["nParFree"] = max(pars);
-    
-    prep["estimator"] = model.slot("estimator");
-    prep["distribution"] = model.slot("distribution");
-    prep["model"] = model.slot("model");
+  prep["nParFull"] = ws.nParTotal;
+  prep["nParFree"] = ws.nFreePar;
+
+    prep["estimator"] = ws.estimator;
+    prep["distribution"] = ws.distribution;
+    prep["model"] = ws.framework;
     
     
     // Return:

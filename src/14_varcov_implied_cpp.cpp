@@ -7,6 +7,7 @@
 #include "02_algebrahelpers_RcppHelpers.h"
 #include "03_modelformation_formModelMatrices_cpp.h"
 #include "03_modelformation_impliedcovstructures.h"
+#include "04_generalfit_optimWorkspace.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -18,11 +19,10 @@ Rcpp::List implied_varcov_cpp_core(
     const S4& model,
     bool all = false
 ){
-  S4 sample = model.slot("sample");
-  Rcpp::List means = sample.slot("means");
-
-  // Add implied cov structure:
-  Rcpp::List types = model.slot("types");
+  // Read constant data from cached workspace:
+  const OptimWorkspace& ws = getOrBuildWorkspace(model);
+  const Rcpp::List& means = ws.sampleMeans;
+  const Rcpp::List& types = ws.types;
   std::string type = types["y"];
   x = impliedcovstructures_cpp(x, "", type, all);
 
