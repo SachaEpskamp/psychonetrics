@@ -3,6 +3,7 @@
 // we only include RcppArmadillo.h which pulls Rcpp.h in for us
 #include <RcppArmadillo.h>
 #include <math.h>
+#include <cstring>
 #include "02_algebrahelpers_RcppHelpers.h"
 #include "03_modelformation_formModelMatrices_cpp.h"
 #include "04_generalfit_optimWorkspace.h"
@@ -26,6 +27,21 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 using namespace arma;
+
+// Static cache for prepareModel_cpp result (Optimization 4)
+// When fn and grad are called at the same x, the second call returns cached prep.
+static Rcpp::List s_cachedPrep;
+static arma::vec s_cachedX;
+static SEXP s_cachedPrepModelSEXP = R_NilValue;
+static bool s_hasCachedPrep = false;
+
+// Invalidate the prep cache
+void invalidatePrepCache() {
+    s_cachedPrep = Rcpp::List();
+    s_cachedX.reset();
+    s_cachedPrepModelSEXP = R_NilValue;
+    s_hasCachedPrep = false;
+}
 
 // [[Rcpp::export]]
 Rcpp::List impliedModel_cpp(
@@ -125,6 +141,16 @@ Rcpp::List prepareModel_cpp(
     arma::vec x,
     const S4& model
 ){
+  // --- Cache check (Optimization 4) ---
+  // If fn and grad are called at the same x, return cached prep:
+  SEXP currentSEXP = (SEXP)model;
+  if (s_hasCachedPrep &&
+      s_cachedPrepModelSEXP == currentSEXP &&
+      s_cachedX.n_elem == x.n_elem &&
+      std::memcmp(s_cachedX.memptr(), x.memptr(), x.n_elem * sizeof(double)) == 0) {
+      return s_cachedPrep;
+  }
+
   int g;
 
   // Read constant data from cached workspace:
@@ -265,6 +291,12 @@ Rcpp::List prepareModel_cpp(
     prep["model"] = ws.framework;
     
     
+    // --- Cache store (Optimization 4) ---
+    s_cachedPrep = prep;
+    s_cachedX = x;
+    s_cachedPrepModelSEXP = currentSEXP;
+    s_hasCachedPrep = true;
+
     // Return:
     return(prep);
 }

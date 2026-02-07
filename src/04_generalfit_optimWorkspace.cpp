@@ -3,6 +3,7 @@
 #include <RcppArmadillo.h>
 #include <memory>
 #include "04_generalfit_optimWorkspace.h"
+#include "04_generalFit_implied_and_prepare.h"
 #include "03_modelformation_formModelMatrices_direct.h"
 #include "02_algebrahelpers_modelMatrix_cpp.h"
 
@@ -89,4 +90,6 @@ const OptimWorkspace& getOrBuildWorkspace(const S4& model) {
 void invalidateWorkspaceCache() {
     s_cachedWorkspace.reset();
     s_cachedModelSEXP = R_NilValue;
+    // Also clear the prepareModel_cpp result cache (Optimization 4):
+    invalidatePrepCache();
 }

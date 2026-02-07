@@ -21,4 +21,7 @@ Rcpp::List prepareModel_cpp(
     const S4& model
 );
 
+// Invalidate the prepareModel_cpp result cache (Optimization 4)
+void invalidatePrepCache();
+
 #endif
