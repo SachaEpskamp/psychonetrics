@@ -1,4 +1,21 @@
+Changes in Version 0.14.11
+  o Added corinput support to the lvm framework:
+    o lvm() now accepts a 'corinput' argument to specify that the input is a correlation matrix
+    o When corinput=TRUE, residual variances (diagonal of sigma_epsilon) are derived from the constraint diag(sigma) = 1
+    o Diagonal sigma_epsilon parameters are fixed and derived in the implied function, not freely estimated
+    o Supports WLS, DWLS, and ULS estimators; defaults to WLS when corinput=TRUE
+    o Variance identification is automatically enforced
+    o Both R and C++ code paths updated (implied and derivatives)
+  o Fixed a bug in the identity weight matrix dimension in samplestats for corinput/meanstructure combinations
+  o Fixed a bug in lvm Jacobian row removal when both corinput=TRUE and meanstructure=FALSE for continuous data
+
 Changes in Version 0.14.10
+  o Added ordinal data support to the lvm framework (Muthen, 1984 three-stage estimator):
+    o lvm() now accepts an 'ordered' argument (character vector or TRUE) to specify ordinal variables
+    o Supports WLS, DWLS, and ULS estimators for ordinal CFA/SEM
+    o Polychoric correlations and thresholds are estimated from ordinal data
+    o Variance identification is automatically enforced for ordinal models
+    o Both R and C++ code paths (implied, prepare, derivatives) handle ordinal/continuous seamlessly
   o Added nloptr_TNEWTON as a new optimizer, available via setoptimizer(x, "nloptr_TNEWTON"):
     o Uses NLopt's preconditioned truncated Newton with restarts (NLOPT_LD_TNEWTON_PRECOND_RESTART)
     o Builds a local quadratic model and solves the Newton system via preconditioned conjugate-gradient

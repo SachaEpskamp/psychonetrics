@@ -97,20 +97,34 @@ d_sigma_epsilon_ggm_lvm <- function(L,delta_IminOinv_epsilon,A,delta_epsilon,Dst
 # }
 
 # Full jacobian of phi (distribution parameters) with respect to theta (model parameters) for a group
-d_phi_theta_lvm_group <- function(lambda,latent,residual,...){
+d_phi_theta_lvm_group <- function(lambda,latent,residual,tau,mu,sigma,corinput = FALSE,meanstructure = TRUE,...){
   # Number of variables:
   nvar <- nrow(lambda)
-  
+
   # Number of latents:
   nlat <- ncol(lambda)
-  
-  # Number of observations:
-  nobs <- nvar + # Means
+
+  if (missing(tau)){
+    tau <- matrix(NA,1,nvar)
+  }
+
+  if (missing(mu)){
+    mu <- rep(NA, nvar)
+  }
+
+  # Number of means/thresholds (following varcov pattern):
+  nMean_Thresh <- sum(!is.na(tau)) + sum(!is.na(mu))
+
+  nThresh <- sum(!is.na(tau))
+
+  # Number of observations (always includes means row for later pruning):
+  nobs <- nMean_Thresh + # Means/thresholds
     (nvar * (nvar+1))/2 # Variances
-  
-  # total number of elements:
-  nelement <- nvar + # Means
-    nlat + # Latent intercpets
+
+  # total number of elements (model parameters):
+  nelement <- meanstructure * nvar + # Means (nu)
+    meanstructure * nlat + # Latent intercepts (nu_eta)
+    nThresh + # Thresholds (tau)
     nvar * nlat + # factor loadings
     nlat^2 + # beta elements
     nlat*(nlat + 1)/2 + # Latent variances and covariances
@@ -118,53 +132,71 @@ d_phi_theta_lvm_group <- function(lambda,latent,residual,...){
 
   # Empty Jacobian:
   Jac <- Matrix(0, nrow = nobs, ncol=nelement, sparse = FALSE)
-  
-  # Indices:
-  meanInds <- 1:nvar
-  sigmaInds <- nvar + seq_len(nvar*(nvar+1)/2)
-  
-  # Indices model:
-  interceptInds <- 1:nvar
-  nuetaInds <- nvar + seq_len(nlat)
-  lambdaInds <- max(nuetaInds) + seq_len(nlat*nvar)
-  betaInds <- max(lambdaInds) + seq_len(nlat^2)
-  sigmazetaInds <- max(betaInds) + seq_len(nlat*(nlat+1)/2)
-  sigmaepsilonInds <- max(sigmazetaInds) + seq_len(nvar*(nvar+1)/2)
 
-  
-  # fill intercept part:
-  Jac[meanInds,interceptInds] <- d_mu_nu_lvm(...)
-  
-  # Fill latent intercept part:
-  Jac[meanInds,nuetaInds] <- d_mu_nu_eta_lvm(...)
-  
-  # Fill factor loading parts:
-  Jac[meanInds,lambdaInds] <- d_mu_lambda_lvm(...)
+  # Observation indices:
+  meanInds <- seq_len(nMean_Thresh)
+  sigmaInds <- nMean_Thresh + seq_len(nvar*(nvar+1)/2)
+
+  # Parameter indices:
+  curInd <- 0
+
+  # Threshold part:
+  if (nThresh > 0){
+    tauInds <- curInd + seq_len(nThresh)
+    curInd <- max(tauInds)
+  } else {
+    tauInds <- integer(0)
+  }
+
+  # Mean structure parts:
+  if (meanstructure){
+    interceptInds <- curInd + seq_len(nvar)
+    curInd <- max(interceptInds)
+    nuetaInds <- curInd + seq_len(nlat)
+    curInd <- max(nuetaInds)
+  } else {
+    interceptInds <- integer(0)
+    nuetaInds <- integer(0)
+  }
+
+  lambdaInds <- curInd + seq_len(nlat*nvar)
+  curInd <- max(lambdaInds)
+  betaInds <- curInd + seq_len(nlat^2)
+  curInd <- max(betaInds)
+  sigmazetaInds <- curInd + seq_len(nlat*(nlat+1)/2)
+  curInd <- max(sigmazetaInds)
+  sigmaepsilonInds <- curInd + seq_len(nvar*(nvar+1)/2)
+
+  # Fill mean/threshold part:
+  if (nMean_Thresh > 0){
+    if (nThresh > 0){
+      # Thresholds: identity mapping from threshold observations to tau parameters
+      Jac[meanInds[seq_len(nThresh)], tauInds] <- as.matrix(Diagonal(nThresh))
+    }
+    if (meanstructure){
+      # fill intercept part:
+      Jac[meanInds,interceptInds] <- d_mu_nu_lvm(...)
+
+      # Fill latent intercept part:
+      Jac[meanInds,nuetaInds] <- d_mu_nu_eta_lvm(...)
+
+      # Fill factor loading parts (mean part):
+      Jac[meanInds,lambdaInds] <- d_mu_lambda_lvm(...)
+
+      # Fill the beta parts (mean part):
+      Jac[meanInds,betaInds] <- d_mu_beta_lvm(lambda=lambda,...)
+    }
+  }
+
+  # Fill factor loading parts (sigma part):
   Jac[sigmaInds,lambdaInds] <- d_sigma_lambda_lvm(...)
-  
 
-# 
-#   grouplist <- list(...)
-# 
-#   d_sigma_lambda_lvm(
-#     grouplist[["L"]],  grouplist[["Lambda_BetaStar"]],  grouplist[["Betasta_sigmaZeta"]],  grouplist[["In"]],  grouplist[["C"]]
-#   ) -
-#   d_sigma_lambda_lvm_cpp(
-#     grouplist[["L"]],  grouplist[["Lambda_BetaStar"]],  grouplist[["Betasta_sigmaZeta"]],  grouplist[["In"]],  grouplist[["C"]]
-#   )
-# 
-#  View(as.matrix( (grouplist[["Lambda_BetaStar"]] %*% t(grouplist[["Betasta_sigmaZeta"]])) %x% grouplist[["In"]]  ))
-# 
-#  View( as.matrix( kronecker_X_I((grouplist[["Lambda_BetaStar"]] %*% t(grouplist[["Betasta_sigmaZeta"]])), 10)))
-#   
-#   browser()
-  # Fill the beta parts:
-  Jac[meanInds,betaInds] <- d_mu_beta_lvm(lambda=lambda,...)
+  # Fill the beta parts (sigma part):
   Jac[sigmaInds,betaInds] <- d_sigma_beta_lvm(lambda=lambda,...)
 
   # Fill latent variances part:
   Jac[sigmaInds,sigmazetaInds] <- d_sigma_sigma_zeta_lvm(...)
-  
+
   if (latent == "chol"){
     Jac[sigmaInds,sigmazetaInds] <-Jac[sigmaInds,sigmazetaInds] %*% d_sigma_zeta_cholesky_lvm(...)
   } else if (latent == "prec"){
@@ -172,10 +204,10 @@ d_phi_theta_lvm_group <- function(lambda,latent,residual,...){
   } else if (latent == "ggm"){
     Jac[sigmaInds,sigmazetaInds] <- Jac[sigmaInds,sigmazetaInds] %*% d_sigma_zeta_ggm_lvm(...)
   }
-  
+
   # Residual variances:
   if (residual == "cov"){
-    Jac[sigmaInds,sigmaepsilonInds] <- Diagonal(nvar*(nvar+1)/2)  
+    Jac[sigmaInds,sigmaepsilonInds] <- Diagonal(nvar*(nvar+1)/2)
   } else if (residual == "chol"){
     Jac[sigmaInds,sigmaepsilonInds] <- d_sigma_epsilon_cholesky_lvm(...)
   } else if (residual == "prec"){
@@ -183,16 +215,22 @@ d_phi_theta_lvm_group <- function(lambda,latent,residual,...){
   } else if (residual == "ggm"){
     Jac[sigmaInds,sigmaepsilonInds] <-  d_sigma_epsilon_ggm_lvm(...)
   }
-  
-  
-  # # Fill residual network part:
-  # Jac[sigmaInds,omegainds] <- d_sigma_omega_epsilon_lvm(...)
-  # 
-  # # Fill residual scaling part:
-  # Jac[sigmaInds,deltainds] <- d_sigma_delta_epsilon_lvm(...)
+
+  # Cut out the rows not needed
+  # FIXME: Nicer to not have to compute these in the first place...
+  if (corinput){
+    keep <- c(rep(TRUE,nMean_Thresh),diag(nvar)[lower.tri(diag(nvar),diag=TRUE)]!=1)
+    Jac <- Jac[keep,]
+  }
+  if (!meanstructure && nMean_Thresh > 0){
+    if (all(is.na(tau))){
+      Jac <- Jac[-(seq_len(nvar)), ]
+    } else if (any(colSums(is.na(tau)) == nrow(tau))) stop("Mix of continuous and ordinal variables is not yet supported.")
+  }
+
   # Make sparse if needed:
   Jac <- as(Jac, "matrix")
-  
+
   # Return jacobian:
   return(Jac)
 }

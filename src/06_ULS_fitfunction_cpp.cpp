@@ -20,24 +20,31 @@ double ULS_Gauss_cpp_pergroup(
   
   arma::mat S = grouplist["S"];
   arma::vec means = grouplist["means"];
-  
+
   arma::mat sigma = grouplist["sigma"];
-  arma::vec mu = grouplist["mu"];
-  
+
+  // mu may not exist when meanstructure = FALSE (ordinal data):
+  arma::vec mu;
+  if (grouplist.containsElementNamed("mu")){
+    mu = Rcpp::as<arma::vec>(grouplist["mu"]);
+  } else {
+    mu = arma::vec(means.n_elem, arma::fill::zeros);
+  }
+
   arma::mat WLS_W = grouplist["WLS.W"];
-  
+
   std::string estimator = grouplist["estimator"];
-  
+
   bool meanstructure =  grouplist["meanstructure"];
   bool corinput =  grouplist["corinput"];
-  
+
   // Empty vectors:
   arma::vec obs(1); // FIXME: Start with 1 element
   arma::vec imp(1); // FIXME: Start with 1 element
-  
+
   // Integers I need
   int i;
-  int nvar = mu.n_elem;
+  int nvar = means.n_elem;
   
   // If DWLS, only use the diagonal:
   if (estimator == "DWLS"){

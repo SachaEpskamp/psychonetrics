@@ -630,7 +630,8 @@ samplestats_norawts <- function(
       if (is.character(weightsmatrix) && weightsmatrix != "none"){
         for (g in 1:nGroup){
           if (weightsmatrix == "identity"){
-            object@WLS.W[[g]] <- diag(nVars + nVars*(nVars+1)/2)
+            nW <- meanstructure * nVars + nVars*(nVars+1)/2 - corinput * nVars
+            object@WLS.W[[g]] <- diag(nW)
           } else if (weightsmatrix == "full"){
             subData <- data[data[[groups]] == g,c(vars)]
             object@WLS.W[[g]] <- as.matrix(LS_weightsmat(subData,meanstructure=meanstructure,corinput=corinput))

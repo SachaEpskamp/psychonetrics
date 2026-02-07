@@ -42,8 +42,6 @@ Rcpp::List implied_lvm_cpp_core(
     arma::mat lambda = grouplist["lambda"];
     arma::mat sigma_zeta = grouplist["sigma_zeta"];
     arma::mat sigma_epsilon = grouplist["sigma_epsilon"];
-    arma::mat nu = grouplist["nu"];
-    arma::mat nu_eta = grouplist["nu_eta"];
 
     // Matrices I need in every model framework when estimating:
     int n = beta.n_rows;
@@ -64,11 +62,29 @@ Rcpp::List implied_lvm_cpp_core(
 
     }
 
-    // Implied means:
-    arma::vec mu = nu + lambda * BetaStar * nu_eta;
-    grouplist["mu"] = mu;
+    // Implied means (only if mean structure is modeled):
+    if (grouplist.containsElementNamed("nu")){
+      arma::mat nu = grouplist["nu"];
+      arma::mat nu_eta = grouplist["nu_eta"];
+      arma::vec mu = nu + lambda * BetaStar * nu_eta;
+      grouplist["mu"] = mu;
+    }
 
-    arma::mat sigma = Lambda_BetaStar * sigma_zeta * Lambda_BetaStar.t() + sigma_epsilon;
+    // Factor part:
+    arma::mat factorPart = Lambda_BetaStar * sigma_zeta * Lambda_BetaStar.t();
+
+    // When corinput=TRUE, derive diagonal of sigma_epsilon from diag(sigma)=1 constraint:
+    bool corinput_flag = ws.corinput;
+    if (grouplist.containsElementNamed("corinput")){
+      corinput_flag = Rcpp::as<bool>(grouplist["corinput"]);
+    }
+    if (corinput_flag){
+      arma::vec derivedDiag = 1.0 - diagvec(factorPart);
+      sigma_epsilon.diag() = derivedDiag;
+      grouplist["sigma_epsilon"] = sigma_epsilon;
+    }
+
+    arma::mat sigma = factorPart + sigma_epsilon;
     grouplist["sigma"] = sigma;
 
     // FIXME: Make symmetric?

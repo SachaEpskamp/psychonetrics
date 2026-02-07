@@ -107,10 +107,10 @@ identify_lvm <- function(x){
      nFixed = sum(.data[['fixed']])) %>% group_by(.data[["matrix"]]) %>% summarize(nFixed = max(.data[['nFixed']]))
      
     nNuFix <- fixedingroup1$nFixed[fixedingroup1$matrix == "nu"]
-    
+
     ### LATENT MEANS ###
     # at least n_eta intercepts nead to be equal
-    if (!is.null(nNuFix) && nNuFix == 0){
+    if (length(nNuFix) > 0 && !is.null(nNuFix) && nNuFix == 0){
       if (consPerMat$n[consPerMat$matrix == "nu"] >= nLat){
         means <- which(x@parameters$matrix %in% c("nu_eta") & x@parameters$group_id == 1)
         free <-  which(x@parameters$matrix %in% c("nu_eta") & x@parameters$group_id > 1 & !(x@parameters$fixed & !x@parameters$identified))

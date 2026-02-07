@@ -48,7 +48,16 @@ prepare_lvm <- function(x, model){
     groupModels[[g]] <- c(imp[[g]], mMat, model@extramatrices, model@types) # FIXME: This will lead to extra matrices to be stored?
     groupModels[[g]]$S <- S[[g]]
     groupModels[[g]]$means <- means[[g]]
-    # groupModels[[g]]$thresholds <- thresholds[[g]]
+    groupModels[[g]]$corinput <- model@sample@corinput
+    groupModels[[g]]$meanstructure <- model@meanstructure
+
+    if (is.null( groupModels[[g]]$tau)){
+      groupModels[[g]]$tau <- matrix(NA,1,nVar)
+    }
+
+    if (length(thresholds) > 0){
+      groupModels[[g]]$thresholds <- thresholds[[g]]
+    }
   }
   
   
