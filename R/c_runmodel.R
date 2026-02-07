@@ -450,34 +450,56 @@ runmodel <- function(
   
   
   if (grepl("cpp",optimizer)){
-    
-    suppressWarnings({
-      tryres <- try({
-        x <- psychonetrics_optimizer(x, lower, upper, gsub("cpp_","",optimizer), bounded)
-      }, silent = TRUE) 
-    })
-    
-    if (is(tryres,"try-error") && !any(is.na(parVector(x)))){
-      
+
+    if (optimizer == "cpp_L-BFGS-B_v2") {
+      # LBFGS++ pure C++ optimizer:
       suppressWarnings({
-        tryres2 <- try({
-          # browser()
-          x <- updateModel(oldstart, x)
-          x <- psychonetrics_optimizer(emergencystart(x), lower, upper, gsub("cpp_","",optimizer))
-        }, silent = TRUE)    
+        tryres <- try({
+          x <- psychonetrics_lbfgsb_optimizer(x, lower, upper, bounded)
+        }, silent = TRUE)
       })
-      
-      # If still an error, break:
-      if (is(tryres2,"try-error") && !any(is.na(parVector(x)))){
-        stop(paste("Model estimation resulted in an error that could not be recovered. Try using a different optimizer with setoptimizer(...) or using different starting values. Error:\n\n",tryres2))
-        
+
+      if (is(tryres,"try-error") && !any(is.na(parVector(x)))){
+        suppressWarnings({
+          tryres2 <- try({
+            x <- updateModel(oldstart, x)
+            x <- psychonetrics_lbfgsb_optimizer(emergencystart(x), lower, upper, bounded)
+          }, silent = TRUE)
+        })
+
+        if (is(tryres2,"try-error") && !any(is.na(parVector(x)))){
+          stop(paste("Model estimation resulted in an error that could not be recovered. Try using a different optimizer with setoptimizer(...) or using different starting values. Error:\n\n",tryres2))
+        }
       }
-      
-    }
-    
-    
+    } else {
+      # roptim-based C++ optimizers:
+      suppressWarnings({
+        tryres <- try({
+          x <- psychonetrics_optimizer(x, lower, upper, gsub("cpp_","",optimizer), bounded)
+        }, silent = TRUE)
+      })
+
+      if (is(tryres,"try-error") && !any(is.na(parVector(x)))){
+
+        suppressWarnings({
+          tryres2 <- try({
+            # browser()
+            x <- updateModel(oldstart, x)
+            x <- psychonetrics_optimizer(emergencystart(x), lower, upper, gsub("cpp_","",optimizer))
+          }, silent = TRUE)
+        })
+
+        # If still an error, break:
+        if (is(tryres2,"try-error") && !any(is.na(parVector(x)))){
+          stop(paste("Model estimation resulted in an error that could not be recovered. Try using a different optimizer with setoptimizer(...) or using different starting values. Error:\n\n",tryres2))
+        }
+
+      }
+    } # end else (roptim-based)
+
+
     x@objective <- x@optim$value
-    
+
     x <- updateModel(parVector(x),x,updateMatrices = TRUE) # FIXME: Move this to C++!
     
     

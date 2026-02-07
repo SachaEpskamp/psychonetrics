@@ -189,6 +189,10 @@ psychonetrics_optimizer <- function(model, lower, upper, optimizer = "L-BFGS-B",
     .Call(`_psychonetrics_psychonetrics_optimizer`, model, lower, upper, optimizer, bounded)
 }
 
+psychonetrics_lbfgsb_optimizer <- function(model, lower, upper, bounded = FALSE) {
+    .Call(`_psychonetrics_psychonetrics_lbfgsb_optimizer`, model, lower, upper, bounded)
+}
+
 expected_hessian_Gaussian_group_cpp <- function(grouplist) {
     .Call(`_psychonetrics_expected_hessian_Gaussian_group_cpp`, grouplist)
 }
