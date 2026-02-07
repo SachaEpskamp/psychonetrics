@@ -13,8 +13,9 @@ These functions can be used to change some estimator options.
 setestimator(x, estimator)
 
 setoptimizer(x, optimizer = c("default", "nlminb", "ucminf",
-                 "cpp_L-BFGS-B", "LBFGS++", "cpp_BFGS", "cpp_CG",
-                 "cpp_SANN", "cpp_Nelder-Mead"), optim.args)
+                 "nloptr_TNEWTON", "cpp_L-BFGS-B", "LBFGS++",
+                 "cpp_BFGS", "cpp_CG", "cpp_SANN",
+                 "cpp_Nelder-Mead"), optim.args)
 
 
 usecpp(x, use = TRUE)
@@ -48,6 +49,11 @@ The optimizer to be used. The following optimizers are available:
 \bold{Pure C++ optimizer:}
 \describe{
   \item{\code{"LBFGS++"}}{L-BFGS-B optimizer from the LBFGSpp library (Yixuan Qiu). This is a pure C++ implementation that computes the objective function and gradient in a single combined call, avoiding redundant computation via internal caching. Supports box constraints. Approximately 1.6x faster than \code{"cpp_L-BFGS-B"} on benchmark models. Recommended when speed is important.}
+}
+
+\bold{NLopt-based optimizer (via nloptr):}
+\describe{
+  \item{\code{"nloptr_TNEWTON"}}{Preconditioned truncated Newton with restarts from the NLopt library (via the \code{nloptr} package). Uses the \code{NLOPT_LD_TNEWTON_PRECOND_RESTART} algorithm, which builds a local quadratic model of the objective and solves the Newton system approximately using a preconditioned conjugate-gradient method. Supports box constraints and uses analytic gradients. Can handle large parameter spaces efficiently. See Dembo & Steihaug (1982) for the underlying method.}
 }
 
 Defaults to \code{"nlminb"}.
