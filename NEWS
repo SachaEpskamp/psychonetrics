@@ -1,3 +1,11 @@
+Changes in Version 0.14.9
+  o Tuned LBFGS++ convergence parameters for better performance on ill-conditioned models:
+    o Switched primary convergence criterion from gradient norm to relative function change (delta = 1e-8), matching nlminb behavior
+    o Increased L-BFGS history size from 6 to 10 for better Hessian approximation on larger models
+    o Relaxed gradient tolerance (epsilon = 1e-5) to avoid unnecessary iterations on ill-conditioned FIML problems
+    o ~4x faster on complex dlvm1/panel models (e.g., 8.6s -> 2.0s on 84-parameter panelgvar)
+  o Removed unused variable declarations to eliminate all compiler warnings from psychonetrics C++ source
+
 Changes in Version 0.14.8
   o Added LBFGS++ (LBFGSpp) as a new pure C++ optimizer, available via setoptimizer(x, "LBFGS++"):
     o Vendored header-only LBFGS++ library (MIT license) into inst/include/
