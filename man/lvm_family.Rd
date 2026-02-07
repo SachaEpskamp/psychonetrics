@@ -263,6 +263,7 @@ mod2 \%>\% fit
 ### Path diagrams ###
 # semPlot is not (yet) supported by default, but can be used as follows:
 # Load packages:
+if (requireNamespace("semPlot", quietly = TRUE)){
 library("semPlot")
 
 # Estimates:
@@ -341,6 +342,7 @@ semPaths(mod,
     )
     
 # Use arguments filetype = "pdf" and filename = "semPlotExample1" to store PDF
+} # end semPlot block
 
 ### Latent Network Modeling ###
 
@@ -440,7 +442,7 @@ table(StarWars$agegroup) # Pretty even...
 obsvars <- paste0("Q",1:10)
 
 # Let's look at the mean scores:
-StarWars \%>\% group_by(agegroup) \%>\% summarize_each_(funs(mean),vars = obsvars)
+StarWars \%>\% group_by(agegroup) \%>\% summarize(across(all_of(obsvars), mean))
 # Less young people seem to score higher on prequel questions and lower on other 
 # questions
 

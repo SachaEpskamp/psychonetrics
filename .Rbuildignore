@@ -6,4 +6,9 @@ logo_no_R.png
 README_figs
 \.gitignore
 psychonetrics\.Rproj
+^\.git$
+^\.claude$
+^READINGS$
+^Rplots\.pdf$
+^test_.*\.R$
 
