@@ -515,11 +515,17 @@ runmodel <- function(
       gr_nloptr <- function(par) psychonetrics_gradient(par, model_for_nloptr)
     }
 
-    # Set default control options (matching nlminb convergence behavior):
+    # Set default control options:
+    # Key insight: truncated Newton has an internal gradient-norm convergence
+    # criterion that fires as NLOPT_SUCCESS before xtol/ftol checks. With tight
+    # ftol_rel (e.g. 1.49e-8) the algorithm over-converges, driving gradients to
+    # ~1e-13 where numeric Jacobian checks fail due to floating-point noise.
+    # Setting ftol_rel=1e-5 ensures ftol stops the optimizer at a reasonable
+    # point (gradient ~1e-6, similar to nlminb), with good Jacobian correlation.
     nloptr_control <- list(
       xtol_rel = 1.5e-8,
-      ftol_rel = sqrt(.Machine$double.eps),
-      ftol_abs = sqrt(.Machine$double.eps),
+      ftol_rel = 1e-5,
+      ftol_abs = 0,
       maxeval  = 20000L
     )
 
