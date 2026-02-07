@@ -242,7 +242,6 @@ Rcpp::List prepareModel_cpp(
   // Read constant data from workspace (no S4 slot reads):
   const Rcpp::List& fimldata = ws.fimldata;
   const Rcpp::List& WLS_W = ws.WLS_W;
-  const arma::vec& pars = ws.parnum;
   const arma::vec& nobspergroup = ws.nPerGroup;
 
   // Number of groups:
