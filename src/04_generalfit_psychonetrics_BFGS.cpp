@@ -8,6 +8,7 @@
 #include "04_generalFit_gradient_cpp.h"
 #include "b_modelexpansion_updateModel_cpp.h"
 #include "02_algebrahelpers_modelMatrix_cpp.h"
+#include "04_generalfit_optimWorkspace.h"
 #include "roptim.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
@@ -20,6 +21,8 @@ using namespace roptim;
 class psychonetrics_optim : public Functor {
 public:
   psychonetrics_optim(const S4& model) : model_(model) {
+    // Pre-warm the static workspace cache for this model:
+    getOrBuildWorkspace(model);
     os.sann_use_custom_function_ = true;
   }
   

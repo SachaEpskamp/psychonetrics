@@ -6,7 +6,7 @@
 #include "02_algebragelpers_kronecker.h"
 #include "02_algebrahelpers_RcppHelpers.h"
 #include "03_modelformation_formModelMatrices_cpp.h"
-#include "03_modelformation_formModelMatrices_direct.h"
+#include "04_generalfit_optimWorkspace.h"
 #include "03_modelformation_impliedcovstructures.h"
 #include "15_lvm_implied_cpp.h"
 
@@ -21,8 +21,9 @@ Rcpp::List prepare_lvm_cpp(
 ){
   int g, i;
   
-  // Form model matrices directly (no S4 clone needed):
-  Rcpp::List mats = formModelMatrices_cpp_direct(x, model);
+  // Form model matrices using cached workspace:
+  const OptimWorkspace& ws = getOrBuildWorkspace(model);
+  Rcpp::List mats = formModelMatrices_direct(x, ws.mapping);
 
   // Compute implied matrices using core function:
   Rcpp::List imp = implied_lvm_cpp_core(mats, model, false);
