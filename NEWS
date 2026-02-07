@@ -1,3 +1,6 @@
+Changes in Version 0.14.4
+  o Fixed dplyr 1.1.0 deprecation warning about one-column matrices in filter() calls
+
 Changes in Version 0.14.3
   o Cache-aware prepareModel_cpp: skip redundant prepare when fit and gradient are called at the same parameter vector
   o ~24% speedup in full model fitting (e.g., 9-variable CFA: ~155ms -> ~118ms)
