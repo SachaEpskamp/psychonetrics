@@ -1,3 +1,9 @@
+Changes in Version 0.14.7
+  o Fixed R CMD check --as-cran issues:
+    o Guarded semPlot example with requireNamespace() since it is a Suggested package
+    o Replaced defunct dplyr::summarize_each_() with summarize(across()) in lvm example
+    o Added build artifacts and non-package files to .Rbuildignore
+
 Changes in Version 0.14.6
   o Fixed Ising model Fisher information for the beta (inverse temperature) parameter:
     o Added missing beta factor in beta-threshold and beta-network cross-derivative blocks of the expected Hessian
