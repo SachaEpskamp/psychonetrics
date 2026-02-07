@@ -6,8 +6,8 @@
 #include "02_algebragelpers_kronecker.h"
 #include "02_algebrahelpers_RcppHelpers.h"
 #include "03_modelformation_formModelMatrices_cpp.h"
+#include "03_modelformation_formModelMatrices_direct.h"
 #include "03_modelformation_impliedcovstructures.h"
-#include "b_modelexpansion_updateModel_cpp.h"
 #include "19_tsdlvm1_implied_cpp.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
@@ -21,33 +21,33 @@ Rcpp::List prepare_tsdlvm1_cpp(
 ){
   int g, i;
   
-  // New model:
-  S4 newMod = updateModel_cpp(x,model,false);
-  
-  // sample slot:
-  S4 sample = newMod.slot("sample");
-  
+  // Form model matrices directly (no S4 clone needed):
+  Rcpp::List mats = formModelMatrices_cpp_direct(x, model);
+
+  // Compute implied matrices using core function:
+  Rcpp::List imp = implied_tsdlvm1_cpp_core(mats, model, false);
+
+  // sample slot (read from original model - unchanged by parameter updates):
+  S4 sample = model.slot("sample");
+
   // Things needed:
   bool corinput = sample.slot("corinput");
-  bool meanstructure = newMod.slot("meanstructure");
-  
+  bool meanstructure = model.slot("meanstructure");
+
   // Groups table:
   Rcpp::List group = sample.slot("groups");
-  
+
   // Variables table:
   Rcpp::List variables = sample.slot("variables");
   arma::vec vars = variables["id"];
   int nVar = vars.n_elem;
-  
+
   // Number of groups:
   arma::vec id = group["id"];
   int nGroup = id.n_elem;
-  
+
   // Number of observations per group:
   arma::vec nPerGroup = group["nobs"];
-  
-  // Compute implied matrices:
-  Rcpp::List imp = implied_tsdlvm1_cpp(newMod, false);
   
   // Extra matrices:
   Rcpp::List extramatrices = model.slot("extramatrices");

@@ -12,23 +12,16 @@
 using namespace Rcpp;
 using namespace arma;
 
-// [[Rcpp::export]]
-Rcpp::List implied_dlvm1_cpp(
+// Core implementation that takes pre-formed model matrices
+Rcpp::List implied_dlvm1_cpp_core(
+    Rcpp::List x,
     const S4& model,
     bool all = false
 ){
   int i, t, tt;
-  
 
-  
-  
   S4 sample = model.slot("sample");
   Rcpp::List means = sample.slot("means");
-  
-  
-  // Form basic model matrices:
-  Rcpp::List x = formModelMatrices_cpp(model);
-  
 
   // Types:
   Rcpp::List types = model.slot("types");
@@ -202,5 +195,17 @@ Rcpp::List implied_dlvm1_cpp(
   }
   
   return(x);
+}
+
+// Original version: forms matrices from the S4 model
+// [[Rcpp::export]]
+Rcpp::List implied_dlvm1_cpp(
+    const S4& model,
+    bool all = false
+){
+  // Form basic model matrices:
+  Rcpp::List x = formModelMatrices_cpp(model);
+
+  return implied_dlvm1_cpp_core(x, model, all);
 }
 

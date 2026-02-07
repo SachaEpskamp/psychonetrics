@@ -12,22 +12,20 @@
 using namespace Rcpp;
 using namespace arma;
 
-// [[Rcpp::export]]
-Rcpp::List implied_var1_cpp(
+// Core implementation that takes pre-formed model matrices
+Rcpp::List implied_var1_cpp_core(
+    Rcpp::List x,
     const S4& model,
     bool all = false
 ){
   int i,j;
-  
+
   S4 sample = model.slot("sample");
   Rcpp::List means = sample.slot("means");
-  
+
   // Extra matrices:
   Rcpp::List extramats = model.slot("extramatrices");
   arma::sp_mat L = extramats["L"];
-  
-  // Form basic model matrices:
-  Rcpp::List x = formModelMatrices_cpp(model);
   
   
   // Types:
@@ -110,5 +108,17 @@ Rcpp::List implied_var1_cpp(
   }
   
   return(x);
+}
+
+// Original version: forms matrices from the S4 model
+// [[Rcpp::export]]
+Rcpp::List implied_var1_cpp(
+    const S4& model,
+    bool all = false
+){
+  // Form basic model matrices:
+  Rcpp::List x = formModelMatrices_cpp(model);
+
+  return implied_var1_cpp_core(x, model, all);
 }
 

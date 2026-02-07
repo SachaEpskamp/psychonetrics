@@ -311,6 +311,31 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// formModelMatrices_cpp_direct
+Rcpp::List formModelMatrices_cpp_direct(const arma::vec& x, const S4& model);
+RcppExport SEXP _psychonetrics_formModelMatrices_cpp_direct(SEXP xSEXP, SEXP modelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const S4& >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(formModelMatrices_cpp_direct(x, model));
+    return rcpp_result_gen;
+END_RCPP
+}
+// benchmark_formModelMatrices_direct
+double benchmark_formModelMatrices_direct(const arma::vec& x, const S4& model, int n_iter);
+RcppExport SEXP _psychonetrics_benchmark_formModelMatrices_direct(SEXP xSEXP, SEXP modelSEXP, SEXP n_iterSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const S4& >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< int >::type n_iter(n_iterSEXP);
+    rcpp_result_gen = Rcpp::wrap(benchmark_formModelMatrices_direct(x, model, n_iter));
+    return rcpp_result_gen;
+END_RCPP
+}
 // impliedcovstructures_cpp
 Rcpp::List impliedcovstructures_cpp(Rcpp::List x, std::string name, std::string type, bool all);
 RcppExport SEXP _psychonetrics_impliedcovstructures_cpp(SEXP xSEXP, SEXP nameSEXP, SEXP typeSEXP, SEXP allSEXP) {
@@ -2176,6 +2201,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_Mmatrix_cpp", (DL_FUNC) &_psychonetrics_Mmatrix_cpp, 1},
     {"_psychonetrics_Mmatrix_cpp_list", (DL_FUNC) &_psychonetrics_Mmatrix_cpp_list, 1},
     {"_psychonetrics_formModelMatrices_cpp", (DL_FUNC) &_psychonetrics_formModelMatrices_cpp, 1},
+    {"_psychonetrics_formModelMatrices_cpp_direct", (DL_FUNC) &_psychonetrics_formModelMatrices_cpp_direct, 2},
+    {"_psychonetrics_benchmark_formModelMatrices_direct", (DL_FUNC) &_psychonetrics_benchmark_formModelMatrices_direct, 3},
     {"_psychonetrics_impliedcovstructures_cpp", (DL_FUNC) &_psychonetrics_impliedcovstructures_cpp, 4},
     {"_psychonetrics_is_sparse_cpp", (DL_FUNC) &_psychonetrics_is_sparse_cpp, 1},
     {"_psychonetrics_diag_sparse_dense_cpp", (DL_FUNC) &_psychonetrics_diag_sparse_dense_cpp, 1},

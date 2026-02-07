@@ -1,3 +1,10 @@
+Changes in Version 0.14
+  o Performance optimization: replaced O(nMat * nPar) parameter-to-matrix mapping with O(nFreePar) direct index mapping
+  o Eliminated S4 model cloning during optimization iterations by bypassing updateModel_cpp in all prepare functions
+  o Refactored all 8 implied_*_cpp functions into _core variants that accept pre-formed matrices
+  o All 8 prepare_*_cpp functions now use formModelMatrices_cpp_direct + implied_*_cpp_core pipeline
+  o ~23% speedup in full model fitting (e.g., 9-variable CFA: ~200ms -> ~154ms)
+
 Changes in Version 0.13.2
   o Fixed a bug in 'intersectionmodel' not properly clearing removed parameters
   o Improved starting values for identity model in partialprune

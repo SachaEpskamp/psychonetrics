@@ -16,4 +16,10 @@ Rcpp::List implied_Ising_cpp(
     bool all = false
 );
 
+Rcpp::List implied_Ising_cpp_core(
+    Rcpp::List x,
+    const S4& model,
+    bool all = false
+);
+
 #endif

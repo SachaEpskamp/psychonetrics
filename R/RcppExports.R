@@ -105,6 +105,14 @@ formModelMatrices_cpp <- function(model) {
     .Call(`_psychonetrics_formModelMatrices_cpp`, model)
 }
 
+formModelMatrices_cpp_direct <- function(x, model) {
+    .Call(`_psychonetrics_formModelMatrices_cpp_direct`, x, model)
+}
+
+benchmark_formModelMatrices_direct <- function(x, model, n_iter = 1000L) {
+    .Call(`_psychonetrics_benchmark_formModelMatrices_direct`, x, model, n_iter)
+}
+
 impliedcovstructures_cpp <- function(x, name = "", type = "cov", all = FALSE) {
     .Call(`_psychonetrics_impliedcovstructures_cpp`, x, name, type, all)
 }

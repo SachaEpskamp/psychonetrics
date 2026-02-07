@@ -16,4 +16,11 @@ Rcpp::List implied_lvm_cpp(
     bool all = false
 );
 
+// Core version that takes pre-formed model matrices (skips formModelMatrices_cpp)
+Rcpp::List implied_lvm_cpp_core(
+    Rcpp::List x,
+    const S4& model,
+    bool all = false
+);
+
 #endif
