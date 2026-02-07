@@ -72,6 +72,46 @@ arma::sp_mat kronecker_X_I(
   return(res);
 }
 
+// Dense version of I kron X (returns arma::mat using block submat assignment):
+arma::mat kronecker_I_X_dense(
+    const arma::mat& X,
+    int n
+){
+  int nrow = X.n_rows;
+  int ncol = X.n_cols;
+
+  arma::mat res(n * nrow, n * ncol, arma::fill::zeros);
+
+  for (int k = 0; k < n; k++){
+    res.submat(k * nrow, k * ncol, (k+1) * nrow - 1, (k+1) * ncol - 1) = X;
+  }
+
+  return(res);
+}
+
+// Dense version of X kron I (returns arma::mat using block submat assignment):
+arma::mat kronecker_X_I_dense(
+    const arma::mat& X,
+    int n
+){
+  int nrow = X.n_rows;
+  int ncol = X.n_cols;
+
+  arma::mat res(n * nrow, n * ncol, arma::fill::zeros);
+
+  for (int i = 0; i < nrow; i++){
+    for (int j = 0; j < ncol; j++){
+      if (X(i,j) != 0.0){
+        for (int k = 0; k < n; k++){
+          res(i * n + k, j * n + k) = X(i,j);
+        }
+      }
+    }
+  }
+
+  return(res);
+}
+
 // Kron of diagonal matrix with itself:
 // [[Rcpp::export]]
 arma::sp_mat kronecker_diag_sparse(
