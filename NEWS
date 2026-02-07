@@ -1,3 +1,8 @@
+Changes in Version 0.14.6
+  o Fixed Ising model Fisher information for the beta (inverse temperature) parameter:
+    o Added missing beta factor in beta-threshold and beta-network cross-derivative blocks of the expected Hessian
+    o Fixed expectedmodel() to replace sample sufficient statistics with model-implied expectations for Ising models
+
 Changes in Version 0.14.5
   o Optimized dlvm1 Jacobian construction (d_phi_theta_dlvm1_group_cpp):
     o Added dense Kronecker helpers (kronecker_I_X_dense, kronecker_X_I_dense) to avoid slow sparse element-by-element insertion when the result is used as a dense matrix
