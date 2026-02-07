@@ -17,6 +17,7 @@
 #include "21_Ising_derivatives_cpp.h"
 #include "22_ml_lvm_derivatives_cpp.h"
 #include "02_algebrahelpers_modelMatrix_cpp.h"
+#include "04_generalfit_optimWorkspace.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -68,8 +69,9 @@ void psychonetrics_gradient_cpp_inner(
   // Prepare model:
   Rcpp::List prep = prepareModel_cpp(x, model);
   
-  // Manual part:
-  arma::sp_mat manualPart = Mmatrix_cpp_list(model.slot("parameters"));
+  // Manual part (cached in workspace):
+  const OptimWorkspace& ws = getOrBuildWorkspace(model);
+  const arma::sp_mat& manualPart = ws.Mmatrix;
   
   
   // What estimator:
@@ -150,11 +152,10 @@ void psychonetrics_gradient_cpp_inner(
   // Compute the gradient
   // FIXME? Use sparse?
   
-  // Get parameter table:
-  Rcpp::List pars = model.slot("parameters");
-  arma::vec parnum = pars["par"];
-  int freePar = max(parnum);
-  
+  // Parameter info (cached in workspace):
+  const arma::vec& parnum = ws.parnum;
+  int freePar = ws.nFreePar;
+
   arma::mat Jac(1,freePar);
   
   
@@ -191,18 +192,12 @@ void psychonetrics_gradient_cpp_inner(
     }
     
     
-    // Get parameter table:
-    Rcpp::List pars = model.slot("parameters");
-    arma::vec parnum = pars["par"];
-    
+    // Parameter info (already cached in ws above)
     // ints to use:
     int i;
-    
-    // Number of free parameters:
-    // int freePar = max(parnum);
-    
+
     // Number of total parameters:
-    int totalPar = parnum.n_elem;
+    int totalPar = ws.nParTotal;
     
     // Empty Fisher:
     Jac.fill(0);
