@@ -37,12 +37,22 @@ implied_lvm <- function(model, all = FALSE){
         x[[g]]$tBetakronBeta <- tBetakronBeta
       } 
       
-      # Implied means
-      x[[g]]$mu <- x[[g]]$nu +  x[[g]]$lambda %*% BetaStar  %*% x[[g]]$nu_eta
+      # Implied means (only if mean structure is modeled):
+      if (!is.null(x[[g]]$nu)){
+        x[[g]]$mu <- x[[g]]$nu +  x[[g]]$lambda %*% BetaStar  %*% x[[g]]$nu_eta
+      }
       
       # Implied variances:
-      x[[g]]$sigma <- Lambda_BetaStar %*% x[[g]]$sigma_zeta %*% t(Lambda_BetaStar) + x[[g]]$sigma_epsilon
-      
+      # Factor part:
+      factorPart <- Lambda_BetaStar %*% x[[g]]$sigma_zeta %*% t(Lambda_BetaStar)
+
+      # When corinput=TRUE, derive diagonal of sigma_epsilon from diag(sigma)=1 constraint:
+      if (model@sample@corinput){
+        diag(x[[g]]$sigma_epsilon) <- 1 - diag(factorPart)
+      }
+
+      x[[g]]$sigma <- factorPart + x[[g]]$sigma_epsilon
+
       # FIXME: forcing symmetric, but not sure why this is needed...
       x[[g]]$sigma <- 0.5*(x[[g]]$sigma + t(x[[g]]$sigma))
       

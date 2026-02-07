@@ -18,11 +18,12 @@ lvm(data, lambda, latent = c("cov", "chol", "prec",
                    "full", lowertri_zeta = "full", delta_zeta = "full",
                    sigma_epsilon = "diag", kappa_epsilon = "diag",
                    omega_epsilon = "zero", lowertri_epsilon = "diag",
-                   delta_epsilon = "diag", beta = "zero", nu, nu_eta,
+                   delta_epsilon = "diag", beta = "zero", nu, nu_eta, tau,
                    identify = TRUE, identification = c("loadings",
-                   "variance"), vars, latents, groups, covs, means, nobs,
+                   "variance"), vars, ordered = character(0), latents,
+                   groups, covs, means, nobs,
                    missing = "listwise", equal = "none",
-                   baseline_saturated = TRUE, estimator = "ML",
+                   baseline_saturated = TRUE, estimator = "default",
                    optimizer, storedata = FALSE, WLS.W, covtype =
                    c("choose", "ML", "UB"), standardize = c("none", "z",
                    "quantile"), sampleStats, verbose = FALSE,
@@ -86,6 +87,9 @@ Optional vector encoding the intercepts of the observed variables. Set elements 
   \item{nu_eta}{
 Optional vector encoding the intercepts of the latent variables. Set elements to 0 to indicate fixed to zero constrains, 1 to indicate free intercepts, and higher integers to indicate equality constrains. For multiple groups, this argument can be a list or array with each element/column encoding such a vector.
 }
+  \item{tau}{
+Optional matrix encoding the threshold parameters for ordinal variables. Each column corresponds to an observed variable and each row to a threshold. Use 0 for fixed elements, 1 for free elements, and higher integers for equality constrains. Typically set up automatically when \code{ordered} is specified.
+}
   \item{identify}{
 Logical, should the model be automatically identified?
 }
@@ -94,6 +98,9 @@ Type of identification used. \code{"loadings"} to fix the first factor loadings 
 }
   \item{vars}{
 An optional character vector encoding the variables used in the analysis. Must equal names of the dataset in \code{data}.
+}
+  \item{ordered}{
+Character vector of variable names to treat as ordinal, or \code{TRUE} to treat all variables as ordinal. When ordinal variables are specified, polychoric correlations and thresholds are estimated from the data and the model is fit using the Muthen (1984) three-stage estimator. The estimator defaults to \code{"WLS"} for ordinal models; \code{"DWLS"} and \code{"ULS"} are also supported. Identification is automatically set to \code{"variance"}.
 }
   \item{latents}{
 An optional character vector with names of the latent variables.
@@ -120,7 +127,7 @@ A character vector indicating which matrices should be constrained equal across 
 A logical indicating if the baseline and saturated model should be included. Mostly used internally and NOT Recommended to be used manually.
 }
   \item{estimator}{
-The estimator to be used. Currently implemented are \code{"ML"} for maximum likelihood estimation, \code{"FIML"} for full-information maximum likelihood estimation, \code{"ULS"} for unweighted least squares estimation, \code{"WLS"} for weighted least squares estimation, and \code{"DWLS"} for diagonally weighted least squares estimation.
+The estimator to be used. Currently implemented are \code{"ML"} for maximum likelihood estimation, \code{"FIML"} for full-information maximum likelihood estimation, \code{"ULS"} for unweighted least squares estimation, \code{"WLS"} for weighted least squares estimation, and \code{"DWLS"} for diagonally weighted least squares estimation. Defaults to \code{"ML"} for continuous data and \code{"WLS"} when ordinal variables are specified via \code{ordered}.
 }
   \item{optimizer}{
 The optimizer to be used. Can be one of \code{"nlminb"} (the default R \code{nlminb} function), \code{"ucminf"} (from the \code{optimr} package), and C++ based optimizers \code{"cpp_L-BFGS-B"}, \code{"cpp_BFGS"}, \code{"cpp_CG"}, \code{"cpp_SANN"}, and \code{"cpp_Nelder-Mead"}. The C++ optimizers are faster but slightly less stable. Defaults to \code{"nlminb"}.
@@ -193,6 +200,8 @@ An object of the class psychonetrics (\link{psychonetrics-class})
 }
 \references{
 Epskamp, S., Rhemtulla, M., & Borsboom, D. (2017). Generalized network psychometrics: Combining network and latent variable models. Psychometrika, 82(4), 904-927.
+
+Muthen, B. (1984). A general structural equation model with dichotomous, ordered categorical, and continuous latent variable indicators. Psychometrika, 49(1), 115-132.
 }
 \author{
 Sacha Epskamp
