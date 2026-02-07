@@ -36,7 +36,7 @@ parameters <- function(x){
     cols <- c("var1","op","var2","est","se","p","matrix","row","col","group","par")
     boots <- FALSE
   }
-  parTable <- parTable %>% filter(!.data[['fixed']]|.data[['est']] != 0) %>% 
+  parTable <- parTable %>% filter(drop(!.data[['fixed']]|.data[['est']] != 0)) %>%
     select(all_of(cols))
   
   # Make var2 nicer:

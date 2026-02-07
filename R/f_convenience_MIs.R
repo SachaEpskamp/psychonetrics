@@ -60,12 +60,12 @@ MIs_inner <- function(x,all = FALSE, matrices, type = c("normal","equal","free")
   )
 
   # filter only non-zero parameters and select only relevant columns:
-  parTable <- parTable %>%  filter(.data[['matrix']] %in% matrices) %>% 
+  parTable <- parTable %>%  filter(drop(.data[['matrix']] %in% matrices)) %>%
     select(.data[["var1"]],.data[["op"]],.data[["var2"]],.data[["est"]],.data[[micol]],.data[[pcol]],.data[[epccol]],.data[["matrix"]],.data[["row"]],.data[["col"]],.data[["group"]],.data[["group_id"]])
-  
+
   # nonZero:
   if (nonZero){
-    parTable <- parTable %>% filter(.data[['est']]!=0)
+    parTable <- parTable %>% filter(drop(.data[['est']]!=0))
   }
   
   # If nothing, return:
