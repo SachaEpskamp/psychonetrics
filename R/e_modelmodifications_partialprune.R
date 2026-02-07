@@ -228,8 +228,8 @@ partialprune <- function(
       pars$equal <- pars$par != 0 & (duplicated(pars$par) | rev(duplicated(rev(pars$par))))
       
       # Make a data frame in which the equality free parameters are summed:
-      miDF <- pars %>% filter(!fixed, equal) %>% group_by(.data[["row"]],.data[["col"]],.data[["matrix"]]) %>%
-        filter(matrix %in% matrices) %>%
+      miDF <- pars %>% filter(drop(!fixed), drop(equal)) %>% group_by(.data[["row"]],.data[["col"]],.data[["matrix"]]) %>%
+        filter(drop(matrix %in% matrices)) %>%
         summarize(mi_free = sum(mi_free)) %>% 
         arrange(-mi_free)
       
