@@ -11,4 +11,5 @@ psychonetrics\.Rproj
 ^READINGS$
 ^Rplots\.pdf$
 ^test_.*\.R$
+^WLSMV_IMPLEMENTATION_NOTES\.txt$
 

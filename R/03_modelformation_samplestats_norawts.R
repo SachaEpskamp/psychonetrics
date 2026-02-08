@@ -103,6 +103,10 @@ samplestats_norawts <- function(
   if (missing(data) & is.character(weightsmatrix) && weightsmatrix %in% c("full","diag")){
     stop("'data' may not be missing if estimator = 'WLS' or esitmator = 'DWLS'")
   }
+
+  # Initialize Gamma matrix storage for WLSMV (must be before data/covs branching):
+  gammamatrix <- list()
+
   # If data is supplied:
   if (!missing(data) && !is.null(data)){
     if (!is.data.frame(data) & !is.matrix(data)){
@@ -189,12 +193,13 @@ samplestats_norawts <- function(
     # Do I need a WLS.W?
     if (length(ordered) > 0 && is.character(weightsmatrix)){
       needWLSV <- TRUE
+      ordinal_wtype <- weightsmatrix  # Preserve: "full", "diag", or "identity"
       weightsmatrix <- list()
     } else {
       needWLSV <- FALSE
+      ordinal_wtype <- "none"
     }
-    
-   
+
     
     # Create covs and means arguments:
     if (nGroup == 1){
@@ -226,7 +231,19 @@ samplestats_norawts <- function(
         }
         
         if (needWLSV){
-          weightsmatrix[[1]] <- prepRes$WLS_V
+          # WLS_V from covPrepare_cpp is full Gamma inverse
+          # For full WLS: store as-is (full weight matrix)
+          # For DWLS: use 1/diag(Gamma), NOT diag(inverse(Gamma)) -- matches lavaan convention
+          Gamma_full <- solve(as.matrix(prepRes$WLS_V))
+          gammamatrix[[1]] <- Gamma_full
+
+          if (ordinal_wtype == "diag"){
+            # DWLS: diagonal weight = 1/diag(Gamma)
+            weightsmatrix[[1]] <- diag(1 / diag(Gamma_full))
+          } else {
+            # WLS (full): use the full inverse of Gamma
+            weightsmatrix[[1]] <- prepRes$WLS_V
+          }
         }
         squares <- list(as(matrix(NA,nrow(prepRes$covmat),ncol(prepRes$covmat)), "matrix"))
         
@@ -303,9 +320,16 @@ samplestats_norawts <- function(
           }
           
           if (needWLSV){
-            weightsmatrix[[g]] <- prepRes$WLS_V
+            Gamma_full_g <- solve(as.matrix(prepRes$WLS_V))
+            gammamatrix[[g]] <- Gamma_full_g
+
+            if (ordinal_wtype == "diag"){
+              weightsmatrix[[g]] <- diag(1 / diag(Gamma_full_g))
+            } else {
+              weightsmatrix[[g]] <- prepRes$WLS_V
+            }
           }
-          
+
         } else {
           
           
@@ -635,9 +659,13 @@ samplestats_norawts <- function(
           } else if (weightsmatrix == "full"){
             subData <- data[data[[groups]] == g,c(vars)]
             object@WLS.W[[g]] <- as.matrix(LS_weightsmat(subData,meanstructure=meanstructure,corinput=corinput))
+            # Store full Gamma for WLSMV correction (can be obtained by inverting full W):
+            gammamatrix[[g]] <- solve(object@WLS.W[[g]])
           } else if (weightsmatrix == "diag"){
             subData <- data[data[[groups]] == g,c(vars)]
             object@WLS.W[[g]] <- as.matrix(LS_weightsmat(subData, type = "diagonal",meanstructure=meanstructure,corinput=corinput))
+            # Store full Gamma for WLSMV correction (cannot recover from diagonal W, compute from scratch):
+            gammamatrix[[g]] <- LS_Gamma(subData, meanstructure=meanstructure, corinput=corinput)
           }
         }
       }
@@ -649,6 +677,11 @@ samplestats_norawts <- function(
   
   
   
+  # Store Gamma (asymptotic covariance) for WLSMV correction:
+  if (length(gammamatrix) > 0){
+    object@WLS.Gamma <- gammamatrix
+  }
+
   # Return object:
   return(object)
 }

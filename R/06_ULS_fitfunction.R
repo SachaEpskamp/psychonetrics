@@ -15,7 +15,7 @@
 ULS_Gauss <- function(prep){
 
   # Fit per group:
-  fit_per_group <- (prep$nPerGroup+1)/(prep$nTotal) * sapply(prep$groupModels, do.call, what=ULS_Gauss_pergroup)
+  fit_per_group <- (prep$nPerGroup)/(prep$nTotal) * sapply(prep$groupModels, do.call, what=ULS_Gauss_pergroup)
 
   sum(fit_per_group)
 }

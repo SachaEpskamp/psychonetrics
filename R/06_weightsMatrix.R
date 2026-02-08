@@ -37,3 +37,31 @@ LS_weightsmat <- function(dat, type = c("full","diagonal"), meanstructure = TRUE
   WmatInv <- as(solve_symmetric(as(Wmat,"matrix")),"matrix")
   WmatInv
 }
+
+
+# Compute full asymptotic covariance matrix (Gamma) without inverting.
+# Used for WLSMV scaled test statistic correction.
+LS_Gamma <- function(dat, meanstructure = TRUE, corinput = FALSE){
+  nvar <- ncol(dat)
+  ncase <- nrow(dat)
+
+  # Always compute the full Gamma (not diagonal):
+  Gamma <- WLS_wmat(
+    as.matrix(dat),
+    colMeans(dat, na.rm = TRUE),
+    ncase,
+    nvar)
+
+  # If the mean structure is ignored, remove from ACOV matrix
+  if (!meanstructure){
+    Gamma <- Gamma[-seq_len(nvar),-seq_len(nvar)]
+  }
+
+  # If corinput, remove variances
+  if (corinput){
+    inds <- meanstructure * nvar + which(diag(nvar)[lower.tri(diag(nvar),diag=TRUE)] == 1)
+    Gamma <- Gamma[-inds,-inds]
+  }
+
+  as.matrix(Gamma)
+}

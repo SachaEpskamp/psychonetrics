@@ -4,7 +4,7 @@ ULS_gradient_Gauss <- function(prep){
   g_per_group <- lapply(prep$groupModels, do.call, what=ULS_Gauss_gradient_pergroup)
   
   for (i in seq_along(g_per_group)){
-    g_per_group[[i]] <- g_per_group[[i]] * (prep$nPerGroup[i]+1)/(prep$nTotal)
+    g_per_group[[i]] <- g_per_group[[i]] * (prep$nPerGroup[i])/(prep$nTotal)
   }
 
   Reduce(cbind,g_per_group)

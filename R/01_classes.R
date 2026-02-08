@@ -14,6 +14,7 @@ generate_psychonetrics_samplestats <- setClass("psychonetrics_samplestats",  slo
   fimldata = "list",
   fullFIML = "logical",
   WLS.W = "list", # List with weights matrix per group
+  WLS.Gamma = "list", # List with asymptotic covariance matrix (Gamma) per group, for WLSMV correction
   rawdata = "data.frame", # For bootstrapping!
   groupvar = "character",
   bootstrap = "logical",
