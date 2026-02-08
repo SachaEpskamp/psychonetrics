@@ -46,14 +46,19 @@ varcov <- function(
     ordered <- character(0)
   }
   
+  # WLSMV is a synonym for DWLS (DWLS estimation + scaled test statistic):
+  if (estimator == "WLSMV"){
+    estimator <- "DWLS"
+  }
+
   if (estimator == "default"){
     if (length(ordered) > 0){
-      estimator <- "WLS"
+      estimator <- "DWLS"
     } else {
       estimator <- "ML"
     }
   }
-  
+
   # Check WLS for ordinal:
   if (length(ordered) > 0 & !estimator %in% c("WLS","DWLS","ULS")){
     stop("Ordinal data is only supported for WLS, DWLS and ULS estimators.")
