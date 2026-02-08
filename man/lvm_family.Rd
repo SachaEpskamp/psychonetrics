@@ -26,7 +26,7 @@ lvm(data, lambda, latent = c("cov", "chol", "prec",
                    baseline_saturated = TRUE, estimator = "default",
                    optimizer, storedata = FALSE, WLS.W, covtype =
                    c("choose", "ML", "UB"), standardize = c("none", "z",
-                   "quantile"), sampleStats, verbose = FALSE,
+                   "quantile"), sampleStats, corinput, verbose = FALSE,
                    simplelambdastart = FALSE, bootstrap = FALSE,
                    boot_sub, boot_resample)
 
@@ -142,7 +142,10 @@ Logical, should progress be printed to the console?
 The weights matrix used in WLS estimation (experimental)
 }
   \item{sampleStats}{
-An optional sample statistics object. Mostly used internally. 
+An optional sample statistics object. Mostly used internally.
+}
+\item{corinput}{
+Logical, is the input a correlation matrix? When \code{TRUE}, the diagonal of the implied covariance matrix is constrained to 1 and residual variances are derived rather than freely estimated. Only supported for \code{"WLS"}, \code{"DWLS"} and \code{"ULS"} estimators.
 }
 \item{covtype}{
   If 'covs' is used, this is the type of covariance (maximum likelihood or unbiased) the input covariance matrix represents. Set to \code{"ML"} for maximum likelihood estimates (denominator n) and \code{"UB"} to unbiased estimates (denominator n-1). The default will try to find the type used, by investigating which is most likely to result from integer valued datasets.

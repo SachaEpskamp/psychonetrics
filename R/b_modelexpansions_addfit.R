@@ -3,7 +3,7 @@
 
 # Compute WLSMV (mean-and-variance adjusted) scaled test statistic.
 # Implements Satorra-Bentler-style correction for WLS/DWLS/ULS estimators.
-# References: Satorra & Bentler (1994), Muthén (1993)
+# References: Satorra & Bentler (1994), Muthen (1993)
 compute_wlsmv_correction <- function(x) {
 
   # Check that Gamma is available:
