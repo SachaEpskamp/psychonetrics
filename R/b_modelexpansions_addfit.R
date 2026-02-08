@@ -1,13 +1,18 @@
 # Add fit measures to psychonetrics object!
 
 
+# Helper to safely check if WLS.Gamma slot exists and is non-empty:
+has_WLS_Gamma <- function(x) {
+  .hasSlot(x@sample, "WLS.Gamma") && length(x@sample@WLS.Gamma) > 0
+}
+
 # Compute WLSMV (mean-and-variance adjusted) scaled test statistic.
 # Implements Satorra-Bentler-style correction for WLS/DWLS/ULS estimators.
 # References: Satorra & Bentler (1994), Muthen (1993)
 compute_wlsmv_correction <- function(x) {
 
   # Check that Gamma is available:
-  if (length(x@sample@WLS.Gamma) == 0) {
+  if (!has_WLS_Gamma(x)) {
     return(NULL)
   }
 
@@ -250,7 +255,7 @@ addfit <- function(
 
   # WLSMV scaled test statistic (mean-and-variance adjusted):
   wlsmv_model <- NULL
-  if (x@estimator %in% c("WLS","DWLS","ULS") && length(x@sample@WLS.Gamma) > 0) {
+  if (x@estimator %in% c("WLS","DWLS","ULS") && has_WLS_Gamma(x)) {
     wlsmv_model <- tryCatch(compute_wlsmv_correction(x), error = function(e) NULL)
     if (!is.null(wlsmv_model)) {
       fitMeasures$chisq.scaled <- wlsmv_model$chisq.scaled
@@ -283,7 +288,7 @@ addfit <- function(
 
     # WLSMV scaled baseline:
     wlsmv_baseline <- NULL
-    if (!is.null(wlsmv_model) && x@estimator %in% c("WLS","DWLS","ULS") && length(x@sample@WLS.Gamma) > 0) {
+    if (!is.null(wlsmv_model) && x@estimator %in% c("WLS","DWLS","ULS") && has_WLS_Gamma(x)) {
       wlsmv_baseline <- tryCatch(compute_wlsmv_correction(x@baseline_saturated$baseline), error = function(e) NULL)
       if (!is.null(wlsmv_baseline)) {
         fitMeasures$baseline.chisq.scaled <- wlsmv_baseline$chisq.scaled
