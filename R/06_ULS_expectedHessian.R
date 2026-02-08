@@ -5,7 +5,7 @@ expected_hessian_ULS_Gaussian <- function(prep){
   h_per_group <- lapply(prep$groupModels, do.call, what=ULS_Gauss_exphes_pergroup)
   
   for (i in seq_along(h_per_group)){
-    h_per_group[[i]] <- h_per_group[[i]] * (prep$nPerGroup[i]+1)/(prep$nTotal)
+    h_per_group[[i]] <- h_per_group[[i]] * (prep$nPerGroup[i])/(prep$nTotal)
   }
   
   do.call(bdiag,h_per_group)

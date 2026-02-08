@@ -132,7 +132,7 @@ arma::mat ULS_gradient_Gauss_cpp(
   Rcpp::List groupgradients(nGroup);
   
   for (int i=0; i<nGroup;i++){
-    arma::mat groupgrad =  ((nPerGroup(i)+1) / nTotal) * ULS_Gauss_gradient_pergroup_cpp(groupmodels[i]);
+    arma::mat groupgrad =  (nPerGroup(i) / nTotal) * ULS_Gauss_gradient_pergroup_cpp(groupmodels[i]);
     groupgradients[i]  = groupgrad;
   }
   

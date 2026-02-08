@@ -49,7 +49,7 @@ arma::mat expected_hessian_ULS_Gaussian_cpp(
   Rcpp::List grouphessians(nGroup);
   
   for (int i=0; i<nGroup;i++){
-    arma::mat grouphes =  ((nPerGroup(i)+1) / nTotal) * ULS_Gauss_exphes_pergroup_cpp(groupmodels[i]);
+    arma::mat grouphes =  (nPerGroup(i) / nTotal) * ULS_Gauss_exphes_pergroup_cpp(groupmodels[i]);
     grouphessians[i]  = grouphes;
   }
   

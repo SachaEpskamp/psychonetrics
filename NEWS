@@ -1,3 +1,20 @@
+Changes in Version 0.14.12
+  o Added WLSMV scaled test statistic (mean-and-variance adjusted chi-square) for WLS/DWLS/ULS estimators:
+    o Implements the scaled-shifted test (Asparouhov & Muthen, 2010) matching lavaan's WLSMV output
+    o New fit measures: chisq.scaled, df.scaled, pvalue.scaled, chisq.scaling.factor
+    o Scaled incremental fit indices: cfi.scaled, tli.scaled, nfi.scaled, rfi.scaled, ifi.scaled, rni.scaled, nnfi.scaled
+    o Scaled RMSEA: rmsea.scaled
+    o Baseline model also receives scaled test statistic (baseline.chisq.scaled, etc.)
+    o Added WLS.Gamma slot to store the full asymptotic covariance matrix (Gamma) per group
+    o Added LS_Gamma() helper function for computing Gamma from raw data
+    o Scaling factors match lavaan to 6+ decimal places for both ordinal and continuous data
+    o Supports single-group and multi-group models
+  o Fixed the DWLS weight matrix for ordinal data:
+    o Previously used diag(Gamma^{-1}) (diagonal of the full inverse), which differs from standard
+    o Now uses 1/diag(Gamma) (reciprocal of the diagonal), matching the lavaan convention
+  o Fixed (n+1)/n scaling bug in ULS fit function, gradient, and expected Hessian (R and C++):
+    o The weight matrix normalisation factor was (n+1)/n instead of 1, causing small systematic bias
+
 Changes in Version 0.14.11
   o Added corinput support to the lvm framework:
     o lvm() now accepts a 'corinput' argument to specify that the input is a correlation matrix

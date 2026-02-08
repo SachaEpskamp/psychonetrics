@@ -142,7 +142,7 @@ double ULS_Gauss_cpp(
   double fit = 0;
   
   for (int i=0; i<nGroup;i++){
-    fit += ((nPerGroup(i)+1) / nTotal) * ULS_Gauss_cpp_pergroup(groupmodels[i]); // FIXME: Why +1?
+    fit += (nPerGroup(i) / nTotal) * ULS_Gauss_cpp_pergroup(groupmodels[i]);
   }
   
   return(fit);
