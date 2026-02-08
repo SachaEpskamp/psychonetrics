@@ -41,9 +41,9 @@ adjust_p_values <- function(x,
   # Number of tests:
   nTest <- length(unique(x@parameters$par[whichTest]))
   
-  # If no tests, break:
+  # If no tests, return NA vector:
   if (nTest == 0){
-    return(x)
+    return(rep(NA, nrow(x@parameters)))
   }
   
   # old method:
