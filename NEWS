@@ -9,6 +9,8 @@ Changes in Version 0.14.12
     o Added LS_Gamma() helper function for computing Gamma from raw data
     o Scaling factors match lavaan to 6+ decimal places for both ordinal and continuous data
     o Supports single-group and multi-group models
+  o Changed the default estimator for ordinal data from WLS to DWLS, matching lavaan's convention
+  o Added "WLSMV" as an estimator alias for "DWLS" in lvm() and varcov()
   o Fixed the DWLS weight matrix for ordinal data:
     o Previously used diag(Gamma^{-1}) (diagonal of the full inverse), which differs from standard
     o Now uses 1/diag(Gamma) (reciprocal of the diagonal), matching the lavaan convention
