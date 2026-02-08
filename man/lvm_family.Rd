@@ -100,7 +100,7 @@ Type of identification used. \code{"loadings"} to fix the first factor loadings 
 An optional character vector encoding the variables used in the analysis. Must equal names of the dataset in \code{data}.
 }
   \item{ordered}{
-Character vector of variable names to treat as ordinal, or \code{TRUE} to treat all variables as ordinal. When ordinal variables are specified, polychoric correlations and thresholds are estimated from the data and the model is fit using the Muthen (1984) three-stage estimator. The estimator defaults to \code{"WLS"} for ordinal models; \code{"DWLS"} and \code{"ULS"} are also supported. Identification is automatically set to \code{"variance"}.
+Character vector of variable names to treat as ordinal, or \code{TRUE} to treat all variables as ordinal. When ordinal variables are specified, polychoric correlations and thresholds are estimated from the data and the model is fit using the Muthen (1984) three-stage estimator. The estimator defaults to \code{"DWLS"} for ordinal models; \code{"WLS"} and \code{"ULS"} are also supported. Identification is automatically set to \code{"variance"}.
 }
   \item{latents}{
 An optional character vector with names of the latent variables.
@@ -127,7 +127,7 @@ A character vector indicating which matrices should be constrained equal across 
 A logical indicating if the baseline and saturated model should be included. Mostly used internally and NOT Recommended to be used manually.
 }
   \item{estimator}{
-The estimator to be used. Currently implemented are \code{"ML"} for maximum likelihood estimation, \code{"FIML"} for full-information maximum likelihood estimation, \code{"ULS"} for unweighted least squares estimation, \code{"WLS"} for weighted least squares estimation, and \code{"DWLS"} for diagonally weighted least squares estimation. Defaults to \code{"ML"} for continuous data and \code{"WLS"} when ordinal variables are specified via \code{ordered}.
+The estimator to be used. Currently implemented are \code{"ML"} for maximum likelihood estimation, \code{"FIML"} for full-information maximum likelihood estimation, \code{"ULS"} for unweighted least squares estimation, \code{"WLS"} for weighted least squares estimation, and \code{"DWLS"} for diagonally weighted least squares estimation. \code{"WLSMV"} is accepted as a synonym for \code{"DWLS"} (both use DWLS estimation with a mean-and-variance adjusted scaled test statistic). Defaults to \code{"ML"} for continuous data and \code{"DWLS"} when ordinal variables are specified via \code{ordered}.
 }
   \item{optimizer}{
 The optimizer to be used. Can be one of \code{"nlminb"} (the default R \code{nlminb} function), \code{"ucminf"} (from the \code{optimr} package), and C++ based optimizers \code{"cpp_L-BFGS-B"}, \code{"cpp_BFGS"}, \code{"cpp_CG"}, \code{"cpp_SANN"}, and \code{"cpp_Nelder-Mead"}. The C++ optimizers are faster but slightly less stable. Defaults to \code{"nlminb"}.
