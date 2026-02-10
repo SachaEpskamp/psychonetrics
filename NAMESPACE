@@ -151,6 +151,7 @@ export(fit)
 export(getmatrix)
 export(compare)
 export(parameters)
+export(write_psychonetrics)
 # export(replicator)
 
 # Special matrices:
@@ -177,7 +178,7 @@ importFrom(corpcor, pseudoinverse)
 import(glasso)
 importFrom(qgraph,qgraph,wi2net)
 importFrom("graphics", "abline", "par")
-  importFrom("methods", "as", "is", "new")
+  importFrom("methods", "as", "is", "new", ".hasSlot")
   importFrom("stats", "nlminb", "pchisq", "pnorm", "qchisq", "runif",
              "uniroot","cov")
   importFrom("utils", "sessionInfo", "modifyList")
