@@ -5,10 +5,6 @@ write_psychonetrics <- function(x, file = "psychonetrics_output.txt",
 
   # Validation:
   stopifnot(is(x, "psychonetrics"))
-  if (!x@computed) {
-    warning("Model has not been computed. Output will be incomplete.")
-  }
-
   LINE_WIDTH <- 72
 
   # Accumulate all output lines:
@@ -19,20 +15,22 @@ write_psychonetrics <- function(x, file = "psychonetrics_output.txt",
   lines <- c(lines, .wp_sample(x, LINE_WIDTH))
   lines <- c(lines, .wp_model(x, LINE_WIDTH))
 
-  if (x@computed) {
-    lines <- c(lines, .wp_parameters(x, LINE_WIDTH))
+  if (!x@computed) {
+    lines <- c(lines, .wp_warning_not_computed(LINE_WIDTH))
+  }
 
-    if (!is.null(x@fitmeasures)) {
-      lines <- c(lines, .wp_fit(x, LINE_WIDTH))
-    }
+  lines <- c(lines, .wp_parameters(x, LINE_WIDTH))
 
-    if (matrices) {
-      lines <- c(lines, .wp_matrices(x, LINE_WIDTH))
-    }
+  if (x@computed && !is.null(x@fitmeasures)) {
+    lines <- c(lines, .wp_fit(x, LINE_WIDTH))
+  }
 
-    if (MIs && any(!is.na(x@parameters$mi))) {
-      lines <- c(lines, .wp_MIs(x, LINE_WIDTH))
-    }
+  if (matrices) {
+    lines <- c(lines, .wp_matrices(x, LINE_WIDTH))
+  }
+
+  if (x@computed && MIs && any(!is.na(x@parameters$mi))) {
+    lines <- c(lines, .wp_MIs(x, LINE_WIDTH))
   }
 
   if (logbook) {
@@ -100,6 +98,22 @@ write_psychonetrics <- function(x, file = "psychonetrics_output.txt",
   }
   if (nchar(current) > 0) result <- c(result, current)
   paste(result, collapse = paste0("\n", pad))
+}
+
+
+# Warning banner for uncomputed models:
+.wp_warning_not_computed <- function(width = 72) {
+  sep <- .wp_separator(width, "=")
+  star_pad <- max(0, (width - nchar("* WARNING *")) %/% 2)
+  c("",
+    sep,
+    paste0(paste0(rep(" ", star_pad), collapse = ""), "* WARNING *"),
+    "",
+    "  This model has NOT been estimated. Values shown below are STARTING",
+    "  VALUES only. Run the model with runmodel() before interpreting any",
+    "  results. No standard errors, p-values, or fit measures are available.",
+    sep,
+    "")
 }
 
 
@@ -273,18 +287,33 @@ write_psychonetrics <- function(x, file = "psychonetrics_output.txt",
 # --- Section: Parameter estimates ---
 
 .wp_parameters <- function(x, width = 72) {
-  lines <- .wp_section_title("PARAMETER ESTIMATES", width)
+  computed <- x@computed
+
+  if (computed) {
+    lines <- .wp_section_title("PARAMETER ESTIMATES", width)
+  } else {
+    lines <- .wp_section_title("STARTING VALUES", width)
+    lines <- c(lines,
+      "  NOTE: Model has not been estimated. Values below are starting",
+      "  values only and should not be interpreted as results.", "")
+  }
 
   parTable <- x@parameters
 
   # Determine columns (same logic as parameters()):
-  has_boots <- !all(is.na(parTable$se_boot))
-  if (has_boots) {
-    cols <- c("var1", "op", "var2", "est", "se", "p", "se_boot", "p_boot",
+  if (!computed) {
+    # Uncomputed: show only structure and starting values
+    cols <- c("var1", "op", "var2", "est",
               "matrix", "row", "col", "group", "par")
   } else {
-    cols <- c("var1", "op", "var2", "est", "se", "p",
-              "matrix", "row", "col", "group", "par")
+    has_boots <- !all(is.na(parTable$se_boot))
+    if (has_boots) {
+      cols <- c("var1", "op", "var2", "est", "se", "p", "se_boot", "p_boot",
+                "matrix", "row", "col", "group", "par")
+    } else {
+      cols <- c("var1", "op", "var2", "est", "se", "p",
+                "matrix", "row", "col", "group", "par")
+    }
   }
 
   # Filter non-fixed or non-zero:
@@ -296,11 +325,14 @@ write_psychonetrics <- function(x, file = "psychonetrics_output.txt",
 
   # Format numbers:
   parTable$est <- goodNum2(parTable$est)
-  parTable$se <- goodNum(parTable$se)
-  parTable$p <- goodNum(parTable$p)
-  if (has_boots) {
-    parTable$se_boot <- goodNum(parTable$se_boot)
-    parTable$p_boot <- goodNum(parTable$p_boot)
+  if (computed) {
+    parTable$se <- goodNum(parTable$se)
+    parTable$p <- goodNum(parTable$p)
+    has_boots <- !all(is.na(x@parameters$se_boot))
+    if (has_boots) {
+      parTable$se_boot <- goodNum(parTable$se_boot)
+      parTable$p_boot <- goodNum(parTable$p_boot)
+    }
   }
 
   # For each group/matrix:
@@ -350,7 +382,11 @@ write_psychonetrics <- function(x, file = "psychonetrics_output.txt",
 # --- Section: Model matrices ---
 
 .wp_matrices <- function(x, width = 72) {
-  lines <- .wp_section_title("MODEL MATRICES", width)
+  if (x@computed) {
+    lines <- .wp_section_title("MODEL MATRICES", width)
+  } else {
+    lines <- .wp_section_title("MODEL MATRICES (STARTING VALUES)", width)
+  }
 
   varLabels <- x@sample@variables$label
   nObs <- length(varLabels)
