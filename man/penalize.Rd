@@ -63,18 +63,35 @@ Model constructors (e.g., \code{ggm}, \code{lvm}, \code{var1}) accept \code{pena
 \author{
 Sacha Epskamp
 }
+\seealso{
+\code{\link{find_penalized_lambda}} for automatic lambda selection via EBIC grid search,
+\code{\link{runmodel}} for running models (calls \code{find_penalized_lambda} automatically when \code{penalty_lambda = NA}),
+\code{\link{ggm}} and other model constructors for the \code{penalty_lambda}, \code{penalty_alpha}, and \code{penalize_matrices} arguments.
+}
 \examples{
-\dontrun{
-# Penalized GGM estimation:
-mod <- ggm(data, estimator = "PML", penalty_lambda = 0.1)
-mod <- runmodel(mod)
+\donttest{
+# Load bfi data from psych package:
+library("psychTools")
+library("dplyr")
+data(bfi)
 
-# Post-selection refit for SEs:
-mod_refit <- refit(mod)
+ConsData <- bfi \%>\%
+  select(A1:A5) \%>\%
+  na.omit
 
-# Manual penalize/unpenalize:
-mod2 <- ggm(data, estimator = "PML", penalty_lambda = 0.1)
-mod2 <- unpenalize(mod2, "omega", row = 1, col = 2)  # unpenalize specific edge
-mod2 <- runmodel(mod2)
+vars <- names(ConsData)
+
+# Penalized GGM estimation with manual lambda:
+mod <- ggm(ConsData, vars = vars, estimator = "PML", penalty_lambda = 0.1)
+mod <- mod \%>\% runmodel
+
+# Post-selection refit for standard errors:
+mod_refit <- mod \%>\% refit
+mod_refit \%>\% parameters
+
+# Manual unpenalize: free a specific edge from the penalty:
+mod2 <- ggm(ConsData, vars = vars, estimator = "PML", penalty_lambda = 0.1)
+mod2 <- unpenalize(mod2, "omega", row = 1, col = 2)
+mod2 <- mod2 \%>\% runmodel
 }
 }

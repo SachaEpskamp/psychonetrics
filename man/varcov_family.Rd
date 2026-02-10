@@ -24,7 +24,7 @@ varcov(data, type = c("cov", "chol", "prec", "ggm", "cor"),
                    covtype = c("choose", "ML", "UB"), standardize =
                    c("none", "z", "quantile"), fullFIML = FALSE,
                    bootstrap = FALSE, boot_sub, boot_resample,
-                   penalty_lambda = 0, penalty_alpha = 1,
+                   penalty_lambda = NA, penalty_alpha = 1,
                    penalize_matrices)
 cholesky(\dots)
 precision(\dots)
@@ -136,7 +136,7 @@ Proportion of cases to be subsampled (\code{round(boot_sub * N)}).
 \item{boot_resample}{
 Logical, should the bootstrap be with replacement (\code{TRUE}) or without replacement (\code{FALSE})
 }
-\item{penalty_lambda}{Numeric penalty strength for penalized ML estimation (PML). Default is 0 (no penalty).}
+\item{penalty_lambda}{Numeric penalty strength for penalized ML estimation (PML/PFIML). Default is \code{NA}, which triggers automatic lambda selection via EBIC grid search when \code{estimator = "PML"} or \code{"PFIML"} (see \code{\link{find_penalized_lambda}}). Set to a specific numeric value (e.g., \code{0.1}) for manual lambda, or \code{0} for no penalty.}
 \item{penalty_alpha}{Elastic net mixing parameter: 1 = LASSO (default), 0 = ridge.}
 \item{penalize_matrices}{Character vector of matrix names to penalize. If missing, defaults are selected based on the model type.}
 \item{\dots}{
@@ -174,7 +174,10 @@ Sacha Epskamp
 
 
 \seealso{
-\code{\link{lvm}}, \code{\link{var1}}, \code{\link{dlvm1}}
+\code{\link{lvm}}, \code{\link{var1}}, \code{\link{dlvm1}},
+\code{\link{penalize}} for manual penalty control,
+\code{\link{find_penalized_lambda}} for automatic lambda selection,
+\code{\link{refit}} for post-selection inference after penalized estimation.
 }
 \examples{
 # Load bfi data from psych package:
@@ -240,5 +243,19 @@ mod1 \%>\% parameters
 
 # Or obtain the network as follows:
 getmatrix(mod1, "omega")
+
+# Penalized GGM estimation with automatic lambda selection:
+mod_pml <- ggm(ConsData, vars = vars, estimator = "PML")
+mod_pml <- mod_pml \%>\% runmodel
+
+# Check selected lambda:
+mod_pml@optim$lambda_search
+
+# Obtain the sparse network:
+getmatrix(mod_pml, "omega")
+
+# Refit for standard errors and fit indices:
+mod_pml_refit <- mod_pml \%>\% refit
+mod_pml_refit \%>\% parameters
 }
 }

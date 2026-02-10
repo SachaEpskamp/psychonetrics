@@ -86,10 +86,20 @@ Sacha Epskamp
 \code{\link{refit}} for post-selection inference after penalized estimation.
 }
 \examples{
-\dontrun{
-# Automatic lambda selection (called implicitly by runmodel):
+\donttest{
+# Load bfi data from psych package:
+library("psychTools")
 library("dplyr")
-mod <- ggm(data, estimator = "PML")
+data(bfi)
+
+ConsData <- bfi \%>\%
+  select(A1:A5) \%>\%
+  na.omit
+
+vars <- names(ConsData)
+
+# Automatic lambda selection (called implicitly by runmodel):
+mod <- ggm(ConsData, vars = vars, estimator = "PML")
 mod <- mod \%>\% runmodel  # automatically searches for best lambda
 
 # Check lambda search results:
@@ -97,14 +107,11 @@ mod@optim$lambda_search
 
 # Post-selection refit for standard errors:
 mod_refit <- mod \%>\% refit
+mod_refit \%>\% parameters
 
-# Direct call with custom settings:
-mod <- ggm(data, estimator = "PML")
-mod <- find_penalized_lambda(mod, criterion = "ebic1",
-                             nLambda = 100)
-
-# With PFIML for data with missing values:
-mod_miss <- ggm(data_with_NA, estimator = "PML")  # auto-detects PFIML
-mod_miss <- mod_miss \%>\% runmodel(criterion = "bic")
+# Direct call with custom criterion:
+mod2 <- ggm(ConsData, vars = vars, estimator = "PML")
+mod2 <- find_penalized_lambda(mod2, criterion = "ebic1",
+                              nLambda = 100)
 }
 }
