@@ -380,8 +380,13 @@ write_psychonetrics <- function(x, file = "psychonetrics_output.txt",
 
       lines <- c(lines, "", paste0("    ", mat_name, ":"))
 
-      formatted <- round(mat, 4)
-      lines <- c(lines, .wp_capture_mat(formatted, indent = 6))
+      # Format: round to 2 digits, replace exact zeros with "."
+      formatted <- matrix(
+        ifelse(mat == 0, ".", formatC(round(mat, 2), format = "f", digits = 2)),
+        nrow = nrow(mat), ncol = ncol(mat),
+        dimnames = dimnames(mat)
+      )
+      lines <- c(lines, .wp_capture_mat(noquote(formatted), indent = 6))
     }
   }
 
