@@ -69,6 +69,7 @@ runmodel <- function(
   # Force proximal gradient for PML/FIPML estimator:
   is_penalized <- x@estimator %in% c("PML", "FIPML")
   if (is_penalized) {
+    experimentalWarning(x@estimator)
     optimizer <- "proximal_gradient"
   }
 
@@ -484,6 +485,7 @@ runmodel <- function(
   } else if (grepl("cpp",optimizer) || optimizer == "LBFGS++"){
 
     if (optimizer == "LBFGS++") {
+      experimentalWarning("LBFGS++ optimizer")
       # LBFGS++ pure C++ optimizer:
       suppressWarnings({
         tryres <- try({

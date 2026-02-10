@@ -256,6 +256,7 @@ addfit <- function(
   # WLSMV scaled test statistic (mean-and-variance adjusted):
   wlsmv_model <- NULL
   if (x@estimator %in% c("WLS","DWLS","ULS") && has_WLS_Gamma(x)) {
+    experimentalWarning("WLSMV scaled test statistic")
     wlsmv_model <- tryCatch(compute_wlsmv_correction(x), error = function(e) NULL)
     if (!is.null(wlsmv_model)) {
       fitMeasures$chisq.scaled <- wlsmv_model$chisq.scaled

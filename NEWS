@@ -1,4 +1,4 @@
-Changes in Version 0.15
+Changes in Version 0.14.15
   o Added FIPML (Penalized Full Information Maximum Likelihood) estimator:
     o Combines FIML with L1/L2 penalty for penalized estimation with missing data
     o Available for all Gaussian models (varcov, lvm, var1, dlvm1, tsdlvm1)
@@ -13,6 +13,10 @@ Changes in Version 0.15
   o Penalty setup in model constructors now supports FIPML:
     o estimator = "PML" and estimator = "FIPML" both trigger penalty initialization
     o Baseline/saturated models use the appropriate unpenalized estimator (ML or FIML)
+  o Added experimental feature warnings for features introduced in the 0.14.x branch:
+    o PML, FIPML, LBFGS++ optimizer, ordinal data in lvm()/varcov(), WLSMV scaled test statistic
+    o Warnings appear once per session and only while version < 0.15
+    o Users are directed to report unexpected behavior to GitHub issues
 
 Changes in Version 0.14.14
   o Unified dlvm1() to accept both wide-format and long-format data:

@@ -85,6 +85,11 @@ lvm <- function(
     }
   }
 
+  # Experimental warnings:
+  if (length(ordered) > 0) {
+    experimentalWarning("ordinal data in lvm()")
+  }
+
   # Check WLS for ordinal:
   if (length(ordered) > 0 & !estimator %in% c("WLS","DWLS","ULS")){
     stop("Ordinal data is only supported for WLS, DWLS and ULS estimators.")
