@@ -89,8 +89,11 @@ dlvm1 <- function(
   
   bootstrap = FALSE,
   boot_sub,
-  boot_resample
-  
+  boot_resample,
+
+  # Aliases for within_latent and between_latent:
+  within,
+  between
 ){
   
   
@@ -116,6 +119,22 @@ dlvm1 <- function(
     stop("'start' can only be 'version1', 'version2' (default), 'simple', or a psychonetrics object")
   }
 
+
+  # Handle 'within' and 'between' aliases for within_latent and between_latent:
+  if (!missing(within)){
+    if (!missing(within_latent) && !identical(within_latent, eval(formals(dlvm1)$within_latent))){
+      warning("Both 'within' and 'within_latent' were specified; using 'within_latent'.")
+    } else {
+      within_latent <- within
+    }
+  }
+  if (!missing(between)){
+    if (!missing(between_latent) && !identical(between_latent, eval(formals(dlvm1)$between_latent))){
+      warning("Both 'between' and 'between_latent' were specified; using 'between_latent'.")
+    } else {
+      between_latent <- between
+    }
+  }
 
   # Match args:
   within_latent <- match.arg(within_latent)

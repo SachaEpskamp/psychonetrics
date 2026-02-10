@@ -42,7 +42,7 @@ dlvm1(data, vars, datatype = c("auto", "wide", "long"),
                    sampleStats, baseline =
                    c("stationary_random_intercept", "stationary",
                    "independence", "none"), bootstrap = FALSE, boot_sub,
-                   boot_resample)
+                   boot_resample, within, between)
 
 panelgvar(data, vars, within_latent = c("ggm","chol","cov","prec"), 
           between_latent = c("ggm","chol","cov","prec"), ...)
@@ -216,6 +216,12 @@ Proportion of cases to be subsampled (\code{round(boot_sub * N)}).
 }
 \item{boot_resample}{
 Logical, should the bootstrap be with replacement (\code{TRUE}) or without replacement (\code{FALSE})
+}
+\item{within}{
+Optional alias for \code{within_latent}. If both \code{within} and \code{within_latent} are explicitly specified, \code{within_latent} takes precedence and a warning is issued.
+}
+\item{between}{
+Optional alias for \code{between_latent}. If both \code{between} and \code{between_latent} are explicitly specified, \code{between_latent} takes precedence and a warning is issued.
 }
 \item{\dots}{
 Arguments sent to \code{dlvm1}.
