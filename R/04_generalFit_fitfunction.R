@@ -23,10 +23,6 @@ psychonetrics_fitfunction <- function(x, model){
                     "Gaussian" = maxLikEstimator_Gauss_cpp, # <- updated!
                     "Ising" = maxLikEstimator_Ising_cpp # <- updated!
                     ),
-      "PML" = switch(distribution,
-                    "Gaussian" = maxLikEstimator_Gauss_cpp,
-                    "Ising" = maxLikEstimator_Ising_cpp
-                    ),
       "ULS" =  switch(distribution,"Gaussian" = ULS_Gauss_cpp), # <- updated
       "DWLS" = switch(distribution,"Gaussian" = ULS_Gauss_cpp), # <- updated
       "WLS" = switch(distribution,"Gaussian" = ULS_Gauss_cpp), # <- updated
@@ -36,27 +32,21 @@ psychonetrics_fitfunction <- function(x, model){
     estFun <- switch(
       estimator,
       "ML" = switch(distribution,"Gaussian" = maxLikEstimator_Gauss, "Ising" = maxLikEstimator_Ising),
-      "PML" = switch(distribution,"Gaussian" = maxLikEstimator_Gauss, "Ising" = maxLikEstimator_Ising),
       "ULS" =  switch(distribution,"Gaussian" = ULS_Gauss),
       "DWLS" = switch(distribution,"Gaussian" = ULS_Gauss),
       "WLS" = switch(distribution,"Gaussian" = ULS_Gauss),
       "FIML" = switch(distribution,"Gaussian" = fimlEstimator_Gauss)
     )
   }
-  
-  
-  # Run and return:
-  fit <- estFun(prep)
 
-  # Add penalty terms for PML estimator:
-  if (model@estimator == "PML") {
-    lambda_vec <- penaltyVector(model)
-    alpha <- model@penalty$alpha
-    if (is.null(alpha)) alpha <- 1
-    # L2 (ridge): 0.5 * sum(lambda * (1-alpha) * x^2)
-    # L1 (LASSO): sum(lambda * alpha * |x|)
-    fit <- fit + 0.5 * sum(lambda_vec * (1 - alpha) * x^2) +
-                 sum(lambda_vec * alpha * abs(x))
+  # PML uses dedicated penalized fit functions (handles cpp internally):
+  if (estimator == "PML") {
+    fit <- switch(distribution,
+                  "Gaussian" = penMaxLikEstimator_Gauss(prep, x, model),
+                  "Ising" = penMaxLikEstimator_Ising(prep, x, model))
+  } else {
+    # Run standard estimator:
+    fit <- estFun(prep)
   }
 
   fit

@@ -9,6 +9,8 @@
 #include "06_ULS_fitfunction_cpp.h"
 #include "07_FIMLestimator_fitfunction_cppversion.h"
 #include "04_generalfit_optimWorkspace.h"
+#include "09_PenMLestimator_fit_Gauss_cpp.h"
+#include "09_PenMLestimator_fit_Ising_cpp.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -56,40 +58,37 @@ double psychonetrics_fitfunction_cpp(
   
   
   
-  if (estimator == "ML" || estimator == "PML"){
+  if (estimator == "ML"){
 
     if (distribution == "Gaussian"){
       fit = maxLikEstimator_Gauss_cpp(prep);
     } else if (distribution == "Ising"){
-
       fit = maxLikEstimator_Ising_cpp(prep);
-
     } else {
       Rf_error("Distribution not supported for ML estimator.");
     }
-    
-    
+
+  } else if (estimator == "PML"){
+
+    const OptimWorkspace& ws = getOrBuildWorkspace(model);
+    if (distribution == "Gaussian"){
+      fit = penMaxLikEstimator_Gauss_cpp(prep, x, ws);
+    } else if (distribution == "Ising"){
+      fit = penMaxLikEstimator_Ising_cpp(prep, x, ws);
+    } else {
+      Rf_error("Distribution not supported for PML estimator.");
+    }
+
   } else if (estimator == "ULS" || estimator == "WLS" || estimator == "DWLS"){
-    
+
     fit = ULS_Gauss_cpp(prep);
-    
+
   } else if (estimator == "FIML"){
-    
+
     fit = fimlestimator_Gauss_cpp(prep);
-    
+
   } else {
     Rf_error("Estimator not supported.");
-  }
-
-  // Add penalty terms for PML estimator
-  if (estimator == "PML") {
-    const OptimWorkspace& ws = getOrBuildWorkspace(model);
-    double alpha = ws.penalty_alpha;
-    const arma::vec& lam = ws.penalty_lambda_vec;
-    // L2 (ridge): 0.5 * sum(lambda_i * (1-alpha) * x_i^2)
-    fit += 0.5 * arma::dot(lam * (1.0 - alpha), x % x);
-    // L1 (LASSO): sum(lambda_i * alpha * |x_i|)
-    fit += arma::dot(lam * alpha, arma::abs(x));
   }
 
   return(fit);

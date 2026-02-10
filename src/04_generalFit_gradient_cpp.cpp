@@ -18,6 +18,7 @@
 #include "22_ml_lvm_derivatives_cpp.h"
 #include "02_algebrahelpers_modelMatrix_cpp.h"
 #include "04_generalfit_optimWorkspace.h"
+#include "09_PenMLestimator_penalty_helpers_cpp.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -218,13 +219,9 @@ void psychonetrics_gradient_cpp_inner(
   
   grad = vectorise(Jac);
 
-  // Add penalty gradient for PML estimator
+  // Add penalty gradient for PML estimator:
   if (ws.estimator == "PML") {
-    // L2 gradient: lambda * (1-alpha) * x
-    grad += (ws.penalty_lambda_vec * (1.0 - ws.penalty_alpha)) % x;
-    // L1 subgradient: lambda * alpha * sign(x) for x != 0, 0 for x == 0
-    arma::vec l1_subgrad = ws.penalty_lambda_vec * ws.penalty_alpha % arma::sign(x);
-    grad += l1_subgrad;
+    addPenaltyGradient_cpp(grad, x, ws);
   }
 }
 

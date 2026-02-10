@@ -138,13 +138,7 @@ psychonetrics_gradient <- function(x, model){
 
   # Add penalty gradient for PML estimator:
   if (model@estimator == "PML") {
-    lambda_vec <- penaltyVector(model)
-    alpha <- model@penalty$alpha
-    if (is.null(alpha)) alpha <- 1
-    # L2 gradient: lambda * (1-alpha) * x
-    grad <- grad + lambda_vec * (1 - alpha) * x
-    # L1 subgradient: lambda * alpha * sign(x) for x != 0, 0 for x == 0
-    grad <- grad + lambda_vec * alpha * sign(x)
+    grad <- addPenaltyGradient(grad, x, model)
   }
 
   # Return:
