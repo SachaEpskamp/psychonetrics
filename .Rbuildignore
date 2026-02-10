@@ -12,4 +12,5 @@ psychonetrics\.Rproj
 ^Rplots\.pdf$
 ^test_.*\.R$
 ^WLSMV_IMPLEMENTATION_NOTES\.txt$
+^claude_chat_history\.jsonl$
 
