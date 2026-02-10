@@ -42,8 +42,8 @@ prepareModel <- function(x, model){
 # prepare:
   prep <- prepFun(x, model)
     
-  # If the estimator is FIML, add the raw data:
-  if (model@estimator == "FIML"){
+  # If the estimator is FIML or FIPML, add the raw data:
+  if (model@estimator %in% c("FIML", "FIPML")){
     # Add the raw data to each group:
     for (g in seq_along(prep$groupModels)){
       prep$groupModels[[g]]$fimldata <- model@sample@fimldata[[g]]

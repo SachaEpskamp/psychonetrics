@@ -105,10 +105,14 @@ void psychonetrics_gradient_cpp_inner(
     
     estimatorPart = ULS_gradient_Gauss_cpp(prep);
     
-  } else if (estimator == "FIML"){
-    
+  } else if (estimator == "FIPML"){
+
     estimatorPart = jacobian_fiml_gaussian_sigma_cpp(prep);
-    
+
+  } else if (estimator == "FIML"){
+
+    estimatorPart = jacobian_fiml_gaussian_sigma_cpp(prep);
+
   } else {
     Rf_error("Estimator not supported.");
   }
@@ -219,8 +223,8 @@ void psychonetrics_gradient_cpp_inner(
   
   grad = vectorise(Jac);
 
-  // Add penalty gradient for PML estimator:
-  if (ws.estimator == "PML") {
+  // Add penalty gradient for PML/FIPML estimator:
+  if (ws.estimator == "PML" || ws.estimator == "FIPML") {
     addPenaltyGradient_cpp(grad, x, ws);
   }
 }

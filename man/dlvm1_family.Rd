@@ -36,7 +36,7 @@ dlvm1(data, vars, datatype = c("auto", "wide", "long"),
                    identify = TRUE, identification = c("loadings",
                    "variance"), latents, groups, covs, means, nobs, start
                    = "version2", covtype = c("choose", "ML", "UB"),
-                   missing = "listwise", equal = "none",
+                   missing = "auto", equal = "none",
                    baseline_saturated = TRUE, estimator = "ML",
                    optimizer, storedata = FALSE, verbose = FALSE,
                    sampleStats, baseline =
@@ -183,16 +183,16 @@ The number of observations used in \code{covs} and \code{means}, or a vector of 
 }
 \item{start}{Start value specification. Can be either a string or a psychonetrics model. If it is a string, \code{"version2"} indicates the latest version of start value computation, \code{"version1"} indicates start values as they were computed up to version 0.11, and \code{"simple"} indicate simple starting values. If this is a psychonetrics model the starting values will be based on the ouptut. This can be useful, for example, if you first estimate a model with matrices set to a Cholesky decomposition, then use those values as start values for estimating Gaussian graphical models.}
   \item{missing}{
-How should missingness be handled in computing the sample covariances and number of observations when \code{data} is used. Can be \code{"listwise"} for listwise deletion, or \code{"pairwise"} for pairwise deletion.
+How should missingness be handled in computing the sample covariances and number of observations when \code{data} is used. Can be \code{"auto"} (default) for automatic detection, \code{"listwise"} for listwise deletion, or \code{"pairwise"} for pairwise deletion. When \code{"auto"}, the function checks for missing data and switches ML to FIML, PML to FIPML, or defaults to listwise for LS estimators.
 }
   \item{equal}{
-A character vector indicating which matrices should be constrained equal across groups. 
+A character vector indicating which matrices should be constrained equal across groups.
 }
   \item{baseline_saturated}{
 A logical indicating if the baseline and saturated model should be included. Mostly used internally and NOT Recommended to be used manually.
 }
   \item{estimator}{
-The estimator to be used. Currently implemented are \code{"ML"} for maximum likelihood estimation, \code{"FIML"} for full-information maximum likelihood estimation, \code{"ULS"} for unweighted least squares estimation, \code{"WLS"} for weighted least squares estimation, and \code{"DWLS"} for diagonally weighted least squares estimation.
+The estimator to be used. Currently implemented are \code{"ML"} for maximum likelihood estimation, \code{"FIML"} for full-information maximum likelihood estimation, \code{"PML"} for penalized maximum likelihood estimation, \code{"FIPML"} for penalized full-information maximum likelihood estimation, \code{"ULS"} for unweighted least squares estimation, \code{"WLS"} for weighted least squares estimation, and \code{"DWLS"} for diagonally weighted least squares estimation. When \code{missing = "auto"} (default), \code{"ML"} is automatically switched to \code{"FIML"} and \code{"PML"} to \code{"FIPML"} if missing data is detected.
 }
   \item{optimizer}{
 The optimizer to be used. Can be one of \code{"nlminb"} (the default R \code{nlminb} function), \code{"ucminf"} (from the \code{optimr} package), and C++ based optimizers \code{"cpp_L-BFGS-B"}, \code{"cpp_BFGS"}, \code{"cpp_CG"}, \code{"cpp_SANN"}, and \code{"cpp_Nelder-Mead"}. The C++ optimizers are faster but slightly less stable. Defaults to \code{"nlminb"}.

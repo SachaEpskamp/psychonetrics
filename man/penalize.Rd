@@ -7,7 +7,7 @@
 Penalized Maximum Likelihood Functions
 }
 \description{
-Functions for penalized maximum likelihood (PML) estimation. \code{penalize} adds an L1 (LASSO) or elastic net penalty to specified model parameters. \code{unpenalize} removes the penalty. \code{penaltyVector} extracts the per-free-parameter penalty strengths. \code{refit} performs post-selection inference by fixing penalized zeros and re-running with standard ML estimation to obtain standard errors.
+Functions for penalized maximum likelihood (PML) and penalized full-information maximum likelihood (FIPML) estimation. \code{penalize} adds an L1 (LASSO) or elastic net penalty to specified model parameters. \code{unpenalize} removes the penalty. \code{penaltyVector} extracts the per-free-parameter penalty strengths. \code{refit} performs post-selection inference by fixing penalized zeros and re-running with standard ML (or FIML for FIPML) estimation to obtain standard errors.
 }
 \usage{
 penalize(x, matrix, row, col, lambda, group, verbose, log = TRUE)
@@ -48,13 +48,13 @@ Additional arguments passed to \code{runmodel} in \code{refit}.
 }
 }
 \details{
-Penalized ML estimation uses the \code{"PML"} estimator, which wraps the standard ML fit function and gradient with an additional penalty term. The ISTA (Iterative Shrinkage-Thresholding Algorithm) proximal gradient optimizer is used automatically for PML models.
+Penalized ML estimation uses the \code{"PML"} estimator, which wraps the standard ML fit function and gradient with an additional penalty term. For models with missing data, the \code{"FIPML"} estimator wraps the FIML fit function and gradient with the same penalty. The ISTA (Iterative Shrinkage-Thresholding Algorithm) proximal gradient optimizer is used automatically for both PML and FIPML models.
 
 For symmetric matrices (e.g., omega), only off-diagonal elements are penalized by default. For non-symmetric matrices (e.g., beta), all elements are penalized.
 
-The \code{refit} function is used for post-selection inference: after a penalized model is estimated, \code{refit} fixes parameters that were shrunk to zero and re-estimates the model with standard ML to obtain valid standard errors and fit indices.
+The \code{refit} function is used for post-selection inference: after a penalized model is estimated, \code{refit} fixes parameters that were shrunk to zero and re-estimates the model with standard ML (for PML) or FIML (for FIPML) to obtain valid standard errors and fit indices.
 
-Model constructors (e.g., \code{ggm}, \code{lvm}, \code{var1}) accept \code{penalty_lambda}, \code{penalty_alpha}, and \code{penalize_matrices} arguments for convenient PML setup.
+Model constructors (e.g., \code{ggm}, \code{lvm}, \code{var1}) accept \code{penalty_lambda}, \code{penalty_alpha}, and \code{penalize_matrices} arguments for convenient PML/FIPML setup. When \code{missing = "auto"} (the default), specifying \code{estimator = "PML"} with missing data will automatically switch to \code{"FIPML"}.
 }
 \value{
 \code{penalize}, \code{unpenalize}, and \code{refit} return an object of class \code{psychonetrics} (\link{psychonetrics-class}).

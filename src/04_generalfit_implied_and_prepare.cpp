@@ -257,7 +257,7 @@ Rcpp::List prepareModel_cpp(
 
     groupmod["cpp"] = true;
 
-    if (estimator == "FIML"){
+    if (estimator == "FIML" || estimator == "FIPML"){
       // Add the raw data to each group:
       groupmod["fimldata"] = fimldata[g];
       groupmod["fulln"] = nobspergroup[g];

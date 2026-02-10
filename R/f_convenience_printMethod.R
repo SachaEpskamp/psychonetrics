@@ -85,7 +85,8 @@ definition = function(object){
             "ULS" = "Unweighted least squares (ULS)",
             "WLS" = "Weighted least squares (WLS)",
             "DWLS" = "Diagonally weighted least squares (DWLS)",
-            "PML" = "Penalized maximum likelihood estimation (PML)")
+            "PML" = "Penalized maximum likelihood estimation (PML)",
+            "FIPML" = "Penalized full information maximum likelihood (FIPML)")
     
     # output some optimizer results:
     cat("\n\nEstimation:",
@@ -95,8 +96,8 @@ definition = function(object){
         "\n\t- Message:",object@optim$message
         )
 
-    # PML penalty details:
-    if (object@estimator == "PML") {
+    # PML/FIPML penalty details:
+    if (object@estimator %in% c("PML", "FIPML")) {
       pen_type <- if (object@penalty$alpha == 1) "LASSO (L1)"
                   else if (object@penalty$alpha == 0) "Ridge (L2)"
                   else paste0("Elastic net (alpha = ", object@penalty$alpha, ")")
@@ -110,8 +111,8 @@ definition = function(object){
     }
 
     # output some fit measures (inspired by Lavaan):
-    if (object@estimator == "PML") {
-      # Fit measures are not computed for PML (penalized objective is not a proper likelihood)
+    if (object@estimator %in% c("PML", "FIPML")) {
+      # Fit measures are not computed for PML/FIPML (penalized objective is not a proper likelihood)
     } else if (!is.null(object@fitmeasures)){
       cat("\n\nFit:",
           "\n\t- Model Fit Test Statistic:",goodNum(object@fitmeasures$chisq),
@@ -123,7 +124,7 @@ definition = function(object){
       cat("\n\nFit has not yet been computed. Use 'addfit' to compute fit measures.")
     }
     # Next steps:
-    if (object@estimator == "PML") {
+    if (object@estimator %in% c("PML", "FIPML")) {
       cat("\n\nTips:",
           "\n\t- Use 'psychonetrics::refit' for post-selection inference with standard errors",
           "\n\t- Use 'psychonetrics::parameters' to inspect model parameters",

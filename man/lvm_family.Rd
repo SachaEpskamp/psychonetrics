@@ -22,7 +22,7 @@ lvm(data, lambda, latent = c("cov", "chol", "prec",
                    identify = TRUE, identification = c("loadings",
                    "variance"), vars, ordered = character(0), latents,
                    groups, covs, means, nobs,
-                   missing = "listwise", equal = "none",
+                   missing = "auto", equal = "none",
                    baseline_saturated = TRUE, estimator = "default",
                    optimizer, storedata = FALSE, WLS.W, covtype =
                    c("choose", "ML", "UB"), standardize = c("none", "z",
@@ -119,7 +119,7 @@ A vector of sample means, or a list/matrix containing such vectors for multiple 
 The number of observations used in \code{covs} and \code{means}, or a vector of such numbers of observations for multiple groups.
 }
   \item{missing}{
-How should missingness be handled in computing the sample covariances and number of observations when \code{data} is used. Can be \code{"listwise"} for listwise deletion, or \code{"pairwise"} for pairwise deletion.
+How should missingness be handled in computing the sample covariances and number of observations when \code{data} is used. Can be \code{"auto"} (default) for automatic detection, \code{"listwise"} for listwise deletion, or \code{"pairwise"} for pairwise deletion. When \code{"auto"}, the function checks for missing data and switches ML to FIML, PML to FIPML, or defaults to listwise for LS estimators.
 }
   \item{equal}{
 A character vector indicating which matrices should be constrained equal across groups. 
@@ -128,7 +128,7 @@ A character vector indicating which matrices should be constrained equal across 
 A logical indicating if the baseline and saturated model should be included. Mostly used internally and NOT Recommended to be used manually.
 }
   \item{estimator}{
-The estimator to be used. Currently implemented are \code{"ML"} for maximum likelihood estimation, \code{"FIML"} for full-information maximum likelihood estimation, \code{"ULS"} for unweighted least squares estimation, \code{"WLS"} for weighted least squares estimation, and \code{"DWLS"} for diagonally weighted least squares estimation. \code{"WLSMV"} is accepted as a synonym for \code{"DWLS"} (both use DWLS estimation with a mean-and-variance adjusted scaled test statistic). Defaults to \code{"ML"} for continuous data and \code{"DWLS"} when ordinal variables are specified via \code{ordered}.
+The estimator to be used. Currently implemented are \code{"ML"} for maximum likelihood estimation, \code{"FIML"} for full-information maximum likelihood estimation, \code{"PML"} for penalized maximum likelihood estimation, \code{"FIPML"} for penalized full-information maximum likelihood estimation, \code{"ULS"} for unweighted least squares estimation, \code{"WLS"} for weighted least squares estimation, and \code{"DWLS"} for diagonally weighted least squares estimation. \code{"WLSMV"} is accepted as a synonym for \code{"DWLS"} (both use DWLS estimation with a mean-and-variance adjusted scaled test statistic). When \code{missing = "auto"} (default), \code{"ML"} is automatically switched to \code{"FIML"} and \code{"PML"} to \code{"FIPML"} if missing data is detected. Defaults to \code{"ML"} for continuous data and \code{"DWLS"} when ordinal variables are specified via \code{ordered}.
 }
   \item{optimizer}{
 The optimizer to be used. Can be one of \code{"nlminb"} (the default R \code{nlminb} function), \code{"ucminf"} (from the \code{optimr} package), and C++ based optimizers \code{"cpp_L-BFGS-B"}, \code{"cpp_BFGS"}, \code{"cpp_CG"}, \code{"cpp_SANN"}, and \code{"cpp_Nelder-Mead"}. The C++ optimizers are faster but slightly less stable. Defaults to \code{"nlminb"}.

@@ -18,7 +18,7 @@ varcov <- function(
   covs, # alternative covs (array nvar * nvar * ngroup)
   means, # alternative means (matrix nvar * ngroup)
   nobs, # Alternative if data is missing (length ngroup)
-  missing = "listwise",
+  missing = "auto",
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   estimator = "default",
@@ -91,11 +91,37 @@ varcov <- function(
   }
   
   # Check FIML:
-  if (!missing(data) && !meanstructure && estimator == "FIML"){
-    stop("meanstructure = FALSE is not yet supported for 'FIML' estimator")
+  if (!missing(data) && !meanstructure && estimator %in% c("FIML", "FIPML")){
+    stop("meanstructure = FALSE is not yet supported for 'FIML'/'FIPML' estimator")
   }
-  
-  
+
+  # Auto-detect missing data handling:
+  if (missing == "auto") {
+    if (!missing(data)) {
+      if (missing(vars)) {
+        check_vars <- colnames(data)
+      } else {
+        check_vars <- vars
+      }
+      has_missing <- any(is.na(data[, check_vars, drop = FALSE]))
+      if (has_missing) {
+        if (estimator == "ML") {
+          estimator <- "FIML"
+        } else if (estimator == "PML") {
+          estimator <- "FIPML"
+        } else {
+          # LS variants: default to listwise (WLS weights don't support missing data for continuous)
+          missing <- "listwise"
+        }
+      } else {
+        missing <- "listwise"
+      }
+    } else {
+      # No raw data (covs/means provided): fall back to listwise
+      missing <- "listwise"
+    }
+  }
+
   # Obtain sample stats:
   if (missing(sampleStats)){
     # WLS weights:
@@ -115,9 +141,9 @@ varcov <- function(
                                covs = covs, 
                                means = means, 
                                nobs = nobs, 
-                               missing = ifelse(estimator == "FIML","pairwise",missing),
+                               missing = ifelse(estimator %in% c("FIML", "FIPML"),"pairwise",missing),
                                rawts = rawts,
-                               fimldata = estimator == "FIML",
+                               fimldata = estimator %in% c("FIML", "FIPML"),
                                storedata = storedata,
                                weightsmatrix = WLS.W,
                                meanstructure = meanstructure,
@@ -395,8 +421,8 @@ varcov <- function(
     }
 
     
-    # if not FIML, Treat as computed:
-    if (estimator != "FIML"){
+    # if not FIML/FIPML, Treat as computed:
+    if (!estimator %in% c("FIML", "FIPML")){
       model@baseline_saturated$saturated@computed <- TRUE
       
       # FIXME: TODO
@@ -410,17 +436,18 @@ varcov <- function(
     model <- setoptimizer(model, optimizer)
   }
 
-  # Setup PML penalization:
-  if (estimator == "PML") {
+  # Setup PML/FIPML penalization:
+  if (estimator %in% c("PML", "FIPML")) {
     model@penalty <- list(lambda = penalty_lambda, alpha = penalty_alpha)
     pen_mats <- if (missing(penalize_matrices)) defaultPenalizeMatrices(model) else penalize_matrices
     model <- penalize(model, matrix = pen_mats, lambda = penalty_lambda, log = FALSE)
-    # Baseline/saturated models should use ML, not PML:
+    # Baseline/saturated models should use unpenalized estimator:
+    base_est <- if (estimator == "FIPML") "FIML" else "ML"
     if (!is.null(model@baseline_saturated$baseline)) {
-      model@baseline_saturated$baseline@estimator <- "ML"
+      model@baseline_saturated$baseline@estimator <- base_est
     }
     if (!is.null(model@baseline_saturated$saturated)) {
-      model@baseline_saturated$saturated@estimator <- "ML"
+      model@baseline_saturated$saturated@estimator <- base_est
     }
   }
 

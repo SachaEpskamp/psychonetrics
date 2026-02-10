@@ -11,6 +11,7 @@
 #include "04_generalfit_optimWorkspace.h"
 #include "09_PenMLestimator_fit_Gauss_cpp.h"
 #include "09_PenMLestimator_fit_Ising_cpp.h"
+#include "09_PenMLestimator_fit_FIML_Gauss_cpp.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -82,6 +83,11 @@ double psychonetrics_fitfunction_cpp(
   } else if (estimator == "ULS" || estimator == "WLS" || estimator == "DWLS"){
 
     fit = ULS_Gauss_cpp(prep);
+
+  } else if (estimator == "FIPML"){
+
+    const OptimWorkspace& ws = getOrBuildWorkspace(model);
+    fit = penFIMLEstimator_Gauss_cpp(prep, x, ws);
 
   } else if (estimator == "FIML"){
 

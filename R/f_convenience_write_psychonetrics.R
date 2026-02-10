@@ -259,6 +259,7 @@ write_psychonetrics <- function(x, file = "psychonetrics_output.txt",
       "WLS" = "Weighted least squares (WLS)",
       "DWLS" = "Diagonally weighted least squares (DWLS)",
       "PML" = "Penalized maximum likelihood estimation (PML)",
+      "FIPML" = "Penalized full information maximum likelihood (FIPML)",
       x@estimator
     )
     lines <- c(lines,
@@ -267,8 +268,8 @@ write_psychonetrics <- function(x, file = "psychonetrics_output.txt",
       paste0("  Optimization message  : ", x@optim$message)
     )
 
-    # PML penalty details:
-    if (x@estimator == "PML") {
+    # PML/FIPML penalty details:
+    if (x@estimator %in% c("PML", "FIPML")) {
       pen_type <- if (x@penalty$alpha == 1) "LASSO (L1)"
                   else if (x@penalty$alpha == 0) "Ridge (L2)"
                   else paste0("Elastic net (alpha = ", x@penalty$alpha, ")")

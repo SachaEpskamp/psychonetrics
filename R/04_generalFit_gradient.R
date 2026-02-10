@@ -26,6 +26,9 @@ psychonetrics_gradient <- function(x, model){
                      "Gaussian" = jacobian_gaussian_sigma_cpp,
                      "Ising" = jacobian_Ising_cpp
       ),
+      "FIPML" = switch(model@distribution,
+                       "Gaussian" = jacobian_fiml_gaussian_sigma_cpp
+      ),
       "ULS" = switch(model@distribution,
                      "Gaussian" = ULS_gradient_Gauss_cpp),  # <- updated!
       "WLS" = switch(model@distribution,
@@ -48,6 +51,9 @@ psychonetrics_gradient <- function(x, model){
       "PML" = switch(model@distribution,
                      "Gaussian" = jacobian_gaussian_sigma,
                      "Ising" = jacobian_Ising
+      ),
+      "FIPML" = switch(model@distribution,
+                       "Gaussian" = jacobian_fiml_gaussian_sigma
       ),
       "ULS" = switch(model@distribution,
                      "Gaussian" = ULS_gradient_Gauss),
@@ -136,8 +142,8 @@ psychonetrics_gradient <- function(x, model){
   # Compute gradient:
   grad <- as.vector(Jac)
 
-  # Add penalty gradient for PML estimator:
-  if (model@estimator == "PML") {
+  # Add penalty gradient for PML/FIPML estimator:
+  if (model@estimator %in% c("PML", "FIPML")) {
     grad <- addPenaltyGradient(grad, x, model)
   }
 
