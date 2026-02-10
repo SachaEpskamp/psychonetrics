@@ -15,3 +15,5 @@ psychonetrics\.Rproj
 ^claude_chat_history\.jsonl$
 
 ^READINGS$
+
+^Extra information$
