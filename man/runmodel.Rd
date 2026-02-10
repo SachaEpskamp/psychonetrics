@@ -14,7 +14,8 @@ runmodel(x, level = c("gradient", "fitfunction"), addfit =
                    analyticFisher = TRUE, warn_improper = FALSE,
                    warn_gradient = TRUE, warn_bounds = TRUE,
                    return_improper = TRUE, bounded = TRUE,
-                   approximate_SEs = FALSE)
+                   approximate_SEs = FALSE,
+                   criterion = "ebic.5", beta_min)
 
 }
 %- maybe also 'usage' for other objects documented here.
@@ -63,12 +64,26 @@ Logical, should standard errors be approximated? If true, an approximate matrix 
 \item{warn_bounds}{
 Should a warning be given when a parameter is estimated near its bounds?
 }
+\item{criterion}{
+Character string specifying the information criterion for automatic lambda selection in PML/PFIML models. One of \code{"bic"}, \code{"ebic.25"}, \code{"ebic.5"} (default), \code{"ebic.75"}, or \code{"ebic1"}. Only used when the model contains auto-select penalty parameters (\code{penalty_lambda = NA}). See \code{\link{find_penalized_lambda}} for details.
+}
+\item{beta_min}{
+Numeric threshold for zeroing out small penalized parameters during automatic lambda selection. Default is \code{sqrt(log(p)/n)}. See \code{\link{find_penalized_lambda}} for details.
+}
+}
+\details{
+For penalized models (PML or PFIML) with auto-select penalty parameters (\code{penalty_lambda = NA}, the default), \code{runmodel} automatically calls \code{\link{find_penalized_lambda}} to select the optimal penalty strength via EBIC grid search before fitting. The \code{criterion} and \code{beta_min} arguments control this search. After the lambda search, use \code{\link{refit}} for post-selection inference with standard errors.
 }
 \value{
 An object of the class psychonetrics (\link{psychonetrics-class})
 }
 \author{
 Sacha Epskamp
+}
+\seealso{
+\code{\link{find_penalized_lambda}} for manual control over the lambda search,
+\code{\link{penalize}} for setting penalty parameters,
+\code{\link{refit}} for post-selection inference after penalized estimation.
 }
 \examples{
 # Load bfi data from psych package:

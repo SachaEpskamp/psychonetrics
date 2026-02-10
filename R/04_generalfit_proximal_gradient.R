@@ -1,7 +1,7 @@
 # Proximal Gradient (ISTA) optimizer for Penalized ML estimation
 # Handles L1 (LASSO) and elastic net penalties via soft-thresholding
 
-psychonetrics_proximal_gradient <- function(x, lower, upper, bounded, tol = 1e-8) {
+psychonetrics_proximal_gradient <- function(x, lower, upper, bounded) {
   # Extract parameters
   par <- parVector(x)
   nPar <- length(par)
@@ -21,7 +21,7 @@ psychonetrics_proximal_gradient <- function(x, lower, upper, bounded, tol = 1e-8
 
   # ISTA settings
   max_iter <- 10000
-  # tol is now a function parameter (default 1e-8)
+  tol <- 1e-8
   t_init <- 1.0     # initial step size
   beta_bt <- 0.5    # backtracking reduction factor
   t_min <- 1e-14    # minimum step size
