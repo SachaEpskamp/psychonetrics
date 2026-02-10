@@ -134,7 +134,7 @@ lvm <- function(
   if (missing == "auto") {
     if (!missing(data)) {
       if (missing(vars)) {
-        check_vars <- colnames(data)
+        check_vars <- if (!is.null(colnames(data))) colnames(data) else seq_len(ncol(data))
       } else {
         check_vars <- vars
       }
