@@ -360,7 +360,7 @@ write_psychonetrics <- function(x, file = "psychonetrics_output.txt",
     lines <- c(lines, "", paste0("  Group: ", group_label),
                paste0("  ", .wp_separator(width - 2, "-")))
 
-    for (mat_name in names(x@modelmatrices[[g]])) {
+    for (mat_name in x@matrices$name) {
       mat <- tryCatch(as.matrix(x@modelmatrices[[g]][[mat_name]]),
                        error = function(e) NULL)
       if (is.null(mat)) next
@@ -419,7 +419,15 @@ write_psychonetrics <- function(x, file = "psychonetrics_output.txt",
     }
   }
 
-  # Fill gaps with indices:
+  # For square/symmetric matrices, cross-fill missing names:
+  if (nrow_mat == ncol_mat) {
+    missing_rows <- is.na(row_names)
+    row_names[missing_rows] <- col_names[missing_rows]
+    missing_cols <- is.na(col_names)
+    col_names[missing_cols] <- row_names[missing_cols]
+  }
+
+  # Fill remaining gaps with indices:
   row_names[is.na(row_names)] <- paste0("[", which(is.na(row_names)), "]")
   col_names[is.na(col_names)] <- paste0("[", which(is.na(col_names)), "]")
 
