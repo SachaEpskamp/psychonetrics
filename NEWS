@@ -1,3 +1,17 @@
+Changes in Version 0.14.13
+  o Added write_psychonetrics() function for exporting comprehensive model output to a text file:
+    o Produces Mplus/LISREL-style output with logo, sample info, model specification, parameter
+      estimates, fit measures, model matrices, modification indices, and logbook
+    o Intended for sharing as supplementary materials to papers
+    o Supports uncomputed models: shows starting values with clear warnings, omitting SEs, p-values,
+      fit measures, and modification indices
+    o Model matrices section shows only modeled matrices (not derived/implied quantities)
+    o Matrix output uses 2-digit rounding with dots for fixed zeros
+  o Fixed prune() error when no parameters to test in the requested matrix:
+    o adjust_p_values() now correctly returns a numeric vector (not the S4 model object) when nTest == 0
+  o Fixed backward compatibility for models saved without the WLS.Gamma slot:
+    o Added .hasSlot() guard to prevent "no slot of name 'WLS.Gamma'" warnings
+
 Changes in Version 0.14.12
   o Added WLSMV scaled test statistic (mean-and-variance adjusted chi-square) for WLS/DWLS/ULS estimators:
     o Implements the scaled-shifted test (Asparouhov & Muthen, 2010) matching lavaan's WLSMV output
