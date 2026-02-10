@@ -66,6 +66,24 @@ write_psychonetrics <- function(x, file = "psychonetrics_output.txt",
   paste0(pad, lines)
 }
 
+# Capture print.data.frame output without line wrapping:
+.wp_capture_df <- function(df, indent = 2) {
+  old_width <- getOption("width")
+  options(width = 10000)
+  on.exit(options(width = old_width))
+  table_lines <- capture.output(print.data.frame(df, row.names = FALSE))
+  paste0(paste0(rep(" ", indent), collapse = ""), table_lines)
+}
+
+# Capture print (for matrices) without line wrapping:
+.wp_capture_mat <- function(mat, indent = 6) {
+  old_width <- getOption("width")
+  options(width = 10000)
+  on.exit(options(width = old_width))
+  mat_lines <- capture.output(print(mat))
+  paste0(paste0(rep(" ", indent), collapse = ""), mat_lines)
+}
+
 # Wrap a long list of variable names:
 .wp_wrap_vars <- function(vars, indent = 24, width = 72) {
   current <- ""
@@ -304,8 +322,7 @@ write_psychonetrics <- function(x, file = "psychonetrics_output.txt",
         filter(.data[["group"]] == g, .data[["matrix"]] == mat) %>%
         select(-.data[["matrix"]], -.data[["group"]])
 
-      table_lines <- capture.output(print.data.frame(subTable, row.names = FALSE))
-      lines <- c(lines, paste0("    ", table_lines))
+      lines <- c(lines, .wp_capture_df(subTable, indent = 4))
     }
   }
 
@@ -324,8 +341,7 @@ write_psychonetrics <- function(x, file = "psychonetrics_output.txt",
     stringsAsFactors = FALSE
   )
 
-  table_lines <- capture.output(print.data.frame(df, row.names = FALSE))
-  lines <- c(lines, paste0("  ", table_lines))
+  lines <- c(lines, .wp_capture_df(df, indent = 2))
 
   lines
 }
@@ -365,8 +381,7 @@ write_psychonetrics <- function(x, file = "psychonetrics_output.txt",
       lines <- c(lines, "", paste0("    ", mat_name, ":"))
 
       formatted <- round(mat, 4)
-      mat_lines <- capture.output(print(formatted))
-      lines <- c(lines, paste0("      ", mat_lines))
+      lines <- c(lines, .wp_capture_mat(formatted, indent = 6))
     }
   }
 
@@ -432,8 +447,7 @@ write_psychonetrics <- function(x, file = "psychonetrics_output.txt",
 
   lines <- c(lines, paste0("  Top ", min(top, nrow(miTable)), " modification indices:"), "")
 
-  table_lines <- capture.output(print.data.frame(miTable, row.names = FALSE))
-  lines <- c(lines, paste0("  ", table_lines))
+  lines <- c(lines, .wp_capture_df(miTable, indent = 2))
 
   lines
 }
