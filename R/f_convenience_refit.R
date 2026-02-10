@@ -1,5 +1,7 @@
 # Post-selection refit: fix penalized zeros, remove penalty, re-run with standard ML
-# This allows obtaining standard errors and fit measures after penalized estimation
+# This re-estimates included edges without penalization. Note: standard errors and
+# confidence intervals after refit cannot be interpreted as valid inference due to
+# model selection having been performed.
 
 refit <- function(
     x,                 # A computed penalized psychonetrics model

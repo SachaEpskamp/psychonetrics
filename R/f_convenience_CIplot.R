@@ -60,7 +60,7 @@ CIplot <- function(
   
   if (!boot_agg){
     logs <- sapply(x@log,function(x)x@event)
-    if (any(grepl("Pruned",logs)) | any(grepl("step-up",logs))  | any(grepl("modelsearch",logs))){
+    if (any(grepl("Pruned",logs)) | any(grepl("step-up",logs))  | any(grepl("modelsearch",logs)) | any(grepl("Post-selection refit",logs))){
       warning("A model search algorithm was used in creating this model. The CIs are likely invalid.")
     }
   }
@@ -289,7 +289,7 @@ CIplot <- function(
       # Check for model selection for split0 and plot0:
       if (missing(split0)){
         logs <- sapply(x@models[[1]]@log,function(x)x@event)
-        if (any(grepl("Pruned",logs)) | any(grepl("step-up",logs))  | any(grepl("modelsearch",logs))){
+        if (any(grepl("Pruned",logs)) | any(grepl("step-up",logs))  | any(grepl("modelsearch",logs)) | any(grepl("Post-selection refit",logs))){
           split0 <- TRUE
         } else {
           split0 <- FALSE

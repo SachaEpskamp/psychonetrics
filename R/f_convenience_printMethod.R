@@ -126,7 +126,7 @@ definition = function(object){
     # Next steps:
     if (object@estimator %in% c("PML", "FIPML")) {
       cat("\n\nTips:",
-          "\n\t- Use 'psychonetrics::refit' for post-selection inference with standard errors",
+          "\n\t- Use 'psychonetrics::refit' to re-estimate included edges without penalization",
           "\n\t- Use 'psychonetrics::parameters' to inspect model parameters",
           "\n\t- Use 'psychonetrics::penaltyVector' to inspect per-parameter penalties"
       )
