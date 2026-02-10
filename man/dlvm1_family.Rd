@@ -3,15 +3,19 @@
 \alias{panelgvar}
 \alias{panelvar}
 \alias{panel_lvgvar}
+\alias{panellvgvar}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 Lag-1 dynamic latent variable model family of psychonetrics models for panel data
 }
 \description{
-This is the family of models that models a dynamic factor model on panel data. There are four covariance structures that can be modeled in different ways: \code{within_latent}, \code{between_latent} for the within-person and between-person latent (contemporaneous) models respectively, and \code{within_residual}, \code{between_residual} for the within-person and between-person residual models respectively. The \code{panelgvar} wrapper function sets the \code{lambda} to an identity matrix, all residual variances to zero, and models within-person and between-person latent (contemporaneous) models as GGMs. The \code{panelvar} wrapper does the same but models contemporaneous relations as a variance-covariance matrix. Finally, the \code{panel_lvgvar} wrapper automatically models all latent networks as GGMs.
+This is the family of models that models a dynamic factor model on panel data. The function accepts both wide-format data (with a design matrix for \code{vars}) and long-format data (with a character vector for \code{vars} plus \code{idvar} and optionally \code{beepvar}). The format is auto-detected from the type of \code{vars}. There are four covariance structures that can be modeled in different ways: \code{within_latent}, \code{between_latent} for the within-person and between-person latent (contemporaneous) models respectively, and \code{within_residual}, \code{between_residual} for the within-person and between-person residual models respectively. The \code{panelgvar} wrapper function sets the \code{lambda} to an identity matrix, all residual variances to zero, and models within-person and between-person latent (contemporaneous) models as GGMs. The \code{panelvar} wrapper does the same but models contemporaneous relations as a variance-covariance matrix. Finally, the \code{panellvgvar} wrapper automatically models all latent networks as GGMs. The old name \code{panel_lvgvar} is deprecated in favor of \code{panellvgvar}.
 }
 \usage{
-dlvm1(data, vars, lambda, within_latent = c("cov", "chol",
+dlvm1(data, vars, idvar, beepvar,
+                   datatype = c("auto", "wide", "long"),
+                   standardize = c("none", "z", "quantile", "z_per_wave"),
+                   lambda, within_latent = c("cov", "chol",
                    "prec", "ggm"), within_residual = c("cov", "chol",
                    "prec", "ggm"), between_latent = c("cov", "chol",
                    "prec", "ggm"), between_residual = c("cov", "chol",
@@ -46,6 +50,8 @@ panelgvar(data, vars, within_latent = c("ggm","chol","cov","prec"),
 panelvar(data, vars, within_latent = c("cov","chol","prec","ggm"), 
           between_latent = c("cov","chol","prec","ggm"), ...)
 
+panellvgvar(...)
+
 panel_lvgvar(...)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -54,7 +60,19 @@ panel_lvgvar(...)
 A data frame encoding the data used in the analysis. Can be missing if \code{covs} and \code{nobs} are supplied.
 }
   \item{vars}{ Required argument.
-Different from in other psychonetrics models, this must be a *matrix* with each row indicating a variable and each column indicating a measurement. The matrix must be filled with names of the variables in the dataset corresponding to variable i at wave j. NAs can be used to indicate missing waves. The rownames of this matrix will be used as variable names.
+For wide-format data, this must be a *matrix* with each row indicating a variable and each column indicating a measurement. The matrix must be filled with names of the variables in the dataset corresponding to variable i at wave j. NAs can be used to indicate missing waves. The rownames of this matrix will be used as variable names. For long-format data, this should be a character vector of variable names in the dataset.
+}
+  \item{idvar}{
+Optional string indicating the subject/cluster ID variable in \code{data}. Required when \code{datatype = "long"} or when \code{vars} is a character vector.
+}
+  \item{beepvar}{
+Optional string indicating the time point / measurement occasion variable. If missing when \code{datatype = "long"}, a sequential measurement variable is created per subject.
+}
+  \item{datatype}{
+Data format: \code{"auto"} (default) auto-detects based on whether \code{vars} is a matrix (wide) or character vector (long). \code{"wide"} forces wide-format interpretation. \code{"long"} forces long-format interpretation with automatic reshape to wide.
+}
+  \item{standardize}{
+Standardization method: \code{"none"} (default), \code{"z"} for global z-scores per variable across all waves (uses the overall mean and standard deviation for each variable computed across all waves of data), \code{"quantile"} for quantile normalization across all waves, \code{"z_per_wave"} for independent z-scores per wave column (note: this imposes stationarity as means become 0 and variances become 1 at each wave).
 }
   \item{lambda}{ Required argument.
 A model matrix encoding the factor loading structure. Each row indicates an indicator and each column a latent. A 0 encodes a fixed to zero element, a 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.

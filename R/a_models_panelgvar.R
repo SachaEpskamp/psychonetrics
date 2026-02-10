@@ -1,11 +1,11 @@
 panelvar <- function(data,vars,
-                     within_latent = c("cov","chol","prec","ggm"), 
-                     between_latent = c("cov","chol","prec","ggm"), 
+                     within_latent = c("cov","chol","prec","ggm"),
+                     between_latent = c("cov","chol","prec","ggm"),
                      ...){
   # Match arg:
   within_latent <- match.arg(within_latent)
   between_latent <- match.arg(between_latent)
-  
+
   # Extract var names:
   if (missing(vars)){
     stop("'vars' argument may not be missing")
@@ -13,16 +13,16 @@ panelvar <- function(data,vars,
   if (!is.matrix(vars)){
     stop("'vars' must be a design matrix, with rows indicating variables and columns indicating measurements.")
   }
-  
-  
+
+
   I <- diag(nrow(vars))
   O <- matrix(0,nrow(vars),nrow(vars))
-  
-  
+
+
   if (is.null(rownames(vars))){
     rownames(vars) <- paste0("Eta_",seq_len(nrow(vars)))
   }
-  
+
   dlvm1(data,vars,
         lambda = I,
         within_latent = within_latent,
@@ -35,13 +35,13 @@ panelvar <- function(data,vars,
 }
 
 panelgvar <- function(data,vars,
-                      within_latent = c("ggm","chol","cov","prec"), 
-                      between_latent = c("ggm","chol","cov","prec"), 
+                      within_latent = c("ggm","chol","cov","prec"),
+                      between_latent = c("ggm","chol","cov","prec"),
                       ...){
   # Match arg:
   within_latent <- match.arg(within_latent)
   between_latent <- match.arg(between_latent)
-  
+
   # Extract var names:
   if (missing(vars)){
     stop("'vars' argument may not be missing")
@@ -49,15 +49,15 @@ panelgvar <- function(data,vars,
   if (!is.matrix(vars)){
     stop("'vars' must be a design matrix, with rows indicating variables and columns indicating measurements.")
   }
-  
-  
+
+
   I <- diag(nrow(vars))
   O <- matrix(0,nrow(vars),nrow(vars))
-  
+
   if (is.null(rownames(vars))){
     rownames(vars) <- paste0("Eta_",seq_len(nrow(vars)))
   }
-  
+
   dlvm1(data,vars,
         lambda = I,
         within_latent = within_latent,
@@ -70,8 +70,13 @@ panelgvar <- function(data,vars,
 }
 
 
-# Panel gvar:
-panel_lvgvar <- function(...){
+# Panel latent variable GVAR (new canonical name):
+panellvgvar <- function(...){
   dlvm1(..., within_latent = "ggm", between_latent = "ggm")
 }
 
+# Deprecated alias (use panellvgvar instead):
+panel_lvgvar <- function(...){
+  .Deprecated("panellvgvar")
+  panellvgvar(...)
+}

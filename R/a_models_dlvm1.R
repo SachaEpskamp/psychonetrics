@@ -1,8 +1,16 @@
 # Latent network model creator
 dlvm1 <- function(
   data, # Dataset
-  vars, # Must be a matrix!
-  
+  vars, # Design matrix (wide) or character vector of variable names (long)
+
+  # Long-format support:
+  idvar, # Subject ID variable (required for long format)
+  beepvar, # Time point / measurement occasion variable (optional for long format)
+  datatype = c("auto", "wide", "long"), # Data format: auto-detects from vars
+
+  # Standardization:
+  standardize = c("none", "z", "quantile", "z_per_wave"),
+
   # Factor loadings:
   lambda, # May not be missing
   # lambda_within, # May not be missing
@@ -85,8 +93,14 @@ dlvm1 <- function(
   
   
   covtype <- match.arg(covtype)
-  
-  
+  datatype <- match.arg(datatype)
+  standardize <- match.arg(standardize)
+
+  # CRAN Check workarounds for long-format conversion:
+  variable <- NULL
+  value <- NULL
+
+
   # Check start:
   if (is.character(start)){
     start <- start[1]
@@ -99,64 +113,182 @@ dlvm1 <- function(
   } else {
     stop("'start' can only be 'version1', 'version2' (default), 'simple', or a psychonetrics object")
   }
-  
-  # Check for missing:
-  # if (missing(lambda_within)){
-  #   stop("'lambda_within' may not be missing")
-  # }
-  # if (is.character(lambda_within)){
-  #   stop("'lambda_within' may not be a string")
-  # }
-  # if (missing(lambda_between)){
-  #   stop("'lambda_between' may not be missing")
-  # }
-  # if (is.character(lambda_between)){
-  #   stop("'lambda_between' may not be a string")
-  # }
-  # 
-  # if (missing(lambda)){
-  #   stop("'lambda' may not be missing")
-  # }
-  # if (is.character(lambda)){
-  #   stop("'lambda' may not be a string")
-  # }
-  
-  
+
+
   # Match args:
   within_latent <- match.arg(within_latent)
   between_latent <- match.arg(between_latent)
   within_residual <- match.arg(within_residual)
   between_residual <- match.arg(between_residual)
   identification <- match.arg(identification)
-  
+
   # Warn for variance identification:
   if (identification == "variance"){
     warning("Using identification = 'variance' might lead to unexpected results for the dlvm1 family and is currenty not recommended.")
   }
-  
-  # Extract var names:
+
+  # --- Auto-detect data format ---
   if (missing(vars)){
-    stop("'vars' argument may not be missing")
+    # If vars is missing but idvar is provided, assume long format:
+    if (!missing(idvar)){
+      datatype <- "long"
+      # Extract vars from data columns:
+      if (is.matrix(data)) data <- as.data.frame(data)
+      if (!is.data.frame(data)) stop("'data' must be a data frame")
+      vars <- names(data)
+      vars <- vars[vars != idvar]
+      if (!missing(beepvar)) vars <- vars[vars != beepvar]
+      if (!missing(groups)) vars <- vars[vars != groups]
+    } else {
+      stop("'vars' argument may not be missing")
+    }
   }
+
+  if (datatype == "auto"){
+    if (is.matrix(vars)){
+      datatype <- "wide"
+    } else if (is.character(vars) && !is.matrix(vars)){
+      datatype <- "long"
+    } else {
+      stop("Could not auto-detect data type from 'vars'. Please specify datatype = 'wide' or 'long'.")
+    }
+  }
+
+  # --- Long-to-wide conversion ---
+  if (datatype == "long"){
+
+    # Validate idvar:
+    if (missing(idvar)){
+      stop("'idvar' is required when datatype = 'long' or when 'vars' is a character vector.")
+    }
+    if (is.matrix(data)) data <- as.data.frame(data)
+    if (!is.data.frame(data)) stop("'data' must be a data frame")
+    if (!is.character(vars) || is.matrix(vars)){
+      stop("When datatype = 'long', 'vars' must be a character vector of variable names.")
+    }
+    if (!idvar %in% names(data)){
+      stop("'idvar' argument does not correspond to column name of 'data'")
+    }
+
+    # Remove rows with NA cluster:
+    if (any(is.na(data[[idvar]]))){
+      warning("Rows with NA in idvar removed.")
+      data <- data[!is.na(data[[idvar]]),]
+    }
+
+    # Handle beepvar:
+    if (missing(beepvar)){
+      data <- data[order(data[[idvar]]),]
+      beepvar <- "BEEPVAR"
+      data[[beepvar]] <- unlist(tapply(data[[idvar]], data[[idvar]], seq_along))
+    }
+
+    # Validate beepvar:
+    if (any(data[[beepvar]][!is.na(data[[beepvar]])] %% 1 != 0)){
+      stop("'beepvar' does not encode integer values.")
+    }
+    if (any(tapply(data[[beepvar]], data[[idvar]], function(x) any(duplicated(x)), simplify = TRUE))){
+      stop("'beepvar' contains duplicate values for one or more cases.")
+    }
+
+    # Handle groups for long data:
+    if (missing(groups)){
+      groups <- "GROUPID"
+      data[[groups]] <- "fullsample"
+    }
+
+    maxInCluster <- max(data[[beepvar]])
+
+    # Standardize in long format (before reshape):
+    if (standardize == "z"){
+      for (v in seq_along(vars)){
+        data[, vars[v]] <- (data[, vars[v]] - mean(data[, vars[v]], na.rm = TRUE)) / sd(data[, vars[v]], na.rm = TRUE)
+      }
+    } else if (standardize == "quantile"){
+      for (v in seq_along(vars)){
+        data[, vars[v]] <- quantiletransform(data[, vars[v]])
+      }
+    }
+    # Note: "z_per_wave" and "none" do nothing here; z_per_wave handled after reshape via samplestats
+
+    # Reshape long to wide:
+    datalong <- tidyr::gather(data, variable, value, vars)
+    datawide <- tidyr::pivot_wider(datalong, id_cols = c(idvar, groups),
+                                    values_from = "value", names_from = c("variable", beepvar))
+
+    # Construct design matrix:
+    rowVars <- vars
+    colVars <- as.character(seq(maxInCluster))
+    design <- matrix(NA, length(rowVars), length(colVars))
+    for (i in seq_along(rowVars)){
+      for (j in seq_along(colVars)){
+        varName <- paste0("^", rowVars[i], "_", colVars[j], "$")
+        whichVar <- which(grepl(varName, names(datawide)))
+        if (length(whichVar) == 1){
+          design[i, j] <- paste0(rowVars[i], "_", colVars[j])
+        }
+      }
+    }
+
+    # Overwrite data and vars for downstream processing:
+    data <- datawide
+    vars <- design
+
+    # Prevent double-standardization (already applied in long format):
+    if (standardize %in% c("z", "quantile")){
+      standardize <- "none"
+    }
+  }
+
+  # --- Validate vars is now a design matrix ---
   if (!is.matrix(vars)){
-    stop("'vars' must be a design matrix, with rows indicating variables and columns indicating measurements.")
+    stop("'vars' must be a design matrix (with rows indicating variables and columns indicating measurements) or a character vector of variable names when using long-format data.")
   }
-  
+
   # List all variables to use, in order:
   allVars <- na.omit(as.vector(vars))
+
+  # --- Wide-format standardization (global per variable across waves) ---
+  if (standardize %in% c("z", "quantile") && !missing(data) && !is.null(data)){
+    if (is.matrix(data)) data <- as.data.frame(data)
+    for (v in seq_len(nrow(vars))){
+      varCols <- na.omit(vars[v, ])
+      if (length(varCols) == 0) next
+
+      if (standardize == "z"){
+        allValues <- unlist(data[, varCols, drop = FALSE])
+        globalMean <- mean(allValues, na.rm = TRUE)
+        globalSD <- sd(allValues, na.rm = TRUE)
+        for (col in varCols){
+          data[, col] <- (data[, col] - globalMean) / globalSD
+        }
+      } else if (standardize == "quantile"){
+        # Pool all values for this variable across waves, transform, distribute back:
+        allValues <- unlist(data[, varCols, drop = FALSE])
+        allTransformed <- quantiletransform(allValues)
+        n <- nrow(data)
+        for (ci in seq_along(varCols)){
+          data[, varCols[ci]] <- allTransformed[((ci - 1) * n + 1):(ci * n)]
+        }
+      }
+    }
+    # Mark as done so samplestats doesn't re-standardize:
+    standardize <- "none"
+  }
   
   # Obtain sample stats:
   if (missing(sampleStats)){
-    sampleStats <- samplestats(data = data, 
-                               vars = allVars, 
+    sampleStats <- samplestats(data = data,
+                               vars = allVars,
                                groups = groups,
-                               covs = covs, 
-                               means = means, 
-                               nobs = nobs, 
+                               covs = covs,
+                               means = means,
+                               nobs = nobs,
                                missing  = ifelse(estimator == "FIML","pairwise",missing),
                                fimldata = estimator == "FIML",
                                storedata = storedata,
                                covtype=covtype,
+                               standardize = if (standardize == "z_per_wave") "z" else "none",
                                verbose=verbose,
                                weightsmatrix = ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
                                                       switch(estimator,
