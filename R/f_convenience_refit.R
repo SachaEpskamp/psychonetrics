@@ -16,8 +16,8 @@ refit <- function(
 
   # Check if model has penalty
   pen_lambda <- x@penalty$lambda
-  if (is.null(pen_lambda) || pen_lambda == 0) {
-    if (all(x@parameters$penalty_lambda == 0)) {
+  if (is.null(pen_lambda) || isTRUE(pen_lambda == 0)) {
+    if (all(is.na(x@parameters$penalty_lambda) | x@parameters$penalty_lambda == 0)) {
       message("Model has no penalty. Nothing to refit.")
       return(x)
     }
@@ -47,6 +47,7 @@ refit <- function(
     # Clear derived columns for fixed parameters
     new_mod@parameters <- clearpars(new_mod@parameters,
                                      which(new_mod@parameters$par == 0 &
+                                             !is.na(new_mod@parameters$penalty_lambda) &
                                              new_mod@parameters$penalty_lambda > 0))
 
     # Relabel free parameter indices

@@ -101,13 +101,22 @@ definition = function(object){
       pen_type <- if (object@penalty$alpha == 1) "LASSO (L1)"
                   else if (object@penalty$alpha == 0) "Ridge (L2)"
                   else paste0("Elastic net (alpha = ", object@penalty$alpha, ")")
-      n_penalized <- sum(object@parameters$penalty_lambda > 0 & !object@parameters$fixed)
-      n_zero <- sum(object@parameters$penalty_lambda > 0 & !object@parameters$fixed & abs(object@parameters$est) < 1e-8)
+      n_penalized <- sum(!is.na(object@parameters$penalty_lambda) & object@parameters$penalty_lambda > 0 & !object@parameters$fixed)
+      n_auto <- sum(is.na(object@parameters$penalty_lambda) & object@parameters$par > 0 & !object@parameters$fixed)
+      n_zero <- sum(!is.na(object@parameters$penalty_lambda) & object@parameters$penalty_lambda > 0 & !object@parameters$fixed & abs(object@parameters$est) < 1e-8)
+      lambda_display <- if (is.na(object@penalty$lambda)) "auto (not yet selected)" else object@penalty$lambda
       cat("\n\nPenalization:",
           "\n\t- Penalty type:", pen_type,
-          "\n\t- Lambda:", object@penalty$lambda,
-          "\n\t- Penalized parameters:", n_penalized,
+          "\n\t- Lambda:", lambda_display,
+          "\n\t- Penalized parameters:", n_penalized + n_auto,
           "\n\t- Parameters at zero:", n_zero)
+      # Show lambda search results if available:
+      if (!is.null(object@optim$lambda_search)) {
+        ls <- object@optim$lambda_search
+        cat("\n\t- Lambda selected by:", ls$criterion,
+            "\n\t- Best criterion value:", goodNum(ls$best_criterion),
+            "\n\t- Beta_min threshold:", formatC(ls$beta_min, format = "e", digits = 3))
+      }
     }
 
     # output some fit measures (inspired by Lavaan):

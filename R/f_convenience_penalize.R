@@ -9,9 +9,18 @@ penaltyVector <- function(x) {
   lambdas <- numeric(nPar)
   for (i in seq_len(nPar)) {
     rows <- which(x@parameters$par == i)
-    if (length(rows) > 0) lambdas[i] <- x@parameters$penalty_lambda[rows[1]]
+    if (length(rows) > 0) {
+      val <- x@parameters$penalty_lambda[rows[1]]
+      # NA means auto-select (not yet resolved); treat as 0 for optimizer safety
+      lambdas[i] <- if (is.na(val)) 0 else val
+    }
   }
   lambdas
+}
+
+# Check if model has any auto-select (NA) penalty_lambda values
+hasAutoLambda <- function(x) {
+  any(is.na(x@parameters$penalty_lambda) & x@parameters$par > 0 & !x@parameters$fixed)
 }
 
 
@@ -37,7 +46,7 @@ penalize <- function(
   # Default lambda from global penalty:
   if (missing(lambda)) {
     lambda <- x@penalty$lambda
-    if (is.null(lambda) || lambda == 0) {
+    if (is.null(lambda) || (!is.na(lambda) && lambda == 0)) {
       warning("No lambda specified and global penalty lambda is 0. Set lambda > 0 for penalization.")
     }
   }
@@ -152,7 +161,7 @@ unpenalize <- function(
 
   # Default matrix selection:
   if (missing(matrix)) {
-    matrix <- unique(x@parameters$matrix[x@parameters$penalty_lambda > 0])
+    matrix <- unique(x@parameters$matrix[!is.na(x@parameters$penalty_lambda) & x@parameters$penalty_lambda > 0])
   }
 
   # Default to all groups:
@@ -175,6 +184,7 @@ unpenalize <- function(
     if (missing(row) && missing(col)) {
       whichUnpen <- which(
         x@parameters$matrix == mat &
+          !is.na(x@parameters$penalty_lambda) &
           x@parameters$penalty_lambda > 0 &
           x@parameters$group_id %in% group
       )
@@ -198,6 +208,7 @@ unpenalize <- function(
         x@parameters$matrix == mat &
           x@parameters$row %in% r &
           x@parameters$col %in% cl &
+          !is.na(x@parameters$penalty_lambda) &
           x@parameters$penalty_lambda > 0 &
           x@parameters$group_id %in% group
       )

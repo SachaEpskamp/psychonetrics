@@ -1,3 +1,25 @@
+Changes in Version 0.14.16
+  o Added automatic lambda selection for PML/PFIML estimation via EBIC-based grid search:
+    o New function find_penalized_lambda() searches over a log-spaced grid of 100 lambda values
+    o Lambda now defaults to NA in all model constructors, signaling automatic selection
+    o runmodel() automatically triggers the grid search when NA lambdas are detected
+    o Lambda_max computed analytically from KKT conditions at the null-penalized model
+    o Warm starts across the lambda path for efficient computation
+    o Supports criterion selection: "bic", "ebic.25", "ebic.5" (default), "ebic.75", "ebic1"
+    o Users can still specify a fixed lambda (e.g., penalty_lambda = 0.1) for manual control
+  o Added beta_min thresholding for penalized estimates:
+    o Near-zero estimates below beta_min are set to exactly zero after convergence
+    o Default threshold: sqrt(log(p)/n) where p = number of penalized parameters
+    o Applied both during EBIC evaluation (for degree-of-freedom counting) and on the final model
+    o Reduces numerical noise from ISTA optimizer, improving specificity
+    o Exposed as user argument in runmodel() and find_penalized_lambda()
+  o EBIC for penalized model selection uses unpenalized log-likelihood at penalized estimates
+    (Convention A), with npar = unpenalized free params + nonzero penalized params after threshold
+  o Print and write methods now display lambda search results (selected lambda, criterion value,
+    beta_min) and show "auto (not yet selected)" for models with NA lambda before estimation
+  o NA-safe comparisons throughout the codebase for penalty_lambda column (print, write, refit,
+    penalize, unpenalize, C++ workspace builder)
+
 Changes in Version 0.14.15
   o Added PFIML (Penalized Full Information Maximum Likelihood) estimator:
     o Combines FIML with L1/L2 penalty for penalized estimation with missing data

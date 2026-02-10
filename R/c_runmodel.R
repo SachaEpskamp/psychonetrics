@@ -18,7 +18,9 @@ runmodel <- function(
     warn_bounds = TRUE,
     return_improper = TRUE,
     bounded = TRUE,
-    approximate_SEs=FALSE
+    approximate_SEs=FALSE,
+    criterion = "ebic.5",
+    beta_min
     # cholesky_start # If TRUE, a model is formed with Cholesky decompositions first which is run for obtaining starting values.
 ){
   # cholesky_start <- FALSE
@@ -71,6 +73,20 @@ runmodel <- function(
   if (is_penalized) {
     experimentalWarning(x@estimator)
     optimizer <- "proximal_gradient"
+
+    # Auto-select lambda if any penalty_lambda values are NA:
+    if (hasAutoLambda(x)) {
+      if (verbose) message("Auto-selecting lambda via grid search...")
+      search_args <- list(model = x, criterion = criterion, verbose = verbose)
+      if (!missing(beta_min)) search_args$beta_min <- beta_min
+      x <- do.call(find_penalized_lambda, search_args)
+      if (log) {
+        x <- addLog(x, paste0("Auto-selected lambda = ",
+                               formatC(x@penalty$lambda, format = "e", digits = 3),
+                               " via ", criterion))
+      }
+      return(x)
+    }
   }
 
   # Default:

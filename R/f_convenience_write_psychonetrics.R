@@ -273,14 +273,25 @@ write_psychonetrics <- function(x, file = "psychonetrics_output.txt",
       pen_type <- if (x@penalty$alpha == 1) "LASSO (L1)"
                   else if (x@penalty$alpha == 0) "Ridge (L2)"
                   else paste0("Elastic net (alpha = ", x@penalty$alpha, ")")
-      n_penalized <- sum(x@parameters$penalty_lambda > 0 & !x@parameters$fixed)
-      n_zero <- sum(x@parameters$penalty_lambda > 0 & !x@parameters$fixed & abs(x@parameters$est) < 1e-8)
+      n_penalized <- sum(!is.na(x@parameters$penalty_lambda) & x@parameters$penalty_lambda > 0 & !x@parameters$fixed)
+      n_auto <- sum(is.na(x@parameters$penalty_lambda) & x@parameters$par > 0 & !x@parameters$fixed)
+      n_zero <- sum(!is.na(x@parameters$penalty_lambda) & x@parameters$penalty_lambda > 0 & !x@parameters$fixed & abs(x@parameters$est) < 1e-8)
+      lambda_display <- if (is.na(x@penalty$lambda)) "auto (not yet selected)" else x@penalty$lambda
       lines <- c(lines,
         paste0("  Penalty type          : ", pen_type),
-        paste0("  Penalty lambda        : ", x@penalty$lambda),
-        paste0("  Penalized parameters  : ", n_penalized),
+        paste0("  Penalty lambda        : ", lambda_display),
+        paste0("  Penalized parameters  : ", n_penalized + n_auto),
         paste0("  Parameters at zero    : ", n_zero)
       )
+      # Show lambda search results if available:
+      if (!is.null(x@optim$lambda_search)) {
+        ls <- x@optim$lambda_search
+        lines <- c(lines,
+          paste0("  Lambda selected by    : ", ls$criterion),
+          paste0("  Best criterion value  : ", goodNum(ls$best_criterion)),
+          paste0("  Beta_min threshold    : ", formatC(ls$beta_min, format = "e", digits = 3))
+        )
+      }
     }
   }
 

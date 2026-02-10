@@ -42,7 +42,9 @@ OptimWorkspace buildOptimWorkspace(const S4& model) {
         for (int i = 0; i < ws.nParTotal; i++) {
             int p = (int)ws.parnum(i);
             if (p > 0 && ws.penalty_lambda_vec(p - 1) == 0.0) {
-                ws.penalty_lambda_vec(p - 1) = penalty_lambda_col(i);
+                double lam_val = penalty_lambda_col(i);
+                // NA in R becomes NaN in C++; treat as 0 (auto-select not yet resolved)
+                ws.penalty_lambda_vec(p - 1) = std::isnan(lam_val) ? 0.0 : lam_val;
             }
         }
     } else {

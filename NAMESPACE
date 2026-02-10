@@ -160,6 +160,7 @@ export(penalize)
 export(unpenalize)
 export(refit)
 export(penaltyVector)
+export(find_penalized_lambda)
 
 # Special matrices:
 export(duplicationMatrix, eliminationMatrix, diagonalizationMatrix)

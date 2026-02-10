@@ -56,7 +56,7 @@ lvm <- function(
   boot_sub,
   boot_resample,
   # Penalized ML arguments:
-  penalty_lambda = 0,  # Penalty strength (used when estimator = "PML")
+  penalty_lambda = NA,  # Penalty strength (NA = auto-select via EBIC grid search)
   penalty_alpha = 1,   # Elastic net mixing: 1 = LASSO, 0 = ridge
   penalize_matrices  # Character vector of matrix names to penalize. Default: defaultPenalizeMatrices()
 ){
