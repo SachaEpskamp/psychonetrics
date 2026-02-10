@@ -28,6 +28,10 @@ struct OptimWorkspace {
     std::string framework;        // model.slot("model")
     std::string estimator;        // model.slot("estimator")
     std::string distribution;     // model.slot("distribution")
+
+    // Penalty data for PML (constant during optimization)
+    double penalty_alpha;            // elastic net mixing (1=LASSO, 0=ridge)
+    arma::vec penalty_lambda_vec;    // per-free-parameter penalty weights (length nFreePar)
     bool meanstructure;           // model.slot("meanstructure")
     Rcpp::List extramatrices;     // model.slot("extramatrices")
     Rcpp::List types;             // model.slot("types")

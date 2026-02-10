@@ -32,6 +32,23 @@ OptimWorkspace buildOptimWorkspace(const S4& model) {
     ws.framework = Rcpp::as<std::string>(model.slot("model"));
     ws.estimator = Rcpp::as<std::string>(model.slot("estimator"));
     ws.distribution = Rcpp::as<std::string>(model.slot("distribution"));
+
+    // Build penalty data for PML (replicates penaltyVector() in C++)
+    if (ws.estimator == "PML") {
+        Rcpp::List penalty = Rcpp::as<Rcpp::List>(model.slot("penalty"));
+        ws.penalty_alpha = Rcpp::as<double>(penalty["alpha"]);
+        arma::vec penalty_lambda_col = Rcpp::as<arma::vec>(pars["penalty_lambda"]);
+        ws.penalty_lambda_vec.zeros(ws.nFreePar);
+        for (int i = 0; i < ws.nParTotal; i++) {
+            int p = (int)ws.parnum(i);
+            if (p > 0 && ws.penalty_lambda_vec(p - 1) == 0.0) {
+                ws.penalty_lambda_vec(p - 1) = penalty_lambda_col(i);
+            }
+        }
+    } else {
+        ws.penalty_alpha = 1.0;
+        ws.penalty_lambda_vec.zeros(ws.nFreePar);
+    }
     ws.meanstructure = Rcpp::as<bool>(model.slot("meanstructure"));
     ws.extramatrices = Rcpp::as<Rcpp::List>(model.slot("extramatrices"));
     ws.types = Rcpp::as<Rcpp::List>(model.slot("types"));

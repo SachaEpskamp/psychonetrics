@@ -217,7 +217,15 @@ void psychonetrics_gradient_cpp_inner(
   
   
   grad = vectorise(Jac);
-  // return(vectorise(Jac));
+
+  // Add penalty gradient for PML estimator
+  if (ws.estimator == "PML") {
+    // L2 gradient: lambda * (1-alpha) * x
+    grad += (ws.penalty_lambda_vec * (1.0 - ws.penalty_alpha)) % x;
+    // L1 subgradient: lambda * alpha * sign(x) for x != 0, 0 for x == 0
+    arma::vec l1_subgrad = ws.penalty_lambda_vec * ws.penalty_alpha % arma::sign(x);
+    grad += l1_subgrad;
+  }
 }
 
 

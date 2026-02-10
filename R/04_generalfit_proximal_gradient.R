@@ -42,13 +42,17 @@ psychonetrics_proximal_gradient <- function(x, lower, upper, bounded) {
     gr <- function(par) psychonetrics_gradient(par, x)
   }
 
-  # Smooth objective = ML fit + L2 penalty (L2 is smooth)
+  # NOTE: fn() now returns ML + L2 + L1 (full penalized objective)
+  # NOTE: gr() now returns ML_grad + L2_grad + L1_subgrad (full subgradient)
+  # ISTA needs smooth vs non-smooth separation, so we subtract the L1 parts.
+
+  # Smooth objective = fn(par) - L1 = (ML + L2 + L1) - L1 = ML + L2
   smooth_obj <- function(par) {
-    ml_fit <- fn(par)
+    full_fit <- fn(par)
     fncount <<- fncount + 1
-    if (!is.finite(ml_fit)) return(ml_fit)
-    l2 <- 0.5 * sum(lambda_vec * (1 - alpha) * par^2)
-    ml_fit + l2
+    if (!is.finite(full_fit)) return(full_fit)
+    l1 <- sum(lambda_vec * alpha * abs(par))
+    full_fit - l1
   }
 
   # Full penalized objective (for convergence checking)
@@ -57,12 +61,13 @@ psychonetrics_proximal_gradient <- function(x, lower, upper, bounded) {
     smooth_val + l1
   }
 
-  # Smooth gradient = ML gradient + L2 gradient
+  # Smooth gradient = gr(par) - L1_subgrad = (ML_grad + L2_grad + L1_subgrad) - L1_subgrad
   smooth_grad <- function(par) {
-    ml_grad <- gr(par)
+    full_grad <- as.vector(gr(par))
     grcount <<- grcount + 1
-    l2_grad <- lambda_vec * (1 - alpha) * par
-    as.vector(ml_grad) + l2_grad
+    # Subtract L1 subgradient to get smooth part only
+    l1_subgrad <- lambda_vec * alpha * sign(par)
+    full_grad - l1_subgrad
   }
 
   # Compute initial objective

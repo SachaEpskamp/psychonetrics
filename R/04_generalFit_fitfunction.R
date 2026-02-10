@@ -46,5 +46,18 @@ psychonetrics_fitfunction <- function(x, model){
   
   
   # Run and return:
-  estFun(prep)
+  fit <- estFun(prep)
+
+  # Add penalty terms for PML estimator:
+  if (model@estimator == "PML") {
+    lambda_vec <- penaltyVector(model)
+    alpha <- model@penalty$alpha
+    if (is.null(alpha)) alpha <- 1
+    # L2 (ridge): 0.5 * sum(lambda * (1-alpha) * x^2)
+    # L1 (LASSO): sum(lambda * alpha * |x|)
+    fit <- fit + 0.5 * sum(lambda_vec * (1 - alpha) * x^2) +
+                 sum(lambda_vec * alpha * abs(x))
+  }
+
+  fit
 }
