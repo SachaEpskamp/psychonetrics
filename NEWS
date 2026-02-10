@@ -1,3 +1,22 @@
+Changes in Version 0.14.14
+  o Unified dlvm1() to accept both wide-format and long-format data:
+    o New 'datatype' argument with options "auto" (default), "wide", and "long"
+    o Auto-detects format from 'vars': matrix = wide, character vector = long
+    o New 'idvar' and 'beepvar' arguments for long-format data
+    o Long-to-wide conversion handled internally (previously required ml_tsdlvm1)
+  o Added 'standardize' argument to dlvm1() with options:
+    o "none" (default): no standardization
+    o "z": global z-scores per variable across all waves (does not impose stationarity)
+    o "quantile": quantile normalization across all waves
+    o "z_per_wave": independent z-scores per wave column (imposes stationarity)
+  o Added panellvgvar() as the canonical wrapper for panel latent variable GVAR models
+  o Deprecated functions (still work but emit warnings):
+    o ml_tsdlvm1() - use dlvm1() with long-format data instead
+    o ml_gvar() - use dlvm1() with within_latent="ggm", between_latent="ggm"
+    o ml_var() - use dlvm1() with desired within_latent and between_latent
+    o ml_ts_lvgvar() - use panellvgvar() instead
+    o panel_lvgvar() - use panellvgvar() instead
+
 Changes in Version 0.14.13
   o Added write_psychonetrics() function for exporting comprehensive model output to a text file:
     o Produces Mplus/LISREL-style output with logo, sample info, model specification, parameter
