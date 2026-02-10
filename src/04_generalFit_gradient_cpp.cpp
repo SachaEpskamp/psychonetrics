@@ -87,19 +87,19 @@ void psychonetrics_gradient_cpp_inner(
   // Estimator part:
   arma::mat estimatorPart;
   
-  if (estimator == "ML"){
+  if (estimator == "ML" || estimator == "PML"){
     if (distribution == "Gaussian"){
-      
+
       estimatorPart = jacobian_gaussian_sigma_cpp(prep);
-      
+
     } else if (distribution == "Ising"){
-      
+
       estimatorPart = jacobian_Ising_cpp(prep);
-      
+
     } else {
       Rf_error("Distribution not supported for ML estimator.");
     }
-    
+
   } else if (estimator == "ULS" || estimator == "WLS" || estimator == "DWLS"){
     
     estimatorPart = ULS_gradient_Gauss_cpp(prep);

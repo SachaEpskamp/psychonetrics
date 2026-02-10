@@ -16,7 +16,8 @@ Ising(data, omega = "full", tau, beta, beta_model =
                  optimizer, storedata = FALSE, WLS.W, sampleStats,
                  identify = TRUE, verbose = FALSE, maxNodes = 20,
                  min_sum = -Inf, bootstrap = FALSE, boot_sub,
-                 boot_resample)
+                 boot_resample, penalty_lambda = 0,
+                penalty_alpha = 1, penalize_matrices)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -99,6 +100,9 @@ Proportion of cases to be subsampled (\code{round(boot_sub * N)}).
 \item{boot_resample}{
 Logical, should the bootstrap be with replacement (\code{TRUE}) or without replacement (\code{FALSE})
 }
+\item{penalty_lambda}{Numeric penalty strength for penalized ML estimation (PML). Default is 0 (no penalty).}
+\item{penalty_alpha}{Elastic net mixing parameter: 1 = LASSO (default), 0 = ridge.}
+\item{penalize_matrices}{Character vector of matrix names to penalize. If missing, defaults are selected based on the model type.}
 }
 \details{
 The Ising Model takes the following form:

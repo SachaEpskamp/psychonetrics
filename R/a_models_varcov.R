@@ -34,7 +34,11 @@ varcov <- function(
   fullFIML=FALSE,
   bootstrap = FALSE,
   boot_sub,
-  boot_resample
+  boot_resample,
+  # Penalized ML arguments:
+  penalty_lambda = 0,  # Penalty strength (used when estimator = "PML")
+  penalty_alpha = 1,   # Elastic net mixing: 1 = LASSO, 0 = ridge
+  penalize_matrices  # Character vector of matrix names to penalize. Default: defaultPenalizeMatrices()
 ){
   rawts = FALSE
   if (rawts){
@@ -406,7 +410,20 @@ varcov <- function(
     model <- setoptimizer(model, optimizer)
   }
 
-  
+  # Setup PML penalization:
+  if (estimator == "PML") {
+    model@penalty <- list(lambda = penalty_lambda, alpha = penalty_alpha)
+    pen_mats <- if (missing(penalize_matrices)) defaultPenalizeMatrices(model) else penalize_matrices
+    model <- penalize(model, matrix = pen_mats, lambda = penalty_lambda, log = FALSE)
+    # Baseline/saturated models should use ML, not PML:
+    if (!is.null(model@baseline_saturated$baseline)) {
+      model@baseline_saturated$baseline@estimator <- "ML"
+    }
+    if (!is.null(model@baseline_saturated$saturated)) {
+      model@baseline_saturated$saturated@estimator <- "ML"
+    }
+  }
+
   # Return model:
   return(model)
 }

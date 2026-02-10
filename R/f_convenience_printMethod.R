@@ -84,7 +84,8 @@ definition = function(object){
             "FIML" = "Full information maximum likelihood (FIML)",
             "ULS" = "Unweighted least squares (ULS)",
             "WLS" = "Weighted least squares (WLS)",
-            "DWLS" = "Diagonally weighted least squares (DWLS)")
+            "DWLS" = "Diagonally weighted least squares (DWLS)",
+            "PML" = "Penalized maximum likelihood estimation (PML)")
     
     # output some optimizer results:
     cat("\n\nEstimation:",
@@ -93,9 +94,25 @@ definition = function(object){
         # "\n\t- Number of iterations:",object@optim$iterations,
         "\n\t- Message:",object@optim$message
         )
-    
+
+    # PML penalty details:
+    if (object@estimator == "PML") {
+      pen_type <- if (object@penalty$alpha == 1) "LASSO (L1)"
+                  else if (object@penalty$alpha == 0) "Ridge (L2)"
+                  else paste0("Elastic net (alpha = ", object@penalty$alpha, ")")
+      n_penalized <- sum(object@parameters$penalty_lambda > 0 & !object@parameters$fixed)
+      n_zero <- sum(object@parameters$penalty_lambda > 0 & !object@parameters$fixed & abs(object@parameters$est) < 1e-8)
+      cat("\n\nPenalization:",
+          "\n\t- Penalty type:", pen_type,
+          "\n\t- Lambda:", object@penalty$lambda,
+          "\n\t- Penalized parameters:", n_penalized,
+          "\n\t- Parameters at zero:", n_zero)
+    }
+
     # output some fit measures (inspired by Lavaan):
-    if (!is.null(object@fitmeasures)){
+    if (object@estimator == "PML") {
+      # Fit measures are not computed for PML (penalized objective is not a proper likelihood)
+    } else if (!is.null(object@fitmeasures)){
       cat("\n\nFit:",
           "\n\t- Model Fit Test Statistic:",goodNum(object@fitmeasures$chisq),
           "\n\t- Degrees of freedom:",object@fitmeasures$df,
@@ -106,12 +123,20 @@ definition = function(object){
       cat("\n\nFit has not yet been computed. Use 'addfit' to compute fit measures.")
     }
     # Next steps:
-    cat("\n\nTips:",
-        "\n\t- Use 'psychonetrics::compare' to compare psychonetrics models",
-        "\n\t- Use 'psychonetrics::fit' to inspect model fit",
-        "\n\t- Use 'psychonetrics::parameters' to inspect model parameters",
-        "\n\t- Use 'psychonetrics::MIs' to inspect modification indices"
-    )
+    if (object@estimator == "PML") {
+      cat("\n\nTips:",
+          "\n\t- Use 'psychonetrics::refit' for post-selection inference with standard errors",
+          "\n\t- Use 'psychonetrics::parameters' to inspect model parameters",
+          "\n\t- Use 'psychonetrics::penaltyVector' to inspect per-parameter penalties"
+      )
+    } else {
+      cat("\n\nTips:",
+          "\n\t- Use 'psychonetrics::compare' to compare psychonetrics models",
+          "\n\t- Use 'psychonetrics::fit' to inspect model fit",
+          "\n\t- Use 'psychonetrics::parameters' to inspect model parameters",
+          "\n\t- Use 'psychonetrics::MIs' to inspect modification indices"
+      )
+    }
   }
   # Newline to end:
   cat("\n")

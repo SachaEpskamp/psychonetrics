@@ -258,6 +258,7 @@ write_psychonetrics <- function(x, file = "psychonetrics_output.txt",
       "ULS" = "Unweighted least squares (ULS)",
       "WLS" = "Weighted least squares (WLS)",
       "DWLS" = "Diagonally weighted least squares (DWLS)",
+      "PML" = "Penalized maximum likelihood estimation (PML)",
       x@estimator
     )
     lines <- c(lines,
@@ -265,6 +266,21 @@ write_psychonetrics <- function(x, file = "psychonetrics_output.txt",
       paste0("  Optimizer             : ", x@optim$optimizer),
       paste0("  Optimization message  : ", x@optim$message)
     )
+
+    # PML penalty details:
+    if (x@estimator == "PML") {
+      pen_type <- if (x@penalty$alpha == 1) "LASSO (L1)"
+                  else if (x@penalty$alpha == 0) "Ridge (L2)"
+                  else paste0("Elastic net (alpha = ", x@penalty$alpha, ")")
+      n_penalized <- sum(x@parameters$penalty_lambda > 0 & !x@parameters$fixed)
+      n_zero <- sum(x@parameters$penalty_lambda > 0 & !x@parameters$fixed & abs(x@parameters$est) < 1e-8)
+      lines <- c(lines,
+        paste0("  Penalty type          : ", pen_type),
+        paste0("  Penalty lambda        : ", x@penalty$lambda),
+        paste0("  Penalized parameters  : ", n_penalized),
+        paste0("  Parameters at zero    : ", n_zero)
+      )
+    }
   }
 
   # Matrix list:
@@ -305,6 +321,10 @@ write_psychonetrics <- function(x, file = "psychonetrics_output.txt",
     # Uncomputed: show only structure and starting values
     cols <- c("var1", "op", "var2", "est",
               "matrix", "row", "col", "group", "par")
+  } else if (x@estimator == "PML") {
+    # PML: show penalty_lambda instead of se/p (no valid SEs for penalized estimates)
+    cols <- c("var1", "op", "var2", "est", "penalty_lambda",
+              "matrix", "row", "col", "group", "par")
   } else {
     has_boots <- !all(is.na(parTable$se_boot))
     if (has_boots) {
@@ -325,7 +345,9 @@ write_psychonetrics <- function(x, file = "psychonetrics_output.txt",
 
   # Format numbers:
   parTable$est <- goodNum2(parTable$est)
-  if (computed) {
+  if (computed && x@estimator == "PML") {
+    parTable$penalty_lambda <- goodNum2(parTable$penalty_lambda)
+  } else if (computed) {
     parTable$se <- goodNum(parTable$se)
     parTable$p <- goodNum(parTable$p)
     has_boots <- !all(is.na(x@parameters$se_boot))

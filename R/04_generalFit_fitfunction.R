@@ -23,6 +23,10 @@ psychonetrics_fitfunction <- function(x, model){
                     "Gaussian" = maxLikEstimator_Gauss_cpp, # <- updated!
                     "Ising" = maxLikEstimator_Ising_cpp # <- updated!
                     ),
+      "PML" = switch(distribution,
+                    "Gaussian" = maxLikEstimator_Gauss_cpp,
+                    "Ising" = maxLikEstimator_Ising_cpp
+                    ),
       "ULS" =  switch(distribution,"Gaussian" = ULS_Gauss_cpp), # <- updated
       "DWLS" = switch(distribution,"Gaussian" = ULS_Gauss_cpp), # <- updated
       "WLS" = switch(distribution,"Gaussian" = ULS_Gauss_cpp), # <- updated
@@ -32,6 +36,7 @@ psychonetrics_fitfunction <- function(x, model){
     estFun <- switch(
       estimator,
       "ML" = switch(distribution,"Gaussian" = maxLikEstimator_Gauss, "Ising" = maxLikEstimator_Ising),
+      "PML" = switch(distribution,"Gaussian" = maxLikEstimator_Gauss, "Ising" = maxLikEstimator_Ising),
       "ULS" =  switch(distribution,"Gaussian" = ULS_Gauss),
       "DWLS" = switch(distribution,"Gaussian" = ULS_Gauss),
       "WLS" = switch(distribution,"Gaussian" = ULS_Gauss),

@@ -65,6 +65,13 @@ runmodel <- function(
   }
   
   optimizer <- x@optimizer
+
+  # Force proximal gradient for PML estimator:
+  is_penalized <- x@estimator == "PML"
+  if (is_penalized) {
+    optimizer <- "proximal_gradient"
+  }
+
   # Default:
   if (optimizer == "default"){
     # if (x@model %in% c("varcov","lvm") && any(grepl("omega",x@parameters$matrix))){
@@ -449,7 +456,32 @@ runmodel <- function(
   # Form optimizer arguments:
   
   
-  if (grepl("cpp",optimizer) || optimizer == "LBFGS++"){
+  if (optimizer == "proximal_gradient") {
+    # Proximal gradient (ISTA) optimizer for PML estimation:
+    suppressWarnings({
+      tryres <- try({
+        x <- psychonetrics_proximal_gradient(x, lower, upper, bounded)
+      }, silent = TRUE)
+    })
+
+    if (is(tryres, "try-error")) {
+      # Emergency recovery with different starting values:
+      suppressWarnings({
+        tryres2 <- try({
+          x <- updateModel(oldstart, x)
+          x <- psychonetrics_proximal_gradient(emergencystart(x), lower, upper, bounded)
+        }, silent = TRUE)
+      })
+
+      if (is(tryres2, "try-error")) {
+        stop(paste("Proximal gradient optimization failed. Try different starting values or a smaller lambda. Error:\n\n", tryres2))
+      }
+    }
+
+    x@objective <- x@optim$value
+    x <- updateModel(parVector(x), x, updateMatrices = TRUE)
+
+  } else if (grepl("cpp",optimizer) || optimizer == "LBFGS++"){
 
     if (optimizer == "LBFGS++") {
       # LBFGS++ pure C++ optimizer:
@@ -803,7 +835,7 @@ runmodel <- function(
   
   # Add information:
   # if (!is.null(x@fitfunctions$information)){
-  if (addInformation){
+  if (addInformation && !is_penalized){
     if (verbose){
       message("Computing Fisher information...")
     }
@@ -938,16 +970,16 @@ runmodel <- function(
     x@baseline_saturated$saturated <- x
   }
   
-  # Add fit:
-  if (addfit){
+  # Add fit (skip for penalized models - chi-square fit not meaningful):
+  if (addfit && !is_penalized){
     x <- addfit(x, verbose=verbose)
   }
-  # Add MIs:
-  if (addMIs){
-    x <- addMIs(x,analyticFisher=analyticFisher, verbose = verbose) 
+  # Add MIs (skip for penalized models):
+  if (addMIs && !is_penalized){
+    x <- addMIs(x,analyticFisher=analyticFisher, verbose = verbose)
   }
-  # Add SEs:
-  if (addSEs){
+  # Add SEs (skip for penalized models - use refit() for post-selection inference):
+  if (addSEs && !is_penalized){
     if (x@cpp){
       if (verbose){
         message("Adding standard errors...")
@@ -966,16 +998,16 @@ runmodel <- function(
     x <- addLog(x, "Evaluated model")    
   }
   
-  # Warn about the gradient?
-  if (warn_gradient){
-    
+  # Warn about the gradient? (skip for penalized models - subgradient at zeros is non-zero)
+  if (warn_gradient && !is_penalized){
+
     if (x@cpp){
       grad <- psychonetrics_gradient_cpp(parVector(x),x)
     } else {
       grad <- psychonetrics_gradient(parVector(x),x)
     }
-    
-    
+
+
     if (mean(abs(grad)) > 1){
       warning("Model might not have converged properly: mean(abs(gradient)) > 1.")
     }

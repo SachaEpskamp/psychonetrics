@@ -176,6 +176,7 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
       minimum = lower[ind],
       maximum = upper[ind],
       identified = FALSE,
+      penalty_lambda = 0, # Per-parameter penalty strength for PML (0 = not penalized)
       stringsAsFactors = FALSE
     )
     
@@ -238,9 +239,10 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
       minimum = numeric(0),
       maximum = numeric(0),
       identified = logical(0), # Indicating a parameter is fixed to identify the model!
+      penalty_lambda = numeric(0), # Per-parameter penalty strength for PML (0 = not penalized)
       stringsAsFactors = FALSE
     )
-    
+
     # Table for matrices:
     mattable <- data.frame(
       name = mat,

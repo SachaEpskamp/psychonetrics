@@ -155,6 +155,12 @@ export(parameters)
 export(write_psychonetrics)
 # export(replicator)
 
+# Penalized ML:
+export(penalize)
+export(unpenalize)
+export(refit)
+export(penaltyVector)
+
 # Special matrices:
 export(duplicationMatrix, eliminationMatrix, diagonalizationMatrix)
 

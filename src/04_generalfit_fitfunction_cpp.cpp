@@ -55,14 +55,14 @@ double psychonetrics_fitfunction_cpp(
   
   
   
-  if (estimator == "ML"){
-    
+  if (estimator == "ML" || estimator == "PML"){
+
     if (distribution == "Gaussian"){
       fit = maxLikEstimator_Gauss_cpp(prep);
     } else if (distribution == "Ising"){
-      
+
       fit = maxLikEstimator_Ising_cpp(prep);
-      
+
     } else {
       Rf_error("Distribution not supported for ML estimator.");
     }

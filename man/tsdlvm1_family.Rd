@@ -24,7 +24,8 @@ tsdlvm1(data, lambda, contemporaneous = c("cov", "chol",
                    sampleStats, covtype = c("choose", "ML", "UB"),
                    centerWithin = FALSE, standardize = c("none", "z",
                    "quantile"), verbose = FALSE, bootstrap = FALSE,
-                   boot_sub, boot_resample)
+                   boot_sub, boot_resample, penalty_lambda = 0,
+                   penalty_alpha = 1, penalize_matrices)
 
 ts_lvgvar(...)
 }
@@ -156,6 +157,9 @@ Proportion of cases to be subsampled (\code{round(boot_sub * N)}).
 \item{boot_resample}{
 Logical, should the bootstrap be with replacement (\code{TRUE}) or without replacement (\code{FALSE})
 }
+\item{penalty_lambda}{Numeric penalty strength for penalized ML estimation (PML). Default is 0 (no penalty).}
+\item{penalty_alpha}{Elastic net mixing parameter: 1 = LASSO (default), 0 = ridge.}
+\item{penalize_matrices}{Character vector of matrix names to penalize. If missing, defaults are selected based on the model type.}
 \item{\dots}{
 Arguments sent to \code{tsdlvm1}
 }

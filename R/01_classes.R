@@ -94,7 +94,8 @@ generate_psychonetrics <- setClass("psychonetrics", slots = c(
   types = "list",
   cpp = "logical",
   meanstructure = "logical",
-  verbose = "logical"
+  verbose = "logical",
+  penalty = "list" # Penalty configuration for PML: lambda, alpha
 ),
 prototype = list(
   model = "dummy", submodel = "none",
@@ -130,6 +131,7 @@ prototype = list(
     minimum = numeric(0),
     maximum = numeric(0),
     identified = logical(0), # Indicating a parameter is fixed to identify the model!
+    penalty_lambda = numeric(0), # Per-parameter penalty strength for PML (0 = not penalized)
     stringsAsFactors = FALSE
   ),
   matrices = data.frame(
@@ -152,7 +154,8 @@ prototype = list(
   rawts = FALSE,
   cpp = TRUE, # Use C++ when available
   meanstructure = TRUE,
-  verbose = FALSE
+  verbose = FALSE,
+  penalty = list(lambda = 0, alpha = 1) # Global penalty: lambda=strength, alpha=elastic net mixing (1=LASSO)
 ))
 
 
