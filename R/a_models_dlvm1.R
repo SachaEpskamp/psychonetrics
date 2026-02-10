@@ -3,10 +3,12 @@ dlvm1 <- function(
   data, # Dataset
   vars, # Design matrix (wide) or character vector of variable names (long)
 
+  # Data format:
+  datatype = c("auto", "wide", "long"), # Data format: auto-detects from vars
+
   # Long-format support:
   idvar, # Subject ID variable (required for long format)
   beepvar, # Time point / measurement occasion variable (optional for long format)
-  datatype = c("auto", "wide", "long"), # Data format: auto-detects from vars
 
   # Standardization:
   standardize = c("none", "z", "quantile", "z_per_wave"),
