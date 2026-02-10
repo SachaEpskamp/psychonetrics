@@ -107,6 +107,7 @@ export(dlvm1)
 export(panelvar)
 export(panelgvar)
 export(panel_lvgvar)
+export(panellvgvar)
 
 # Time-series lvvar models:
 export(ts_lvgvar)

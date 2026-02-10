@@ -8,7 +8,9 @@
 Multi-level Lag-1 dynamic latent variable model family of psychonetrics models for time-series data
 }
 \description{
-This function is a wrapper around \code{\link{dlvm1}} that allows for specifying the model using a long format data and similar input as the \code{mlVAR} package. The \code{ml_ts_lvgvar} simply sets \code{within_latent = "ggm"} and \code{between_latent = "ggm"} by default. The \code{ml_gvar} and \code{ml_var} are simple wrappers with different named defaults for contemporaneous and between-person effects.
+\bold{Deprecated.} Use \code{\link{dlvm1}} directly with long-format data instead (set \code{vars} to a character vector and provide \code{idvar}).
+
+This function is a deprecated wrapper around \code{\link{dlvm1}} that allows for specifying the model using a long format data and similar input as the \code{mlVAR} package. The \code{ml_ts_lvgvar} simply sets \code{within_latent = "ggm"} and \code{between_latent = "ggm"} by default. The \code{ml_gvar} and \code{ml_var} are simple wrappers with different named defaults for contemporaneous and between-person effects. All these functions now call \code{dlvm1()} directly and emit deprecation warnings.
 }
 \usage{
 ml_tsdlvm1(data, beepvar, idvar, vars, groups, estimator = "FIML", 
