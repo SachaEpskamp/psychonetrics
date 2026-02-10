@@ -169,11 +169,11 @@ ml_lvm <- function(
   # Standardize the data:
   if (standardize == "z"){
     for (v in seq_along(vars)){
-      data[,vars[v]] <- (data[,vars[v]] - mean(data[,vars[v]],na.rm=TRUE)) / sd(data[,vars[v]],na.rm=TRUE)
+      data[[vars[v]]] <- (data[[vars[v]]] - mean(data[[vars[v]]],na.rm=TRUE)) / sd(data[[vars[v]]],na.rm=TRUE)
     }
   } else if (standardize == "quantile"){
     for (v in seq_along(vars)){
-      data[,vars[v]] <- quantiletransform(data[,vars[v]])
+      data[[vars[v]]] <- quantiletransform(data[[vars[v]]])
     }
   }
   

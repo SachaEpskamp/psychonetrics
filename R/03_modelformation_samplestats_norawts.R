@@ -115,8 +115,13 @@ samplestats_norawts <- function(
     if (is.matrix(data)){
       data <- as.data.frame(data)
     }
-    
-    
+
+    # Ensure plain data.frame (tibbles have different subsetting behavior):
+    if (inherits(data, "tbl_df")){
+      data <- as.data.frame(data)
+    }
+
+
     # If group variable is missing, add (dummy):
     if (missing(groups)|| is.null(groups)){
       groups <- "group"
