@@ -108,7 +108,7 @@ tsdlvm1 <- function(
       if (estimator == "ML") {
         estimator <- "FIML"
       } else if (estimator == "PML") {
-        estimator <- "FIPML"
+        estimator <- "PFIML"
       } else {
         # LS variants: default to listwise
         missing <- "listwise"
@@ -126,8 +126,8 @@ tsdlvm1 <- function(
                                covs = covs,
                                means = means,
                                nobs = nobs,
-                               missing  = ifelse(estimator %in% c("FIML", "FIPML"),"pairwise",missing),
-                               fimldata = estimator %in% c("FIML", "FIPML"),
+                               missing  = ifelse(estimator %in% c("FIML", "PFIML"),"pairwise",missing),
+                               fimldata = estimator %in% c("FIML", "PFIML"),
                                storedata = storedata,
                                covtype=covtype,
                                standardize=standardize,
@@ -408,8 +408,8 @@ tsdlvm1 <- function(
                                                    baseline_saturated = FALSE,
                                                    sampleStats = sampleStats)
     
-    # if not FIML/FIPML, Treat as computed:
-    if (!estimator %in% c("FIML", "FIPML")){
+    # if not FIML/PFIML, Treat as computed:
+    if (!estimator %in% c("FIML", "PFIML")){
       model@baseline_saturated$saturated@computed <- TRUE
 
       # FIXME: TODO
@@ -429,13 +429,13 @@ tsdlvm1 <- function(
     model <- setoptimizer(model, optimizer)
   }
 
-  # Setup PML/FIPML penalization:
-  if (estimator %in% c("PML", "FIPML")) {
+  # Setup PML/PFIML penalization:
+  if (estimator %in% c("PML", "PFIML")) {
     model@penalty <- list(lambda = penalty_lambda, alpha = penalty_alpha)
     pen_mats <- if (missing(penalize_matrices)) defaultPenalizeMatrices(model) else penalize_matrices
     model <- penalize(model, matrix = pen_mats, lambda = penalty_lambda, log = FALSE)
     # Baseline/saturated models should use unpenalized estimator:
-    base_est <- if (estimator == "FIPML") "FIML" else "ML"
+    base_est <- if (estimator == "PFIML") "FIML" else "ML"
     if (!is.null(model@baseline_saturated$baseline)) {
       model@baseline_saturated$baseline@estimator <- base_est
     }

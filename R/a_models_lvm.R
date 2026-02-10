@@ -143,7 +143,7 @@ lvm <- function(
         if (estimator == "ML") {
           estimator <- "FIML"
         } else if (estimator == "PML") {
-          estimator <- "FIPML"
+          estimator <- "PFIML"
         } else {
           # LS variants: default to listwise (WLS weights don't support missing data for continuous)
           missing <- "listwise"
@@ -169,9 +169,9 @@ lvm <- function(
                                  covs = covs,
                                  means = means,
                                  nobs = nobs,
-                                 missing = ifelse(estimator %in% c("FIML", "FIPML"),"pairwise",missing),
+                                 missing = ifelse(estimator %in% c("FIML", "PFIML"),"pairwise",missing),
                                  rawts = rawts,
-                                 fimldata = estimator %in% c("FIML", "FIPML"),
+                                 fimldata = estimator %in% c("FIML", "PFIML"),
                                  storedata = storedata,
                                  covtype = covtype,
                                  weightsmatrix = WLS.W,
@@ -191,9 +191,9 @@ lvm <- function(
                                    covs = covs,
                                    means = means,
                                    nobs = nobs,
-                                   missing = ifelse(estimator %in% c("FIML", "FIPML"),"pairwise",missing),
+                                   missing = ifelse(estimator %in% c("FIML", "PFIML"),"pairwise",missing),
                                    rawts = rawts,
-                                   fimldata = estimator %in% c("FIML", "FIPML"),
+                                   fimldata = estimator %in% c("FIML", "PFIML"),
                                    storedata = storedata,
                                    covtype = covtype,
                                    weightsmatrix = WLS.W,
@@ -211,9 +211,9 @@ lvm <- function(
                                    covs = covs,
                                    means = means,
                                    nobs = nobs,
-                                   missing = ifelse(estimator %in% c("FIML", "FIPML"),"pairwise",missing),
+                                   missing = ifelse(estimator %in% c("FIML", "PFIML"),"pairwise",missing),
                                    rawts = rawts,
-                                   fimldata = estimator %in% c("FIML", "FIPML"),
+                                   fimldata = estimator %in% c("FIML", "PFIML"),
                                    storedata = storedata,
                                    covtype = covtype,
                                    weightsmatrix = WLS.W,
@@ -625,8 +625,8 @@ lvm <- function(
              baseline_saturated = FALSE, sampleStats = sampleStats)
     }
 
-    # if not FIML/FIPML, Treat as computed:
-    if (!estimator %in% c("FIML", "FIPML")){
+    # if not FIML/PFIML, Treat as computed:
+    if (!estimator %in% c("FIML", "PFIML")){
       model@baseline_saturated$saturated@computed <- TRUE
 
       # FIXME: TODO
@@ -645,13 +645,13 @@ lvm <- function(
     model <- setoptimizer(model, optimizer)
   }
 
-  # Setup PML/FIPML penalization:
-  if (estimator %in% c("PML", "FIPML")) {
+  # Setup PML/PFIML penalization:
+  if (estimator %in% c("PML", "PFIML")) {
     model@penalty <- list(lambda = penalty_lambda, alpha = penalty_alpha)
     pen_mats <- if (missing(penalize_matrices)) defaultPenalizeMatrices(model) else penalize_matrices
     model <- penalize(model, matrix = pen_mats, lambda = penalty_lambda, log = FALSE)
     # Baseline/saturated models should use unpenalized estimator:
-    base_est <- if (estimator == "FIPML") "FIML" else "ML"
+    base_est <- if (estimator == "PFIML") "FIML" else "ML"
     if (!is.null(model@baseline_saturated$baseline)) {
       model@baseline_saturated$baseline@estimator <- base_est
     }

@@ -33,8 +33,8 @@ OptimWorkspace buildOptimWorkspace(const S4& model) {
     ws.estimator = Rcpp::as<std::string>(model.slot("estimator"));
     ws.distribution = Rcpp::as<std::string>(model.slot("distribution"));
 
-    // Build penalty data for PML/FIPML (replicates penaltyVector() in C++)
-    if (ws.estimator == "PML" || ws.estimator == "FIPML") {
+    // Build penalty data for PML/PFIML (replicates penaltyVector() in C++)
+    if (ws.estimator == "PML" || ws.estimator == "PFIML") {
         Rcpp::List penalty = Rcpp::as<Rcpp::List>(model.slot("penalty"));
         ws.penalty_alpha = Rcpp::as<double>(penalty["alpha"]);
         arma::vec penalty_lambda_col = Rcpp::as<arma::vec>(pars["penalty_lambda"]);

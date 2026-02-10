@@ -66,8 +66,8 @@ runmodel <- function(
   
   optimizer <- x@optimizer
 
-  # Force proximal gradient for PML/FIPML estimator:
-  is_penalized <- x@estimator %in% c("PML", "FIPML")
+  # Force proximal gradient for PML/PFIML estimator:
+  is_penalized <- x@estimator %in% c("PML", "PFIML")
   if (is_penalized) {
     experimentalWarning(x@estimator)
     optimizer <- "proximal_gradient"

@@ -84,7 +84,7 @@ double psychonetrics_fitfunction_cpp(
 
     fit = ULS_Gauss_cpp(prep);
 
-  } else if (estimator == "FIPML"){
+  } else if (estimator == "PFIML"){
 
     const OptimWorkspace& ws = getOrBuildWorkspace(model);
     fit = penFIMLEstimator_Gauss_cpp(prep, x, ws);

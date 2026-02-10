@@ -57,8 +57,8 @@ refit <- function(
   new_mod@parameters$penalty_lambda <- 0
   new_mod@penalty <- list(lambda = 0, alpha = 1)
 
-  # Switch estimator back to ML (or FIML for FIPML)
-  new_mod@estimator <- if (x@estimator == "FIPML") "FIML" else "ML"
+  # Switch estimator back to ML (or FIML for PFIML)
+  new_mod@estimator <- if (x@estimator == "PFIML") "FIML" else "ML"
   new_mod@optimizer <- "default"
   new_mod@computed <- FALSE
 

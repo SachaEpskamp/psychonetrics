@@ -96,8 +96,8 @@ varcov <- function(
   }
   
   # Check FIML:
-  if (!missing(data) && !meanstructure && estimator %in% c("FIML", "FIPML")){
-    stop("meanstructure = FALSE is not yet supported for 'FIML'/'FIPML' estimator")
+  if (!missing(data) && !meanstructure && estimator %in% c("FIML", "PFIML")){
+    stop("meanstructure = FALSE is not yet supported for 'FIML'/'PFIML' estimator")
   }
 
   # Auto-detect missing data handling:
@@ -113,7 +113,7 @@ varcov <- function(
         if (estimator == "ML") {
           estimator <- "FIML"
         } else if (estimator == "PML") {
-          estimator <- "FIPML"
+          estimator <- "PFIML"
         } else {
           # LS variants: default to listwise (WLS weights don't support missing data for continuous)
           missing <- "listwise"
@@ -146,9 +146,9 @@ varcov <- function(
                                covs = covs, 
                                means = means, 
                                nobs = nobs, 
-                               missing = ifelse(estimator %in% c("FIML", "FIPML"),"pairwise",missing),
+                               missing = ifelse(estimator %in% c("FIML", "PFIML"),"pairwise",missing),
                                rawts = rawts,
-                               fimldata = estimator %in% c("FIML", "FIPML"),
+                               fimldata = estimator %in% c("FIML", "PFIML"),
                                storedata = storedata,
                                weightsmatrix = WLS.W,
                                meanstructure = meanstructure,
@@ -426,8 +426,8 @@ varcov <- function(
     }
 
     
-    # if not FIML/FIPML, Treat as computed:
-    if (!estimator %in% c("FIML", "FIPML")){
+    # if not FIML/PFIML, Treat as computed:
+    if (!estimator %in% c("FIML", "PFIML")){
       model@baseline_saturated$saturated@computed <- TRUE
       
       # FIXME: TODO
@@ -441,13 +441,13 @@ varcov <- function(
     model <- setoptimizer(model, optimizer)
   }
 
-  # Setup PML/FIPML penalization:
-  if (estimator %in% c("PML", "FIPML")) {
+  # Setup PML/PFIML penalization:
+  if (estimator %in% c("PML", "PFIML")) {
     model@penalty <- list(lambda = penalty_lambda, alpha = penalty_alpha)
     pen_mats <- if (missing(penalize_matrices)) defaultPenalizeMatrices(model) else penalize_matrices
     model <- penalize(model, matrix = pen_mats, lambda = penalty_lambda, log = FALSE)
     # Baseline/saturated models should use unpenalized estimator:
-    base_est <- if (estimator == "FIPML") "FIML" else "ML"
+    base_est <- if (estimator == "PFIML") "FIML" else "ML"
     if (!is.null(model@baseline_saturated$baseline)) {
       model@baseline_saturated$baseline@estimator <- base_est
     }

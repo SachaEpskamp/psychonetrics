@@ -39,12 +39,12 @@ psychonetrics_fitfunction <- function(x, model){
     )
   }
 
-  # PML/FIPML use dedicated penalized fit functions (handles cpp internally):
+  # PML/PFIML use dedicated penalized fit functions (handles cpp internally):
   if (estimator == "PML") {
     fit <- switch(distribution,
                   "Gaussian" = penMaxLikEstimator_Gauss(prep, x, model),
                   "Ising" = penMaxLikEstimator_Ising(prep, x, model))
-  } else if (estimator == "FIPML") {
+  } else if (estimator == "PFIML") {
     fit <- switch(distribution,
                   "Gaussian" = penFIMLEstimator_Gauss(prep, x, model))
   } else {

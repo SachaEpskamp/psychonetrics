@@ -1,20 +1,20 @@
 Changes in Version 0.14.15
-  o Added FIPML (Penalized Full Information Maximum Likelihood) estimator:
+  o Added PFIML (Penalized Full Information Maximum Likelihood) estimator:
     o Combines FIML with L1/L2 penalty for penalized estimation with missing data
     o Available for all Gaussian models (varcov, lvm, var1, dlvm1, tsdlvm1)
     o Uses proximal gradient optimizer (same as PML)
-    o refit() switches FIPML back to FIML for post-selection inference
+    o refit() switches PFIML back to FIML for post-selection inference
   o Changed default missing data handling to missing = "auto" for all Gaussian models:
     o ML automatically switches to FIML when missing data is detected
-    o PML automatically switches to FIPML when missing data is detected
+    o PML automatically switches to PFIML when missing data is detected
     o LS estimators (ULS, WLS, DWLS) default to listwise deletion
     o Users can still override with explicit missing = "listwise" or missing = "pairwise"
     o No change for Ising models (missing = "listwise" default remains)
-  o Penalty setup in model constructors now supports FIPML:
-    o estimator = "PML" and estimator = "FIPML" both trigger penalty initialization
+  o Penalty setup in model constructors now supports PFIML:
+    o estimator = "PML" and estimator = "PFIML" both trigger penalty initialization
     o Baseline/saturated models use the appropriate unpenalized estimator (ML or FIML)
   o Added experimental feature warnings for features introduced in the 0.14.x branch:
-    o PML, FIPML, LBFGS++ optimizer, ordinal data in lvm()/varcov(), WLSMV scaled test statistic
+    o PML, PFIML, LBFGS++ optimizer, ordinal data in lvm()/varcov(), WLSMV scaled test statistic
     o Warnings appear once per session and only while version < 0.15
     o Users are directed to report unexpected behavior to GitHub issues
 
