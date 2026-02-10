@@ -67,4 +67,8 @@ const OptimWorkspace& getOrBuildWorkspace(const S4& model);
 // Manually invalidate the cache (for testing or cleanup)
 void invalidateWorkspaceCache();
 
+// Update only the penalty lambda vector in the cached workspace
+// without rebuilding the entire workspace. Also updates the cache key.
+void updateWorkspacePenaltyLambda(const arma::vec& new_lambda_vec, SEXP modelSEXP);
+
 #endif

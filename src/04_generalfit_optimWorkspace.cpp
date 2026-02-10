@@ -112,3 +112,17 @@ void invalidateWorkspaceCache() {
     // Also clear the prepareModel_cpp result cache (Optimization 4):
     invalidatePrepCache();
 }
+
+// Update only the penalty lambda vector in the cached workspace
+// without rebuilding the entire workspace. Used during lambda grid search
+// where only the penalty changes between iterations.
+// [[Rcpp::export]]
+void updateWorkspacePenaltyLambda(const arma::vec& new_lambda_vec, SEXP modelSEXP) {
+    if (s_cachedWorkspace && (int)new_lambda_vec.n_elem == s_cachedWorkspace->nFreePar) {
+        s_cachedWorkspace->penalty_lambda_vec = new_lambda_vec;
+        s_cachedWorkspace->modelSEXP = modelSEXP;
+        s_cachedModelSEXP = modelSEXP;
+    }
+    // Invalidate prep cache since model parameters changed
+    invalidatePrepCache();
+}

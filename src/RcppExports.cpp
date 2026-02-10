@@ -570,6 +570,17 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// updateWorkspacePenaltyLambda
+void updateWorkspacePenaltyLambda(const arma::vec& new_lambda_vec, SEXP modelSEXP);
+RcppExport SEXP _psychonetrics_updateWorkspacePenaltyLambda(SEXP new_lambda_vecSEXP, SEXP modelSEXPSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type new_lambda_vec(new_lambda_vecSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type modelSEXP(modelSEXPSEXP);
+    updateWorkspacePenaltyLambda(new_lambda_vec, modelSEXP);
+    return R_NilValue;
+END_RCPP
+}
 // psychonetrics_optimizer
 S4 psychonetrics_optimizer(S4 model, const arma::vec& lower, const arma::vec& upper, std::string optimizer, bool bounded);
 RcppExport SEXP _psychonetrics_psychonetrics_optimizer(SEXP modelSEXP, SEXP lowerSEXP, SEXP upperSEXP, SEXP optimizerSEXP, SEXP boundedSEXP) {
@@ -2245,6 +2256,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp, 5},
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML, 5},
     {"_psychonetrics_invalidateWorkspaceCache", (DL_FUNC) &_psychonetrics_invalidateWorkspaceCache, 0},
+    {"_psychonetrics_updateWorkspacePenaltyLambda", (DL_FUNC) &_psychonetrics_updateWorkspacePenaltyLambda, 2},
     {"_psychonetrics_psychonetrics_optimizer", (DL_FUNC) &_psychonetrics_psychonetrics_optimizer, 5},
     {"_psychonetrics_psychonetrics_lbfgsb_optimizer", (DL_FUNC) &_psychonetrics_psychonetrics_lbfgsb_optimizer, 4},
     {"_psychonetrics_expected_hessian_Gaussian_group_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_Gaussian_group_cpp, 1},

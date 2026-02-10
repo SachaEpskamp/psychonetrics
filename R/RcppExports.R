@@ -185,6 +185,10 @@ invalidateWorkspaceCache <- function() {
     invisible(.Call(`_psychonetrics_invalidateWorkspaceCache`))
 }
 
+updateWorkspacePenaltyLambda <- function(new_lambda_vec, modelSEXP) {
+    invisible(.Call(`_psychonetrics_updateWorkspacePenaltyLambda`, new_lambda_vec, modelSEXP))
+}
+
 psychonetrics_optimizer <- function(model, lower, upper, optimizer = "L-BFGS-B", bounded = FALSE) {
     .Call(`_psychonetrics_psychonetrics_optimizer`, model, lower, upper, optimizer, bounded)
 }

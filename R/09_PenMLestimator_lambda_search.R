@@ -169,9 +169,10 @@ apply_beta_min <- function(model, beta_min) {
 find_penalized_lambda <- function(
     model,
     criterion = "ebic.5",
-    nLambda = 100,
+    nLambda = 50,
     lambda_min_ratio = 1e-4,
     beta_min,            # default: sqrt(log(p)/n)
+    patience = 10,       # early stopping: stop after this many non-improving lambdas
     verbose
 ) {
   if (!is(model, "psychonetrics")) stop("input must be a psychonetrics object")
@@ -235,6 +236,7 @@ find_penalized_lambda <- function(
   best_lambda <- lambda_grid[1]
   best_model <- NULL
   current_model <- model
+  patience_counter <- 0
 
   alpha <- model@penalty$alpha
   if (is.null(alpha)) alpha <- 1
@@ -247,10 +249,14 @@ find_penalized_lambda <- function(
     current_model@penalty$lambda <- lam
     current_model@computed <- FALSE
 
+    # Update C++ workspace penalty vector without full rebuild
+    updateWorkspacePenaltyLambda(penaltyVector(current_model), current_model)
+
     # Warm start: use previous solution (already in current_model from last iteration)
-    # Run ISTA
+    # Run ISTA with loose tolerance (re-optimize best model later)
     tryres <- try(suppressWarnings(suppressMessages({
-      current_model <- psychonetrics_proximal_gradient(current_model, lower, upper, bounded = TRUE)
+      current_model <- psychonetrics_proximal_gradient(current_model, lower, upper,
+                                                       bounded = TRUE, tol = 1e-5)
     })), silent = TRUE)
 
     if (is(tryres, "try-error")) {
@@ -284,6 +290,14 @@ find_penalized_lambda <- function(
       best_crit <- crit_val
       best_lambda <- lam
       best_model <- current_model
+      patience_counter <- 0
+    } else {
+      patience_counter <- patience_counter + 1
+      if (patience_counter >= patience) {
+        if (verbose) message(paste0("  Early stopping at lambda ", i, "/", nLambda,
+                                     ": no improvement for ", patience, " consecutive lambdas"))
+        break
+      }
     }
   }
 
@@ -292,7 +306,19 @@ find_penalized_lambda <- function(
     return(model)
   }
 
-  # Step 5: Apply beta_min threshold on the best model (actual zeroing of estimates)
+  # Step 5: Re-optimize best model with tight tolerance
+  if (verbose) message("Re-optimizing best model with tight convergence tolerance...")
+  best_model@computed <- FALSE
+  updateWorkspacePenaltyLambda(penaltyVector(best_model), best_model)
+  best_model <- psychonetrics_proximal_gradient(best_model, lower, upper,
+                                                 bounded = TRUE, tol = 1e-8)
+  # Recompute EBIC with tight solution
+  best_crit <- tryCatch(
+    compute_penalized_ebic(best_model, gamma = gamma, beta_min = beta_min),
+    error = function(e) best_crit
+  )
+
+  # Step 6: Apply beta_min threshold on the best model (actual zeroing of estimates)
   best_model <- apply_beta_min(best_model, beta_min)
   n_thresholded <- attr(best_model, "n_thresholded")
   attr(best_model, "n_thresholded") <- NULL
