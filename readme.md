@@ -4,6 +4,8 @@
 
 The `psychonetrics` R package provides a comprehensive framework for multi-group structural equation modeling (SEM) combined with confirmatory network analysis. It supports cross-sectional, time-series, and panel data through maximum likelihood estimation with core computations in C++ for fast performance.
 
+**Website: [https://psychonetrics.org](https://psychonetrics.org)**
+
 ## Modeling Frameworks
 
 - **Variance-covariance modeling** (`varcov`) -- Gaussian graphical model (GGM) via `ggm()`
@@ -19,12 +21,6 @@ The package can be installed from GitHub:
 library("devtools")
 install_github("SachaEpskamp/psychonetrics")
 ```
-
-## Documentation
-
-Full documentation, tutorials, and examples are available at the package website:
-
-**[https://psychonetrics.org](https://psychonetrics.org)**
 
 ## Key References
 
