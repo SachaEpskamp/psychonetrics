@@ -14,14 +14,17 @@ matrixsetup_lambda <- function(
   
   # Fix lambda:
   lambda <- fixMatrix(lambda, nGroup = nGroup, equal = equal)
-  
+
+  # Binary mask for starting value computation (lambda may contain integers > 1 for equality):
+  lambdaMask <- (lambda != 0) * 1
+
   nLat <- ncol(lambda)
   nObs <- nrow(lambda)
   
   # For each group, form starting values:
   if (missing(start)){
-    
-    lambdaStart <- lambda
+
+    lambdaStart <- lambdaMask
     sigma_epsilon_start <- array(0, dim = c(nObs, nObs, nGroup))
     sigma_zeta_start <- array(0, dim = c(nLat, nLat, nGroup))
     
@@ -110,7 +113,7 @@ matrixsetup_lambda <- function(
             best <- numeric(nLat)
             
             for (l in seq_len(nLat)){
-              best[l] <- which.max(colSums(abs(lambda[,l,g] * load)))
+              best[l] <- which.max(colSums(abs(lambdaMask[,l,g] * load)))
             }
             
             
@@ -132,7 +135,7 @@ matrixsetup_lambda <- function(
           sigma_zeta_start[,,g] <- spectralshift(sigma_zeta_start[,,g])
           
           
-          lambdaStart[,,g] <- lambda[,,g] * load[,best]
+          lambdaStart[,,g] <- lambdaMask[,,g] * load[,best]
           
           # Fix potentially low  and high factor loadings:
           ind <- abs(lambdaStart[,,g]) < 0.25 & abs(lambdaStart[,,g]) > 0
@@ -158,7 +161,7 @@ matrixsetup_lambda <- function(
       if (simple){
         sigma_epsilon_start[,,g] <- diag(nObs)
         sigma_zeta_start[,,g] <- diag(nLat)
-        lambdaStart[,,g] <- lambda[,,g]
+        lambdaStart[,,g] <- lambdaMask[,,g]
       }
       
     }
