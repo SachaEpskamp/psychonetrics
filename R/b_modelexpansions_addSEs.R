@@ -40,16 +40,34 @@ addSEs <-  function(x,
   # } 
   Hinv <- getVCOV(x,approximate_SEs=approximate_SEs)
 
-  # If NAs, return warning and NA:
+  # If NAs, try falling back to approximate SEs:
   if (any(is.na(Hinv))){
-    if (verbose){
-      warning("Standard errors could not be obtained because the Fischer information matrix could not be inverted. This may be a symptom of a non-identified model or due to convergence issues. You can try to approximate standard errors by setting approximate_SEs = TRUE at own risk.")
+    if (!approximate_SEs){
+      # Auto-fallback: try approximate SEs before giving up
+      Hinv <- getVCOV(x, approximate_SEs = TRUE)
+      if (any(is.na(Hinv))){
+        # Even approximate inversion failed:
+        if (verbose){
+          warning("Standard errors could not be obtained because the Fischer information matrix could not be inverted. This may be a symptom of a non-identified model or due to convergence issues.")
+        }
+        x@parameters$se <- NA
+        x@parameters$p <- NA
+        return(x)
+      } else {
+        # Approximate inversion succeeded:
+        if (verbose){
+          warning("Exact standard errors could not be obtained because the Fischer information matrix could not be inverted. Falling back to approximate standard errors. This can occur with zero cells in crosstables (common in multi-group Ising models) or near-boundary estimates. Interpret with care.")
+        }
+      }
+    } else {
+      # User explicitly requested approximate SEs and it still failed:
+      if (verbose){
+        warning("Standard errors could not be obtained because the Fischer information matrix could not be inverted. This may be a symptom of a non-identified model or due to convergence issues.")
+      }
+      x@parameters$se <- NA
+      x@parameters$p <- NA
+      return(x)
     }
-    x@parameters$se <- NA
-    x@parameters$p <- NA
-    
-    # Return:
-    return(x)
   }
   
   # if (!is.null(x@information)){
