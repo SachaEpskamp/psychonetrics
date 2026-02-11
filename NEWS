@@ -17,6 +17,12 @@ Changes in Version 0.14.17
       coefficients, and near-singular (I-B)
     o Falls back to previous zero-initialization on any numerical issue
     o New 'start' argument: "default" for OLS-based, "simple" for zero-initialization
+  o Added loop_psychonetrics() convenience function for parallel bootstrapping and simulations:
+    o Replaces boilerplate of makeCluster / clusterExport / parLapply / stopCluster
+    o Variables referenced in the expression are automatically detected and exported to workers
+    o Uses pbapply progress bars and safe cluster cleanup via on.exit
+    o Works with aggregate_bootstraps() and CIplot() for bootstrap analysis
+  o Added the NA2020 dataset: 8 self-report items (n=501) from Isvoranu (2020) for GGM examples
 
 Changes in Version 0.14.16
   o Added automatic lambda selection for PML/PFIML estimation via EBIC-based grid search:

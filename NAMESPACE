@@ -154,6 +154,7 @@ export(compare)
 export(parameters)
 export(write_psychonetrics)
 # export(replicator)
+export(loop_psychonetrics)
 
 # Penalized ML:
 export(penalize)
