@@ -27,8 +27,9 @@ lvm(data, lambda, latent = c("cov", "chol", "prec",
                    optimizer, storedata = FALSE, WLS.W, covtype =
                    c("choose", "ML", "UB"), standardize = c("none", "z",
                    "quantile"), sampleStats, corinput, verbose = FALSE,
-                   simplelambdastart = FALSE, bootstrap = FALSE,
-                   boot_sub, boot_resample, penalty_lambda = 0,
+                   simplelambdastart = FALSE, start = "default",
+                   bootstrap = FALSE,
+                   boot_sub, boot_resample, penalty_lambda = NA,
                    penalty_alpha = 1, penalize_matrices)
 
 lnm(\dots)
@@ -155,6 +156,7 @@ Logical, is the input a correlation matrix? When \code{TRUE}, the diagonal of th
 Which standardization method should be used? \code{"none"} (default) for no standardization, \code{"z"} for z-scores, and \code{"quantile"} for a non-parametric transformation to the quantiles of the marginal standard normal distribution.
 }
 \item{simplelambdastart}{Logical, should simple start values be used for lambda? Setting this to TRUE can avoid some estimation problems.}
+\item{start}{Controls the starting values for the \code{beta} (structural regression) matrix. Can be \code{"default"} (default) for OLS-based starting values derived from the factor-analysis-implied latent covariance matrix, \code{"simple"} for the previous behavior (all free elements set to 0.001), or a fitted \code{psychonetrics} object to extract beta estimates as starting values. The OLS-based starts compute regression coefficients between latent variables using the FA-derived covariance matrix, which typically leads to faster convergence for models with structural paths. Guard rails automatically fall back to simple starts if numerical issues are detected (e.g., near-singular matrices, extreme coefficients).}
 \item{bootstrap}{
 Should the data be bootstrapped? If \code{TRUE} the data are resampled and a bootstrap sample is created. These must be aggregated using \code{\link{aggregate_bootstraps}}! Can be \code{TRUE} or \code{FALSE}. Can also be \code{"nonparametric"} (which sets \code{boot_sub = 1} and \code{boot_resample = TRUE}) or \code{"case"} (which sets \code{boot_sub = 0.75} and \code{boot_resample = FALSE}).
 }
@@ -164,7 +166,7 @@ Proportion of cases to be subsampled (\code{round(boot_sub * N)}).
 \item{boot_resample}{
 Logical, should the bootstrap be with replacement (\code{TRUE}) or without replacement (\code{FALSE})
 }
-\item{penalty_lambda}{Numeric penalty strength for penalized ML estimation (PML). Default is 0 (no penalty).}
+\item{penalty_lambda}{Numeric penalty strength for penalized ML estimation (PML/PFIML). \code{NA} (default) triggers automatic selection via EBIC-based grid search when a penalized estimator is used; set to a specific numeric value to use a fixed penalty strength (0 = no penalty). See \code{\link{find_penalized_lambda}} and \code{\link{penalize}}.}
 \item{penalty_alpha}{Elastic net mixing parameter: 1 = LASSO (default), 0 = ridge.}
 \item{penalize_matrices}{Character vector of matrix names to penalize. If missing, defaults are selected based on the model type.}
 \item{\dots}{
