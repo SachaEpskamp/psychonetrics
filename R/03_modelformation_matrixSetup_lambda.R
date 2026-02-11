@@ -13,7 +13,7 @@ matrixsetup_lambda <- function(
   identification <- match.arg(identification)
   
   # Fix lambda:
-  lambda <- fixMatrix(lambda,nGroup,equal)
+  lambda <- fixMatrix(lambda, nGroup = nGroup, equal = equal)
   
   nLat <- ncol(lambda)
   nObs <- nrow(lambda)
