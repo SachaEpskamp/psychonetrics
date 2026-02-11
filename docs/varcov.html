@@ -21,9 +21,17 @@
     <ul class="nav-menu">
       <li><a href="index.html" class="nav-link">Home</a></li>
       <li><a href="tutorial.html" class="nav-link">Tutorial</a></li>
-      <li><a href="varcov.html" class="nav-link">Varcov</a></li>
-      <li><a href="lvm.html" class="nav-link">LVM</a></li>
-      <li><a href="ising.html" class="nav-link">Ising</a></li>
+      <li class="nav-dropdown">
+        <button class="nav-link dropdown-toggle" aria-expanded="false" aria-haspopup="true">
+          Models <svg class="dropdown-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="varcov.html" class="nav-link">Varcov</a></li>
+          <li><a href="lvm.html" class="nav-link">LVM</a></li>
+          <li><a href="ising.html" class="nav-link">Ising</a></li>
+          <li><a href="var1.html" class="nav-link">Var1</a></li>
+        </ul>
+      </li>
       <li><a href="examples.html" class="nav-link">Examples</a></li>
       <li><a href="about.html" class="nav-link">About</a></li>
     </ul>
@@ -116,9 +124,9 @@
           <tr>
             <td>cor</td>
             <td><code>corr()</code></td>
-            <td>rho</td>
+            <td>P</td>
             <td>SD</td>
-            <td>$\boldsymbol{SD} \cdot \boldsymbol{\rho} \cdot \boldsymbol{SD}$</td>
+            <td>$\boldsymbol{SD} \cdot \boldsymbol{P} \cdot \boldsymbol{SD}$</td>
           </tr>
         </tbody>
       </table>
@@ -149,13 +157,15 @@
     </ul>
 
     <h3>Why GGM for Networks?</h3>
-    <p>The GGM parameterization is ideal for psychological networks because:</p>
+    <p>The GGM is a <em>pairwise Markov random field</em> (PMRF) for continuous data&mdash;an undirected network model in which edges represent the strength of conditional association between two variables after controlling for all other variables. This makes it a natural fit for psychological network analysis:</p>
     <ul>
-      <li><strong>Partial correlations control for all other variables</strong>: An edge between variables A and B represents their relationship after controlling for all other variables in the network.</li>
-      <li><strong>Conditional independence</strong>: When $\omega_{ij} = 0$, variables $i$ and $j$ are conditionally independent given all other variables.</li>
-      <li><strong>Sparse networks</strong>: Many edges can be exactly zero, representing genuine absence of direct relationships (not just weak relationships).</li>
-      <li><strong>Interpretability</strong>: Partial correlations have a clear interpretation as direct effects in the network.</li>
+      <li><strong>Conditional independence structure</strong>: When $\omega_{ij} = 0$, variables $i$ and $j$ are conditionally independent given all other variables. The absence of an edge means the two variables have no direct relationship once all other variables are accounted for.</li>
+      <li><strong>Sparse and testable models</strong>: A network with only a subset of edges estimated is a constrained statistical model with degrees of freedom, meaning that its fit can be evaluated. For example, a network of 8 variables with 12 edges aims to explain 28 correlations with 12 parameters, leaving 16 degrees of freedom for model testing.</li>
+      <li><strong>Predictive interpretation</strong>: Edges in the GGM correspond to regression coefficients in multiple regression. A strong edge between two nodes means one is a strong predictor of the other, after controlling for all remaining variables. The network thus visualizes the results of many regression analyses simultaneously, mapping out the multicollinearity structure of the data.</li>
+      <li><strong>Hypothesis generation</strong>: Although undirected, the GGM can generate causal hypotheses. If coffee &mdash; energetic &mdash; productive, we might hypothesize that coffee increases energy, which increases productivity. Unexpected edge signs may indicate common effect structures, where two variables that both cause a third become conditionally dependent.</li>
+      <li><strong>Connection to factor models</strong>: Clusters in a GGM correspond to latent variables in a factor model. This means that the GGM can be used as a tool for exploring potential factor structures, a principle underlying <em>exploratory graph analysis</em> (EGA).</li>
     </ul>
+    <p>A key advantage of multivariate maximum likelihood estimation in psychonetrics over univariate (nodewise regression) approaches is that it estimates all parameters simultaneously. This enables fit indices, multi-group comparisons, latent variable extensions, and meta-analytic methods that are not available with univariate estimation.</p>
 
     <h3>Relationship to Precision Matrix</h3>
     <p>The omega matrix is closely related to the precision matrix $\boldsymbol{K} = \boldsymbol{\Sigma}^{-1}$. Specifically, omega contains the off-diagonal elements of the standardized precision matrix:</p>
@@ -193,7 +203,12 @@ mod_sat <- mod_sat %>% runmodel
 mod_sat %>% fit
 
 # View parameters (will show all 300 unique edges)
-mod_sat %>% parameters</code></pre>
+mod_sat %>% parameters
+
+# Confidence interval plot for all partial correlations:
+CIplot(mod_sat, "omega")
+# Edges are colored by significance level (alpha = 0.05, 0.01, 0.001, 0.0001)
+# Non-significant edges are shown in grey</code></pre>
 
     <h3>Step 3: Prune Non-Significant Edges</h3>
     <p>Remove edges that are not statistically significant:</p>
@@ -220,11 +235,12 @@ library("qgraph")
 qgraph(omega,
        labels = vars,
        theme = "colorblind",
+       cut = 0,
        layout = "spring",
        title = "Big Five Personality Network")</code></pre>
 
     <div class="note">
-      <strong>Note:</strong> The <code>prune()</code> function removes edges based on statistical significance, while <code>stepup()</code> uses modification indices to add back edges that improve model fit. This two-step procedure often yields more stable networks than pruning alone.
+      <strong>Note:</strong> The <code>prune()</code> function removes edges based on statistical significance, while <code>stepup()</code> uses modification indices to add back edges that improve model fit. This two-step procedure is more sensitive than pruning alone, but slower.
     </div>
   </section>
 
@@ -342,13 +358,16 @@ compare(configural = mod_config,
         fully_equal = mod_equal)</code></pre>
 
     <div class="note">
-      <strong>Tip:</strong> When networks differ across groups, use <code>partialprune()</code> to identify which specific edges differ between groups.
+      <strong>Tip:</strong> When networks differ across groups, you can use <code>partialprune()</code> to identify which specific edges differ between groups.
     </div>
   </section>
 
   <!-- Example: Penalized GGM -->
   <section id="example-penalized">
-    <h2>Example: Penalized GGM (PML)</h2>
+    <h2>Example: Penalized GGM (PML) <span style="font-size:.6em;color:var(--nus-orange);">[experimental]</span></h2>
+    <div class="note">
+      <strong>Experimental:</strong> Penalized estimation in psychonetrics is experimental and has not yet been fully validated. Use with caution and verify results.
+    </div>
     <p>Penalized Maximum Likelihood (PML) estimation uses regularization (typically LASSO) to automatically select a sparse network. The penalty parameter lambda is chosen to optimize model fit.</p>
 
     <h3>Fit Penalized Model</h3>
@@ -394,7 +413,7 @@ mod_custom <- ggm(data_bfi, vars = vars, estimator = "PML") %>%
 mod_custom@optim$lambda_search</code></pre>
 
     <div class="note">
-      <strong>When to use PML?</strong> Penalized estimation is particularly useful when you have many variables relative to sample size, or when you want an automatic sparse network without manual pruning. However, it's recommended to refit without penalty for final inference.
+      <strong>When to use PML?</strong> Penalized estimation is particularly useful when you have many variables relative to sample size, or when you want an automatic sparse network without manual pruning.
     </div>
   </section>
 
@@ -410,7 +429,7 @@ mod_custom@optim$lambda_search</code></pre>
       <li>Exploratory analysis typically involves: saturated model → pruning → stepup search</li>
       <li>Confirmatory analysis tests whether a discovered structure replicates in new data</li>
       <li>Multi-group models test whether networks differ across populations</li>
-      <li>Penalized estimation (PML) provides automatic sparsity but requires refitting for inference</li>
+      <li>Penalized estimation (PML) provides automatic sparsity but requires refitting for inference <em>(experimental)</em></li>
     </ul>
 
     <h3>Next Steps</h3>
@@ -426,6 +445,7 @@ mod_custom@optim$lambda_search</code></pre>
     <ul>
       <li>Epskamp, S., Waldorp, L. J., Mottus, R., & Borsboom, D. (2018). The Gaussian graphical model in cross-sectional and time-series data. <em>Multivariate Behavioral Research, 53</em>(4), 453-480.</li>
       <li>Epskamp, S. (2020). Psychometric network models from time-series and panel data. <em>Psychometrika, 85</em>(1), 206-231.</li>
+      <li>Epskamp, S., Haslbeck, J. M. B., Isvoranu, A. M., &amp; Van Borkulo, C. D. (2022). Pairwise Markov random fields. In A. M. Isvoranu, S. Epskamp, L. J. Waldorp, &amp; D. Borsboom (Eds.), <em>Network psychometrics with R: A guide for behavioral and social scientists</em> (pp. 95&ndash;118). Routledge.</li>
     </ul>
   </section>
 

@@ -5,7 +5,7 @@
 Network Analysis 2020 Self-Report Data
 }
 \description{
-A subset of self-report data collected in 2020 by Adela-Maria Isvoranu as part of a graduate-level course on network analysis at the University of Amsterdam. Students in the course collected the data from a convenience sample. The full dataset contains responses to 87 items covering topics such as sleep, well-being, and social functioning. This subset contains 8 items used in Chapter 6 of the textbook \emph{Network Psychometrics with R} (Epskamp, Isvoranu, & Haslbeck, in preparation) to demonstrate Gaussian Graphical Model estimation with psychonetrics. All items are rated on a 1--7 Likert scale. The dataset contains some missing values, making it suitable for demonstrating FIML estimation.
+A subset of self-report data collected in 2020 by Adela-Maria Isvoranu as part of a graduate-level course on network analysis at the University of Amsterdam. Students in the course collected the data from a convenience sample. The full dataset contains responses to 87 items covering topics such as sleep, well-being, and social functioning. This subset contains 8 items used in Chapter 6 of the textbook \emph{Network Psychometrics with R} (Epskamp, Isvoranu, & Haslbeck, 2022) to demonstrate Gaussian Graphical Model estimation with psychonetrics. All items are rated on a 1--7 Likert scale. The dataset contains some missing values, making it suitable for demonstrating FIML estimation.
 }
 \usage{data("NA2020")}
 \format{
@@ -25,7 +25,7 @@ A subset of self-report data collected in 2020 by Adela-Maria Isvoranu as part o
 The full dataset is available at \url{https://osf.io/45n6d/}. Data collected by Adela-Maria Isvoranu as part of a graduate course on network analysis at the University of Amsterdam (2020).
 }
 \references{
-Epskamp, S., Isvoranu, A.-M., & Haslbeck, J. M. B. (in preparation). \emph{Network Psychometrics with R}. Chapter 6.
+Epskamp, S., Haslbeck, J. M. B., Isvoranu, A. M., & Van Borkulo, C. D. (2022). Pairwise Markov random fields. In A. M. Isvoranu, S. Epskamp, L. J. Waldorp, & D. Borsboom (Eds.), Network psychometrics with R: A guide for behavioral and social scientists (pp. 95–118). Routledge.
 }
 \examples{
 data(NA2020)

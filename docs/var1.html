@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="psychonetrics var1 family: VAR(1) time-series models and graphical VAR">
+  <title>Var1 Family | psychonetrics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<!-- Same navbar as index.html -->
+<nav class="navbar">
+  <div class="container nav-container">
+    <a href="index.html" class="nav-brand">psychonetrics</a>
+    <button class="nav-toggle" aria-label="Toggle navigation">&#9776;</button>
+    <ul class="nav-menu">
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="tutorial.html" class="nav-link">Tutorial</a></li>
+      <li class="nav-dropdown">
+        <button class="nav-link dropdown-toggle" aria-expanded="false" aria-haspopup="true">
+          Models <svg class="dropdown-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="varcov.html" class="nav-link">Varcov</a></li>
+          <li><a href="lvm.html" class="nav-link">LVM</a></li>
+          <li><a href="ising.html" class="nav-link">Ising</a></li>
+          <li><a href="var1.html" class="nav-link">Var1</a></li>
+        </ul>
+      </li>
+      <li><a href="examples.html" class="nav-link">Examples</a></li>
+      <li><a href="about.html" class="nav-link">About</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="page-header container container-narrow">
+  <h1>Var1 Family</h1>
+  <p class="subtitle">Lag-1 vector autoregressive models for time-series data</p>
+</div>
+
+<main class="container container-narrow">
+
+  <!-- Table of Contents -->
+  <div class="toc">
+    <h3>Contents</h3>
+    <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#model">The VAR(1) Model</a></li>
+      <li><a href="#contemporaneous">Contemporaneous Parameterizations</a></li>
+      <li><a href="#data-preparation">Data Preparation</a></li>
+      <li><a href="#example-simulated">Example: Graphical VAR on Simulated Data</a></li>
+      <li><a href="#example-esm">Example: Clinical Time-Series (ESM Data)</a></li>
+      <li><a href="#derived-matrices">Derived Network Matrices (PDC &amp; PCC)</a></li>
+      <li><a href="#summary">Summary</a></li>
+    </ul>
+  </div>
+
+  <!-- Overview -->
+  <section id="overview">
+    <h2>Overview</h2>
+    <p>
+      The <strong>var1</strong> family models time-series data using a <strong>lag-1 vector autoregressive (VAR) model</strong>. This framework decomposes multivariate time-series into two network structures:
+    </p>
+    <ul>
+      <li><strong>Temporal network</strong>: directed relationships encoding how variables at one time point predict variables at the next time point (the <code>beta</code> matrix).</li>
+      <li><strong>Contemporaneous correlations/network</strong>: undirected relationships among the residuals (innovations) at the same time point (the <code>sigma_zeta</code> or <code>omega_zeta</code> matrix). This is a network only when the GGM parameterization is used.</li>
+    </ul>
+    <p>
+      The model is fitted to the Toeplitz (block) covariance matrix of the augmented data, where both the lagged ($t-1$) and current ($t$) measurements are included. Importantly, the block of covariances of the lagged variables is modeled completely separately (using a Cholesky decomposition) and does not enter the temporal or contemporaneous model estimation.
+    </p>
+    <p>
+      The <code>gvar()</code> wrapper function sets <code>contemporaneous = "ggm"</code>, resulting in a <strong>graphical VAR</strong> model where the contemporaneous structure is represented as a Gaussian Graphical Model (network of partial correlations among innovations).
+    </p>
+  </section>
+
+  <!-- The VAR(1) Model -->
+  <section id="model">
+    <h2>The VAR(1) Model</h2>
+    <p>The VAR(1) model specifies that each variable at time $t$ is a linear function of all variables at time $t-1$, plus an innovation term:</p>
+
+    <p class="formula">$$\boldsymbol{y}_t = \boldsymbol{\mu} + \boldsymbol{B}(\boldsymbol{y}_{t-1} - \boldsymbol{\mu}) + \boldsymbol{\zeta}_t$$</p>
+
+    <p>Where:</p>
+    <ul>
+      <li><strong>$\boldsymbol{\mu}$</strong> (mu): the $p \times 1$ vector of stationary means.</li>
+      <li><strong>$\boldsymbol{B}$</strong> (beta): the $p \times p$ matrix of lag-1 regression coefficients. Element $b_{ij}$ represents the effect of variable $j$ at time $t-1$ on variable $i$ at time $t$. This is the <em>temporal network</em>.</li>
+      <li><strong>$\boldsymbol{\zeta}_t$</strong>: the innovation (residual) vector at time $t$, with covariance matrix $\boldsymbol{\Sigma}_\zeta$. This captures the <em>contemporaneous</em> relationships among variables after removing temporal effects.</li>
+    </ul>
+
+    <p>Under stationarity, define $\boldsymbol{\Sigma}_0 = \text{var}(\boldsymbol{y}_t)$ as the $p \times p$ stationary (lag-0) covariance matrix and $\boldsymbol{\Sigma}_1 = \text{cov}(\boldsymbol{y}_t,\, \boldsymbol{y}_{t-1})$ as the $p \times p$ lag-1 cross-covariance matrix. The model then implies:</p>
+    <ul>
+      <li><strong>Stationary covariance</strong>: $\text{vec}(\boldsymbol{\Sigma}_0) = (\boldsymbol{I} - \boldsymbol{B} \otimes \boldsymbol{B})^{-1}\text{vec}(\boldsymbol{\Sigma}_\zeta)$</li>
+      <li><strong>Lag-1 covariance</strong>: $\boldsymbol{\Sigma}_1 = \boldsymbol{B}\boldsymbol{\Sigma}_0$</li>
+    </ul>
+
+    <p>The model is fitted by maximum likelihood estimation on the combined Toeplitz block covariance matrix formed from $\boldsymbol{\Sigma}_0$ and $\boldsymbol{\Sigma}_1$.</p>
+  </section>
+
+  <!-- Contemporaneous Parameterizations -->
+  <section id="contemporaneous">
+    <h2>Contemporaneous Parameterizations</h2>
+    <p>
+      The contemporaneous covariance matrix $\boldsymbol{\Sigma}_\zeta$ (the covariance among innovations) can be parameterized in four ways using the <code>contemporaneous</code> argument:
+    </p>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Key Matrix</th>
+            <th>Equation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>"cov"</code> (default)</td>
+            <td><code>sigma_zeta</code></td>
+            <td>$\boldsymbol{\Sigma}_\zeta$ (directly estimated)</td>
+          </tr>
+          <tr>
+            <td><code>"chol"</code></td>
+            <td><code>lowertri_zeta</code></td>
+            <td>$\boldsymbol{\Sigma}_\zeta = \boldsymbol{L}_\zeta\boldsymbol{L}_\zeta'$</td>
+          </tr>
+          <tr>
+            <td><code>"prec"</code></td>
+            <td><code>kappa_zeta</code></td>
+            <td>$\boldsymbol{\Sigma}_\zeta = \boldsymbol{K}_\zeta^{-1}$</td>
+          </tr>
+          <tr>
+            <td><code>"ggm"</code></td>
+            <td><code>omega_zeta</code>, <code>delta_zeta</code></td>
+            <td>$\boldsymbol{\Sigma}_\zeta = \boldsymbol{\Delta}_\zeta(\boldsymbol{I} - \boldsymbol{\Omega}_\zeta)^{-1}\boldsymbol{\Delta}_\zeta$</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <strong>Note:</strong> The <code>gvar()</code> wrapper is shorthand for <code>var1(..., contemporaneous = "ggm")</code>. This is the recommended parameterization for network analysis, as it represents the contemporaneous structure as a network of partial correlations among innovations.
+    </div>
+  </section>
+
+  <!-- Data Preparation -->
+  <section id="data-preparation">
+    <h2>Data Preparation</h2>
+    <p>
+      Time-series data typically comes from experience sampling methodology (ESM) or ecological momentary assessment (EMA) studies, where participants are measured repeatedly over time. The <code>var1()</code> function handles the data augmentation (creating lagged variables) internally.
+    </p>
+
+    <h3>Key Arguments for Time-Series Data</h3>
+    <ul>
+      <li><strong><code>vars</code></strong>: character vector of variable names to include in the model.</li>
+      <li><strong><code>dayvar</code></strong>: string indicating the column name for the assessment day. When specified, the first measurement of a day is <em>not</em> regressed on the last measurement of the previous day. Only add this if the data has multiple observations per day.</li>
+      <li><strong><code>beepvar</code></strong>: string indicating the column name for the assessment beep number within a day. Non-consecutive beeps are treated as missing.</li>
+      <li><strong><code>idvar</code></strong>: string indicating the column name for subject ID. When multiple subjects are present, their data is concatenated (but each subject's time-series is treated separately for lagging). Note: for proper multi-level modeling with between-subject effects, use <code>panelvar()</code> or <code>panelgvar()</code> instead for datasets with limited repeated measures, and <a href="https://cran.r-project.org/package=mlVAR">mlVAR</a> otherwise.</li>
+    </ul>
+
+    <h3>Example Data Structure</h3>
+    <pre><code class="language-r"># Typical ESM data format:
+#   id  day  beep  relaxed  sad  nervous  concentration
+#   1   1    1     3        2    1        4
+#   1   1    2     4        1    2        3
+#   1   1    3     2        3    1        4
+#   1   2    1     3        2    2        3   # New day: not lagged from previous row
+#   ...
+
+# Fit model with day structure:
+model <- gvar(data, vars = c("relaxed", "sad", "nervous", "concentration"),
+              dayvar = "day", beepvar = "beep")</code></pre>
+  </section>
+
+  <!-- Example: Simulated Data -->
+  <section id="example-simulated">
+    <h2>Example: Graphical VAR on Simulated Data</h2>
+    <p>
+      This example demonstrates the basic workflow using simulated data from the <code>graphicalVAR</code> package. We simulate a 2-variable VAR(1) process with known parameters and recover them using <code>gvar()</code>.
+    </p>
+
+    <pre><code class="language-r">library("psychonetrics")
+library("dplyr")
+library("graphicalVAR")
+
+# Simulate a 2-variable VAR(1) process:
+beta <- matrix(c(
+  0,   0.5,
+  0.5, 0
+), 2, 2, byrow = TRUE)
+kappa <- diag(2)
+simData <- graphicalVARsim(50, beta, kappa)
+
+# Fit graphical VAR model:
+model <- gvar(simData)
+model <- model %>% runmodel
+
+# Parameter estimates:
+model %>% parameters
+
+# Confidence interval plot for temporal effects:
+CIplot(model, "beta")
+
+# Extract the temporal network:
+getmatrix(model, "beta")
+
+# Extract the contemporaneous correlations/network:
+getmatrix(model, "omega_zeta")</code></pre>
+  </section>
+
+  <!-- Example: Clinical Time-Series -->
+  <section id="example-esm">
+    <h2>Example: Clinical Time-Series (ESM Data)</h2>
+    <p>
+      This example uses ESM data from a single clinical patient (Epskamp, van Borkulo, van der Veen, Servaas, Isvoranu, Riese, &amp; Cramer, 2018), available at <a href="https://osf.io/c8wjz/">https://osf.io/c8wjz/</a>. The dataset contains 7 variables measured multiple times per day.
+    </p>
+
+    <pre><code class="language-r"># Download the data from https://osf.io/c8wjz/
+tsdata <- read.csv("Supplementary2_data.csv")
+
+# Encode time variable:
+tsdata$time <- as.POSIXct(tsdata$time, tz = "Europe/Amsterdam")
+
+# Extract day variable:
+tsdata$Day <- as.Date(tsdata$time, tz = "Europe/Amsterdam")
+
+# Variables to use:
+vars <- c("relaxed", "sad", "nervous", "concentration",
+          "tired", "rumination", "bodily.discomfort")
+
+# Fit graphical VAR with FIML for missing data:
+model <- gvar(tsdata, vars = vars, dayvar = "Day",
+              estimator = "FIML")
+model <- model %>% runmodel
+
+# Model search:
+model_pruned <- model %>% prune(alpha = 0.01)
+model_final <- model_pruned %>% stepup(criterion = "bic")
+
+# Compare models:
+compare(saturated = model, pruned = model_pruned, final = model_final)
+
+# Extract networks:
+temporal <- getmatrix(model_final, "PDC")
+contemporaneous <- getmatrix(model_final, "omega_zeta")
+
+# Visualize both networks side by side:
+library("qgraph")
+labs <- gsub("\\.", "\n", vars)
+L <- averageLayout(temporal, contemporaneous)
+
+layout(t(1:2))
+qgraph(temporal, layout = L, theme = "colorblind", cut = 0,
+       directed = TRUE, diag = TRUE,
+       title = "Temporal", vsize = 12, mar = rep(6, 4),
+       asize = 5, labels = labs)
+qgraph(contemporaneous, layout = L, theme = "colorblind", cut = 0,
+       title = "Contemporaneous", vsize = 12, mar = rep(6, 4),
+       asize = 5, labels = labs)</code></pre>
+
+    <div class="note">
+      <strong>Note:</strong> The <code>dayvar = "Day"</code> argument ensures the first measurement of each day is not regressed on the last measurement of the previous day, properly handling overnight gaps in ESM data.
+    </div>
+    <div class="warning">
+      <strong>Warning:</strong> Do not use <code>dayvar</code> when there is only one measurement per day. Because the first measurement of each day is excluded from the lagged regression, using <code>dayvar</code> with daily data will result in all observations being removed.
+    </div>
+  </section>
+
+  <!-- Derived Network Matrices -->
+  <section id="derived-matrices">
+    <h2>Derived Network Matrices (PDC &amp; PCC)</h2>
+    <p>
+      In addition to the raw model parameters (<code>beta</code>, <code>omega_zeta</code>), psychonetrics can compute standardized network matrices that are easier to interpret and compare:
+    </p>
+
+    <h3>PDC: Partial Directed Correlations</h3>
+    <p>
+      The <strong>Partial Directed Correlations (PDC)</strong> are the standardized version of the temporal regression coefficients. Specifically, the PDC matrix is the <em>transpose</em> of the <code>beta</code> matrix after standardization. This transposition is needed because in the <code>beta</code> matrix, element $b_{ij}$ represents the effect of variable $j$ on variable $i$, whereas <code>qgraph()</code> expects element $(i,j)$ to represent an edge <em>from</em> node $i$ <em>to</em> node $j$. Extract with:
+    </p>
+    <pre><code class="language-r">temporal_network <- getmatrix(model, "PDC")</code></pre>
+    <div class="warning">
+      <strong>Warning:</strong> Do not use <code>getmatrix(model, "beta")</code> directly in <code>qgraph()</code>. Because of the row/column convention difference described above, the <code>beta</code> matrix will display edges in the wrong direction. Always use <code>getmatrix(model, "PDC")</code> for visualization, which transposes and standardizes the temporal effects correctly.
+    </div>
+    <p>
+      When visualizing the PDC matrix with <code>qgraph()</code>, use <code>directed = TRUE</code> and <code>diag = TRUE</code> to display the directed edges and auto-regressive effects.
+    </p>
+
+    <h3>PCC: Partial Contemporaneous Correlations</h3>
+    <p>
+      The <strong>Partial Contemporaneous Correlations (PCC)</strong> are the standardized precision matrix of the innovations. When <code>contemporaneous = "ggm"</code>, the PCC is equivalent to the <code>omega_zeta</code> matrix. Extract with:
+    </p>
+    <pre><code class="language-r">contemporaneous_network <- getmatrix(model, "PCC")
+
+# Equivalent to omega_zeta when using gvar():
+contemporaneous_network2 <- getmatrix(model, "omega_zeta")</code></pre>
+  </section>
+
+  <!-- Summary -->
+  <section id="summary">
+    <h2>Summary</h2>
+    <p>The <strong>var1</strong> family provides the foundation for time-series network modeling in psychonetrics. Key takeaways:</p>
+
+    <ul>
+      <li>The VAR(1) model decomposes time-series data into <strong>temporal</strong> (directed, lag-1) and <strong>contemporaneous</strong> (undirected, same time point) structures</li>
+      <li>The <code>gvar()</code> wrapper models contemporaneous relationships as a GGM (graphical VAR)</li>
+      <li>Use <code>dayvar</code> and <code>beepvar</code> to properly handle ESM data with multiple measurements per day</li>
+      <li>Extract standardized networks using <code>getmatrix(model, "PDC")</code> (temporal) and <code>getmatrix(model, "PCC")</code> or <code>getmatrix(model, "omega_zeta")</code> (contemporaneous)</li>
+      <li>The same workflow applies: <code>runmodel</code> &rarr; <code>prune</code> &rarr; <code>stepup</code> &rarr; <code>compare</code></li>
+    </ul>
+
+    <h3>Panel Data Extensions</h3>
+    <p>
+      For multi-subject (panel) data, psychonetrics offers extensions that separate within-person and between-person effects:
+    </p>
+    <ul>
+      <li><code>panelvar()</code> / <code>panelgvar()</code>: panel VAR models for observed variables across multiple subjects</li>
+      <li><code>dlvm1()</code>: dynamic latent variable model for panel data with factor loadings</li>
+      <li><code>panellvgvar()</code>: panel latent variable graphical VAR</li>
+    </ul>
+
+    <h3>Next Steps</h3>
+    <p>Now that you understand var1 models, you can explore:</p>
+    <ul>
+      <li><a href="tutorial.html">General Tutorial</a> for the full psychonetrics workflow</li>
+      <li><a href="varcov.html">Varcov Family</a> for cross-sectional network models</li>
+      <li><a href="lvm.html">LVM Family</a> for latent variable and latent network models</li>
+      <li><a href="examples.html">Examples</a> for more advanced applications</li>
+    </ul>
+
+    <h3>Further Reading</h3>
+    <ul>
+      <li>Epskamp, S. (2020). Psychometric network models from time-series and panel data. <em>Psychometrika, 85</em>(1), 206&ndash;231. DOI: <a href="https://doi.org/10.1007/s11336-020-09697-3">10.1007/s11336-020-09697-3</a></li>
+      <li>Epskamp, S., Waldorp, L. J., Mottus, R., &amp; Borsboom, D. (2018). The Gaussian graphical model in cross-sectional and time-series data. <em>Multivariate Behavioral Research, 53</em>(4), 453&ndash;480.</li>
+      <li>Epskamp, S., van Borkulo, C. D., van der Veen, D. C., Servaas, M. N., Isvoranu, A. M., Riese, H., &amp; Cramer, A. O. J. (2018). Personalized network modeling in psychopathology: The importance of contemporaneous and temporal connections. <em>Clinical Psychological Science, 6</em>(3), 416&ndash;427. DOI: <a href="https://doi.org/10.1177/2167702617744325">10.1177/2167702617744325</a></li>
+    </ul>
+  </section>
+
+</main>
+
+<!-- Same footer as index.html -->
+<footer>
+  <div class="container footer-grid">
+    <div>
+      <h4>psychonetrics</h4>
+      <p>An R package for Structural Equation Modeling and Confirmatory Network Analysis.</p>
+      <p>Developed by <a href="about.html">Sacha Epskamp</a>.</p>
+    </div>
+    <div>
+      <h4>Links</h4>
+      <ul>
+        <li><a href="https://github.com/SachaEpskamp/psychonetrics">GitHub Repository</a></li>
+        <li><a href="https://cran.r-project.org/package=psychonetrics">CRAN</a></li>
+        <li><a href="https://github.com/SachaEpskamp/psychonetrics/issues">Report a Bug</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Affiliation</h4>
+      <img src="img/nus-logo-blue.png" alt="National University of Singapore" class="nus-logo-footer">
+      <p>National University of Singapore<br>Methods, Data Science, and AI Lab</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 Sacha Epskamp. Built with plain HTML &amp; CSS.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="js/main.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: "$$", right: "$$", display: true},
+        {left: "$", right: "$", display: false}
+      ],
+      throwOnError: false
+    });
+  });
+</script>
+</body>
+</html>

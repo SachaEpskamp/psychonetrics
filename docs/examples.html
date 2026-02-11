@@ -28,6 +28,7 @@
           <li><a href="varcov.html" class="nav-link">Varcov</a></li>
           <li><a href="lvm.html" class="nav-link">LVM</a></li>
           <li><a href="ising.html" class="nav-link">Ising</a></li>
+          <li><a href="var1.html" class="nav-link">Var1</a></li>
         </ul>
       </li>
       <li><a href="examples.html" class="nav-link">Examples</a></li>
@@ -47,22 +48,74 @@
   <div class="note">
     <strong>Datasets used in examples:</strong>
     <ul style="margin-bottom:0;">
-      <li><code>StarWars</code> &mdash; Star Wars fandom questionnaire (10 items + demographics), collected for the <a href="https://osf.io/xrgkv/">SEM 1: Confirmatory Factor Analysis course</a> (UvA, 2020). Load with <code>data(StarWars)</code>.</li>
-      <li><code>NA2020</code> &mdash; Sleep, health &amp; wellbeing survey (8 items), a subset of data from the <a href="https://osf.io/45n6d/">Network Psychometrics with R</a> textbook (Isvoranu, Epskamp, Waldorp &amp; Borsboom, 2022). Load with <code>data(NA2020)</code>.</li>
+      <li><code>StarWars</code> (psychonetrics) &mdash; Star Wars fandom questionnaire (10 items + demographics), collected for the <a href="https://osf.io/xrgkv/">SEM 1: Confirmatory Factor Analysis course</a> (UvA, 2020). Load with <code>data(StarWars)</code>.</li>
+      <li><code>NA2020</code> (psychonetrics) &mdash; Sleep, health &amp; wellbeing survey (8 items), a subset of data from the <a href="https://osf.io/45n6d/">Network Psychometrics with R</a> textbook (Isvoranu, Epskamp, Waldorp &amp; Borsboom, 2022). Load with <code>data(NA2020)</code>.</li>
+      <li><code>Jonas</code> (psychonetrics) &mdash; Binary questionnaire data used for Ising model examples. Load with <code>data(Jonas)</code>.</li>
+      <li><code>bfi</code> (psych) &mdash; Big Five Inventory with 25 personality items. Load with <code>data(bfi)</code>.</li>
+      <li><code>Thurstone</code> (psych) &mdash; Correlation matrix for 9 mental ability tests. Load with <code>data(Thurstone)</code>.</li>
+      <li><code>HolzingerSwineford1939</code> (lavaan) &mdash; Classic CFA dataset with 9 tests measuring 3 latent factors. Load with <code>data(HolzingerSwineford1939)</code>.</li>
+      <li><code>PoliticalDemocracy</code> (lavaan) &mdash; Panel data on industrialization and democracy. Load with <code>data(PoliticalDemocracy)</code>.</li>
     </ul>
   </div>
 
-  <!-- EXAMPLE 1: Basic GGM -->
+  <!-- EXAMPLE 1a: Saturated GGM -->
   <div class="example-card">
     <div class="example-header">
       <div>
-        <h3>Basic GGM on Personality Data <span class="example-tag tag-varcov">varcov</span></h3>
-        <p class="example-meta">Dataset: psych::bfi | Demonstrates: ggm(), prune(), stepup(), fit(), parameters()</p>
+        <h3>Saturated GGM on Personality Data <span class="example-tag tag-varcov">varcov</span></h3>
+        <p class="example-meta">Dataset: psych::bfi | Demonstrates: ggm(), fit(), parameters(), CIplot()</p>
       </div>
       <span class="example-chevron">&#9660;</span>
     </div>
     <div class="example-body">
-      <p>This example demonstrates a basic exploratory Gaussian Graphical Model (GGM) analysis on the Big Five Inventory personality data. We start with a saturated model, prune non-significant edges, and use stepup to refine the network. Finally, we visualize the resulting partial correlation network.</p>
+      <p>This example fits a saturated Gaussian Graphical Model (GGM) to the Big Five Inventory personality data. The saturated model estimates all partial correlations and provides valid confidence intervals and p-values for each edge.</p>
+      <pre><code class="language-r"># Load required packages
+library(psychonetrics)
+library(psych)
+library(qgraph)
+
+# Load Big Five Inventory data and remove missing values
+data(bfi)
+bfi_clean <- na.omit(bfi[, 1:25])  # 25 personality items
+
+# Fit saturated GGM
+mod_saturated <- ggm(bfi_clean) %>% runmodel()
+
+# Inspect results
+mod_saturated
+mod_saturated %>% fit
+mod_saturated %>% parameters
+
+# Confidence interval plot for all partial correlations
+CIplot(mod_saturated, "omega")
+
+# Extract thresholded network (only significant edges)
+omega <- getmatrix(mod_saturated, "omega", threshold = TRUE, alpha = 0.01)
+
+# Visualize the network
+qgraph(omega,
+       layout = "spring",
+       labels = colnames(bfi_clean),
+       theme = "colorblind",
+       cut = 0,
+       title = "Big Five Personality Network (thresholded)")</code></pre>
+    </div>
+  </div>
+
+  <!-- EXAMPLE 1b: GGM with Model Search -->
+  <div class="example-card">
+    <div class="example-header">
+      <div>
+        <h3>GGM with Model Search (Prune &amp; Stepup) <span class="example-tag tag-varcov">varcov</span></h3>
+        <p class="example-meta">Dataset: psych::bfi | Demonstrates: prune(), stepup(), compare()</p>
+      </div>
+      <span class="example-chevron">&#9660;</span>
+    </div>
+    <div class="example-body">
+      <p>This example demonstrates exploratory model search on a GGM using prune and stepup. Starting from a saturated model, we prune non-significant edges and then use stepup to add back edges that improve model fit.</p>
+      <div class="warning">
+        <strong>Note:</strong> After model search (pruning and stepup), confidence intervals and p-values are no longer valid because the model structure was selected from the data. Use bootstrapping or confirmatory testing on held-out data to obtain valid inference after model search.
+      </div>
       <pre><code class="language-r"># Load required packages
 library(psychonetrics)
 library(psych)
@@ -94,13 +147,11 @@ qgraph(omega,
        layout = "spring",
        labels = colnames(bfi_clean),
        theme = "colorblind",
-       title = "Big Five Personality Network")
+       cut = 0,
+       title = "Big Five Personality Network (model search)")
 
 # View model fit
-mod_stepup
-
-# Extract parameters
-parameters(mod_stepup)</code></pre>
+mod_stepup %>% fit</code></pre>
     </div>
   </div>
 
@@ -178,13 +229,14 @@ bfi_clean <- na.omit(bfi[, c(1:25, 26)])  # Items + gender
 bfi_clean <- bfi_clean[bfi_clean$gender %in% c(1, 2), ]  # 1=male, 2=female
 
 # Fit multi-group GGM with different networks per group
-mod_configural <- ggm(bfi_clean[, 1:25],
-                      groups = bfi_clean$gender) %>%
+mod_configural <- ggm(bfi_clean,
+                      vars = colnames(bfi_clean)[1:25],
+                      groups = "gender") %>%
   runmodel()
 
 # Prune each group separately
 mod_configural_pruned <- mod_configural %>%
-  prune(alpha = 0.01, adjust = "fdr") %>%
+  prune(alpha = 0.01) %>%
   stepup()
 
 # Constrain networks to be equal across groups
@@ -258,6 +310,7 @@ qgraph(omega_sparse,
        layout = "spring",
        labels = colnames(bfi_clean),
        theme = "colorblind",
+       cut = 0,
        title = "Penalized GGM (PML)")
 
 # Compare sparsity
@@ -371,6 +424,7 @@ qgraph(omega,
        layout = "spring",
        labels = rownames(cor_matrix),
        theme = "colorblind",
+       cut = 0,
        title = "Thurstone Abilities Network")
 
 # Note: Some functionality requiring raw data will not be available
@@ -504,6 +558,7 @@ qgraph(omega_latent,
        layout = "spring",
        labels = colnames(lambda),
        theme = "colorblind",
+       cut = 0,
        title = "Star Wars Latent Factor Network",
        nodeNames = colnames(lambda))
 
@@ -576,6 +631,7 @@ qgraph(omega_residual,
        layout = "spring",
        labels = colnames(items),
        theme = "colorblind",
+       cut = 0,
        title = "Star Wars Residual Network")
 
 # View model
@@ -862,6 +918,7 @@ qgraph(omega_ising,
        layout = "spring",
        labels = colnames(binary_items),
        theme = "colorblind",
+       cut = 0,
        title = "Ising Network",
        edge.labels = FALSE)
 
@@ -1036,7 +1093,7 @@ Labels <- c("regular\nsleep", "worried\nsleep", "sleep\ninterfere",
 
 # Visualize:
 qgraph(network, layout = Layout, labels = Labels,
-       vsize = 15, theme = "colorblind", label.scale.equal = TRUE)
+       vsize = 15, theme = "colorblind", cut = 0, label.scale.equal = TRUE)
 
 # --- Model search strategies ---
 
@@ -1173,7 +1230,7 @@ compare(cfa = mod1, lnm = lnm_mod)
 
 # Plot latent network:
 qgraph(lnm_mod@modelmatrices[[1]]$omega_zeta,
-       labels = latents, theme = "colorblind", vsize = 10)
+       labels = latents, theme = "colorblind", cut = 0, vsize = 10)
 
 # --- Residual Network Model ---
 # Add partial correlations at the residual level:

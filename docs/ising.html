@@ -21,9 +21,17 @@
     <ul class="nav-menu">
       <li><a href="index.html" class="nav-link">Home</a></li>
       <li><a href="tutorial.html" class="nav-link">Tutorial</a></li>
-      <li><a href="varcov.html" class="nav-link">Varcov</a></li>
-      <li><a href="lvm.html" class="nav-link">LVM</a></li>
-      <li><a href="ising.html" class="nav-link">Ising</a></li>
+      <li class="nav-dropdown">
+        <button class="nav-link dropdown-toggle" aria-expanded="false" aria-haspopup="true">
+          Models <svg class="dropdown-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="varcov.html" class="nav-link">Varcov</a></li>
+          <li><a href="lvm.html" class="nav-link">LVM</a></li>
+          <li><a href="ising.html" class="nav-link">Ising</a></li>
+          <li><a href="var1.html" class="nav-link">Var1</a></li>
+        </ul>
+      </li>
       <li><a href="examples.html" class="nav-link">Examples</a></li>
       <li><a href="about.html" class="nav-link">About</a></li>
     </ul>
@@ -154,7 +162,7 @@
       <p>The Ising model results depend critically on whether your binary data is coded as {0, 1} or {-1, 1}. The <code>Ising()</code> function accepts both encodings, but they lead to different model interpretations:</p>
       <ul>
         <li><strong>{0, 1} coding</strong>: Standard for questionnaire data (no/yes, absent/present)</li>
-        <li><strong>{-1, 1} coding</strong>: Common in physics applications</li>
+        <li><strong>{-1, 1} coding</strong>: Common in physics and attitude modeling</li>
       </ul>
       <p>You can specify the response coding explicitly via the <code>responses</code> argument to ensure correct interpretation.</p>
     </div>
@@ -242,6 +250,7 @@ library("qgraph")
 qgraph(omega,
        labels = vars,
        theme = "colorblind",
+       cut = 0,
        layout = "spring",
        title = "Jonas Attitude Network")
 
@@ -272,7 +281,7 @@ table(Jonas$group)</code></pre>
     <h4>Model 1: All Parameters Free</h4>
     <pre><code class="language-r"># Configural model: all parameters free across groups
 mod1 <- Ising(Jonas, vars = vars, groups = "group") %>%
-  runmodel(approximate_SEs = TRUE)
+  runmodel
 
 # Sparse version: prune and stepup
 mod1b <- mod1 %>%
@@ -338,11 +347,11 @@ omega_group2 <- getmatrix(mod1b, "omega", group = 2)
 
 # Visualize both networks
 par(mfrow = c(1, 2))
-qgraph(omega_group1, layout = "spring", title = "Doesn't Know Jonas")
-qgraph(omega_group2, layout = "spring", title = "Knows Jonas")</code></pre>
+qgraph(omega_group1, layout = "spring", cut = 0, title = "Doesn't Know Jonas")
+qgraph(omega_group2, layout = "spring", cut = 0, title = "Knows Jonas")</code></pre>
 
     <div class="note">
-      <strong>Important:</strong> When using stepup search with equality constraints, always specify <code>mi = "mi_equal"</code> to ensure modification indices respect the constraints. The <code>approximate_SEs = TRUE</code> argument speeds up computation by using approximate standard errors.
+      <strong>Important:</strong> When using stepup search with equality constraints, always specify <code>mi = "mi_equal"</code> to ensure modification indices respect the constraints.
     </div>
   </section>
 
@@ -360,12 +369,9 @@ qgraph(omega_group2, layout = "spring", title = "Knows Jonas")</code></pre>
     </ul>
 
     <h3>Thresholds (Tau)</h3>
-    <ul>
-      <li><strong>Positive $\tau_i$</strong>: Node $i$ has a baseline tendency to be active (state 1), even when other variables are neutral.</li>
-      <li><strong>Negative $\tau_i$</strong>: Node $i$ has a baseline tendency to be inactive (state 0).</li>
-      <li><strong>Zero $\tau_i$</strong>: No baseline preference; activation depends entirely on network influences.</li>
-      <li><strong>Interpretation</strong>: Think of thresholds as main effects or base rates for each variable.</li>
-    </ul>
+    <p>
+      The interpretation of thresholds depends on the data coding. For {&minus;1, 1} coded data, thresholds represent the baseline tendency of a node toward one state over the other when all other variables are neutral. For {0, 1} coded data, the interpretation is more complex. See Epskamp, Haslbeck, Isvoranu &amp; Van Borkulo (2022) for a detailed discussion.
+    </p>
 
     <h3>Temperature (Beta)</h3>
     <ul>
