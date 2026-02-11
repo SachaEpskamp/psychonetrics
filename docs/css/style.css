@@ -320,6 +320,7 @@ td code { background: rgba(0,61,124,.07); color: var(--nus-blue-dark); padding: 
 .tag-varcov { background: #DBEAFE; color: #1E40AF; }
 .tag-lvm { background: #D1FAE5; color: #065F46; }
 .tag-ising { background: #FEE2E2; color: #991B1B; }
+.tag-var1 { background: #FEF3C7; color: #92400E; }
 .tag-general { background: #E5E7EB; color: #374151; }
 .example-meta { font-size: .88rem; color: var(--gray-500); margin-top: .25rem; }
 .example-body { display: none; padding: 0 1.5rem 1.5rem; border-top: 1px solid var(--gray-200); }

@@ -55,6 +55,7 @@
       <li><code>Thurstone</code> (psych) &mdash; Correlation matrix for 9 mental ability tests. Load with <code>data(Thurstone)</code>.</li>
       <li><code>HolzingerSwineford1939</code> (lavaan) &mdash; Classic CFA dataset with 9 tests measuring 3 latent factors. Load with <code>data(HolzingerSwineford1939)</code>.</li>
       <li><code>PoliticalDemocracy</code> (lavaan) &mdash; Panel data on industrialization and democracy. Load with <code>data(PoliticalDemocracy)</code>.</li>
+      <li><code>Supplementary2_data.csv</code> (OSF) &mdash; Clinical ESM time-series data (7 variables, single patient). Download from <a href="https://osf.io/c8wjz/">https://osf.io/c8wjz/</a> (Epskamp, van Borkulo, van der Veen, Servaas, Isvoranu, Riese, &amp; Cramer, 2018).</li>
     </ul>
   </div>
 
@@ -1342,6 +1343,77 @@ compare(eqvar = mod_eqvar, eqmeans_partial = mod_eqmeans_partial)
 # Look at mean differences:
 mod_eqvar %>% getmatrix("nu_eta")
 # People over 30 like the prequels better!</code></pre>
+    </div>
+  </div>
+
+  <!-- EXAMPLE: Graphical VAR on ESM Data -->
+  <div class="example-card">
+    <div class="example-header">
+      <div>
+        <h3>Graphical VAR on Clinical ESM Data <span class="example-tag tag-var1">var1</span></h3>
+        <p class="example-meta">Dataset: OSF (Epskamp et al., 2018) | Demonstrates: gvar(), dayvar, PDC, PCC, prune(), stepup()</p>
+      </div>
+      <span class="example-chevron">&#9660;</span>
+    </div>
+    <div class="example-body">
+      <p>This example fits a graphical VAR model to ESM data from a single clinical patient (Epskamp, van Borkulo, van der Veen, Servaas, Isvoranu, Riese, &amp; Cramer, 2018). The model estimates both a temporal network (directed lag-1 effects) and a contemporaneous network (partial correlations among innovations). Data available at <a href="https://osf.io/c8wjz/">https://osf.io/c8wjz/</a>.</p>
+      <div class="warning">
+        <strong>Note:</strong> Do not use <code>getmatrix(model, "beta")</code> directly in <code>qgraph()</code>. The <code>beta</code> matrix has a different row/column convention than qgraph expects, so edges will appear in the wrong direction. Always use <code>getmatrix(model, "PDC")</code> for visualization.
+      </div>
+      <pre><code class="language-r"># Load required packages
+library("psychonetrics")
+library("dplyr")
+library("qgraph")
+
+# Download the data from https://osf.io/c8wjz/
+tsdata <- read.csv("Supplementary2_data.csv")
+
+# Encode time variable:
+tsdata$time <- as.POSIXct(tsdata$time, tz = "Europe/Amsterdam")
+
+# Extract day variable:
+tsdata$Day <- as.Date(tsdata$time, tz = "Europe/Amsterdam")
+
+# Variables to use (7 ESM items):
+vars <- c("relaxed", "sad", "nervous", "concentration",
+          "tired", "rumination", "bodily.discomfort")
+
+# Fit graphical VAR with FIML for missing data:
+model <- gvar(tsdata, vars = vars, dayvar = "Day",
+              estimator = "FIML")
+model <- model %>% runmodel
+
+# Inspect model:
+model
+model %>% fit
+model %>% parameters
+
+# Confidence interval plot for temporal effects:
+CIplot(model, "beta")
+
+# Model search:
+model_pruned <- model %>% prune(alpha = 0.01)
+model_final <- model_pruned %>% stepup(criterion = "bic")
+
+# Compare models:
+compare(saturated = model, pruned = model_pruned, final = model_final)
+
+# Extract networks (use PDC, not beta!):
+temporal <- getmatrix(model_final, "PDC")
+contemporaneous <- getmatrix(model_final, "omega_zeta")
+
+# Visualize both networks side by side:
+labs <- gsub("\\.", "\n", vars)
+L <- averageLayout(temporal, contemporaneous)
+
+layout(t(1:2))
+qgraph(temporal, layout = L, theme = "colorblind", cut = 0,
+       directed = TRUE, diag = TRUE,
+       title = "Temporal (PDC)", vsize = 12, mar = rep(6, 4),
+       asize = 5, labels = labs)
+qgraph(contemporaneous, layout = L, theme = "colorblind", cut = 0,
+       title = "Contemporaneous (PCC)", vsize = 12, mar = rep(6, 4),
+       asize = 5, labels = labs)</code></pre>
     </div>
   </div>
 
