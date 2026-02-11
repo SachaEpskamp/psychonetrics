@@ -6,13 +6,6 @@ The `psychonetrics` R package provides a comprehensive framework for multi-group
 
 **Website: [https://psychonetrics.org](https://psychonetrics.org)**
 
-## Modeling Frameworks
-
-- **Variance-covariance modeling** (`varcov`) -- Gaussian graphical model (GGM) via `ggm()`
-- **Latent variable modeling** (`lvm`) -- Confirmatory factor analysis via `lvm()`, latent network model via `lnm()`, residual network model via `rnm()`
-- **Ising model** (`Ising`) -- Binary data network modeling via `Ising()`
-- **Graphical VAR** -- Time-series modeling via `gvar()`
-
 ## Installation
 
 The package can be installed from GitHub:
