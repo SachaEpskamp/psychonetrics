@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="psychonetrics varcov family: Gaussian Graphical Models and variance-covariance modeling">
+  <title>Varcov Family | psychonetrics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<!-- Same navbar as index.html -->
+<nav class="navbar">
+  <div class="container nav-container">
+    <a href="index.html" class="nav-brand">psychonetrics</a>
+    <button class="nav-toggle" aria-label="Toggle navigation">&#9776;</button>
+    <ul class="nav-menu">
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="tutorial.html" class="nav-link">Tutorial</a></li>
+      <li><a href="varcov.html" class="nav-link">Varcov</a></li>
+      <li><a href="lvm.html" class="nav-link">LVM</a></li>
+      <li><a href="ising.html" class="nav-link">Ising</a></li>
+      <li><a href="examples.html" class="nav-link">Examples</a></li>
+      <li><a href="about.html" class="nav-link">About</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="page-header container container-narrow">
+  <h1>Varcov Family</h1>
+  <p class="subtitle">Variance-covariance models and Gaussian Graphical Models</p>
+</div>
+
+<main class="container container-narrow">
+
+  <!-- Table of Contents -->
+  <div class="toc">
+    <h3>Contents</h3>
+    <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#types">The Five Types</a></li>
+      <li><a href="#ggm">The GGM Parameterization</a></li>
+      <li><a href="#example-exploratory">Example: Exploratory GGM on BFI Data</a></li>
+      <li><a href="#example-confirmatory">Example: Confirmatory GGM</a></li>
+      <li><a href="#example-multigroup">Example: Multi-Group Network Comparison</a></li>
+      <li><a href="#example-penalized">Example: Penalized GGM (PML)</a></li>
+      <li><a href="#summary">Summary</a></li>
+    </ul>
+  </div>
+
+  <!-- Overview -->
+  <section id="overview">
+    <h2>Overview</h2>
+    <p>The <strong>varcov</strong> family models the variance-covariance structure of multivariate normal data, with an optional mean structure. This is the foundation for modeling observed variables directly without latent constructs.</p>
+
+    <p>The mathematical model is straightforward:</p>
+    <ul>
+      <li>Mean structure: $\text{E}(\boldsymbol{y}) = \boldsymbol{\mu}$</li>
+      <li>Variance-covariance structure: $\text{var}(\boldsymbol{y}) = \boldsymbol{\Sigma}$</li>
+    </ul>
+
+    <p>The key question in varcov modeling is: <strong>How do we parameterize $\boldsymbol{\Sigma}$?</strong></p>
+
+    <p>The psychonetrics package offers five different parameterizations, each with unique properties and use cases. The most important for network analysis is the <strong>GGM (Gaussian Graphical Model)</strong> parameterization, which represents networks through partial correlations.</p>
+  </section>
+
+  <!-- The Five Types -->
+  <section id="types">
+    <h2>The Five Types</h2>
+    <p>The varcov family includes five different parameterizations of the variance-covariance matrix. Each type uses different underlying matrices and transformations:</p>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Wrapper</th>
+            <th>Main Matrix</th>
+            <th>Scaling</th>
+            <th>Equation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>cov</td>
+            <td><code>varcov()</code></td>
+            <td>sigma</td>
+            <td>—</td>
+            <td>$\boldsymbol{\Sigma}$</td>
+          </tr>
+          <tr>
+            <td>chol</td>
+            <td><code>cholesky()</code></td>
+            <td>lowertri</td>
+            <td>—</td>
+            <td>$\boldsymbol{LL}'$</td>
+          </tr>
+          <tr>
+            <td>prec</td>
+            <td><code>precision()</code></td>
+            <td>kappa</td>
+            <td>—</td>
+            <td>$\boldsymbol{K}^{-1}$</td>
+          </tr>
+          <tr>
+            <td>ggm</td>
+            <td><code>ggm()</code></td>
+            <td>omega</td>
+            <td>delta</td>
+            <td>$\boldsymbol{\Delta}(\boldsymbol{I} - \boldsymbol{\Omega})^{-1}\boldsymbol{\Delta}$</td>
+          </tr>
+          <tr>
+            <td>cor</td>
+            <td><code>corr()</code></td>
+            <td>rho</td>
+            <td>SD</td>
+            <td>$\boldsymbol{SD} \cdot \boldsymbol{\rho} \cdot \boldsymbol{SD}$</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Brief Descriptions</h3>
+    <ul>
+      <li><strong>cov</strong>: Direct parameterization of the covariance matrix $\boldsymbol{\Sigma}$. Most straightforward but doesn't guarantee positive definiteness.</li>
+      <li><strong>chol</strong>: Uses Cholesky decomposition $\boldsymbol{\Sigma} = \boldsymbol{LL}'$ where $\boldsymbol{L}$ is lower triangular. Guarantees positive definiteness.</li>
+      <li><strong>prec</strong>: Models the precision matrix (inverse covariance) $\boldsymbol{K} = \boldsymbol{\Sigma}^{-1}$. Useful for sparse models.</li>
+      <li><strong>ggm</strong>: Gaussian Graphical Model using partial correlations. The standard choice for network analysis.</li>
+      <li><strong>cor</strong>: Separates correlations from standard deviations. Useful when you want to model correlation structure separately.</li>
+    </ul>
+  </section>
+
+  <!-- The GGM Parameterization -->
+  <section id="ggm">
+    <h2>The GGM Parameterization</h2>
+    <p>The <strong>Gaussian Graphical Model (GGM)</strong> is the most important parameterization for network psychometrics. It represents the variance-covariance matrix as:</p>
+
+    <p class="formula">$$\boldsymbol{\Sigma} = \boldsymbol{\Delta}(\boldsymbol{I} - \boldsymbol{\Omega})^{-1}\boldsymbol{\Delta}$$</p>
+
+    <p>Where:</p>
+    <ul>
+      <li><strong>$\boldsymbol{\Omega}$</strong> (omega): The partial correlation matrix, representing network edges. This is the key parameter of interest in network models.</li>
+      <li><strong>$\boldsymbol{\Delta}$</strong> (delta): A diagonal matrix containing standard deviations for scaling.</li>
+      <li><strong>$\boldsymbol{I}$</strong>: The identity matrix.</li>
+    </ul>
+
+    <h3>Why GGM for Networks?</h3>
+    <p>The GGM parameterization is ideal for psychological networks because:</p>
+    <ul>
+      <li><strong>Partial correlations control for all other variables</strong>: An edge between variables A and B represents their relationship after controlling for all other variables in the network.</li>
+      <li><strong>Conditional independence</strong>: When $\omega_{ij} = 0$, variables $i$ and $j$ are conditionally independent given all other variables.</li>
+      <li><strong>Sparse networks</strong>: Many edges can be exactly zero, representing genuine absence of direct relationships (not just weak relationships).</li>
+      <li><strong>Interpretability</strong>: Partial correlations have a clear interpretation as direct effects in the network.</li>
+    </ul>
+
+    <h3>Relationship to Precision Matrix</h3>
+    <p>The omega matrix is closely related to the precision matrix $\boldsymbol{K} = \boldsymbol{\Sigma}^{-1}$. Specifically, omega contains the off-diagonal elements of the standardized precision matrix:</p>
+    <p class="formula">$$\boldsymbol{\Omega} = -\boldsymbol{\Delta}_K^{-1}\boldsymbol{K}\boldsymbol{\Delta}_K^{-1} + \boldsymbol{I}$$</p>
+    <p>where $\boldsymbol{\Delta}_K$ is a diagonal matrix with the diagonal elements of $\boldsymbol{K}$.</p>
+  </section>
+
+  <!-- Example: Exploratory GGM -->
+  <section id="example-exploratory">
+    <h2>Example: Exploratory GGM on BFI Data</h2>
+    <p>This example demonstrates the typical workflow for exploratory network analysis using the Big Five Inventory (BFI) dataset from the <code>psych</code> package.</p>
+
+    <h3>Step 1: Load and Prepare Data</h3>
+    <pre><code class="language-r">library("psychonetrics")
+library("dplyr")
+library("psych")
+
+# Load Big Five Inventory data
+data(bfi)
+
+# Select the 25 personality items, remove missing values
+vars <- names(bfi)[1:25]
+data_bfi <- bfi %>% select(all_of(vars)) %>% na.omit()
+
+# Check dimensions
+dim(data_bfi)  # Should be 2436 x 25</code></pre>
+
+    <h3>Step 2: Fit Saturated GGM</h3>
+    <p>Start with a fully saturated model where all edges are freely estimated:</p>
+    <pre><code class="language-r"># Fit a saturated GGM (all edges free)
+mod_sat <- ggm(data_bfi, vars = vars, omega = "full")
+mod_sat <- mod_sat %>% runmodel
+
+# Inspect fit (should be perfect for saturated model)
+mod_sat %>% fit
+
+# View parameters (will show all 300 unique edges)
+mod_sat %>% parameters</code></pre>
+
+    <h3>Step 3: Prune Non-Significant Edges</h3>
+    <p>Remove edges that are not statistically significant:</p>
+    <pre><code class="language-r"># Prune edges with p > 0.01
+mod_pruned <- mod_sat %>% prune(alpha = 0.01)
+
+# Check how many edges remain
+mod_pruned %>% parameters %>% filter(matrix == "omega", !fixed) %>% nrow()</code></pre>
+
+    <h3>Step 4: Stepup Search</h3>
+    <p>Add back edges that significantly improve model fit:</p>
+    <pre><code class="language-r"># Stepup search: add edges that improve fit
+mod_final <- mod_pruned %>% stepup
+
+# Compare all three models
+compare(saturated = mod_sat, pruned = mod_pruned, final = mod_final)</code></pre>
+
+    <h3>Step 5: Extract and Visualize Network</h3>
+    <pre><code class="language-r"># Extract the omega (partial correlation) matrix
+omega <- getmatrix(mod_final, "omega")
+
+# Visualize with qgraph (if installed)
+library("qgraph")
+qgraph(omega,
+       labels = vars,
+       theme = "colorblind",
+       layout = "spring",
+       title = "Big Five Personality Network")</code></pre>
+
+    <div class="note">
+      <strong>Note:</strong> The <code>prune()</code> function removes edges based on statistical significance, while <code>stepup()</code> uses modification indices to add back edges that improve model fit. This two-step procedure often yields more stable networks than pruning alone.
+    </div>
+  </section>
+
+  <!-- Example: Confirmatory GGM -->
+  <section id="example-confirmatory">
+    <h2>Example: Confirmatory GGM</h2>
+    <p>In confirmatory network analysis, we discover the network structure on one dataset (training data) and test whether the same structure holds in another dataset (test data). This is crucial for replication and validation.</p>
+
+    <h3>Split Data into Training and Test Sets</h3>
+    <pre><code class="language-r"># Set seed for reproducibility
+set.seed(1)
+
+# Randomly split data: 1000 for training, rest for testing
+train_idx <- sample(nrow(data_bfi), 1000)
+train_data <- data_bfi[train_idx, ]
+test_data  <- data_bfi[-train_idx, ]
+
+dim(train_data)  # 1000 x 25
+dim(test_data)   # 1436 x 25</code></pre>
+
+    <h3>Discover Structure on Training Data</h3>
+    <pre><code class="language-r"># Estimate network structure on training data
+mod_train <- ggm(train_data, vars = vars) %>%
+  runmodel %>%
+  prune(alpha = 0.01) %>%
+  stepup
+
+# Check fit on training data
+mod_train %>% fit</code></pre>
+
+    <h3>Extract Adjacency Matrix</h3>
+    <pre><code class="language-r"># Get the omega matrix from training data
+omega_train <- getmatrix(mod_train, "omega")
+
+# Create adjacency matrix (1 = edge present, 0 = edge absent)
+adjacency <- 1 * (omega_train != 0)
+diag(adjacency) <- 0  # Remove diagonal
+
+# Count number of edges
+sum(adjacency) / 2  # Divide by 2 because matrix is symmetric</code></pre>
+
+    <h3>Confirm Structure on Test Data</h3>
+    <pre><code class="language-r"># Fit model on test data using the structure from training data
+mod_test <- ggm(test_data, vars = vars, omega = adjacency) %>%
+  runmodel
+
+# Evaluate fit on test data
+mod_test %>% fit
+
+# If fit is good (e.g., CFI > 0.90, RMSEA < 0.08),
+# the network structure replicates!
+
+# View parameter estimates on test data
+mod_test %>% parameters</code></pre>
+
+    <div class="note">
+      <strong>Interpretation:</strong> If the model fits well on the test data, this provides evidence that the network structure discovered in the training data generalizes. Poor fit suggests the structure may be sample-specific or overfitted.
+    </div>
+  </section>
+
+  <!-- Example: Multi-Group -->
+  <section id="example-multigroup">
+    <h2>Example: Multi-Group Network Comparison</h2>
+    <p>Multi-group models allow us to test whether network structures differ across groups (e.g., gender, age, clinical status). This example compares personality networks between males and females.</p>
+
+    <h3>Prepare Multi-Group Data</h3>
+    <pre><code class="language-r"># Include gender variable (1 = male, 2 = female in BFI dataset)
+data_groups <- bfi %>%
+  select(all_of(vars), gender) %>%
+  na.omit()
+
+# Check group sizes
+table(data_groups$gender)</code></pre>
+
+    <h3>Fit Configural Model</h3>
+    <p>First, fit a configural model where each group has its own freely estimated network:</p>
+    <pre><code class="language-r"># Configural model: networks free to differ across groups
+mod_config <- ggm(data_groups, vars = vars, groups = "gender") %>%
+  runmodel
+
+# Check fit
+mod_config %>% fit
+
+# View parameters for each group
+mod_config %>% parameters %>% filter(group == 1)  # Males
+mod_config %>% parameters %>% filter(group == 2)  # Females</code></pre>
+
+    <h3>Test Network Invariance</h3>
+    <p>Constrain the omega matrices to be equal across groups:</p>
+    <pre><code class="language-r"># Constrain networks to be equal across groups
+mod_equal <- mod_config %>%
+  groupequal("omega") %>%
+  runmodel
+
+# Check fit
+mod_equal %>% fit</code></pre>
+
+    <h3>Compare Models</h3>
+    <pre><code class="language-r"># Likelihood ratio test and fit comparison
+compare(configural = mod_config, equal_networks = mod_equal)
+
+# If p-value is significant, networks differ across groups
+# If not significant, networks are statistically equivalent</code></pre>
+
+    <h3>Additional Tests</h3>
+    <p>You can test specific constraints:</p>
+    <pre><code class="language-r"># Test if only scaling (delta) differs, but network structure is same
+mod_partial <- mod_config %>%
+  groupequal("omega") %>%   # Equal networks
+  groupfree("delta") %>%    # Free scaling
+  runmodel
+
+compare(configural = mod_config,
+        equal_structure = mod_partial,
+        fully_equal = mod_equal)</code></pre>
+
+    <div class="note">
+      <strong>Tip:</strong> When networks differ across groups, use <code>partialprune()</code> to identify which specific edges differ between groups.
+    </div>
+  </section>
+
+  <!-- Example: Penalized GGM -->
+  <section id="example-penalized">
+    <h2>Example: Penalized GGM (PML)</h2>
+    <p>Penalized Maximum Likelihood (PML) estimation uses regularization (typically LASSO) to automatically select a sparse network. The penalty parameter lambda is chosen to optimize model fit.</p>
+
+    <h3>Fit Penalized Model</h3>
+    <pre><code class="language-r"># Fit GGM with automatic lambda selection
+mod_pml <- ggm(data_bfi, vars = vars, estimator = "PML") %>%
+  runmodel
+
+# The model automatically searches for optimal lambda
+# View the lambda search results
+mod_pml@optim$lambda_search
+
+# Check which lambda was selected
+mod_pml@optim$lambda</code></pre>
+
+    <h3>Extract Sparse Network</h3>
+    <pre><code class="language-r"># Get the regularized network
+omega_pml <- getmatrix(mod_pml, "omega")
+
+# Count non-zero edges
+sum(omega_pml != 0) / 2  # Divide by 2 for undirected network
+
+# The network should be sparser than the unregularized version</code></pre>
+
+    <h3>Refit for Inference</h3>
+    <p>The penalized estimates are biased (shrunk toward zero). To get unbiased estimates, standard errors, and p-values, refit the selected structure without penalty:</p>
+    <pre><code class="language-r"># Refit without penalty for inference
+mod_refit <- mod_pml %>% refit
+
+# Now we have standard errors and p-values
+mod_refit %>% parameters
+
+# Compare fit
+compare(penalized = mod_pml, unpenalized = mod_refit)</code></pre>
+
+    <h3>Custom Lambda Values</h3>
+    <p>You can also specify your own lambda values to test:</p>
+    <pre><code class="language-r"># Try specific lambda values
+mod_custom <- ggm(data_bfi, vars = vars, estimator = "PML") %>%
+  setoptimizer(lambda_search = seq(0, 0.5, by = 0.05)) %>%
+  runmodel
+
+# View results for all lambda values
+mod_custom@optim$lambda_search</code></pre>
+
+    <div class="note">
+      <strong>When to use PML?</strong> Penalized estimation is particularly useful when you have many variables relative to sample size, or when you want an automatic sparse network without manual pruning. However, it's recommended to refit without penalty for final inference.
+    </div>
+  </section>
+
+  <!-- Summary -->
+  <section id="summary">
+    <h2>Summary</h2>
+    <p>The <strong>varcov</strong> family provides the foundation for observed-variable network modeling in psychonetrics. Key takeaways:</p>
+
+    <ul>
+      <li>Five different parameterizations are available, each suited to different modeling goals</li>
+      <li>The <strong>GGM</strong> parameterization (<code>ggm()</code>) is the standard choice for network analysis</li>
+      <li>GGMs represent networks through partial correlations, which control for all other variables</li>
+      <li>Exploratory analysis typically involves: saturated model → pruning → stepup search</li>
+      <li>Confirmatory analysis tests whether a discovered structure replicates in new data</li>
+      <li>Multi-group models test whether networks differ across populations</li>
+      <li>Penalized estimation (PML) provides automatic sparsity but requires refitting for inference</li>
+    </ul>
+
+    <h3>Next Steps</h3>
+    <p>Now that you understand varcov models, you can explore:</p>
+    <ul>
+      <li><a href="tutorial.html">General Tutorial</a> for the full psychonetrics workflow</li>
+      <li><a href="lvm.html">LVM Family</a> for latent variable models and confirmatory factor analysis</li>
+      <li><a href="examples.html">Examples</a> for more advanced applications</li>
+    </ul>
+
+    <h3>Further Reading</h3>
+    <p>For theoretical background on GGMs and network psychometrics:</p>
+    <ul>
+      <li>Epskamp, S., Waldorp, L. J., Mottus, R., & Borsboom, D. (2018). The Gaussian graphical model in cross-sectional and time-series data. <em>Multivariate Behavioral Research, 53</em>(4), 453-480.</li>
+      <li>Epskamp, S. (2020). Psychometric network models from time-series and panel data. <em>Psychometrika, 85</em>(1), 206-231.</li>
+    </ul>
+  </section>
+
+</main>
+
+<!-- Same footer as index.html -->
+<footer>
+  <div class="container footer-grid">
+    <div>
+      <h4>psychonetrics</h4>
+      <p>An R package for Structural Equation Modeling and Confirmatory Network Analysis.</p>
+      <p>Developed by <a href="about.html">Sacha Epskamp</a>.</p>
+    </div>
+    <div>
+      <h4>Links</h4>
+      <ul>
+        <li><a href="https://github.com/SachaEpskamp/psychonetrics">GitHub Repository</a></li>
+        <li><a href="https://cran.r-project.org/package=psychonetrics">CRAN</a></li>
+        <li><a href="https://github.com/SachaEpskamp/psychonetrics/issues">Report a Bug</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Affiliation</h4>
+      <img src="img/nus-logo-blue.png" alt="National University of Singapore" class="nus-logo-footer">
+      <p>National University of Singapore<br>Methods, Data Science, and AI Lab</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 Sacha Epskamp. Built with plain HTML &amp; CSS.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="js/main.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: "$$", right: "$$", display: true},
+        {left: "$", right: "$", display: false}
+      ]
+    });
+  });
+</script>
+</body>
+</html>

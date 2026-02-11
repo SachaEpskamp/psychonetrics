@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="psychonetrics Ising model: Network models for binary and dichotomous data">
+  <title>Ising Model | psychonetrics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<!-- Same navbar as index.html -->
+<nav class="navbar">
+  <div class="container nav-container">
+    <a href="index.html" class="nav-brand">psychonetrics</a>
+    <button class="nav-toggle" aria-label="Toggle navigation">&#9776;</button>
+    <ul class="nav-menu">
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="tutorial.html" class="nav-link">Tutorial</a></li>
+      <li><a href="varcov.html" class="nav-link">Varcov</a></li>
+      <li><a href="lvm.html" class="nav-link">LVM</a></li>
+      <li><a href="ising.html" class="nav-link">Ising</a></li>
+      <li><a href="examples.html" class="nav-link">Examples</a></li>
+      <li><a href="about.html" class="nav-link">About</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="page-header container container-narrow">
+  <h1>Ising Model</h1>
+  <p class="subtitle">Network models for binary and dichotomous data</p>
+</div>
+
+<main class="container container-narrow">
+
+  <!-- Table of Contents -->
+  <div class="toc">
+    <h3>Contents</h3>
+    <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#math">Mathematical Model</a></li>
+      <li><a href="#matrices">Model Matrices</a></li>
+      <li><a href="#notes">Important Notes</a></li>
+      <li><a href="#example-single">Example: Single-Group Ising Model</a></li>
+      <li><a href="#example-multigroup">Example: Multi-Group Ising Analysis</a></li>
+      <li><a href="#interpretation">Interpretation Guide</a></li>
+      <li><a href="#summary">Summary</a></li>
+    </ul>
+  </div>
+
+  <!-- Overview -->
+  <section id="overview">
+    <h2>Overview</h2>
+    <p>The <strong>Ising model</strong> is a network model specifically designed for binary or dichotomous data. While the varcov and lvm families assume multivariate normal (Gaussian) distributions, the Ising model provides a principled probabilistic framework for modeling binary variables.</p>
+
+    <p>Originating from statistical physics, where it was developed to model ferromagnetic materials, the Ising model has found widespread application in psychology and social sciences for analyzing binary questionnaire data, such as yes/no responses, present/absent symptoms, or agree/disagree items.</p>
+
+    <p>The Ising model represents the joint probability distribution of binary variables through pairwise interactions, making it a natural choice for network analysis of binary data. Each edge in the network represents the association between two binary variables after controlling for all other variables in the system.</p>
+  </section>
+
+  <!-- Mathematical Model -->
+  <section id="math">
+    <h2>Mathematical Model</h2>
+    <p>The Ising model defines the probability of observing a particular configuration of binary variables $\boldsymbol{y} = (y_1, y_2, \ldots, y_m)$ through an energy-based formulation:</p>
+
+    <p class="formula">$$P(\boldsymbol{Y} = \boldsymbol{y}) = \frac{1}{Z} \exp\left(-\beta\, H(\boldsymbol{y})\right)$$</p>
+
+    <p>Where $H(\boldsymbol{y})$ is the <strong>Hamiltonian</strong> or energy function:</p>
+
+    <p class="formula">$$H(\boldsymbol{y}) = -\sum_{i=1}^{m} \tau_i y_i - \sum_{i < j} \omega_{ij} y_i y_j$$</p>
+
+    <p>The components of this model are:</p>
+    <ul>
+      <li><strong>$Z$</strong>: The partition function, a normalizing constant that ensures probabilities sum to 1. It is computed by summing over all $2^m$ possible binary configurations.</li>
+      <li><strong>$\beta$</strong>: The inverse temperature parameter, which controls the overall strength of network connections.</li>
+      <li><strong>$\tau_i$</strong>: Threshold or intercept parameters for each node, representing the baseline tendency for variable $i$ to be active (value 1) or inactive (value 0).</li>
+      <li><strong>$\omega_{ij}$</strong>: Pairwise interaction parameters representing the network edges between variables $i$ and $j$.</li>
+    </ul>
+
+    <p>The exponential form ensures that configurations with lower energy (more negative $H$) have higher probability. Positive interactions ($\omega_{ij} > 0$) decrease energy when both variables are in the same state, making co-activation more likely.</p>
+  </section>
+
+  <!-- Model Matrices -->
+  <section id="matrices">
+    <h2>Model Matrices</h2>
+    <p>The Ising model in psychonetrics uses three main parameter matrices:</p>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Matrix</th>
+            <th>Description</th>
+            <th>Default</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>omega</td>
+            <td>Network interaction matrix (pairwise parameters)</td>
+            <td>"full"</td>
+          </tr>
+          <tr>
+            <td>tau</td>
+            <td>Threshold/intercept parameters (node activation)</td>
+            <td>free</td>
+          </tr>
+          <tr>
+            <td>beta</td>
+            <td>Inverse temperature (scalar, overall strength)</td>
+            <td>1 or free</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Interpretation of Parameters</h3>
+    <ul>
+      <li><strong>Omega ($\omega_{ij}$)</strong>:
+        <ul>
+          <li>Positive values: Variables $i$ and $j$ tend to co-activate (both 1 or both 0)</li>
+          <li>Negative values: Variables $i$ and $j$ tend to inhibit each other (one active, the other inactive)</li>
+          <li>Zero: Variables are conditionally independent given all other variables</li>
+        </ul>
+      </li>
+      <li><strong>Tau ($\tau_i$)</strong>:
+        <ul>
+          <li>Positive values: Variable $i$ has a baseline tendency to be active (state 1)</li>
+          <li>Negative values: Variable $i$ has a baseline tendency to be inactive (state 0)</li>
+          <li>Larger magnitude: Stronger baseline tendency</li>
+        </ul>
+      </li>
+      <li><strong>Beta ($\beta$)</strong>:
+        <ul>
+          <li>Scales the overall strength of network connections</li>
+          <li>Higher values: Stronger network effects, more predictable system</li>
+          <li>Lower values: Weaker network effects, more random behavior</li>
+          <li>Often fixed to 1 for identification</li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+
+  <!-- Important Notes -->
+  <section id="notes">
+    <h2>Important Notes</h2>
+
+    <div class="warning">
+      <h4>Input Encoding Matters</h4>
+      <p>The Ising model results depend critically on whether your binary data is coded as {0, 1} or {-1, 1}. The <code>Ising()</code> function accepts both encodings, but they lead to different model interpretations:</p>
+      <ul>
+        <li><strong>{0, 1} coding</strong>: Standard for questionnaire data (no/yes, absent/present)</li>
+        <li><strong>{-1, 1} coding</strong>: Common in physics applications</li>
+      </ul>
+      <p>You can specify the response coding explicitly via the <code>responses</code> argument to ensure correct interpretation.</p>
+    </div>
+
+    <div class="warning">
+      <h4>Computational Limits</h4>
+      <p>The partition function $Z$ requires summing over all $2^m$ possible states. This becomes computationally prohibitive for large networks:</p>
+      <ul>
+        <li>Default maximum: <code>maxNodes = 20</code></li>
+        <li>20 variables: $2^{20} \approx 1$ million states</li>
+        <li>30 variables: $2^{30} \approx 1$ billion states</li>
+      </ul>
+      <p>For networks larger than 20 nodes, computation time increases exponentially. Consider using approximation methods or sampling-based approaches for very large networks.</p>
+    </div>
+
+    <div class="warning">
+      <h4>Estimator Support</h4>
+      <p>Only Maximum Likelihood (ML) and Penalized Maximum Likelihood (PML) estimators are supported for Ising models. Other estimators available in psychonetrics (FIML, WLS, DWLS, ULS) are not applicable to binary data models.</p>
+    </div>
+  </section>
+
+  <!-- Example: Single-Group Ising Model -->
+  <section id="example-single">
+    <h2>Example: Single-Group Ising Model</h2>
+    <p>This example demonstrates fitting an Ising model to the Jonas dataset, which contains 10 binary attitude items about a researcher named Jonas.</p>
+
+    <h3>Step 1: Load and Inspect Data</h3>
+    <pre><code class="language-r">library("psychonetrics")
+library("dplyr")
+
+# Load the Jonas dataset (built into psychonetrics)
+data(Jonas)
+
+# The dataset contains 10 binary attitude items and a grouping variable
+vars <- names(Jonas)[1:10]
+head(Jonas)
+
+# Check data structure
+str(Jonas)
+# 215 participants rated 10 yes/no attitude items</code></pre>
+
+    <h3>Step 2: Fit a Saturated Ising Model</h3>
+    <p>Start with a fully saturated model where all pairwise interactions are estimated:</p>
+    <pre><code class="language-r"># Fit saturated Ising model (all edges free)
+mod <- Ising(Jonas, vars = vars, omega = "full")
+mod <- mod %>% runmodel
+
+# Inspect model
+mod
+
+# View all parameters
+mod %>% parameters
+
+# Check fit (saturated model should fit perfectly)
+mod %>% fit</code></pre>
+
+    <h3>Step 3: Prune Non-Significant Edges</h3>
+    <p>Remove edges that are not statistically significant to obtain a sparse network:</p>
+    <pre><code class="language-r"># Prune edges with p > 0.05
+mod_pruned <- mod %>% prune(alpha = 0.05)
+
+# Check how many edges remain
+mod_pruned %>% parameters %>%
+  filter(matrix == "omega", !fixed) %>%
+  nrow()</code></pre>
+
+    <h3>Step 4: Stepup Search</h3>
+    <p>Add back edges that significantly improve model fit using modification indices:</p>
+    <pre><code class="language-r"># Stepup search: add edges that improve fit
+mod_final <- mod_pruned %>% stepup(alpha = 0.05)
+
+# Compare models
+compare(
+  saturated = mod,
+  pruned = mod_pruned,
+  final = mod_final
+)</code></pre>
+
+    <h3>Step 5: Extract and Visualize Network</h3>
+    <pre><code class="language-r"># Extract the omega (interaction) matrix
+omega <- getmatrix(mod_final, "omega")
+
+# Visualize with qgraph
+library("qgraph")
+qgraph(omega,
+       labels = vars,
+       theme = "colorblind",
+       layout = "spring",
+       title = "Jonas Attitude Network")
+
+# Positive edges (green): items tend to co-occur
+# Negative edges (red): items tend to be mutually exclusive</code></pre>
+
+    <div class="note">
+      <strong>About the Jonas Dataset:</strong> This dataset was collected to study attitudes toward a researcher. Participants were divided into two groups: those who personally knew Jonas and those who did not. The 10 binary items measure various positive and negative attitudes.
+    </div>
+  </section>
+
+  <!-- Example: Multi-Group Ising Analysis -->
+  <section id="example-multigroup">
+    <h2>Example: Multi-Group Ising Analysis</h2>
+    <p>Multi-group Ising models allow us to test whether network structures differ between populations. This example compares attitude networks between people who know Jonas personally versus those who do not.</p>
+
+    <h3>Step 1: Prepare Data</h3>
+    <pre><code class="language-r"># Order data so "Doesn't know" group comes first
+# (group 1 = doesn't know, group 2 = knows Jonas)
+Jonas <- Jonas[order(Jonas$group), ]
+
+# Check group sizes
+table(Jonas$group)</code></pre>
+
+    <h3>Step 2: Test Progressive Constraints</h3>
+    <p>We fit a series of increasingly constrained models to test different levels of invariance:</p>
+
+    <h4>Model 1: All Parameters Free</h4>
+    <pre><code class="language-r"># Configural model: all parameters free across groups
+mod1 <- Ising(Jonas, vars = vars, groups = "group") %>%
+  runmodel(approximate_SEs = TRUE)
+
+# Sparse version: prune and stepup
+mod1b <- mod1 %>%
+  prune(alpha = 0.05) %>%
+  stepup(alpha = 0.05)</code></pre>
+
+    <h4>Model 2: Equal Networks</h4>
+    <pre><code class="language-r"># Constrain omega (network) to be equal across groups
+mod2 <- mod1 %>%
+  groupequal("omega") %>%
+  runmodel
+
+# Sparse version with equality constraints
+mod2b <- mod2 %>%
+  prune(alpha = 0.05) %>%
+  stepup(mi = "mi_equal", alpha = 0.05)</code></pre>
+
+    <h4>Model 3: Equal Networks + Equal Thresholds</h4>
+    <pre><code class="language-r"># Constrain both omega and tau to be equal
+mod3 <- mod2 %>%
+  groupequal("tau") %>%
+  runmodel
+
+mod3b <- mod3 %>%
+  prune(alpha = 0.05) %>%
+  stepup(mi = "mi_equal", alpha = 0.05)</code></pre>
+
+    <h4>Model 4: Fully Equal (Including Beta)</h4>
+    <pre><code class="language-r"># All parameters equal across groups
+mod4 <- mod3 %>%
+  groupequal("beta") %>%
+  runmodel
+
+mod4b <- mod4 %>%
+  prune(alpha = 0.05) %>%
+  stepup(mi = "mi_equal", alpha = 0.05)</code></pre>
+
+    <h3>Step 3: Compare All Models</h3>
+    <pre><code class="language-r"># Compare all models by information criteria
+compare(
+  "free (dense)"            = mod1,
+  "free (sparse)"           = mod1b,
+  "equal omega (dense)"     = mod2,
+  "equal omega (sparse)"    = mod2b,
+  "equal omega+tau (dense)" = mod3,
+  "equal omega+tau (sparse)"= mod3b,
+  "fully equal (dense)"     = mod4,
+  "fully equal (sparse)"    = mod4b
+) %>% arrange(BIC)
+
+# Model with lowest BIC is preferred</code></pre>
+
+    <h3>Step 4: Interpret Results</h3>
+    <pre><code class="language-r"># If equal network model fits well:
+# → Network structure is the same across groups
+
+# If only free model fits:
+# → Network structure differs between groups
+
+# Extract group-specific networks if they differ
+omega_group1 <- getmatrix(mod1b, "omega", group = 1)
+omega_group2 <- getmatrix(mod1b, "omega", group = 2)
+
+# Visualize both networks
+par(mfrow = c(1, 2))
+qgraph(omega_group1, layout = "spring", title = "Doesn't Know Jonas")
+qgraph(omega_group2, layout = "spring", title = "Knows Jonas")</code></pre>
+
+    <div class="note">
+      <strong>Important:</strong> When using stepup search with equality constraints, always specify <code>mi = "mi_equal"</code> to ensure modification indices respect the constraints. The <code>approximate_SEs = TRUE</code> argument speeds up computation by using approximate standard errors.
+    </div>
+  </section>
+
+  <!-- Interpretation Guide -->
+  <section id="interpretation">
+    <h2>Interpretation Guide</h2>
+    <p>Understanding Ising model parameters requires careful attention to their probabilistic interpretation:</p>
+
+    <h3>Network Edges (Omega)</h3>
+    <ul>
+      <li><strong>Positive $\omega_{ij}$</strong>: Variables $i$ and $j$ tend to co-activate. When one is present (1), the other is more likely to be present as well.</li>
+      <li><strong>Negative $\omega_{ij}$</strong>: Variables $i$ and $j$ tend to inhibit each other. When one is present, the other is less likely to be present.</li>
+      <li><strong>Zero $\omega_{ij}$</strong>: No direct association. The variables are conditionally independent given all other variables in the network.</li>
+      <li><strong>Magnitude</strong>: Larger absolute values indicate stronger associations. The effect is multiplicative in the probability scale.</li>
+    </ul>
+
+    <h3>Thresholds (Tau)</h3>
+    <ul>
+      <li><strong>Positive $\tau_i$</strong>: Node $i$ has a baseline tendency to be active (state 1), even when other variables are neutral.</li>
+      <li><strong>Negative $\tau_i$</strong>: Node $i$ has a baseline tendency to be inactive (state 0).</li>
+      <li><strong>Zero $\tau_i$</strong>: No baseline preference; activation depends entirely on network influences.</li>
+      <li><strong>Interpretation</strong>: Think of thresholds as main effects or base rates for each variable.</li>
+    </ul>
+
+    <h3>Temperature (Beta)</h3>
+    <ul>
+      <li><strong>Higher $\beta$</strong>: Stronger overall network connectivity. The system behaves more deterministically based on network structure.</li>
+      <li><strong>Lower $\beta$</strong>: Weaker network influence. Variables behave more independently, with more random variation.</li>
+      <li><strong>Typical use</strong>: Often fixed to 1 for model identification, but can be freely estimated or constrained across groups.</li>
+    </ul>
+
+    <h3>Conditional Independence</h3>
+    <p>A key feature of the Ising model is that it represents the <strong>conditional dependence structure</strong> of binary variables:</p>
+    <ul>
+      <li>An edge between variables A and B means they are associated even after accounting for all other variables</li>
+      <li>Absence of an edge means conditional independence: A and B are unrelated when controlling for all other variables</li>
+      <li>This parallels the interpretation of partial correlations in Gaussian graphical models</li>
+    </ul>
+  </section>
+
+  <!-- Summary -->
+  <section id="summary">
+    <h2>Summary</h2>
+    <p>The <strong>Ising model</strong> extends network analysis to binary and dichotomous data. Key takeaways:</p>
+
+    <ul>
+      <li>The Ising model provides a principled probabilistic framework for binary networks</li>
+      <li>It models the joint distribution of binary variables through pairwise interactions and thresholds</li>
+      <li>Network edges (omega) represent conditional associations between binary variables</li>
+      <li>Thresholds (tau) represent baseline activation tendencies for each node</li>
+      <li>The inverse temperature (beta) scales the overall strength of network connections</li>
+      <li>Multi-group analysis allows testing whether network structures differ across populations</li>
+      <li>Computational complexity limits practical applications to approximately 20 nodes</li>
+      <li>Only ML and PML estimators are supported for Ising models</li>
+    </ul>
+
+    <h3>Limitations</h3>
+    <ul>
+      <li><strong>Sample size</strong>: Binary data provides less information than continuous data, requiring larger samples for stable estimation</li>
+      <li><strong>Model complexity</strong>: The partition function grows exponentially with the number of variables</li>
+      <li><strong>Identification</strong>: Care must be taken with parameter constraints to ensure model identification</li>
+      <li><strong>Sparsity</strong>: Dense networks with many variables can be difficult to estimate accurately</li>
+    </ul>
+
+    <h3>When to Use the Ising Model</h3>
+    <p>The Ising model is appropriate when:</p>
+    <ul>
+      <li>Your data consists of binary or dichotomous variables</li>
+      <li>You have a moderate number of variables (typically &le; 20)</li>
+      <li>You want to model the conditional dependence structure of binary items</li>
+      <li>You're interested in how binary symptoms, attitudes, or behaviors interact</li>
+    </ul>
+
+    <h3>Next Steps</h3>
+    <p>Now that you understand the Ising model, explore:</p>
+    <ul>
+      <li><a href="tutorial.html">General Tutorial</a> for the full psychonetrics workflow</li>
+      <li><a href="varcov.html">Varcov Family</a> for continuous data network models</li>
+      <li><a href="lvm.html">LVM Family</a> for latent variable models</li>
+      <li><a href="examples.html">Examples</a> for more advanced applications</li>
+    </ul>
+
+    <h3>Further Reading</h3>
+    <p>For theoretical background on the Ising model in psychology:</p>
+    <ul>
+      <li>van Borkulo, C. D., et al. (2014). A new method for constructing networks from binary data. <em>Scientific Reports, 4</em>, 5918.</li>
+      <li>Marsman, M., et al. (2018). An introduction to network psychometrics: Relating Ising network models to item response theory models. <em>Multivariate Behavioral Research, 53</em>(1), 15-35.</li>
+      <li>Epskamp, S., Maris, G., Waldorp, L. J., & Borsboom, D. (2018). Network psychometrics. In P. Irwing, T. Booth, & D. J. Hughes (Eds.), <em>The Wiley handbook of psychometric testing</em> (pp. 953-986). Wiley.</li>
+    </ul>
+  </section>
+
+</main>
+
+<!-- Same footer as index.html -->
+<footer>
+  <div class="container footer-grid">
+    <div>
+      <h4>psychonetrics</h4>
+      <p>An R package for Structural Equation Modeling and Confirmatory Network Analysis.</p>
+      <p>Developed by <a href="about.html">Sacha Epskamp</a>.</p>
+    </div>
+    <div>
+      <h4>Links</h4>
+      <ul>
+        <li><a href="https://github.com/SachaEpskamp/psychonetrics">GitHub Repository</a></li>
+        <li><a href="https://cran.r-project.org/package=psychonetrics">CRAN</a></li>
+        <li><a href="https://github.com/SachaEpskamp/psychonetrics/issues">Report a Bug</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Affiliation</h4>
+      <img src="img/nus-logo-blue.png" alt="National University of Singapore" class="nus-logo-footer">
+      <p>National University of Singapore<br>Methods, Data Science, and AI Lab</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 Sacha Epskamp. Built with plain HTML &amp; CSS.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="js/main.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: "$$", right: "$$", display: true},
+        {left: "$", right: "$", display: false}
+      ]
+    });
+  });
+</script>
+</body>
+</html>

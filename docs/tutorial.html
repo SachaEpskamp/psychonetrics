@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="psychonetrics: General Tutorial - Core methods that work across all model families">
+  <meta name="keywords" content="psychonetrics, R, tutorial, SEM, network analysis, workflow">
+  <meta name="author" content="Sacha Epskamp">
+  <title>General Tutorial &mdash; psychonetrics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="navbar">
+  <div class="container nav-container">
+    <a href="index.html" class="nav-brand">psychonetrics</a>
+    <button class="nav-toggle" aria-label="Toggle navigation">&#9776;</button>
+    <ul class="nav-menu">
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="tutorial.html" class="nav-link">Tutorial</a></li>
+      <li><a href="varcov.html" class="nav-link">Varcov</a></li>
+      <li><a href="lvm.html" class="nav-link">LVM</a></li>
+      <li><a href="ising.html" class="nav-link">Ising</a></li>
+      <li><a href="examples.html" class="nav-link">Examples</a></li>
+      <li><a href="about.html" class="nav-link">About</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- Page Header -->
+<div class="page-header container container-narrow">
+  <h1>General Tutorial</h1>
+  <p class="subtitle">Core methods that work across all model families</p>
+</div>
+
+<!-- Main Content -->
+<main class="container container-narrow">
+
+<!-- Table of Contents -->
+<div class="toc">
+  <h3>Table of Contents</h3>
+  <ol>
+    <li><a href="#workflow">The Pipe-Based Workflow</a></li>
+    <li><a href="#matrices">Matrix Specification</a></li>
+    <li><a href="#estimators">Estimators</a></li>
+    <li><a href="#results">Inspecting Results</a></li>
+    <li><a href="#modification">Model Modification</a></li>
+    <li><a href="#multigroup">Multi-Group Analysis</a></li>
+    <li><a href="#penalized">Penalized Estimation</a></li>
+    <li><a href="#missing">Missing Data</a></li>
+    <li><a href="#bootstrap">Bootstrap</a></li>
+    <li><a href="#export">Exporting Results</a></li>
+  </ol>
+</div>
+
+<!-- Section 1: The Pipe-Based Workflow -->
+<section id="workflow">
+  <h2>The Pipe-Based Workflow</h2>
+  <p>
+    All models in psychonetrics follow a consistent pipeline: <strong>specify</strong> &rarr; <strong>runmodel</strong> &rarr; <strong>modify</strong> &rarr; <strong>compare</strong>. This makes it easy to iterate on models, test hypotheses, and explore alternative specifications.
+  </p>
+  <p>Here's the general pattern using a simple Gaussian Graphical Model (GGM) with the <code>bfi</code> dataset from the <code>psych</code> package:</p>
+
+  <pre><code class="language-r">library("psychonetrics")
+library("dplyr")
+library("psych")
+
+# Load data: Big Five Inventory
+data(bfi)
+
+# Select 5 items from Agreeableness scale
+vars <- c("A1", "A2", "A3", "A4", "A5")
+
+# Step 1: Specify a saturated GGM (all edges estimated)
+model <- ggm(bfi, vars = vars, omega = "full")
+
+# Step 2: Run the model (estimate parameters)
+model <- model %>% runmodel
+
+# Step 3: Inspect results
+model %>% fit()           # Fit indices
+model %>% parameters()    # Parameter estimates
+
+# Step 4: Modify the model (e.g., prune non-significant edges)
+model_pruned <- model %>% prune(alpha = 0.01)
+
+# Step 5: Compare models
+compare(saturated = model, pruned = model_pruned)</code></pre>
+
+  <p>
+    This workflow applies to all model families in psychonetrics: varcov models (GGMs, precision matrices), latent variable models (CFAs, SEMs, residual networks), and Ising models.
+  </p>
+</section>
+
+<!-- Section 2: Matrix Specification -->
+<section id="matrices">
+  <h2>Matrix Specification</h2>
+  <p>
+    Most psychonetrics models are built from matrices. When specifying a model, you can control which parameters are free, fixed, or constrained to be equal using intuitive matrix specifications.
+  </p>
+
+  <h3>Basic Specification Options</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Value</th>
+        <th>Meaning</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>"full"</code></td>
+        <td>All elements are free parameters (except diagonal for symmetric matrices)</td>
+      </tr>
+      <tr>
+        <td><code>"diag"</code></td>
+        <td>Only diagonal elements are free parameters; off-diagonals fixed to zero</td>
+      </tr>
+      <tr>
+        <td><code>"zero"</code></td>
+        <td>All elements fixed to zero</td>
+      </tr>
+      <tr>
+        <td>Numeric matrix</td>
+        <td>Fine-grained control: 0 = fixed to zero, 1 = free, values &gt;1 = equality constraints</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Custom Matrix Specification</h3>
+  <p>
+    You can specify a numeric matrix to control exactly which parameters are free or constrained:
+  </p>
+  <ul>
+    <li><strong>0</strong>: Fix parameter to zero (not estimated)</li>
+    <li><strong>1</strong>: Free parameter (estimated)</li>
+    <li><strong>Values &gt;1</strong>: Equality constraints (parameters with the same number are constrained equal)</li>
+  </ul>
+
+  <h3>Example: 3-Factor CFA Lambda Matrix</h3>
+  <pre><code class="language-r"># Define a lambda matrix for 9 items loading on 3 factors
+# Items 1-3 load on Factor 1, Items 4-6 on Factor 2, Items 7-9 on Factor 3
+lambda <- matrix(0, nrow = 9, ncol = 3)
+lambda[1:3, 1] <- 1   # Items 1-3 load on Factor 1
+lambda[4:6, 2] <- 1   # Items 4-6 load on Factor 2
+lambda[7:9, 3] <- 1   # Items 7-9 load on Factor 3
+
+# Use in a latent network model:
+model <- lnm(data, lambda = lambda, vars = paste0("item", 1:9))</code></pre>
+
+  <h3>Multi-Group Specifications</h3>
+  <p>
+    For multi-group models, use a <strong>list</strong> or <strong>array</strong> to specify different matrices for each group:
+  </p>
+  <pre><code class="language-r"># Different omega matrices for two groups:
+omega_group1 <- matrix(1, 5, 5)  # All edges free in group 1
+omega_group2 <- "diag"            # Only variances in group 2
+
+model <- ggm(data, vars = vars, groups = "gender",
+             omega = list(omega_group1, omega_group2))</code></pre>
+</section>
+
+<!-- Section 3: Estimators -->
+<section id="estimators">
+  <h2>Estimators</h2>
+  <p>
+    psychonetrics supports multiple estimation methods for different data types and research goals. The estimator is set during model specification or changed later using <code>setEstimator()</code>.
+  </p>
+
+  <h3>Maximum Likelihood (ML)</h3>
+  <p>
+    <strong>Default</strong> for complete continuous data. Assumes multivariate normality. Provides chi-square test of exact fit and standard fit indices (CFI, TLI, RMSEA).
+  </p>
+  <pre><code class="language-r">model <- ggm(data, vars = vars, estimator = "ML")</code></pre>
+
+  <h3>Full Information ML (FIML)</h3>
+  <p>
+    For data with <strong>missing values</strong>. Estimates parameters using all available information without listwise deletion. Automatically selected when <code>missing = "auto"</code> and NAs are detected.
+  </p>
+  <pre><code class="language-r">model <- ggm(data, vars = vars, estimator = "FIML")</code></pre>
+
+  <h3>Penalized ML (PML / PFIML)</h3>
+  <p>
+    Adds <strong>regularization</strong> (LASSO, Ridge, or Elastic Net) to shrink small parameters toward zero. Useful for high-dimensional data or exploratory modeling. PFIML is the penalized version of FIML for missing data.
+  </p>
+  <pre><code class="language-r">model <- ggm(data, vars = vars, estimator = "PML")</code></pre>
+
+  <h3>Weighted Least Squares (WLS, DWLS, ULS)</h3>
+  <p>
+    For <strong>ordinal</strong> or non-normal data. Estimates parameters from polychoric/tetrachoric correlations.
+  </p>
+  <ul>
+    <li><strong>WLS</strong>: Full weight matrix (computationally intensive)</li>
+    <li><strong>DWLS</strong>: Diagonal weight matrix (more efficient)</li>
+    <li><strong>ULS</strong>: Unweighted least squares (no weight matrix)</li>
+  </ul>
+  <pre><code class="language-r">model <- ggm(data, vars = vars, estimator = "DWLS", ordered = TRUE)</code></pre>
+
+  <h3>Mean-Variance Adjusted WLSMV</h3>
+  <p>
+    Recommended for <strong>ordinal data</strong>. Provides robust chi-square test with mean and variance adjustments.
+  </p>
+  <pre><code class="language-r">model <- ggm(data, vars = vars, estimator = "WLSMV", ordered = TRUE)</code></pre>
+
+  <h3>Changing Estimators</h3>
+  <p>
+    You can change the estimator after model specification:
+  </p>
+  <pre><code class="language-r">model <- model %>% setEstimator("FIML") %>% runmodel</code></pre>
+</section>
+
+<!-- Section 4: Inspecting Results -->
+<section id="results">
+  <h2>Inspecting Results</h2>
+  <p>
+    After running a model, psychonetrics provides several functions to extract and inspect results.
+  </p>
+
+  <h3>Parameter Estimates</h3>
+  <p>
+    Use <code>parameters()</code> to view all estimated parameters with standard errors, z-values, and p-values:
+  </p>
+  <pre><code class="language-r">model %>% parameters()</code></pre>
+
+  <h3>Fit Indices</h3>
+  <p>
+    Use <code>fit()</code> to extract model fit statistics:
+  </p>
+  <pre><code class="language-r">model %>% fit()
+
+# Returns:
+# - chisq: Chi-square value
+# - df: Degrees of freedom
+# - pvalue: Chi-square test p-value
+# - CFI: Comparative Fit Index
+# - TLI: Tucker-Lewis Index
+# - RMSEA: Root Mean Square Error of Approximation
+# - BIC: Bayesian Information Criterion
+# - AIC: Akaike Information Criterion
+# - ... and more</code></pre>
+
+  <h3>Extract Model Matrices</h3>
+  <p>
+    Use <code>getmatrix()</code> to extract specific parameter matrices:
+  </p>
+  <pre><code class="language-r"># Extract the omega matrix (partial correlation network):
+omega <- getmatrix(model, "omega")
+
+# Extract the sigma matrix (implied covariance):
+sigma <- getmatrix(model, "sigma")
+
+# For multi-group models, specify the group:
+omega_group1 <- getmatrix(model, "omega", group = 1)</code></pre>
+
+  <h3>Modification Indices</h3>
+  <p>
+    Use <code>MIs()</code> to identify parameters that, if freed, would most improve model fit:
+  </p>
+  <pre><code class="language-r">model %>% MIs()
+
+# Returns expected chi-square decrease (mi) and estimated parameter values (epc)
+# Sorted by mi (largest improvements first)</code></pre>
+
+  <h3>Complete Summary</h3>
+  <pre><code class="language-r"># Print the model:
+print(model)</code></pre>
+</section>
+
+<!-- Section 5: Model Modification -->
+<section id="modification">
+  <h2>Model Modification</h2>
+  <p>
+    psychonetrics provides flexible tools for iteratively modifying models. You can manually fix or free parameters, or use automated procedures like pruning and stepwise search.
+  </p>
+
+  <h3>Manual Parameter Control</h3>
+  <h4>Fix a Parameter</h4>
+  <pre><code class="language-r"># Fix a specific parameter to a value (e.g., zero):
+model <- model %>% fixpar("omega", row = 2, col = 3, value = 0) %>% runmodel
+
+# Fix to a non-zero value:
+model <- model %>% fixpar("lambda", row = 1, col = 1, value = 1)</code></pre>
+
+  <h4>Free a Parameter</h4>
+  <pre><code class="language-r"># Free a previously fixed parameter:
+model <- model %>% freepar("omega", row = 2, col = 3) %>% runmodel</code></pre>
+
+  <h3>Automated Model Search</h3>
+
+  <h4>Prune: Remove Non-Significant Parameters</h4>
+  <p>
+    Use <code>prune()</code> to iteratively remove non-significant parameters based on a significance threshold:
+  </p>
+  <pre><code class="language-r"># Remove parameters with p > 0.01:
+model_pruned <- model %>% prune(alpha = 0.01)
+
+# Prune only specific matrices:
+model_pruned <- model %>% prune(alpha = 0.01, matrices = "omega")</code></pre>
+
+  <h4>Stepup: Add Parameters via Modification Indices</h4>
+  <p>
+    Use <code>stepup()</code> to iteratively add parameters that improve model fit according to modification indices:
+  </p>
+  <pre><code class="language-r"># Add parameters that minimize BIC:
+model_stepup <- model %>% stepup(criterion = "bic")
+
+# Use AIC instead:
+model_stepup <- model %>% stepup(criterion = "aic")
+
+# Limit to specific matrices:
+model_stepup <- model %>% stepup(criterion = "bic", matrices = "omega")</code></pre>
+
+  <h4>Modelsearch</h4>
+  <p>
+    Use <code>modelsearch()</code> for a stepwise model search that both adds and removes parameters until optimal fit is obtained:
+  </p>
+  <pre><code class="language-r"># Stepwise search adding and removing parameters:
+model_final <- model %>% modelsearch(criterion = "bic", prunealpha = 0.01, addalpha = 0.01)</code></pre>
+
+</section>
+
+<!-- Section 6: Multi-Group Analysis -->
+<section id="multigroup">
+  <h2>Multi-Group Analysis</h2>
+  <p>
+    psychonetrics makes it easy to estimate models across multiple groups and test for measurement invariance or network differences.
+  </p>
+
+  <h3>Specifying Multi-Group Models</h3>
+  <p>
+    Use the <code>groups</code> argument to specify a grouping variable:
+  </p>
+  <pre><code class="language-r"># Estimate separate networks for males and females:
+model <- ggm(data, vars = vars, groups = "gender")</code></pre>
+
+  <h3>Constraining Parameters Across Groups</h3>
+
+  <h4>Group Equality Constraints</h4>
+  <p>
+    Use <code>groupequal()</code> to constrain a matrix to be equal across groups:
+  </p>
+  <pre><code class="language-r"># Constrain omega (network structure) to be equal:
+model_equal <- model %>% groupequal("omega") %>% runmodel</code></pre>
+
+  <h4>Free Group Constraints</h4>
+  <p>
+    Use <code>groupfree()</code> to allow a matrix to differ across groups:
+  </p>
+  <pre><code class="language-r"># Allow omega to differ between groups:
+model_free <- model %>% groupfree("omega") %>% runmodel</code></pre>
+
+  <h3>Measurement Invariance Testing</h3>
+  <p>
+    For latent variable models, you can test for configural, metric, scalar, and strict invariance:
+  </p>
+  <pre><code class="language-r"># Configural invariance: same factor structure, all parameters free
+model_configural <- lnm(data, lambda = lambda, groups = "gender") %>% runmodel
+
+# Metric invariance: constrain factor loadings equal
+model_metric <- model_configural %>% groupequal("lambda") %>% runmodel
+
+# Scalar invariance: constrain loadings + intercepts equal
+model_scalar <- model_metric %>% groupequal("nu") %>% runmodel
+
+# Strict invariance: constrain loadings + intercepts + residuals equal
+model_strict <- model_scalar %>% groupequal("sigma_epsilon") %>% runmodel
+
+# Compare all models:
+compare(configural = model_configural,
+        metric = model_metric,
+        scalar = model_scalar,
+        strict = model_strict)</code></pre>
+
+  <h3>Comparing Multi-Group Models</h3>
+  <p>
+    Use <code>compare()</code> to test whether constraints significantly worsen fit:
+  </p>
+  <pre><code class="language-r">compare(free = model_free, equal = model_equal)
+
+# Returns chi-square difference test and information criteria (AIC, BIC)
+# If p < 0.05, equality constraint significantly worsens fit
+# AIC and BIC can also be used to compare models (lower is better)</code></pre>
+
+  <h3>Example: Network Comparison</h3>
+  <pre><code class="language-r"># Test if network structure differs between groups:
+model_free <- ggm(data, vars = vars, groups = "gender") %>% runmodel
+model_equal <- model_free %>% groupequal("omega") %>% runmodel
+
+# Chi-square difference test:
+compare(free = model_free, equal = model_equal)
+
+# Extract group-specific networks:
+omega_group1 <- getmatrix(model_free, "omega", group = 1)
+omega_group2 <- getmatrix(model_free, "omega", group = 2)</code></pre>
+</section>
+
+<!-- Section 7: Penalized Estimation -->
+<section id="penalized">
+  <h2>Penalized Estimation</h2>
+  <p>
+    Penalized estimation adds regularization to shrink small parameters toward zero. This is useful for high-dimensional data, exploratory modeling, or preventing overfitting.
+  </p>
+
+  <h3>Setting the Estimator</h3>
+  <p>
+    Use <code>estimator = "PML"</code> (Penalized ML) or <code>estimator = "PFIML"</code> (Penalized FIML for missing data):
+  </p>
+  <pre><code class="language-r"># Automatic lambda selection (default):
+model <- ggm(data, vars = vars, estimator = "PML") %>% runmodel
+
+# Or set a fixed penalty strength:
+model <- ggm(data, vars = vars, estimator = "PML", penalty_lambda = 0.2) %>% runmodel</code></pre>
+
+  <h3>Automatic Lambda Selection via EBIC</h3>
+  <p>
+    By default, psychonetrics searches over a grid of penalty values (lambda) and selects the one that minimizes the Extended Bayesian Information Criterion (EBIC):
+  </p>
+  <pre><code class="language-r"># Automatic lambda selection (default):
+model <- ggm(data, vars = vars, estimator = "PML") %>% runmodel
+
+# The selected lambda is stored in the model object
+# View selected lambda:
+model@parameters$penalty_lambda</code></pre>
+
+  <h3>Manual Lambda Selection</h3>
+  <p>
+    You can manually specify the penalty strength using <code>penalty_lambda</code>:
+  </p>
+  <pre><code class="language-r"># Set a specific penalty value:
+model <- ggm(data, vars = vars, estimator = "PML",
+             penalty_lambda = 0.5) %>% runmodel
+
+# Higher lambda = more shrinkage (sparser model)
+# Lower lambda = less shrinkage (denser model)</code></pre>
+
+  <h3>Elastic Net Mixing: LASSO vs. Ridge</h3>
+  <p>
+    Control the type of regularization using <code>penalty_alpha</code>:
+  </p>
+  <ul>
+    <li><strong>alpha = 1</strong>: LASSO (L1 penalty, sparse solutions, sets small parameters to exactly zero)</li>
+    <li><strong>alpha = 0</strong>: Ridge (L2 penalty, shrinks all parameters but doesn't set to zero)</li>
+    <li><strong>0 &lt; alpha &lt; 1</strong>: Elastic Net (combination of LASSO and Ridge)</li>
+  </ul>
+  <pre><code class="language-r"># LASSO (default):
+model <- ggm(data, vars = vars, estimator = "PML", penalty_alpha = 1)
+
+# Ridge regression:
+model <- ggm(data, vars = vars, estimator = "PML", penalty_alpha = 0)
+
+# Elastic Net (50% LASSO, 50% Ridge):
+model <- ggm(data, vars = vars, estimator = "PML", penalty_alpha = 0.5)</code></pre>
+
+  <h3>Post-Selection Inference: Refit</h3>
+  <p>
+    After selecting a sparse model via penalized estimation, use <code>refit()</code> to re-estimate the selected parameters <strong>without</strong> the penalty. This provides unbiased parameter estimates:
+  </p>
+  <pre><code class="language-r"># Step 1: Estimate with penalty (parameter selection):
+model_penalized <- ggm(data, vars = vars, estimator = "PML") %>% runmodel
+
+# Step 2: Refit without penalty (post-selection inference):
+model_refit <- model_penalized %>% refit
+
+# Now standard errors and p-values are valid for hypothesis testing
+model_refit %>% parameters()</code></pre>
+
+  <h3>Complete Example</h3>
+  <pre><code class="language-r">library("psychonetrics")
+library("dplyr")
+
+# Load data
+data(bfi)
+vars <- c("A1", "A2", "A3", "A4", "A5")
+
+# Penalized estimation with automatic lambda selection:
+model_pml <- ggm(bfi, vars = vars, estimator = "PML") %>% runmodel
+
+# Inspect selected parameters (many will be zero):
+model_pml %>% parameters
+
+# Refit for valid inference:
+model_refit <- model_pml %>% refit
+
+# Compare penalized vs. refitted:
+model_refit %>% parameters</code></pre>
+</section>
+
+<!-- Section 8: Missing Data -->
+<section id="missing">
+  <h2>Missing Data</h2>
+  <p>
+    psychonetrics provides flexible options for handling missing data, including Full Information Maximum Likelihood (FIML), which uses all available information without listwise deletion.
+  </p>
+
+  <h3>Automatic Handling</h3>
+  <p>
+    By default, psychonetrics automatically switches from ML to FIML when missing values are detected:
+  </p>
+  <pre><code class="language-r"># Default: missing = "auto"
+# If NAs are present, ML automatically becomes FIML
+model <- ggm(data, vars = vars) %>% runmodel
+
+# Explicitly set missing data handling:
+model <- ggm(data, vars = vars, missing = "auto")</code></pre>
+
+  <h3>Missing Data Options</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Option</th>
+        <th>Behavior</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>"auto"</code></td>
+        <td>Automatically switch ML to FIML when NAs detected (default)</td>
+      </tr>
+      <tr>
+        <td><code>"listwise"</code></td>
+        <td>Complete case analysis (remove all rows with any missing values)</td>
+      </tr>
+      <tr>
+        <td><code>"pairwise"</code></td>
+        <td>Pairwise deletion (use all available pairs for covariances)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Full Information Maximum Likelihood (FIML)</h3>
+  <p>
+    FIML is the recommended approach for missing data. It estimates parameters using all available information for each case, providing unbiased estimates under Missing At Random (MAR) assumptions.
+  </p>
+  <pre><code class="language-r"># Explicit FIML estimation:
+model <- ggm(data, vars = vars, estimator = "FIML") %>% runmodel
+
+# FIML works seamlessly with ML estimator when missing = "auto"
+model <- ggm(data, vars = vars, estimator = "ML", missing = "auto") %>% runmodel</code></pre>
+
+  <h3>Listwise Deletion</h3>
+  <p>
+    Use complete cases only (removes all rows with any missing values):
+  </p>
+  <pre><code class="language-r">model <- ggm(data, vars = vars, missing = "listwise") %>% runmodel</code></pre>
+
+  <h3>Pairwise Deletion</h3>
+  <p>
+    Use all available pairs of variables when computing covariances:
+  </p>
+  <pre><code class="language-r">model <- ggm(data, vars = vars, missing = "pairwise") %>% runmodel</code></pre>
+
+  <h3>Example with Missing Data</h3>
+  <pre><code class="language-r">library("psychonetrics")
+library("dplyr")
+
+# Simulate data with missing values:
+data <- psych::bfi
+vars <- c("A1", "A2", "A3", "A4", "A5")
+
+# Introduce 10% missing completely at random:
+set.seed(123)
+for (v in vars) {
+  data[sample(1:nrow(data), size = 0.1 * nrow(data)), v] <- NA
+}
+
+# FIML automatically used (missing = "auto"):
+model_fiml <- ggm(data, vars = vars) %>% runmodel
+
+# Compare to listwise deletion:
+model_listwise <- ggm(data, vars = vars, missing = "listwise") %>% runmodel
+
+# FIML uses more information (check sample sizes):
+model_fiml@sample@nobs       # Full sample
+model_listwise@sample@nobs   # Reduced sample</code></pre>
+</section>
+
+<!-- Section 9: Bootstrap -->
+<section id="bootstrap">
+  <h2>Bootstrap</h2>
+  <p>
+    Bootstrap resampling provides robust standard errors and confidence intervals, especially useful when distributional assumptions are violated or sample sizes are small.
+  </p>
+
+  <h3>Enabling Bootstrap</h3>
+  <p>
+    Set <code>bootstrap = TRUE</code> or specify the bootstrap type:
+  </p>
+  <pre><code class="language-r"># Non-parametric bootstrap (resample cases):
+model <- ggm(data, vars = vars, bootstrap = TRUE) %>% runmodel
+
+# Explicit non-parametric bootstrap:
+model <- ggm(data, vars = vars, bootstrap = "nonparametric") %>% runmodel
+
+# Case bootstrap (same as nonparametric):
+model <- ggm(data, vars = vars, bootstrap = "case") %>% runmodel</code></pre>
+
+  <h3>Bootstrap Options</h3>
+  <ul>
+    <li><code>bootstrap = TRUE</code>: Non-parametric bootstrap (resample cases with replacement)</li>
+    <li><code>bootstrap = "nonparametric"</code>: Same as <code>TRUE</code></li>
+    <li><code>bootstrap = "case"</code>: Same as non-parametric</li>
+  </ul>
+  <p>
+    Each model call with <code>bootstrap = TRUE</code> creates <strong>one</strong> resampled dataset. To obtain multiple bootstrap replicates, run the model repeatedly in a loop (or in parallel) and aggregate the results with <code>aggregate_bootstraps()</code>.
+  </p>
+
+  <h3>Complete Example</h3>
+  <pre><code class="language-r">library("psychonetrics")
+library("dplyr")
+library("parallel")
+
+# Load data:
+data(bfi)
+vars <- c("A1", "A2", "A3", "A4", "A5")
+
+# Fit the original model:
+model <- ggm(bfi, vars = vars) %>% runmodel
+
+# Run 100 bootstrap replicates in parallel (use 1000+ in real analysis):
+cl <- makeCluster(8)
+clusterExport(cl, c("bfi", "vars"))
+
+bootstraps <- parLapply(cl, 1:100, function(i) {
+  library("psychonetrics")
+  ggm(bfi, vars = vars,
+      bootstrap = "nonparametric") %>%
+    runmodel
+})
+stopCluster(cl)
+
+# Aggregate bootstrap results:
+boot_agg <- aggregate_bootstraps(
+  sample = model,
+  bootstraps = bootstraps
+)
+
+# View parameters with bootstrap SEs and CIs:
+boot_agg %>% parameters
+
+# Plot confidence intervals:
+CIplot(boot_agg)</code></pre>
+</section>
+
+<!-- Section 10: Exporting Results -->
+<section id="export">
+  <h2>Exporting Results</h2>
+  <p>
+    psychonetrics provides a convenient function to export comprehensive model results to a text file.
+  </p>
+
+  <h3>Write to File</h3>
+  <p>
+    Use <code>write_psychonetrics()</code> to export all model information:
+  </p>
+  <pre><code class="language-r"># Export complete model output to a text file:
+write_psychonetrics(model, "model_output.txt")</code></pre>
+
+  <h3>What Gets Exported</h3>
+  <p>
+    The exported file includes:
+  </p>
+  <ul>
+    <li><strong>Model specification</strong>: Model family, estimator, sample size, variables</li>
+    <li><strong>Fit indices</strong>: Chi-square, CFI, TLI, RMSEA, BIC, AIC, and more</li>
+    <li><strong>Parameter estimates</strong>: All free parameters with SEs, z-values, and p-values</li>
+    <li><strong>Model matrices</strong>: Implied covariances, partial correlations, and other key matrices</li>
+  </ul>
+
+  <h3>Example</h3>
+  <pre><code class="language-r">library("psychonetrics")
+
+# Estimate a model:
+data(bfi)
+vars <- c("A1", "A2", "A3", "A4", "A5")
+model <- ggm(bfi, vars = vars, omega = "full") %>%
+  runmodel %>%
+  prune(alpha = 0.01) %>%
+  runmodel
+
+# Export results:
+write_psychonetrics(model, "ggm_results.txt")
+
+# The file "ggm_results.txt" now contains:
+# - Complete model summary
+# - Fit statistics
+# - All parameter estimates
+# - Estimated model matrices</code></pre>
+
+  <h3>Alternative: Manual Export</h3>
+  <p>
+    You can also manually extract and save specific components:
+  </p>
+  <pre><code class="language-r"># Save parameter table:
+params <- model %>% parameters()
+write.csv(params, "parameters.csv", row.names = FALSE)
+
+# Save fit indices:
+fit_stats <- model %>% fit()
+write.csv(fit_stats, "fit_indices.csv", row.names = FALSE)
+
+# Save omega matrix:
+omega <- getmatrix(model, "omega")
+write.csv(omega, "omega_matrix.csv", row.names = FALSE)</code></pre>
+</section>
+
+</main>
+
+<!-- Footer -->
+<footer>
+  <div class="container footer-grid">
+    <div>
+      <h4>psychonetrics</h4>
+      <p>An R package for Structural Equation Modeling and Confirmatory Network Analysis.</p>
+      <p>Developed by <a href="about.html">Sacha Epskamp</a>.</p>
+    </div>
+    <div>
+      <h4>Links</h4>
+      <ul>
+        <li><a href="https://github.com/SachaEpskamp/psychonetrics">GitHub Repository</a></li>
+        <li><a href="https://cran.r-project.org/package=psychonetrics">CRAN</a></li>
+        <li><a href="https://github.com/SachaEpskamp/psychonetrics/issues">Report a Bug</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Affiliation</h4>
+      <img src="img/nus-logo-blue.png" alt="National University of Singapore" class="nus-logo-footer">
+      <p>National University of Singapore<br>Methods, Data Science, and AI Lab</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 Sacha Epskamp. Built with plain HTML &amp; CSS.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="js/main.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: "$$", right: "$$", display: true},
+        {left: "$", right: "$", display: false}
+      ]
+    });
+  });
+</script>
+</body>
+</html>

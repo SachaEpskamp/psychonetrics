@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="psychonetrics: An R package for Structural Equation Modeling and Confirmatory Network Analysis">
+  <meta name="keywords" content="psychonetrics, R, SEM, network analysis, GGM, confirmatory, statistics, psychometrics">
+  <meta name="author" content="Sacha Epskamp">
+  <title>psychonetrics &mdash; Structural Equation Modeling &amp; Confirmatory Network Analysis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="navbar">
+  <div class="container nav-container">
+    <a href="index.html" class="nav-brand">psychonetrics</a>
+    <button class="nav-toggle" aria-label="Toggle navigation">&#9776;</button>
+    <ul class="nav-menu">
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="tutorial.html" class="nav-link">Tutorial</a></li>
+      <li><a href="varcov.html" class="nav-link">Varcov</a></li>
+      <li><a href="lvm.html" class="nav-link">LVM</a></li>
+      <li><a href="ising.html" class="nav-link">Ising</a></li>
+      <li><a href="examples.html" class="nav-link">Examples</a></li>
+      <li><a href="about.html" class="nav-link">About</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container container-narrow">
+    <div class="hero-logo-wrap">
+      <img src="img/logo-ascii.svg" alt="psychonetrics logo" class="logo-svg">
+      <div class="hero-buttons">
+        <a href="#installation" class="btn btn-primary">Install</a>
+        <a href="tutorial.html" class="btn btn-secondary">Get Started</a>
+        <a href="https://github.com/SachaEpskamp/psychonetrics" class="btn btn-secondary">GitHub</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- What is psychonetrics? -->
+<section class="section" id="overview">
+  <div class="container container-narrow">
+    <h2>What is psychonetrics?</h2>
+    <p>
+      <strong>psychonetrics</strong> is an R package that unifies structural equation modeling (SEM) and network analysis under a single framework. The core innovation is simple but powerful: any variance-covariance matrix in a model can be parameterized as a <strong>Gaussian Graphical Model</strong> (GGM), where edges represent partial correlations&mdash;i.e., conditional independence relationships between variables.
+    </p>
+    <p>
+      This means that standard psychometric models&mdash;confirmatory factor analysis, structural equation models, vector autoregressive models&mdash;can all be extended with network structures. A latent covariance matrix can become a <em>latent network</em>. Residual covariances can become a <em>residual network</em>. The package provides maximum likelihood estimation, model fit testing, and automated model search for all of these models.
+    </p>
+    <p>
+      More generally, any variance-covariance structure &Sigma; in the model can be decomposed in one of five ways:
+    </p>
+    <table>
+      <thead><tr><th>Type</th><th>Decomposition</th><th>Interpretation</th></tr></thead>
+      <tbody>
+        <tr><td><code>cov</code></td><td><b>&Sigma;</b> (direct)</td><td>Covariance matrix</td></tr>
+        <tr><td><code>chol</code></td><td><b>&Sigma;</b> = <b>L</b><b>L</b>&prime;</td><td>Cholesky decomposition</td></tr>
+        <tr><td><code>prec</code></td><td><b>&Sigma;</b> = <b>K</b><sup>&minus;1</sup></td><td>Precision (inverse covariance) matrix</td></tr>
+        <tr><td><code>ggm</code></td><td><b>&Sigma;</b> = <b>&Delta;</b>(<b>I</b> &minus; <b>&Omega;</b>)<sup>&minus;1</sup><b>&Delta;</b></td><td>Gaussian Graphical Model (network)</td></tr>
+        <tr><td><code>cor</code></td><td><b>&Sigma;</b> = <b>SD</b> &middot; <b>P</b> &middot; <b>SD</b></td><td>Correlation matrix</td></tr>
+      </tbody>
+    </table>
+     <p>
+      Furthermore, the package includes powerful exploratory search algorithms and offers novel modeling capabilities for longitudinal data (vector-autoregression), binary data (Ising model), and ill-defined latent variable models (Cholesky decomposition).
+    </p>
+  </div>
+</section>
+
+<!-- Key Features -->
+<section class="section" id="features" style="background: var(--white);">
+  <div class="container">
+    <h2 style="text-align:center; border-bottom:none;">Key Features</h2>
+    <div class="feature-grid">
+      <div class="feature-item">
+        <h4>Confirmatory Network Modeling</h4>
+        <p>Specify, estimate, and test hypothesized network structures with full model fit statistics.</p>
+      </div>
+      <div class="feature-item">
+        <h4>Multi-Group Analysis</h4>
+        <p>Compare networks and SEM models across groups with flexible equality constraints and invariance testing.</p>
+      </div>
+      <div class="feature-item">
+        <h4>Multiple Estimators</h4>
+        <p>ML, FIML (missing data), PML/PFIML (penalized), WLS, DWLS, and WLSMV estimation.</p>
+      </div>
+      <div class="feature-item">
+        <h4>Automated Model Search</h4>
+        <p>Pruning, stepwise search, and combined strategies guided by modification indices and information criteria.</p>
+      </div>
+      <div class="feature-item">
+        <h4>Penalized Estimation</h4>
+        <p>LASSO, Ridge, and Elastic Net regularization with automatic penalty selection via EBIC.</p>
+      </div>
+      <div class="feature-item">
+        <h4>Multiple Data Types</h4>
+        <p>Continuous, ordinal, and binary data. Cross-sectional, time-series, and panel data. Raw data or summary statistics.</p>
+      </div>
+      <div class="feature-item">
+        <h4>Missing Data Handling</h4>
+        <p>Full Information Maximum Likelihood (FIML) for handling missing data without listwise deletion.</p>
+      </div>
+      <div class="feature-item">
+        <h4>High Performance</h4>
+        <p>Core computations in C++ via Rcpp and RcppArmadillo for fast estimation, even with large models.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Model Families -->
+<section class="section" id="families">
+  <div class="container">
+    <h2 style="text-align:center; border-bottom:none;">Model Families</h2>
+    <div class="cards-grid">
+      <div class="card">
+        <h3>Varcov Family</h3>
+        <p>Models a variance-covariance matrix directly. Use the GGM parameterization to estimate network models of observed variables, including multi-group comparisons.</p>
+        <p><strong>Wrappers:</strong> <code>ggm()</code>, <code>precision()</code>, <code>cholesky()</code>, <code>corr()</code></p>
+        <a href="varcov.html" class="card-link">Learn more &rarr;</a>
+      </div>
+      <div class="card">
+        <h3>LVM Family</h3>
+        <p>Latent variable models (CFA / SEM) where latent and residual covariances can be modeled as networks. Supports bifactor models and latent growth curves.</p>
+        <p><strong>Wrappers:</strong> <code>lnm()</code>, <code>rnm()</code>, <code>lrnm()</code>, <code>bifactor()</code>, <code>latentgrowth()</code></p>
+        <a href="lvm.html" class="card-link">Learn more &rarr;</a>
+      </div>
+      <div class="card">
+        <h3>Ising Model</h3>
+        <p>Network model for binary/dichotomous data based on the Ising model from statistical physics. Models pairwise interactions between binary nodes.</p>
+        <p><strong>Function:</strong> <code>Ising()</code></p>
+        <a href="ising.html" class="card-link">Learn more &rarr;</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Installation -->
+<section class="section" id="installation" style="background: var(--white);">
+  <div class="container container-narrow">
+    <h2>Installation</h2>
+    <pre><code class="language-r"># Install from CRAN:
+install.packages("psychonetrics")
+
+# Or install the development version from GitHub:
+# install.packages("remotes")
+remotes::install_github("SachaEpskamp/psychonetrics")
+
+# Load the package:
+library("psychonetrics")</code></pre>
+  </div>
+</section>
+
+<!-- Quick Start -->
+<section class="section" id="quickstart">
+  <div class="container container-narrow">
+    <h2>Quick Start</h2>
+    <p>The typical psychonetrics workflow follows a pipe-based pattern:</p>
+    <pre><code class="language-r">library("psychonetrics")
+library("dplyr")
+
+# 1. Specify a model (e.g., a Gaussian Graphical Model):
+model <- ggm(data, vars = vars, omega = "full")
+
+# 2. Estimate:
+model <- model %>% runmodel
+
+# 3. Inspect results:
+model %>% fit          # Fit indices (chi-square, CFI, RMSEA, BIC, ...)
+model %>% parameters   # Parameter estimates with SEs and p-values
+model %>% MIs          # Modification indices
+
+# 4. Modify and compare:
+model_pruned <- model %>% prune(alpha = 0.01)   # Remove non-significant edges
+model_final  <- model_pruned %>% stepup          # Add edges by modification index
+
+compare(saturated = model, pruned = model_pruned, final = model_final)</code></pre>
+    <p>See the <a href="tutorial.html">General Tutorial</a> for a comprehensive walkthrough.</p>
+  </div>
+</section>
+
+<!-- Citations -->
+<section class="section" id="citation" style="background: var(--white);">
+  <div class="container container-narrow">
+    <h2>Citations</h2>
+    <p>If you use psychonetrics in your research, please cite the following papers:</p>
+    <div class="note">
+      Epskamp, S. (2020). Psychometric network models from time-series and panel data. <em>Psychometrika, 85</em>(1), 206&ndash;231. DOI: <a href="https://doi.org/10.1007/s11336-020-09697-3">10.1007/s11336-020-09697-3</a>
+    </div>
+    <div class="note">
+      Epskamp, S., Isvoranu, A. M., &amp; Cheung, M. W.-L. (2022). Meta-analytic Gaussian network aggregation. <em>Psychometrika, 87</em>(1), 12&ndash;46. DOI: <a href="https://doi.org/10.1007/s11336-021-09764-3">10.1007/s11336-021-09764-3</a>
+    </div>
+    <p>BibTeX entries:</p>
+    <pre><code class="language-r">@article{epskamp2020psychometric,
+  author = {Epskamp, Sacha},
+  title = {Psychometric network models from time-series and panel data},
+  journal = {Psychometrika},
+  volume = {85},
+  number = {1},
+  pages = {206--231},
+  year = {2020},
+  doi = {10.1007/s11336-020-09697-3}
+}
+
+@article{epskamp2022meta,
+  author = {Epskamp, Sacha and Isvoranu, Adela-Maria and Cheung, Mike W.-L.},
+  title = {Meta-analytic {G}aussian network aggregation},
+  journal = {Psychometrika},
+  volume = {87},
+  number = {1},
+  pages = {12--46},
+  year = {2022},
+  doi = {10.1007/s11336-021-09764-3}
+}</code></pre>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="container footer-grid">
+    <div>
+      <h4>psychonetrics</h4>
+      <p>An R package for Structural Equation Modeling and Confirmatory Network Analysis.</p>
+      <p>Developed by <a href="about.html">Sacha Epskamp</a>.</p>
+    </div>
+    <div>
+      <h4>Links</h4>
+      <ul>
+        <li><a href="https://github.com/SachaEpskamp/psychonetrics">GitHub Repository</a></li>
+        <li><a href="https://cran.r-project.org/package=psychonetrics">CRAN</a></li>
+        <li><a href="https://github.com/SachaEpskamp/psychonetrics/issues">Report a Bug</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Affiliation</h4>
+      <img src="img/nus-logo-blue.png" alt="National University of Singapore" class="nus-logo-footer">
+      <p>National University of Singapore<br>Methods, Data Science, and AI Lab</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 Sacha Epskamp. Built with plain HTML &amp; CSS.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

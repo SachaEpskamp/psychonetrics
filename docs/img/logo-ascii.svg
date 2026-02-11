@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 155" width="660" height="155">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@500&amp;display=swap');
+      .line { font-family: 'Fira Code', monospace; font-size: 14.5px; font-weight: 500; white-space: pre; fill: #1F2937; }
+    </style>
+  </defs>
+  <text x="8" y="22" class="line" xml:space="preserve">                       _                      _        _</text>
+  <text x="8" y="40" class="line" xml:space="preserve">                      | |                    | |      (_)</text>
+  <text x="8" y="58" class="line" xml:space="preserve">  _ __  ___ _   _  ___| |__   ___  _ __   ___| |_ _ __ _  ___ ___</text>
+  <text x="8" y="76" class="line" xml:space="preserve"> |    \/ __| | | |/ __|  _ \ /   \|  _ \ / _ \ __|  __| |/ __/ __|</text>
+  <text x="8" y="94" class="line" xml:space="preserve"> |  O--------------------------O  | | | |  __/ |_| |  | | (__\__ \</text>
+  <text x="8" y="112" class="line" xml:space="preserve"> | .__/|___/\__, |\___|_| |_|\___/|_| |_|\___|\__|_|  |_|\___|___/</text>
+  <text x="8" y="130" class="line" xml:space="preserve"> | |         __/ |</text>
+  <text x="8" y="148" class="line" xml:space="preserve"> |_|        |___/</text>
+</svg>
