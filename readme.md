@@ -24,7 +24,7 @@ install_github("SachaEpskamp/psychonetrics")
 
 Full documentation, tutorials, and examples are available at the package website:
 
-**[https://sachaepskamp.github.io/psychonetrics/](https://sachaepskamp.github.io/psychonetrics/)**
+**[https://psychonetrics.org](https://psychonetrics.org)**
 
 ## Key References
 

@@ -13,7 +13,7 @@ Imports: methods, qgraph, numDeriv, dplyr, abind, Matrix (>= 1.6-5), lavaan,
         magrittr, IsingSampler, tidyr, psych, GA, combinat, rlang
 Suggests: psychTools, semPlot, graphicalVAR, metaSEM, mvtnorm, ggplot2
 ByteCompile: true
-URL: http://psychonetrics.org/
+URL: https://psychonetrics.org/
 BugReports: https://github.com/SachaEpskamp/psychonetrics/issues
 StagedInstall: true
 NeedsCompilation: yes
