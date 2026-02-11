@@ -30,6 +30,7 @@
           <li><a href="lvm.html" class="nav-link">LVM</a></li>
           <li><a href="ising.html" class="nav-link">Ising</a></li>
           <li><a href="var1.html" class="nav-link">Var1</a></li>
+          <li><a href="dlvm1.html" class="nav-link">DLVM1</a></li>
         </ul>
       </li>
       <li><a href="examples.html" class="nav-link">Examples</a></li>
@@ -310,16 +311,7 @@ contemporaneous_network2 <- getmatrix(model, "omega_zeta")</code></pre>
       <li>Use <code>dayvar</code> and <code>beepvar</code> to properly handle ESM data with multiple measurements per day</li>
       <li>Extract standardized networks using <code>getmatrix(model, "PDC")</code> (temporal) and <code>getmatrix(model, "PCC")</code> or <code>getmatrix(model, "omega_zeta")</code> (contemporaneous)</li>
       <li>The same workflow applies: <code>runmodel</code> &rarr; <code>prune</code> &rarr; <code>stepup</code> &rarr; <code>compare</code></li>
-    </ul>
-
-    <h3>Panel Data Extensions</h3>
-    <p>
-      For multi-subject (panel) data, psychonetrics offers extensions that separate within-person and between-person effects:
-    </p>
-    <ul>
-      <li><code>panelvar()</code> / <code>panelgvar()</code>: panel VAR models for observed variables across multiple subjects</li>
-      <li><code>dlvm1()</code>: dynamic latent variable model for panel data with factor loadings</li>
-      <li><code>panellvgvar()</code>: panel latent variable graphical VAR</li>
+      <li>For multi-subject panel data, see the <a href="dlvm1.html">DLVM1 Family</a> page &mdash; a separate model family with wrappers <code>panelvar()</code>, <code>panelgvar()</code>, <code>dlvm1()</code>, and <code>panellvgvar()</code></li>
     </ul>
 
     <h3>Next Steps</h3>

@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // --- Highlight active nav link ---
   var page = window.location.pathname.split('/').pop() || 'index.html';
-  var modelPages = ['varcov.html', 'lvm.html', 'ising.html', 'var1.html'];
+  var modelPages = ['varcov.html', 'lvm.html', 'ising.html', 'var1.html', 'dlvm1.html'];
   document.querySelectorAll('.nav-link').forEach(function (link) {
     if (link.getAttribute('href') === page) {
       link.classList.add('active');
