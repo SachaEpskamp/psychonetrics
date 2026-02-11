@@ -1,3 +1,23 @@
+Changes in Version 0.14.17
+  o Fixed the 'equal' argument in multi-group lvm() models:
+    o The equal= argument (e.g., equal="lambda") now correctly constrains parameters across groups
+    o Previously, the equality flag was passed as a positional argument to fixMatrix, causing it to
+      be silently ignored
+    o Additionally fixed corrupted starting values when equal= is used: the lambda structure matrix
+      contains integer codes (>1) for equality constraints, but these were used as multipliers for
+      FA-derived starting values, producing extreme values that prevented convergence
+    o Both loadings and variance identification now work correctly with equal=
+    o Results from equal= now match those from the groupequal() workflow
+  o Added OLS-based starting values for the beta (structural) matrix in lvm()/sem():
+    o For each endogenous latent, OLS regression on FA-implied latent covariance provides initial
+      beta coefficients
+    o Disturbance covariance (sigma_zeta) is adjusted via (I-B)*Cov(eta)*(I-B)' instead of using
+      the raw FA factor correlations
+    o Guard rails for near-singular covariance, ill-conditioned predictor blocks, extreme
+      coefficients, and near-singular (I-B)
+    o Falls back to previous zero-initialization on any numerical issue
+    o New 'start' argument: "default" for OLS-based, "simple" for zero-initialization
+
 Changes in Version 0.14.16
   o Added automatic lambda selection for PML/PFIML estimation via EBIC-based grid search:
     o New function find_penalized_lambda() searches over a log-spaced grid of 100 lambda values
