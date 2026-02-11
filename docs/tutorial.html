@@ -24,9 +24,16 @@
     <ul class="nav-menu">
       <li><a href="index.html" class="nav-link">Home</a></li>
       <li><a href="tutorial.html" class="nav-link">Tutorial</a></li>
-      <li><a href="varcov.html" class="nav-link">Varcov</a></li>
-      <li><a href="lvm.html" class="nav-link">LVM</a></li>
-      <li><a href="ising.html" class="nav-link">Ising</a></li>
+      <li class="nav-dropdown">
+        <button class="nav-link dropdown-toggle" aria-expanded="false" aria-haspopup="true">
+          Models <svg class="dropdown-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="varcov.html" class="nav-link">Varcov</a></li>
+          <li><a href="lvm.html" class="nav-link">LVM</a></li>
+          <li><a href="ising.html" class="nav-link">Ising</a></li>
+        </ul>
+      </li>
       <li><a href="examples.html" class="nav-link">Examples</a></li>
       <li><a href="about.html" class="nav-link">About</a></li>
     </ul>
@@ -185,15 +192,15 @@ model <- ggm(data, vars = vars, groups = "gender",
   </p>
   <pre><code class="language-r">model <- ggm(data, vars = vars, estimator = "FIML")</code></pre>
 
-  <h3>Penalized ML (PML / PFIML)</h3>
+  <h3>Penalized ML (PML / PFIML) <span style="font-size:.8em;color:var(--nus-orange);">[experimental]</span></h3>
   <p>
-    Adds <strong>regularization</strong> (LASSO, Ridge, or Elastic Net) to shrink small parameters toward zero. Useful for high-dimensional data or exploratory modeling. PFIML is the penalized version of FIML for missing data.
+    Adds <strong>regularization</strong> (LASSO, Ridge, or Elastic Net) to shrink small parameters toward zero. Useful for high-dimensional data or exploratory modeling. PFIML is the penalized version of FIML for missing data. <em>Note: this estimator is experimental and has not yet been fully validated.</em>
   </p>
   <pre><code class="language-r">model <- ggm(data, vars = vars, estimator = "PML")</code></pre>
 
-  <h3>Weighted Least Squares (WLS, DWLS, ULS)</h3>
+  <h3>Weighted Least Squares (WLS, DWLS, ULS) <span style="font-size:.8em;color:var(--nus-orange);">[experimental]</span></h3>
   <p>
-    For <strong>ordinal</strong> or non-normal data. Estimates parameters from polychoric/tetrachoric correlations.
+    For <strong>ordinal</strong> or non-normal data. Estimates parameters from polychoric/tetrachoric correlations. <em>Note: ordinal data support is experimental and has not yet been fully validated.</em>
   </p>
   <ul>
     <li><strong>WLS</strong>: Full weight matrix (computationally intensive)</li>
@@ -202,9 +209,9 @@ model <- ggm(data, vars = vars, groups = "gender",
   </ul>
   <pre><code class="language-r">model <- ggm(data, vars = vars, estimator = "DWLS", ordered = TRUE)</code></pre>
 
-  <h3>Mean-Variance Adjusted WLSMV</h3>
+  <h3>Mean-Variance Adjusted WLSMV <span style="font-size:.8em;color:var(--nus-orange);">[experimental]</span></h3>
   <p>
-    Recommended for <strong>ordinal data</strong>. Provides robust chi-square test with mean and variance adjustments.
+    For <strong>ordinal data</strong>. Provides robust chi-square test with mean and variance adjustments. <em>Note: this estimator is experimental and has not yet been fully validated.</em>
   </p>
   <pre><code class="language-r">model <- ggm(data, vars = vars, estimator = "WLSMV", ordered = TRUE)</code></pre>
 
@@ -257,6 +264,39 @@ sigma <- getmatrix(model, "sigma")
 
 # For multi-group models, specify the group:
 omega_group1 <- getmatrix(model, "omega", group = 1)</code></pre>
+
+  <p>
+    Use <code>threshold = TRUE</code> to set non-significant parameters to zero, retaining only
+    significant edges at a given alpha level (default <code>alpha = 0.01</code>). The <code>adjust</code> argument
+    controls p-value correction for multiple testing:
+  </p>
+  <pre><code class="language-r"># Extract omega with non-significant edges removed:
+omega_thresh <- getmatrix(model, "omega", threshold = TRUE)
+
+# Use a different alpha level:
+omega_thresh_05 <- getmatrix(model, "omega", threshold = TRUE, alpha = 0.05)
+
+# Apply Bonferroni correction:
+omega_thresh_bon <- getmatrix(model, "omega", threshold = TRUE, adjust = "bonferroni")</code></pre>
+
+  <h3>Confidence Interval Plots</h3>
+  <p>
+    Use <code>CIplot()</code> to visualize parameter estimates with confidence intervals. This works on any fitted model and is one of the most useful tools for inspecting estimated edge weights:
+  </p>
+  <pre><code class="language-r"># Plot confidence intervals for all partial correlations:
+CIplot(model, "omega")
+
+# Edges are colored by significance level:
+#   - Dark colors: significant at stricter alpha levels (0.001, 0.0001)
+#   - Lighter colors: significant at more lenient levels (0.05, 0.01)
+#   - Grey: not significant
+
+# Customize the confidence interval level (default is 95%):
+CIplot(model, "omega", alpha_ci = 0.01)  # 99% CIs</code></pre>
+  <p>
+    <code>CIplot()</code> can also be used on bootstrapped results (see <a href="#bootstrap">Bootstrapping</a>),
+    where it additionally shows the proportion of bootstrap samples in which each edge was zero.
+  </p>
 
   <h3>Modification Indices</h3>
   <p>
@@ -402,7 +442,10 @@ omega_group2 <- getmatrix(model_free, "omega", group = 2)</code></pre>
 
 <!-- Section 7: Penalized Estimation -->
 <section id="penalized">
-  <h2>Penalized Estimation</h2>
+  <h2>Penalized Estimation <span style="font-size:.6em;color:var(--nus-orange);">[experimental]</span></h2>
+  <div class="note">
+    <strong>Experimental:</strong> Penalized estimation in psychonetrics is experimental and has not yet been fully validated. Use with caution and verify results.
+  </div>
   <p>
     Penalized estimation adds regularization to shrink small parameters toward zero. This is useful for high-dimensional data, exploratory modeling, or preventing overfitting.
   </p>
@@ -611,9 +654,11 @@ model <- ggm(data, vars = vars, bootstrap = "case") %>% runmodel</code></pre>
   </p>
 
   <h3>Complete Example</h3>
+  <p>
+    The <code>loop_psychonetrics()</code> function handles parallel cluster setup, variable export, and cleanup automatically:
+  </p>
   <pre><code class="language-r">library("psychonetrics")
 library("dplyr")
-library("parallel")
 
 # Load data:
 data(bfi)
@@ -623,16 +668,11 @@ vars <- c("A1", "A2", "A3", "A4", "A5")
 model <- ggm(bfi, vars = vars) %>% runmodel
 
 # Run 100 bootstrap replicates in parallel (use 1000+ in real analysis):
-cl <- makeCluster(8)
-clusterExport(cl, c("bfi", "vars"))
-
-bootstraps <- parLapply(cl, 1:100, function(i) {
-  library("psychonetrics")
+bootstraps <- loop_psychonetrics({
   ggm(bfi, vars = vars,
       bootstrap = "nonparametric") %>%
     runmodel
-})
-stopCluster(cl)
+}, reps = 100, nCores = 8)
 
 # Aggregate bootstrap results:
 boot_agg <- aggregate_bootstraps(
@@ -645,6 +685,36 @@ boot_agg %>% parameters
 
 # Plot confidence intervals:
 CIplot(boot_agg)</code></pre>
+
+  <h3>How loop_psychonetrics() works</h3>
+  <p>
+    <code>loop_psychonetrics()</code> replaces the boilerplate of <code>makeCluster()</code> / <code>clusterExport()</code> / <code>parLapply()</code> / <code>stopCluster()</code>. Variables referenced in the expression (like <code>bfi</code> and <code>vars</code> above) are automatically detected and exported to parallel workers. Set <code>nCores = 1</code> for sequential execution. The function can also be used for simulation studies or any repeated psychonetrics computation.
+  </p>
+
+  <h3>Bootstrapping with Model Search</h3>
+  <p>
+    The expression inside <code>loop_psychonetrics()</code> can include any analysis pipeline. For example, to bootstrap a pruned network:
+  </p>
+  <pre><code class="language-r"># Fit and prune the original model:
+model_pruned <- ggm(bfi, vars = vars) %>%
+  runmodel %>%
+  prune(alpha = 0.05)
+
+# Bootstrap the full pipeline:
+bootstraps <- loop_psychonetrics({
+  ggm(bfi, vars = vars,
+      bootstrap = "nonparametric") %>%
+    runmodel %>%
+    prune(alpha = 0.05)
+}, reps = 1000, nCores = 8)
+
+boot_agg <- aggregate_bootstraps(
+  sample = model_pruned,
+  bootstraps = bootstraps
+)
+
+# Plot with zero-proportion indicators:
+CIplot(boot_agg, split0 = TRUE)</code></pre>
 </section>
 
 <!-- Section 10: Exporting Results -->

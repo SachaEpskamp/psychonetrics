@@ -20,9 +20,16 @@
     <ul class="nav-menu">
       <li><a href="index.html" class="nav-link">Home</a></li>
       <li><a href="tutorial.html" class="nav-link">Tutorial</a></li>
-      <li><a href="varcov.html" class="nav-link">Varcov</a></li>
-      <li><a href="lvm.html" class="nav-link">LVM</a></li>
-      <li><a href="ising.html" class="nav-link">Ising</a></li>
+      <li class="nav-dropdown">
+        <button class="nav-link dropdown-toggle" aria-expanded="false" aria-haspopup="true">
+          Models <svg class="dropdown-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="varcov.html" class="nav-link">Varcov</a></li>
+          <li><a href="lvm.html" class="nav-link">LVM</a></li>
+          <li><a href="ising.html" class="nav-link">Ising</a></li>
+        </ul>
+      </li>
       <li><a href="examples.html" class="nav-link">Examples</a></li>
       <li><a href="about.html" class="nav-link">About</a></li>
     </ul>
@@ -38,10 +45,10 @@
   <p>All examples below are fully reproducible. Most use datasets built into R packages; some use open datasets that can be downloaded below. Click any example to expand the full code. Use the <strong>Copy</strong> button to copy code to your clipboard.</p>
 
   <div class="note">
-    <strong>Open datasets used in examples:</strong>
+    <strong>Datasets used in examples:</strong>
     <ul style="margin-bottom:0;">
-      <li><a href="data/StarWars.csv">StarWars.csv</a> &mdash; Star Wars fandom questionnaire (10 items + demographics), collected for the <a href="https://osf.io/xrgkv/">SEM 1: Confirmatory Factor Analysis course</a> (UvA, 2020).</li>
-      <li><a href="data/NA_2020_data.csv">NA_2020_data.csv</a> &mdash; Sleep, health &amp; wellbeing survey (87 items + demographics), a subset of data from the <a href="https://osf.io/45n6d/">Network Psychometrics with R</a> textbook (Isvoranu, Epskamp, Waldorp &amp; Borsboom, 2022).</li>
+      <li><code>StarWars</code> &mdash; Star Wars fandom questionnaire (10 items + demographics), collected for the <a href="https://osf.io/xrgkv/">SEM 1: Confirmatory Factor Analysis course</a> (UvA, 2020). Load with <code>data(StarWars)</code>.</li>
+      <li><code>NA2020</code> &mdash; Sleep, health &amp; wellbeing survey (8 items), a subset of data from the <a href="https://osf.io/45n6d/">Network Psychometrics with R</a> textbook (Isvoranu, Epskamp, Waldorp &amp; Borsboom, 2022). Load with <code>data(NA2020)</code>.</li>
     </ul>
   </div>
 
@@ -207,12 +214,13 @@ mean(omega_female[upper.tri(omega_female)] != 0)</code></pre>
   <div class="example-card">
     <div class="example-header">
       <div>
-        <h3>Penalized GGM (PML) <span class="example-tag tag-varcov">varcov</span></h3>
+        <h3>Penalized GGM (PML) <span class="example-tag tag-varcov">varcov</span> <span style="font-size:.75em;color:var(--nus-orange);">[experimental]</span></h3>
         <p class="example-meta">Dataset: psych::bfi | Demonstrates: estimator="PML", automatic lambda, refit()</p>
       </div>
       <span class="example-chevron">&#9660;</span>
     </div>
     <div class="example-body">
+      <p><em><strong>Note:</strong> Penalized estimation is experimental and has not yet been fully validated.</em></p>
       <p>This example demonstrates penalized maximum likelihood estimation for sparse network estimation. The PML estimator automatically searches for an optimal regularization parameter and produces a sparse network.</p>
       <pre><code class="language-r"># Load required packages
 library(psychonetrics)
@@ -752,9 +760,10 @@ print(latent_means)</code></pre>
       <span class="example-chevron">&#9660;</span>
     </div>
     <div class="example-body">
-      <p>This example demonstrates how to obtain bootstrap confidence intervals for model parameters. We use a small number of bootstrap samples for demonstration purposes, but real analyses should use 1000 or more bootstraps.</p>
+      <p>This example demonstrates how to obtain bootstrap confidence intervals for model parameters. The <code>loop_psychonetrics()</code> function handles parallel cluster setup and variable export automatically. We use a small number of bootstrap samples for demonstration purposes, but real analyses should use 1000 or more bootstraps.</p>
       <pre><code class="language-r"># Load required packages
 library(psychonetrics)
+library(dplyr)
 library(lavaan)
 
 # Load data
@@ -768,30 +777,19 @@ lambda[4:6, 2] <- 1
 lambda[7:9, 3] <- 1
 colnames(lambda) <- c("visual", "textual", "speed")
 
-# Fit model with bootstrap
-# NOTE: Using only 20 bootstraps for demonstration
-# Each call with bootstrap = "nonparametric" creates one resampled dataset.
-# Use a loop (or parallel processing) for multiple bootstrap replicates.
-
 # First, fit the original model:
 mod <- lvm(hs_data,
            lambda = lambda,
            identification = "variance") %>%
   runmodel()
 
-# Run 100 bootstrap replicates (use 1000+ in real analysis):
-library("parallel")
-cl <- makeCluster(8)
-clusterExport(cl, c("hs_data", "lambda"))
-
-bootstraps <- parLapply(cl, 1:100, function(i) {
-  library("psychonetrics")
+# Run 100 bootstrap replicates in parallel (use 1000+ in real analysis):
+bootstraps <- loop_psychonetrics({
   lvm(hs_data, lambda = lambda,
       identification = "variance",
       bootstrap = "nonparametric") %>%
     runmodel()
-})
-stopCluster(cl)
+}, reps = 100, nCores = 8)
 
 # Aggregate bootstrap results:
 boot_agg <- aggregate_bootstraps(
@@ -993,7 +991,7 @@ data.frame(
     <div class="example-header">
       <div>
         <h3>Sleep &amp; Wellbeing Network with FIML <span class="example-tag tag-varcov">varcov</span></h3>
-        <p class="example-meta">Dataset: <a href="data/NA_2020_data.csv">NA_2020_data.csv</a> | Demonstrates: ggm(), FIML, prune(), stepup(), CIplot(), bootstrap</p>
+        <p class="example-meta">Dataset: psychonetrics::NA2020 | Demonstrates: ggm(), FIML, prune(), stepup(), CIplot(), bootstrap</p>
       </div>
       <span class="example-chevron">&#9660;</span>
     </div>
@@ -1004,24 +1002,21 @@ library("psychonetrics")
 library("dplyr")
 library("qgraph")
 
-# Read data (download from the Examples page or https://osf.io/45n6d/):
-data <- read.csv("NA_2020_data.csv")
+# Load data (included in psychonetrics):
+data(NA2020)
 
-# Select 8 variables on sleep and wellbeing:
-include <- c(
-  "Q10",  # I try to keep a regular sleep pattern
-  "Q13",  # I am worried about my current sleeping behavior
-  "Q14",  # My sleep interferes with my daily functioning
-  "Q68",  # I am happy with my physical health
-  "Q70",  # I feel optimistic about the future
-  "Q75",  # I am very happy
-  "Q77",  # I often feel alone
-  "Q80"   # I am happy with my love life
-)
-subData <- data[, include]
+# Variables (8 items on sleep and wellbeing):
+#   regular_sleep     - I try to keep a regular sleep pattern
+#   worried_sleep     - I am worried about my current sleeping behavior
+#   sleep_interfere   - My sleep interferes with my daily functioning
+#   happy_health      - I am happy with my physical health
+#   optimistic_future - I feel optimistic about the future
+#   very_happy        - I am very happy
+#   feel_alone        - I often feel alone
+#   happy_love_life   - I am happy with my love life
 
 # Fit a saturated GGM using FIML (handles missing data):
-mod <- ggm(subData, estimator = "FIML") %>% runmodel
+mod <- ggm(NA2020, estimator = "FIML") %>% runmodel
 
 # Confidence interval plot for all partial correlations:
 CIplot(mod, "omega")
@@ -1052,7 +1047,7 @@ mod_prune <- mod %>% prune(alpha = 0.05)
 mod_stepup <- mod_prune %>% stepup
 
 # Strategy 3: Start empty, then stepup
-mod_empty_stepup <- ggm(subData, estimator = "FIML", omega = "zero") %>%
+mod_empty_stepup <- ggm(NA2020, estimator = "FIML", omega = "zero") %>%
   runmodel %>% stepup
 
 # Compare all strategies:
@@ -1077,24 +1072,18 @@ f <- function(x) {
 }
 
 # Estimate and bootstrap:
-net <- estimateNetwork(subData, f = f)
+net <- estimateNetwork(NA2020, f = f)
 boots <- bootnet(net, nCores = 8, type = "nonparametric")
 plot(boots, split0 = TRUE, order = "sample", plot = "interval")
 
 # --- Native psychonetrics bootstrapping ---
-library("parallel")
-cl <- makeCluster(8)
-clusterExport(cl, "subData")
-
-bootstraps <- parLapply(cl, 1:1000, function(x) {
-  library("psychonetrics")
-  library("dplyr")
-  ggm(subData, estimator = "FIML",
+# loop_psychonetrics() handles cluster setup and variable export automatically:
+bootstraps <- loop_psychonetrics({
+  ggm(NA2020, estimator = "FIML",
       bootstrap = "nonparametric") %>%
     runmodel %>%
     prune(matrices = "omega", alpha = 0.05)
-})
-stopCluster(cl)
+}, reps = 1000, nCores = 8)
 
 # Aggregate and inspect:
 mod_agg <- aggregate_bootstraps(sample = mod_prune, bootstraps = bootstraps)
@@ -1109,7 +1098,7 @@ CIplot(mod_agg, prop0_cex = 2)</code></pre>
     <div class="example-header">
       <div>
         <h3>CFA &amp; Latent Network Model (Star Wars) <span class="example-tag tag-lvm">lvm</span></h3>
-        <p class="example-meta">Dataset: <a href="data/StarWars.csv">StarWars.csv</a> | Demonstrates: lvm(), lnm(), rnm(), freepar(), compare(), stepup()</p>
+        <p class="example-meta">Dataset: psychonetrics::StarWars | Demonstrates: lvm(), lnm(), rnm(), freepar(), compare(), stepup()</p>
       </div>
       <span class="example-chevron">&#9660;</span>
     </div>
@@ -1120,8 +1109,9 @@ library("psychonetrics")
 library("dplyr")
 library("qgraph")
 
-# Read data (download from the Examples page or https://osf.io/xrgkv/):
-Data <- read.csv("StarWars.csv")
+# Load data (included in psychonetrics):
+data(StarWars)
+Data <- StarWars
 
 # Variables:
 # Q1:  I am a huge Star Wars fan! (star what?)
@@ -1212,7 +1202,7 @@ compare(
     <div class="example-header">
       <div>
         <h3>Measurement Invariance (Star Wars) <span class="example-tag tag-lvm">lvm</span></h3>
-        <p class="example-meta">Dataset: <a href="data/StarWars.csv">StarWars.csv</a> | Demonstrates: multi-group lvm(), groupequal(), groupfree(), invariance testing</p>
+        <p class="example-meta">Dataset: psychonetrics::StarWars | Demonstrates: multi-group lvm(), groupequal(), groupfree(), invariance testing</p>
       </div>
       <span class="example-chevron">&#9660;</span>
     </div>
@@ -1222,8 +1212,9 @@ compare(
 library("psychonetrics")
 library("dplyr")
 
-# Read data:
-Data <- read.csv("StarWars.csv")
+# Load data (included in psychonetrics):
+data(StarWars)
+Data <- StarWars
 
 # Create age grouping variable:
 Data$agegroup <- ifelse(Data$Q12 < 30, "young", "less young")
