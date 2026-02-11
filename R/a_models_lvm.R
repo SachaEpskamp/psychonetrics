@@ -52,6 +52,7 @@ lvm <- function(
   corinput,
   verbose=FALSE,
   simplelambdastart = FALSE,
+  start = "default",  # "default" (OLS-based), "simple" (old 0.001), or a psychonetrics object
   bootstrap = FALSE,
   boot_sub,
   boot_resample,
@@ -63,6 +64,20 @@ lvm <- function(
   rawts = FALSE
   if (rawts){
     warning("'rawts' is only included for testing purposes. Please do not use!")
+  }
+
+  # Check start:
+  start_mod <- NULL
+  if (is.character(start)){
+    start <- start[1]
+    if (!start %in% c("default","simple")){
+      stop("'start' can only be 'default', 'simple', or a psychonetrics object")
+    }
+  } else if (is(start,"psychonetrics")){
+    start_mod <- start
+    start <- "psychonetrics"
+  } else {
+    stop("'start' can only be 'default', 'simple', or a psychonetrics object")
   }
 
   # Reset ordered if needed:
@@ -329,76 +344,147 @@ lvm <- function(
                                            observednames = sampleStats@variables$label, latentnames = latents, 
                                            sampletable = sampleStats, identification = identification, simple = simplelambdastart)
   
-  # Setup beta:
-  modMatrices$beta <- matrixsetup_beta(beta, nNode = nLatent, nGroup = nGroup, labels = latents, sampletable = sampleStats, equal = "beta" %in% equal)
-  
   # Compute the expected latent and residual cov matrices:
   expLatSigma <- lapply(1:nGroup,function(x)matrix(0,nLatent,nLatent))
   expResidSigma <- lapply(1:nGroup,function(x)matrix(0,nNode,nNode))
-  
+
   # For each group:
   for (g in 1:nGroup){
     expResidSigma[[g]] <- modMatrices$lambda$sigma_epsilon_start[,,g]
     expLatSigma[[g]] <-  modMatrices$lambda$sigma_zeta_start[,,g]
-    
-      
-    # # Current cov estimate:
-    # curcov <- as.matrix(sampleStats@covs[[g]])
-    # 
-    # 
-    # # Cur loadings:
-    # curLambda <- modMatrices$lambda$start[,,g]
-    # if (!is.matrix(curLambda)){
-    #   curLambda <- as.matrix(curLambda)
-    # }
-    # 
-    # ### Run factor start ###:
-    # # facStart <- factorstart(curcov, modMatrices$lambda[[1]][,,1])
-    # 
-    # 
-    # ###
-    # 
-    # 
-    # # Residual variances, let's start by putting the vars on 1/4 times the observed variances:
-    # Theta <- diag(diag(curcov)/4)
-    # # Theta <- modMatrices$lambda$thetaStart[,,g]
-    # fa <- factanal(covmat = curcov, factors = nLatent, covar = TRUE)
-    # 
-    # fa <- fa(r = curcov, nfactors = nLatent, rotate = "promax", covar = TRUE)
-    # 
-    # Theta <- diag(fa$uniquenesses)
-    # 
-    # # Check if this is positive definite:
-    # ev <- eigen(curcov - Theta)$values
-    # 
-    # # Shrink until it is positive definite:
-    # loop <- 0
-    # repeat{
-    #   ev <- eigen(curcov - Theta)$values
-    #   if (loop == 100){
-    #     # give up...
-    #     
-    #     Theta <- diag(nrow(Theta))
-    #     break
-    #   }
-    #   if (all(ev>0)){
-    #     break
-    #   }
-    #   Theta <- Theta * 0.9
-    #   loop <- loop + 1
-    # }
-    # 
-    # # Expected residual sigma:
-    # expResidSigma[[g]] <- Theta
-    # 
-    # # This means that the factor-part is expected to be:
-    # factorPart <- curcov - Theta
-    # 
-    # # Let's take a pseudoinverse:
-    # inv <- corpcor::pseudoinverse(kronecker(curLambda,curLambda))
-    # 
-    # # And obtain psi estimate:
-    # expLatSigma[[g]] <- matrix(inv %*% as.vector(factorPart),nLatent,nLatent)
+  }
+
+  # Setup beta with OLS-based starting values:
+  # beta structure (3D array) is already fixed by fixMatrix inside matrixsetup_beta,
+  # but we need it fixed here to determine which elements are non-zero:
+  betaFixed <- fixMatrix(beta, nGroup = nGroup, nrows = nLatent, ncols = nLatent,
+                         equal = "beta" %in% equal, diag0 = TRUE)
+
+  # Determine if beta has any non-zero structure:
+  betaHasStructure <- any(betaFixed != 0)
+
+  if (betaHasStructure && start == "default") {
+    # OLS-based beta starting values using sigma_zeta_start (= total Cov(eta) from FA)
+    beta_start_list <- vector("list", nGroup)
+    use_ols <- TRUE
+
+    # Check overall quality of sigma_zeta_start across all groups:
+    for (g in 1:nGroup) {
+      S <- as.matrix(expLatSigma[[g]])
+
+      # Guard rail 1: Check if S is near-singular
+      ev <- eigen(S, symmetric = TRUE, only.values = TRUE)$values
+      if (any(!is.finite(ev)) || min(Re(ev)) / max(Re(ev)) < 1e-8) {
+        use_ols <- FALSE
+        break
+      }
+    }
+
+    if (use_ols) {
+      for (g in 1:nGroup) {
+        S <- as.matrix(expLatSigma[[g]])
+        betaMat <- betaFixed[,,g]
+        beta_g <- matrix(0, nLatent, nLatent)
+
+        for (i in 1:nLatent) {
+          predictors <- which(betaMat[i,] != 0)
+          if (length(predictors) == 0) next
+
+          # Extract predictor submatrix and cross-covariance:
+          S_pp <- S[predictors, predictors, drop = FALSE]
+          s_pi <- S[predictors, i, drop = FALSE]
+
+          # Guard rail 2: Check condition of predictor block
+          if (length(predictors) > 1) {
+            ev_pp <- eigen(S_pp, symmetric = TRUE, only.values = TRUE)$values
+            if (any(!is.finite(ev_pp)) || max(Re(ev_pp)) / min(Re(ev_pp)) > 1e6) {
+              use_ols <- FALSE
+              break
+            }
+          }
+
+          # Compute OLS coefficients:
+          ols_result <- tryCatch({
+            as.numeric(solve(S_pp, s_pi))
+          }, error = function(e) NULL)
+
+          if (is.null(ols_result) || any(!is.finite(ols_result))) {
+            use_ols <- FALSE
+            break
+          }
+
+          beta_g[i, predictors] <- ols_result
+        }
+
+        if (!use_ols) break
+        beta_start_list[[g]] <- beta_g
+      }
+    }
+
+    # Guard rail 3: Check for extreme coefficients
+    if (use_ols) {
+      for (g in 1:nGroup) {
+        nonzero <- which(betaFixed[,,g] != 0)
+        if (any(abs(beta_start_list[[g]][nonzero]) > 5)) {
+          use_ols <- FALSE
+          break
+        }
+      }
+    }
+
+    # Guard rail 4: Check (I - Beta_start) is well-conditioned
+    if (use_ols) {
+      for (g in 1:nGroup) {
+        IminB <- diag(nLatent) - beta_start_list[[g]]
+        IminB_inv <- tryCatch(solve(IminB), error = function(e) NULL)
+        if (is.null(IminB_inv) || max(abs(IminB_inv)) > 100) {
+          use_ols <- FALSE
+          break
+        }
+      }
+    }
+
+    if (use_ols) {
+      # Pass OLS starts to matrixsetup_beta:
+      modMatrices$beta <- matrixsetup_beta(beta, nNode = nLatent, nGroup = nGroup,
+                                            labels = latents, sampletable = sampleStats,
+                                            equal = "beta" %in% equal,
+                                            start = beta_start_list)
+
+      # Adjust expLatSigma from total Cov(eta) to disturbance Cov(zeta):
+      # Sigma_zeta = (I - B) %*% Cov(eta) %*% t(I - B)
+      for (g in 1:nGroup) {
+        IminB <- diag(nLatent) - beta_start_list[[g]]
+        S_total <- as.matrix(expLatSigma[[g]])
+        sigma_zeta_adj <- IminB %*% S_total %*% t(IminB)
+
+        # Check if adjusted covariance is positive definite:
+        sigma_zeta_adj <- spectralshift(sigma_zeta_adj)
+        expLatSigma[[g]] <- sigma_zeta_adj
+      }
+    } else {
+      # Fallback to simple 0.001 starts:
+      modMatrices$beta <- matrixsetup_beta(beta, nNode = nLatent, nGroup = nGroup,
+                                            labels = latents, sampletable = sampleStats,
+                                            equal = "beta" %in% equal)
+    }
+
+  } else if (betaHasStructure && start == "psychonetrics") {
+    # Extract beta from fitted psychonetrics model:
+    beta_est <- getmatrix(start_mod, "beta")
+    if (!is.list(beta_est)) {
+      beta_est <- list(beta_est)
+    }
+    modMatrices$beta <- matrixsetup_beta(beta, nNode = nLatent, nGroup = nGroup,
+                                          labels = latents, sampletable = sampleStats,
+                                          equal = "beta" %in% equal,
+                                          start = beta_est)
+
+  } else {
+    # Simple starts (0.001) or beta = "zero":
+    modMatrices$beta <- matrixsetup_beta(beta, nNode = nLatent, nGroup = nGroup,
+                                          labels = latents, sampletable = sampleStats,
+                                          equal = "beta" %in% equal)
   }
   
   # Latent varcov:
