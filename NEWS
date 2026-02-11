@@ -23,6 +23,10 @@ Changes in Version 0.14.17
     o Uses pbapply progress bars and safe cluster cleanup via on.exit
     o Works with aggregate_bootstraps() and CIplot() for bootstrap analysis
   o Added the NA2020 dataset: 8 self-report items (n=501) from Isvoranu (2020) for GGM examples
+  o Standard errors now auto-fallback to approximate SEs when the Fisher information matrix
+    cannot be inverted (e.g., due to zero cells in crosstables in multi-group Ising models).
+    Previously this returned NA standard errors; now approximate SEs are computed automatically
+    with an informative warning
 
 Changes in Version 0.14.16
   o Added automatic lambda selection for PML/PFIML estimation via EBIC-based grid search:

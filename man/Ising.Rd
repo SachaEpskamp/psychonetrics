@@ -144,19 +144,17 @@ Jonas <- Jonas[order(Jonas$group),]
 model1 <- Ising(Jonas, vars = vars, groups = "group")
 
 # Run model:
-model1 <- model1 \%>\% runmodel(approximate_SEs = TRUE)
-# We approximate the SEs because there are zeroes in the crosstables
-# of people that know Jonas. This leads to uninterpretable edge
-# estimates, but as can be seen below only in the model with
-# non-equal estimates across groups.
+model1 <- model1 \%>\% runmodel
+# Note: SEs are approximated automatically because there are zeroes
+# in the crosstables of the "Knows Jonas" group, which makes the
+# Fisher information matrix singular. A warning is shown when
+# this fallback occurs.
 
 # Prune-stepup to find a sparse model:
 model1b <- model1 \%>\% prune(alpha = 0.05) \%>\%  stepup(alpha = 0.05)
 
 # Equal networks:
-suppressWarnings(
-  model2 <- model1 \%>\% groupequal("omega") \%>\% runmodel
-)
+model2 <- model1 \%>\% groupequal("omega") \%>\% runmodel
 
 # Prune-stepup to find a sparse model:
 model2b <- model2 \%>\% prune(alpha = 0.05) \%>\% stepup(mi = "mi_equal", alpha = 0.05)

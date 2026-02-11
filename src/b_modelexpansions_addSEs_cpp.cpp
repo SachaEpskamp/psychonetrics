@@ -97,32 +97,68 @@ S4 addSEs_cpp(
     */
 
     arma::mat Hinv;
-    
+
     if (approximate_SEs){
-      Hinv = 1.0/n * solve_symmetric_cpp_matrixonly(Fisher, 1.490116e-08, true);  
+      Hinv = 1.0/n * solve_symmetric_cpp_matrixonly(Fisher, 1.490116e-08, true);
     } else {
       Hinv = 1.0/n * solve_symmetric_cpp_matrixonly(Fisher, 1.490116e-08, false);
     }
-    
+
     // Check for NA:
     double first_element = (double)Hinv(0,0);
 
     if (R_IsNA(first_element)){
-        Rf_warning("Standard errors could not be obtained because the Fischer information matrix could not be inverted. This may be a symptom of a non-identified model or due to convergence issues. You can try to approximate standard errors by setting approximate_SEs = TRUE at own risk.");
 
-      // Write NAs:
-      for (i=0; i<nparTotal;i++){
-        if (par[i] > 0){
-          se[i] = NA_REAL;
-          p[i] = NA_REAL;
+      if (!approximate_SEs){
+        // Auto-fallback: try approximate SEs before giving up
+        Hinv = 1.0/n * solve_symmetric_cpp_matrixonly(Fisher, 1.490116e-08, true);
+        first_element = (double)Hinv(0,0);
+
+        if (R_IsNA(first_element)){
+          // Even approximate inversion failed:
+          Rf_warning("Standard errors could not be obtained because the Fischer information matrix could not be inverted. This may be a symptom of a non-identified model or due to convergence issues.");
+
+          // Write NAs:
+          for (i=0; i<nparTotal;i++){
+            if (par[i] > 0){
+              se[i] = NA_REAL;
+              p[i] = NA_REAL;
+            }
+          }
+        } else {
+          // Approximate inversion succeeded:
+          Rf_warning("Exact standard errors could not be obtained because the Fischer information matrix could not be inverted. Falling back to approximate standard errors. This can occur with zero cells in crosstables (common in multi-group Ising models) or near-boundary estimates. Interpret with care.");
+
+          // Obtain SEs
+          arma::vec SEs = sqrt(abs(Hinv.diag()));
+
+          // Add standard errors:
+          for (i=0; i<nparTotal;i++){
+            if (par[i] > 0){
+              se[i] = SEs(par[i]-1);
+              p[i] = 2.0 * R::pnorm(absest[i], 0.0, se[i], 0, 0);
+            }
+          }
+        }
+
+      } else {
+        // User explicitly requested approximate SEs and it still failed:
+        Rf_warning("Standard errors could not be obtained because the Fischer information matrix could not be inverted. This may be a symptom of a non-identified model or due to convergence issues.");
+
+        // Write NAs:
+        for (i=0; i<nparTotal;i++){
+          if (par[i] > 0){
+            se[i] = NA_REAL;
+            p[i] = NA_REAL;
+          }
         }
       }
-      
+
     } else {
-      
+
       // Obtain SEs
       arma::vec SEs = sqrt(abs(Hinv.diag()));
-      
+
       // Add standard errors:
       for (i=0; i<nparTotal;i++){
         if (par[i] > 0){
@@ -130,7 +166,7 @@ S4 addSEs_cpp(
           p[i] = 2.0 * R::pnorm(absest[i], 0.0, se[i], 0, 0);
         }
       }
-      
+
     }
 
 
