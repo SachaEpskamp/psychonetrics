@@ -31,10 +31,7 @@ implied_meta_lvm <- function(model, all = FALSE){
     # Factor part:
     factorPart <- Lambda_BetaStar %*% x[[g]]$sigma_zeta %*% t(Lambda_BetaStar)
 
-    # corinput constraint: derive diagonal of sigma_epsilon
-    diag(x[[g]]$sigma_epsilon) <- 1 - diag(factorPart)
-
-    # Implied sigma_y (correlation matrix by construction):
+    # Implied sigma_y (sigma_epsilon diagonal is free, so sigma_y is not necessarily a correlation matrix):
     sigma_y <- factorPart + x[[g]]$sigma_epsilon
 
     # Force symmetric:
@@ -51,7 +48,7 @@ implied_meta_lvm <- function(model, all = FALSE){
 
     # Meta-analytic structure:
     if (est == "averaged"){
-      # mu = vechs(sigma_y) (already a correlation matrix):
+      # mu = vechs(sigma_y):
       x[[g]]$mu <- Vech(sigma_y, FALSE)
 
       # sigma = sigma_randomEffects + V:

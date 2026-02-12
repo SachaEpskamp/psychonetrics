@@ -35,9 +35,12 @@ prepare_meta_lvm <- function(x, model){
     groupModels[[g]]$S <- S[[g]]
     groupModels[[g]]$means <- means[[g]]
     groupModels[[g]]$corinput <- FALSE # The meta-level data is not corinput
-    groupModels[[g]]$metacor <- model@sample@corinput # But the original input was correlations
+    groupModels[[g]]$metacor <- model@sample@corinput
     groupModels[[g]]$cpp <- model@cpp
     groupModels[[g]]$meanstructure <- model@meanstructure
+    # Override D with D_c: the ML gradient uses D for the meta-level sigma (nCor x nCor),
+    # not the LVM-level D (nNode x nNode):
+    groupModels[[g]]$D <- model@extramatrices$D_c
   }
 
   # Return

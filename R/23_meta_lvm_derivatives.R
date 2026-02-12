@@ -24,7 +24,7 @@ d_phi_theta_meta_lvm_group <- function(lambda, latent, residual, randomEffects, 
   varPart <- max(meanPart) + seq_len(nmod*(nmod+1)/2)
 
   #### LVM parameter count ####
-  # No mean structure (always corinput), no thresholds
+  # No mean structure, no thresholds. sigma_epsilon diagonal is free.
   # Parameters: lambda (nvar*nlat) + beta (nlat^2) + sigma_zeta (nlat*(nlat+1)/2) + sigma_epsilon (nvar*(nvar+1)/2)
   nLVM <- nvar * nlat + nlat^2 + nlat*(nlat+1)/2 + nvar*(nvar+1)/2
 
@@ -52,8 +52,9 @@ d_phi_theta_meta_lvm_group <- function(lambda, latent, residual, randomEffects, 
   lvmInds <- seq_len(nLVM)
   ranInds <- nLVM + seq_len(nRan)
 
-  #### Fill mean part: LVM Jacobian with corinput=TRUE ####
-  # Call the existing d_phi_theta_lvm_group with corinput=TRUE and meanstructure=FALSE
+  #### Fill mean part: LVM Jacobian ####
+  # Call d_phi_theta_lvm_group with corinput=TRUE to strip diagonal rows (we only model off-diagonal vechs)
+  # and meanstructure=FALSE (no mean structure at the LVM level)
   # This gives us the derivatives of vechs(sigma_y) w.r.t. LVM parameters
   # Need to rename sigma_y -> sigma for d_phi_theta_lvm_group, and remove conflicting names
   lvmDots <- dots
