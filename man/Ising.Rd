@@ -16,7 +16,7 @@ Ising(data, omega = "full", tau, beta, beta_model =
                  optimizer, storedata = FALSE, WLS.W, sampleStats,
                  identify = TRUE, verbose = FALSE, maxNodes = 20,
                  min_sum = -Inf, bootstrap = FALSE, boot_sub,
-                 boot_resample, penalty_lambda = 0,
+                 boot_resample, penalty_lambda = NA,
                 penalty_alpha = 1, penalize_matrices)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -100,7 +100,7 @@ Proportion of cases to be subsampled (\code{round(boot_sub * N)}).
 \item{boot_resample}{
 Logical, should the bootstrap be with replacement (\code{TRUE}) or without replacement (\code{FALSE})
 }
-\item{penalty_lambda}{Numeric penalty strength for penalized ML estimation (PML). Default is 0 (no penalty).}
+\item{penalty_lambda}{Numeric penalty strength for penalized ML estimation (PML/PFIML). \code{NA} (default) triggers automatic selection via EBIC-based grid search when a penalized estimator is used; set to a specific numeric value to use a fixed penalty strength (0 = no penalty). See \code{\link{find_penalized_lambda}} and \code{\link{penalize}}.}
 \item{penalty_alpha}{Elastic net mixing parameter: 1 = LASSO (default), 0 = ridge.}
 \item{penalize_matrices}{Character vector of matrix names to penalize. If missing, defaults are selected based on the model type.}
 }

@@ -303,14 +303,18 @@ dlvm1 <- function(
   
   # Auto-detect missing data handling:
   if (missing == "auto") {
-    has_missing <- any(is.na(data[, allVars, drop = FALSE]))
-    if (has_missing) {
-      if (estimator == "ML") {
-        estimator <- "FIML"
-      } else if (estimator == "PML") {
-        estimator <- "PFIML"
+    if (!missing(data) && !is.null(data)){
+      has_missing <- any(is.na(data[, allVars, drop = FALSE]))
+      if (has_missing) {
+        if (estimator == "ML") {
+          estimator <- "FIML"
+        } else if (estimator == "PML") {
+          estimator <- "PFIML"
+        } else {
+          # LS variants: default to listwise
+          missing <- "listwise"
+        }
       } else {
-        # LS variants: default to listwise
         missing <- "listwise"
       }
     } else {
@@ -320,27 +324,50 @@ dlvm1 <- function(
 
   # Obtain sample stats:
   if (missing(sampleStats)){
-    sampleStats <- samplestats(data = data,
-                               vars = allVars,
-                               groups = groups,
-                               covs = covs,
-                               means = means,
-                               nobs = nobs,
-                               missing  = ifelse(estimator %in% c("FIML", "PFIML"),"pairwise",missing),
-                               fimldata = estimator %in% c("FIML", "PFIML"),
-                               storedata = storedata,
-                               covtype=covtype,
-                               standardize = if (standardize == "z_per_wave") "z" else "none",
-                               verbose=verbose,
-                               weightsmatrix = ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
-                                                      switch(estimator,
-                                                             "WLS" = "full",
-                                                             "ULS" = "identity",
-                                                             "DWLS" = "diag"
-                                                      )),
-                               bootstrap=bootstrap,
-                               boot_sub = boot_sub,
-                               boot_resample = boot_resample)
+    if (missing(data)){
+      sampleStats <- samplestats(vars = allVars,
+                                 groups = groups,
+                                 covs = covs,
+                                 means = means,
+                                 nobs = nobs,
+                                 missing  = ifelse(estimator %in% c("FIML", "PFIML"),"pairwise",missing),
+                                 fimldata = estimator %in% c("FIML", "PFIML"),
+                                 storedata = storedata,
+                                 covtype=covtype,
+                                 standardize = if (standardize == "z_per_wave") "z" else "none",
+                                 verbose=verbose,
+                                 weightsmatrix = ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
+                                                        switch(estimator,
+                                                               "WLS" = "full",
+                                                               "ULS" = "identity",
+                                                               "DWLS" = "diag"
+                                                        )),
+                                 bootstrap=bootstrap,
+                                 boot_sub = boot_sub,
+                                 boot_resample = boot_resample)
+    } else {
+      sampleStats <- samplestats(data = data,
+                                 vars = allVars,
+                                 groups = groups,
+                                 covs = covs,
+                                 means = means,
+                                 nobs = nobs,
+                                 missing  = ifelse(estimator %in% c("FIML", "PFIML"),"pairwise",missing),
+                                 fimldata = estimator %in% c("FIML", "PFIML"),
+                                 storedata = storedata,
+                                 covtype=covtype,
+                                 standardize = if (standardize == "z_per_wave") "z" else "none",
+                                 verbose=verbose,
+                                 weightsmatrix = ifelse(!estimator %in% c("WLS","ULS","DWLS"), "none",
+                                                        switch(estimator,
+                                                               "WLS" = "full",
+                                                               "ULS" = "identity",
+                                                               "DWLS" = "diag"
+                                                        )),
+                                 bootstrap=bootstrap,
+                                 boot_sub = boot_sub,
+                                 boot_resample = boot_resample)
+    }
   }
   
   

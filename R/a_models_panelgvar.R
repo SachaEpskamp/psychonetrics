@@ -23,15 +23,28 @@ panelvar <- function(data,vars,
     rownames(vars) <- paste0("Eta_",seq_len(nrow(vars)))
   }
 
-  dlvm1(data,vars,
-        lambda = I,
-        within_latent = within_latent,
-        within_residual = "cov", sigma_epsilon_within = O,
-        between_latent = between_latent,
-        between_residual = "cov", sigma_epsilon_between = O,
-        latents = rownames(vars),
-        ...
-        )
+  # Conditionally pass data (allows covs-only usage without data):
+  if (missing(data)) {
+    dlvm1(vars = vars,
+          lambda = I,
+          within_latent = within_latent,
+          within_residual = "cov", sigma_epsilon_within = O,
+          between_latent = between_latent,
+          between_residual = "cov", sigma_epsilon_between = O,
+          latents = rownames(vars),
+          ...
+    )
+  } else {
+    dlvm1(data = data, vars = vars,
+          lambda = I,
+          within_latent = within_latent,
+          within_residual = "cov", sigma_epsilon_within = O,
+          between_latent = between_latent,
+          between_residual = "cov", sigma_epsilon_between = O,
+          latents = rownames(vars),
+          ...
+    )
+  }
 }
 
 panelgvar <- function(data,vars,
@@ -58,15 +71,28 @@ panelgvar <- function(data,vars,
     rownames(vars) <- paste0("Eta_",seq_len(nrow(vars)))
   }
 
-  dlvm1(data,vars,
-        lambda = I,
-        within_latent = within_latent,
-        within_residual = "cov", sigma_epsilon_within = O,
-        between_latent = between_latent,
-        between_residual = "cov", sigma_epsilon_between = O,
-        latents = rownames(vars),
-        ...
-  )
+  # Conditionally pass data (allows covs-only usage without data):
+  if (missing(data)) {
+    dlvm1(vars = vars,
+          lambda = I,
+          within_latent = within_latent,
+          within_residual = "cov", sigma_epsilon_within = O,
+          between_latent = between_latent,
+          between_residual = "cov", sigma_epsilon_between = O,
+          latents = rownames(vars),
+          ...
+    )
+  } else {
+    dlvm1(data = data, vars = vars,
+          lambda = I,
+          within_latent = within_latent,
+          within_residual = "cov", sigma_epsilon_within = O,
+          between_latent = between_latent,
+          between_residual = "cov", sigma_epsilon_between = O,
+          latents = rownames(vars),
+          ...
+    )
+  }
 }
 
 
