@@ -1,6 +1,7 @@
 
 # lvm identifier:
 identify_lvm <- function(x){
+
   # Idenitfy type:
   type <- x@identification
 

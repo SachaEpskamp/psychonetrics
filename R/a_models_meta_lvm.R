@@ -28,8 +28,9 @@ meta_lvm <- function(
   delta_epsilon = "diag",
 
   # Identification:
-  identification = "variance", # Variance identification for meta-analytic models
-
+  identify = TRUE,
+  identification = c("loadings","variance"),
+  
   # Random effects setup:
   randomEffects = c("chol","cov","prec","ggm","cor"),
   sigma_randomEffects = "full",
@@ -71,6 +72,7 @@ meta_lvm <- function(
   residual <- match.arg(residual)
   Vmethod <- match.arg(Vmethod)
   Vestimation <- match.arg(Vestimation)
+  identification <- match.arg(identification)
 
   # lambda is required:
   if (missing(lambda)){
@@ -160,10 +162,10 @@ meta_lvm <- function(
   model <- generate_psychonetrics(model = "meta_lvm", sample = sampleStats, computed = FALSE,
                                   optimizer =  defaultoptimizer(), estimator = estimator, distribution = "Gaussian",
                                   types = list(latent = latent, residual = residual, randomEffects = randomEffects),
-                                  meanstructure = TRUE, verbose = verbose)
+                                  meanstructure = TRUE, verbose = verbose,identification = identification)
 
   # Number of groups:
-  nGroup <- 1
+  nGroup <- 1 # FIXME: Multiple groups not possible?
 
   # Number of means:
   nMeans <- sum(sapply(model@sample@means,function(x)sum(!is.na(x))))
@@ -530,8 +532,11 @@ meta_lvm <- function(
   }
 
   # Identify model (reuse LVM identification):
-  model@identification <- identification
-  model <- identify_lvm(model)
+  # model@identification <- identification
+  if (identify){
+    model <- identify(model)
+    
+  }
 
   if (missing(optimizer)){
     model <- setoptimizer(model, "default")
