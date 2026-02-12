@@ -1,0 +1,11 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+src/*.o
+src/*.so
+src/*.dll
+WLSMV_IMPLEMENTATION_NOTES.txt
+claude_chat_history.jsonl
+Extra information/
+website/
