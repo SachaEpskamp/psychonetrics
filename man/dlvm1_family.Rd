@@ -43,7 +43,7 @@ dlvm1(data, vars, datatype = c("auto", "wide", "long"),
                    c("stationary_random_intercept", "stationary",
                    "independence", "none"), bootstrap = FALSE, boot_sub,
                    boot_resample, within, between,
-                   penalty_lambda = 0, penalty_alpha = 1,
+                   penalty_lambda = NA, penalty_alpha = 1,
                    penalize_matrices)
 
 panelgvar(data, vars, within_latent = c("ggm","chol","cov","prec"), 
@@ -225,7 +225,7 @@ Optional alias for \code{within_latent}. If both \code{within} and \code{within_
 \item{between}{
 Optional alias for \code{between_latent}. If both \code{between} and \code{between_latent} are explicitly specified, \code{between_latent} takes precedence and a warning is issued.
 }
-\item{penalty_lambda}{Numeric penalty strength for penalized ML estimation (PML). Default is 0 (no penalty).}
+\item{penalty_lambda}{Numeric penalty strength for penalized ML estimation (PML/PFIML). \code{NA} (default) triggers automatic selection via EBIC-based grid search when a penalized estimator is used; set to a specific numeric value to use a fixed penalty strength (0 = no penalty). See \code{\link{find_penalized_lambda}} and \code{\link{penalize}}.}
 \item{penalty_alpha}{Elastic net mixing parameter: 1 = LASSO (default), 0 = ridge.}
 \item{penalize_matrices}{Character vector of matrix names to penalize. If missing, defaults are selected based on the model type.}
 \item{\dots}{
