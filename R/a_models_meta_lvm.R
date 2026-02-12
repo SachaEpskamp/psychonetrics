@@ -28,7 +28,7 @@ meta_lvm <- function(
   delta_epsilon = "diag",
 
   # Identification:
-  identification = "variance", # Always variance for corinput
+  identification = "variance", # Variance identification for meta-analytic models
 
   # Random effects setup:
   randomEffects = c("chol","cov","prec","ggm","cor"),
@@ -56,10 +56,14 @@ meta_lvm <- function(
   boot_resample
 ){
 
+  message(paste0("Note: 'meta_lvm()' is experimental in psychonetrics ",
+                 utils::packageVersion("psychonetrics"),
+                 ". Please report any unexpected behavior to https://github.com/SachaEpskamp/psychonetrics/issues"))
+
   sampleSizes <- nobs
 
-  # Always correlations:
-  corinput <- TRUE
+  # Treat input correlations as covariances (with free sigma_epsilon diagonal):
+  corinput <- FALSE
   estimator <- match.arg(estimator)
 
   randomEffects <- match.arg(randomEffects)
@@ -135,8 +139,8 @@ meta_lvm <- function(
                                boot_resample = boot_resample)
   }
 
-  # Overwrite corInput:
-  sampleStats@corinput <- corinput
+  # Treat correlations as covariances (no corinput constraint):
+  sampleStats@corinput <- FALSE
 
   # Check some things:
   nCor <- nrow(sampleStats@variables)
@@ -443,16 +447,6 @@ meta_lvm <- function(
 
   # Generate the full parameter table:
   pars <- do.call(generateAllParameterTables, modMatrices)
-
-  # corinput: fix diagonal elements of sigma_epsilon (they are derived from diag(sigma)=1):
-  diagFixMatrices <- c("sigma_epsilon", "kappa_epsilon", "lowertri_epsilon", "delta_epsilon")
-  for (matName in diagFixMatrices){
-    diagRows <- pars$partable$matrix == matName & pars$partable$row == pars$partable$col
-    if (any(diagRows)){
-      pars$partable$fixed[diagRows] <- TRUE
-      pars$partable$par[diagRows] <- 0
-    }
-  }
 
   # Store in model:
   model@parameters <- pars$partable
