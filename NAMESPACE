@@ -48,6 +48,7 @@ export(ml_rnm)
 export(ml_lrnm)
 
 export(meta_varcov)
+export(meta_lvm)
 
 # Ergodic:
 export(esa)

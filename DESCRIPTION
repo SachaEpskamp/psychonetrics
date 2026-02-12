@@ -1,7 +1,7 @@
 Package: psychonetrics
 Type: Package
 Title: Structural Equation Modeling and Confirmatory Network Analysis
-Version: 0.14.18
+Version: 0.14.20
 Authors@R: person(given = "Sacha",family = "Epskamp", role = c("aut", "cre"), email = "mail@sachaepskamp.com")
 Maintainer: Sacha Epskamp <mail@sachaepskamp.com>
 Description: Multi-group (dynamical) structural equation models in combination with confirmatory network models from cross-sectional, time-series and panel data <doi:10.31234/osf.io/8ha93>. Allows for confirmatory testing and fit as well as exploratory model search.

@@ -47,6 +47,7 @@ definition = function(object){
     "dlvm1" = "Lag-1 dynamic latent variable model for panel data (dlvm1)",
     "tsdlvm1" = "Lag-1 dynamic latent variable model for time-series data (tsdlvm1)",
     "meta_varcov" = "Variance-covariance matrix meta analysis",
+    "meta_lvm" = "Meta-analytic latent variable model",
     "Ising" = "Ising model",
     "ml_lvm" = "Multi-level latent variable model"
   )
