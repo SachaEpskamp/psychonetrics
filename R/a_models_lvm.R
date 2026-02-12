@@ -49,7 +49,6 @@ lvm <- function(
   covtype = c("choose","ML","UB"),
   standardize = c("none","z","quantile"),
   sampleStats,
-  corinput,
   verbose=FALSE,
   simplelambdastart = FALSE,
   start = "default",  # "default" (OLS-based), "simple" (old 0.001), or a psychonetrics object
@@ -93,8 +92,6 @@ lvm <- function(
   if (estimator == "default"){
     if (length(ordered) > 0){
       estimator <- "DWLS"
-    } else if (!missing(corinput) && corinput){
-      estimator <- "WLS"
     } else {
       estimator <- "ML"
     }
@@ -110,11 +107,6 @@ lvm <- function(
     stop("Ordinal data is only supported for WLS, DWLS and ULS estimators.")
   }
 
-  # Check WLS for corinput:
-  if (!missing(corinput) && corinput && !estimator %in% c("WLS","DWLS","ULS")){
-    stop("corinput = TRUE is only supported for WLS, DWLS and ULS estimators.")
-  }
-
   # Type:
   latent <- match.arg(latent)
   residual <- match.arg(residual)
@@ -122,16 +114,8 @@ lvm <- function(
   # Identification:
   identification <- match.arg(identification)
 
-  # For ordinal data, force variance identification and corinput:
+  # For ordinal data, force variance identification:
   if (length(ordered) > 0){
-    identification <- "variance"
-    if (!missing(corinput) && !corinput){
-      stop("corinput must be TRUE for ordinal data.")
-    }
-  }
-
-  # For continuous corinput, force variance identification:
-  if (!missing(corinput) && corinput && length(ordered) == 0){
     identification <- "variance"
   }
 
@@ -198,52 +182,34 @@ lvm <- function(
                                  boot_sub = boot_sub,
                                  boot_resample = boot_resample)
     } else {
-      # Continuous data: pass corinput if specified
-      if (!missing(corinput) && corinput){
-        sampleStats <- samplestats(data = data,
-                                   vars = vars,
-                                   groups = groups,
-                                   covs = covs,
-                                   means = means,
-                                   nobs = nobs,
-                                   missing = ifelse(estimator %in% c("FIML", "PFIML"),"pairwise",missing),
-                                   rawts = rawts,
-                                   fimldata = estimator %in% c("FIML", "PFIML"),
-                                   storedata = storedata,
-                                   covtype = covtype,
-                                   weightsmatrix = WLS.W,
-                                   corinput = TRUE,
-                                   meanstructure = FALSE,
-                                   verbose = verbose,
-                                   standardize = standardize,
-                                   bootstrap = bootstrap,
-                                   boot_sub = boot_sub,
-                                   boot_resample = boot_resample)
-      } else {
-        sampleStats <- samplestats(data = data,
-                                   vars = vars,
-                                   groups = groups,
-                                   covs = covs,
-                                   means = means,
-                                   nobs = nobs,
-                                   missing = ifelse(estimator %in% c("FIML", "PFIML"),"pairwise",missing),
-                                   rawts = rawts,
-                                   fimldata = estimator %in% c("FIML", "PFIML"),
-                                   storedata = storedata,
-                                   covtype = covtype,
-                                   weightsmatrix = WLS.W,
-                                   verbose = verbose,
-                                   standardize = standardize,
-                                   bootstrap = bootstrap,
-                                   boot_sub = boot_sub,
-                                   boot_resample = boot_resample)
-      }
+      sampleStats <- samplestats(data = data,
+                                 vars = vars,
+                                 groups = groups,
+                                 covs = covs,
+                                 means = means,
+                                 nobs = nobs,
+                                 missing = ifelse(estimator %in% c("FIML", "PFIML"),"pairwise",missing),
+                                 rawts = rawts,
+                                 fimldata = estimator %in% c("FIML", "PFIML"),
+                                 storedata = storedata,
+                                 covtype = covtype,
+                                 weightsmatrix = WLS.W,
+                                 verbose = verbose,
+                                 standardize = standardize,
+                                 bootstrap = bootstrap,
+                                 boot_sub = boot_sub,
+                                 boot_resample = boot_resample)
     }
   }
 
 
   # Overwrite corinput:
   corinput <- sampleStats@corinput
+  # For continuous data, don't use corinput even if auto-detected (e.g. cor(dat) as covs):
+  if (length(ordered) == 0) {
+    corinput <- FALSE
+    sampleStats@corinput <- FALSE
+  }
 
   # Set meanstructure:
   if (length(ordered) > 0){
