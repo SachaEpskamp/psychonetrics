@@ -1,3 +1,12 @@
+Changes in Version 0.14.20
+  o Added meta_lvm() function for single-stage meta-analytic latent variable modeling.
+    Combines a latent variable model (CFA/SEM) for the mean structure of pooled
+    correlation matrices with a random-effects model for between-study heterogeneity.
+    Extends the MAGNA framework to latent variable models. Supports all standard
+    parameterizations for latent (cov/chol/prec/ggm), residual (cov/chol/prec/ggm),
+    and random effects (chol/cov/prec/ggm/cor) structures. Input is always
+    correlation matrices with corinput=TRUE constraint automatically enforced.
+
 Changes in Version 0.14.18
   o Standard errors now auto-fallback to approximate SEs when the Fisher information matrix
     cannot be inverted (e.g., due to zero cells in crosstables in multi-group Ising models).
