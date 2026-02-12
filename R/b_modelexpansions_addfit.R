@@ -34,7 +34,8 @@ compute_wlsmv_correction <- function(x) {
       "tsdlvm1" = d_phi_theta_tsdlvm1_cpp,
       "meta_varcov" = d_phi_theta_meta_varcov_cpp,
       "Ising" = d_phi_theta_Ising_cpp,
-      "ml_lvm" = d_phi_theta_ml_lvm_cpp
+      "ml_lvm" = d_phi_theta_ml_lvm_cpp,
+      "meta_lvm" = d_phi_theta_meta_lvm
     )
   } else {
     modelJacobian <- switch(
@@ -46,7 +47,8 @@ compute_wlsmv_correction <- function(x) {
       "tsdlvm1" = d_phi_theta_tsdlvm1,
       "meta_varcov" = d_phi_theta_meta_varcov,
       "Ising" = d_phi_theta_Ising,
-      "ml_lvm" = d_phi_theta_ml_lvm
+      "ml_lvm" = d_phi_theta_ml_lvm,
+      "meta_lvm" = d_phi_theta_meta_lvm
     )
   }
 

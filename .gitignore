@@ -7,3 +7,5 @@ src/*.so
 src/*.dll
 WLSMV_IMPLEMENTATION_NOTES.txt
 claude_chat_history.jsonl
+Extra information/
+website/

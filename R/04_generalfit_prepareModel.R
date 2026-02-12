@@ -17,9 +17,10 @@ prepareModel <- function(x, model){
                       "tsdlvm1" = prepare_tsdlvm1_cpp, # <- Updated!
                       "meta_varcov" = prepare_meta_varcov_cpp, # <- updated!
                       "Ising" = prepare_Ising_cpp, # <- Updated!
-                      "ml_lvm" = prepare_ml_lvm_cpp # <- Udated!!!
+                      "ml_lvm" = prepare_ml_lvm_cpp, # <- Udated!!!
+                      "meta_lvm" = prepare_meta_lvm # FIXME: no cpp version yet
                       # "cholesky" = prepare_cholesky
-    )    
+    )
   } else {
     prepFun <- switch(framework,
                       # "lnm" = prepare_lnm,
@@ -34,7 +35,8 @@ prepareModel <- function(x, model){
                       "tsdlvm1" = prepare_tsdlvm1,
                       "meta_varcov" = prepare_meta_varcov,
                       "Ising" = prepare_Ising,
-                      "ml_lvm" = prepare_ml_lvm
+                      "ml_lvm" = prepare_ml_lvm,
+                      "meta_lvm" = prepare_meta_lvm
                       # "cholesky" = prepare_cholesky
     )
   }

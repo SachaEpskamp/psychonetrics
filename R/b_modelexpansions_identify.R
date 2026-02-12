@@ -27,6 +27,9 @@ identify <- function(x){
   } else if (x@model == "ml_lvm"){
     x <- identify_ml_lvm(x)
     return(x)
+  } else if (x@model == "meta_lvm"){
+    x <- identify_lvm(x)
+    return(x)
   }
   
   
