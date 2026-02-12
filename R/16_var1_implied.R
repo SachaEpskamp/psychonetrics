@@ -67,7 +67,6 @@ implied_var1 <- function(model,all = FALSE){
     # x[[g]]$mu <- as.matrix(x[[g]]$mu)
     # x[[g]]$kappa <- as.matrix(x[[g]]$kappa)
     # x[[g]]$sigma <- as.matrix(x[[g]]$sigma)
-    browser() 
   }
 
   

@@ -21,3 +21,4 @@ psychonetrics\.Rproj
 ^psychonetrics_output\.txt$
 ^psychonetrics_.*\.tar\.gz$
 ^psychonetrics_.*\.tgz$
+^FETCH_HEAD$

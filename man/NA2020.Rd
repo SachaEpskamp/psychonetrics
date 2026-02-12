@@ -25,7 +25,7 @@ A subset of self-report data collected in 2020 by Adela-Maria Isvoranu as part o
 The full dataset is available at \url{https://osf.io/45n6d/}. Data collected by Adela-Maria Isvoranu as part of a graduate course on network analysis at the University of Amsterdam (2020).
 }
 \references{
-Epskamp, S., Haslbeck, J. M. B., Isvoranu, A. M., & Van Borkulo, C. D. (2022). Pairwise Markov random fields. In A. M. Isvoranu, S. Epskamp, L. J. Waldorp, & D. Borsboom (Eds.), Network psychometrics with R: A guide for behavioral and social scientists (pp. 95–118). Routledge.
+Epskamp, S., Haslbeck, J. M. B., Isvoranu, A. M., & Van Borkulo, C. D. (2022). Pairwise Markov random fields. In A. M. Isvoranu, S. Epskamp, L. J. Waldorp, & D. Borsboom (Eds.), Network psychometrics with R: A guide for behavioral and social scientists (pp. 95--118). Routledge.
 }
 \examples{
 data(NA2020)
