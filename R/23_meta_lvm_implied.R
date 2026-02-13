@@ -48,8 +48,8 @@ implied_meta_lvm <- function(model, all = FALSE){
 
     # Meta-analytic structure:
     if (est == "averaged"){
-      # mu = vechs(sigma_y):
-      x[[g]]$mu <- Vech(sigma_y, FALSE)
+      # mu = vech(sigma_y) (with diagonal for covariance input):
+      x[[g]]$mu <- Vech(sigma_y, TRUE)
 
       # sigma = sigma_randomEffects + V:
       x[[g]]$sigma <- x[[g]]$sigma_randomEffects + model@extramatrices[['V']]
@@ -58,7 +58,7 @@ implied_meta_lvm <- function(model, all = FALSE){
       nStudy <- model@sample@groups$nobs[g]
 
       # Per study:
-      x[[g]]$mu <- lapply(seq_len(nStudy),function(s)as.vector(Vech(sigma_y, FALSE)))
+      x[[g]]$mu <- lapply(seq_len(nStudy),function(s)as.vector(Vech(sigma_y, TRUE)))
 
       # sigma per study:
       x[[g]]$sigma <- lapply(seq_len(nStudy),function(i) x[[g]]$sigma_randomEffects + model@extramatrices$Vall[[i]])

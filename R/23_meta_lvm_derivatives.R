@@ -9,11 +9,8 @@ d_phi_theta_meta_lvm_group <- function(lambda, latent, residual, randomEffects, 
   # Number of latents:
   nlat <- ncol(lambda)
 
-  # Number of correlations (off-diagonal):
-  ncor <- nvar * (nvar - 1) / 2
-
-  # Number of modeled elements in the mean (always correlations):
-  nmod <- ncor
+  # Number of modeled elements in the mean (vech with diagonal for covariance input):
+  nmod <- nvar * (nvar + 1) / 2
 
   # Number of observations: mean part + variance part
   nobs <- nmod + # correlations (mean part of meta-analytic model)
@@ -53,9 +50,9 @@ d_phi_theta_meta_lvm_group <- function(lambda, latent, residual, randomEffects, 
   ranInds <- nLVM + seq_len(nRan)
 
   #### Fill mean part: LVM Jacobian ####
-  # Call d_phi_theta_lvm_group with corinput=TRUE to strip diagonal rows (we only model off-diagonal vechs)
+  # Call d_phi_theta_lvm_group with corinput=FALSE to keep diagonal rows (we model full vech)
   # and meanstructure=FALSE (no mean structure at the LVM level)
-  # This gives us the derivatives of vechs(sigma_y) w.r.t. LVM parameters
+  # This gives us the derivatives of vech(sigma_y) w.r.t. LVM parameters
   # Need to rename sigma_y -> sigma for d_phi_theta_lvm_group, and remove conflicting names
   lvmDots <- dots
   lvmDots$sigma <- lvmDots$sigma_y
@@ -70,7 +67,7 @@ d_phi_theta_meta_lvm_group <- function(lambda, latent, residual, randomEffects, 
   lvmDots$kappa <- NULL  # meta-analytic kappa would conflict
   lvmDots$tau <- NULL  # no thresholds in meta_lvm
   lvmJac <- do.call(d_phi_theta_lvm_group, c(list(lambda = lambda, latent = latent, residual = residual,
-                                                    corinput = TRUE, meanstructure = FALSE), lvmDots))
+                                                    corinput = FALSE, meanstructure = FALSE), lvmDots))
 
   Jac[meanPart, lvmInds] <- lvmJac
 

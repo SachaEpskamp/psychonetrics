@@ -198,7 +198,7 @@ meta_lvm <- function(
 
     # For the elimination matrix, I need this dummy matrix with indices:
     dumSig <- matrix(0,nNode,nNode)
-    dumSig[lower.tri(dumSig,diag=FALSE)] <- seq_len(sum(lower.tri(dumSig,diag=FALSE)))
+    dumSig[lower.tri(dumSig,diag=!corinput)] <- seq_len(sum(lower.tri(dumSig,diag=!corinput)))
 
     if (Vmethod == "individual"){
 
@@ -219,7 +219,7 @@ meta_lvm <- function(
         cmat <- as(covs[[i]][obs,obs], "matrix")
 
         k <- solve_symmetric_cpp_matrixonly(cmat)
-        D2 <- duplicationMatrix(ncol(cmat), FALSE)
+        D2 <- duplicationMatrix(ncol(cmat), !corinput)
         v <- 0.5 * nobs[i] * t(D2) %*% (k %x% k) %*% D2
         vcov <- solve_symmetric_cpp_matrixonly(as.matrix(v))
 

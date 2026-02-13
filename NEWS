@@ -1,11 +1,27 @@
+Changes in Version 0.14.22
+  o meta_lvm() now accepts covariance matrices (not just correlations). The data vector
+    includes diagonal elements (variances) alongside off-diagonal covariances, with free
+    sigma_epsilon diagonal. V matrix computation, implied model, and derivatives updated
+    to handle the full vech (with diagonal).
+  o Fixed checkJacobian() and checkFisher() to respect the model's @cpp slot: models
+    with cpp=FALSE (e.g., meta_lvm) now correctly use R-only fit/gradient/Fisher functions
+    instead of always defaulting to C++ versions.
+  o Fixed R CMD check --as-cran issues:
+    o panelvar()/panelgvar() now handle missing data argument correctly
+    o dlvm1() guards against missing data in auto-detect and samplestats calls
+    o penalty_lambda documentation updated to match code default (NA, not 0)
+    o Removed stray browser() calls from var1 implied and identify functions
+    o Fixed non-ASCII character in NA2020.Rd reference
+  o Removed continuous-data corinput from lvm(): correlations passed as covs are now
+    treated as covariances with free diagonal. Ordinal corinput retained internally.
+
 Changes in Version 0.14.20
   o Added meta_lvm() function for single-stage meta-analytic latent variable modeling.
     Combines a latent variable model (CFA/SEM) for the mean structure of pooled
-    correlation matrices with a random-effects model for between-study heterogeneity.
-    Extends the MAGNA framework to latent variable models. Supports all standard
-    parameterizations for latent (cov/chol/prec/ggm), residual (cov/chol/prec/ggm),
-    and random effects (chol/cov/prec/ggm/cor) structures. Input is always
-    correlation matrices with corinput=TRUE constraint automatically enforced.
+    covariance/correlation matrices with a random-effects model for between-study
+    heterogeneity. Extends the MAGNA framework to latent variable models. Supports all
+    standard parameterizations for latent (cov/chol/prec/ggm), residual (cov/chol/prec/ggm),
+    and random effects (chol/cov/prec/ggm/cor) structures.
 
 Changes in Version 0.14.18
   o Standard errors now auto-fallback to approximate SEs when the Fisher information matrix
