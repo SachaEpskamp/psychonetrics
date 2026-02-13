@@ -1,6 +1,6 @@
 # Meta-analytic latent variable model (single-stage random effects)
 meta_lvm <- function(
-  cors, # List of correlation matrices as input. Must contain NAs for missing variables
+  covs, # List of correlation matrices as input. Must contain NAs for missing variables
   nobs, # vector of sample sizes as input
 
   Vmats, # Optional list of V matrices for each group. Will be averaged.
@@ -56,6 +56,9 @@ meta_lvm <- function(
   boot_sub,
   boot_resample
 ){
+  
+  # FIXME: Add support for cors:
+
 
   message(paste0("Note: 'meta_lvm()' is experimental in psychonetrics ",
                  utils::packageVersion("psychonetrics"),
@@ -64,7 +67,7 @@ meta_lvm <- function(
   sampleSizes <- nobs
 
   # Treat input correlations as covariances (with free sigma_epsilon diagonal):
-  corinput <- FALSE
+  corinput <- FALSE # FIXME: This should become a argument
   estimator <- match.arg(estimator)
 
   randomEffects <- match.arg(randomEffects)
@@ -84,20 +87,20 @@ meta_lvm <- function(
 
   # Set the labels:
   if (missing(vars)){
-    vars <- unique(unlist(lapply(cors,colnames)))
+    vars <- unique(unlist(lapply(covs,colnames)))
     if (is.null(vars)){
-      vars <- paste0("V",seq_len(max(sapply(cors,ncol))))
-      if (length(unique(sapply(cors,colnames))) > 1){
+      vars <- paste0("V",seq_len(max(sapply(covs,ncol))))
+      if (length(unique(sapply(covs,colnames))) > 1){
         stop("Correlation matrices of different dimensions not supported without column labels.")
       }
-      for (i in seq_along(cors)){
-        rownames(cors[[i]]) <- colnames(cors[[i]]) <- vars
+      for (i in seq_along(covs)){
+        rownames(covs[[i]]) <- colnames(covs[[i]]) <- vars
       }
     }
   } else {
-    if (is.null(colnames(cors[[1]]))){
-      for (i in seq_along(cors)){
-        rownames(cors[[i]]) <- colnames(cors[[i]]) <- vars
+    if (is.null(colnames(covs[[1]]))){
+      for (i in seq_along(covs)){
+        rownames(covs[[i]]) <- colnames(covs[[i]]) <- vars
       }
     }
   }
@@ -106,20 +109,20 @@ meta_lvm <- function(
   nNode <- length(vars)
 
   # Reorder correlation matrices and add NAs:
-  corsOld <- cors
-  cors <- list()
-  for (i in seq_along(corsOld)){
-    cors[[i]] <- matrix(NA,nrow=nNode, ncol = nNode)
-    rownames(cors[[i]]) <- colnames(cors[[i]]) <- vars
-    varsOfStudy <- colnames(corsOld[[i]])
+  covsOld <- covs
+  covs <- list()
+  for (i in seq_along(covsOld)){
+    covs[[i]] <- matrix(NA,nrow=nNode, ncol = nNode)
+    rownames(covs[[i]]) <- colnames(covs[[i]]) <- vars
+    varsOfStudy <- colnames(covsOld[[i]])
     matched <- match(varsOfStudy,vars)
-    cors[[i]][matched,matched] <- as.matrix(corsOld[[i]])
+    covs[[i]][matched,matched] <- as.matrix(covsOld[[i]])
   }
 
   # Form the dataset from the lower triangles of cor matrices:
-  data <- dplyr::bind_rows(lapply(cors,function(x){
-    df <- as.data.frame(t(x[lower.tri(x)]))
-    names(df) <- paste0(rownames(x)[row(x)[lower.tri(x)]], " -- ",colnames(x)[col(x)[lower.tri(x)]])
+  data <- dplyr::bind_rows(lapply(covs,function(x){
+    df <- as.data.frame(t(x[lower.tri(x,diag=!corinput)]))
+    names(df) <- paste0(rownames(x)[row(x)[lower.tri(x,diag=!corinput)]], " -- ",colnames(x)[col(x)[lower.tri(x,diag=!corinput)]])
     df
   }))
 
@@ -139,13 +142,21 @@ meta_lvm <- function(
                                bootstrap=bootstrap,
                                boot_sub = boot_sub,
                                boot_resample = boot_resample)
+    
+    # FIXME: If covs and not cors, columns with 1 appear and this error appears:
+    # 
+    # Warning message:
+    #   In cov2cor(cov) :
+    #   diag(V) had non-positive or NA entries; the non-finite result may be dubious
+    
+    # Because cov matrix is not invertable.
   }
 
   # Treat correlations as covariances (no corinput constraint):
   sampleStats@corinput <- FALSE
 
   # Check some things:
-  nCor <- nrow(sampleStats@variables)
+  nCov <- nrow(sampleStats@variables)
 
   # Number of latents:
   nLatent <- ncol(lambda)
@@ -157,6 +168,7 @@ meta_lvm <- function(
   if (length(latents) != nLatent){
     stop("Length of 'latents' is not equal to number of latent variables in model.")
   }
+
 
   # Generate model object:
   model <- generate_psychonetrics(model = "meta_lvm", sample = sampleStats, computed = FALSE,
@@ -172,8 +184,8 @@ meta_lvm <- function(
 
   # Add number of observations:
   model@sample@nobs <-
-    nCor * (nCor-1) / 2 * nGroup + # Covariances per group
-    nCor * nGroup + # Variances
+    nCov * (nCov-1) / 2 * nGroup + # Covariances per group
+    nCov * nGroup + # Variances
     nMeans
 
   ### Estimate V matrices ###
@@ -189,21 +201,22 @@ meta_lvm <- function(
     dumSig[lower.tri(dumSig,diag=FALSE)] <- seq_len(sum(lower.tri(dumSig,diag=FALSE)))
 
     if (Vmethod == "individual"){
+
       # For each group, make a model and obtain VCOV:
-      Vmats <- lapply(seq_along(cors),function(i){
+      Vmats <- lapply(seq_along(covs),function(i){
         # Find the missing nodes:
-        obs <- !apply(cors[[i]],2,function(x)all(is.na(x)))
+        obs <- !apply(covs[[i]],2,function(x)all(is.na(x)))
 
         # Indices:
         inds <- c(dumSig[obs,obs,drop=FALSE])
         inds <- inds[inds!=0]
 
         # Elimination matrix:
-        L <- sparseMatrix(i=seq_along(inds),j=inds,dims=c(length(inds),nNode*(nNode-1)/2))
+        L <- sparseMatrix(i=seq_along(inds),j=inds,dims=c(length(inds),nNode*(nNode + ifelse(corinput,-1,1))/2))
         L <- as(L, "dMatrix")
 
         # Now obtain only the full subset correlation matrix:
-        cmat <- as(cors[[i]][obs,obs], "matrix")
+        cmat <- as(covs[[i]][obs,obs], "matrix")
 
         k <- solve_symmetric_cpp_matrixonly(cmat)
         D2 <- duplicationMatrix(ncol(cmat), FALSE)
@@ -219,41 +232,45 @@ meta_lvm <- function(
 
     } else if (Vmethod == "pooled") {
       # If there are any NAs, use covariance input to compute model using FIML:
-      if(any(is.na(unlist(lapply(cors,as.vector))))){
-        mod <- varcov(covs=cors,nobs=sampleSizes, corinput = TRUE, type =  "cor", equal = c("SD","rho","mu"), baseline_saturated = FALSE, verbose = FALSE,
+      if(any(is.na(unlist(lapply(covs,as.vector))))){
+        mod <- varcov(covs=covs,nobs=sampleSizes, corinput = FALSE, type =  ifelse(corinput,"cor","cov"), equal = c("sigma","SD","rho","mu"), baseline_saturated = FALSE, verbose = FALSE,
                       estimator = "FIML", covtype = "ML", meanstructure = TRUE)
         mod <- runmodel(mod, addfit = FALSE, addMIs = FALSE, addSEs = FALSE, verbose = FALSE)
-        acov <- getVCOV(mod)
-        avgVmat <- acov
-        ind <- which(mod@parameters$matrix[match(seq_len(max(mod@parameters$par)),mod@parameters$par)] == "rho")
-        avgVmat <- acov[ind,ind] * length(cors)
+        # acov <- getVCOV(mod)
+        # avgVmat <- acov
+        # ind <- which(mod@parameters$matrix[match(seq_len(max(mod@parameters$par)),mod@parameters$par)] == ifelse(corinput,"rho","sigma"))
+        # avgVmat <- acov[ind,ind] * length(covs)
       } else {
-        mod <- varcov(covs=cors,nobs=sampleSizes, corinput = TRUE, type =  "cor", equal = "rho", baseline_saturated = FALSE, verbose = FALSE)
+        mod <- varcov(covs=covs,nobs=sampleSizes, corinput = FALSE, type =  ifelse(corinput,"cor","cov"), equal = c("sigma","rho"), baseline_saturated = FALSE, verbose = FALSE)
         mod <- runmodel(mod, addfit = FALSE, addMIs = FALSE, addSEs = FALSE, verbose = FALSE)
-        acov <- getVCOV(mod)
-        avgVmat <- acov * length(cors)
+        # acov <- getVCOV(mod)
+        # avgVmat <- acov * length(covs)
       }
+      acov <- getVCOV(mod)
+      avgVmat <- acov
+      ind <- which(mod@parameters$matrix[match(seq_len(max(mod@parameters$par)),mod@parameters$par)] == ifelse(corinput,"rho","sigma"))
+      avgVmat <- acov[ind,ind] * length(covs)
 
       # Compute Vmat per dataset:
       Vmats <- lapply(nobs,function(n) mean(nobs)/n * avgVmat)
 
     } else if (Vmethod == "metaSEM_individual"){
-      acovs <- metaSEM::asyCov(cors, sampleSizes, acov = "individual")
+      acovs <- metaSEM::asyCov(covs, cor.analysis = corinput, sampleSizes, acov = "individual")
       acovs[is.na(acovs)] <- 0
       Vmats <- list()
       for (i in seq_len(nrow(acovs))){
-        Vmats[[i]] <- matrix(0, nCor, nCor)
+        Vmats[[i]] <- matrix(0, nCov, nCov)
         Vmats[[i]][lower.tri(Vmats[[i]],diag=TRUE)] <- acovs[i,]
         Vmats[[i]][upper.tri(Vmats[[i]],diag=TRUE)] <- t(Vmats[[i]])[upper.tri(Vmats[[i]],diag=TRUE)]
       }
       avgVmat <- Reduce("+", Vmats) / Reduce("+",lapply(Vmats,function(x)x!=0))
 
     } else if (Vmethod == "metaSEM_weighted"){
-      acovs <- metaSEM::asyCov(cors, sampleSizes, acov = "weighted")
+      acovs <- metaSEM::asyCov(covs, cor.analysis = corinput, sampleSizes, acov = "weighted")
       acovs[is.na(acovs)] <- 0
       Vmats <- list()
       for (i in seq_len(nrow(acovs))){
-        Vmats[[i]] <- matrix(0, nCor, nCor)
+        Vmats[[i]] <- matrix(0, nCov, nCov)
         Vmats[[i]][lower.tri(Vmats[[i]],diag=TRUE)] <- acovs[i,]
         Vmats[[i]][upper.tri(Vmats[[i]],diag=TRUE)] <- t(Vmats[[i]])[upper.tri(Vmats[[i]],diag=TRUE)]
       }
@@ -266,12 +283,12 @@ meta_lvm <- function(
 
   # Setup lambda (using dummy covariance matrices for starting values):
   # Construct dummy covariance matrices from the average correlation:
-  expCorsVec <- model@sample@means[[1]]
-  expCors <- matrix(1,nNode,nNode)
-  expCors[lower.tri(expCors)] <- expCorsVec
-  expCors[upper.tri(expCors)] <- t(expCors)[upper.tri(expCors)]
+  expcovsVec <- model@sample@means[[1]]
+  expcovs <- matrix(1,nNode,nNode)
+  expcovs[lower.tri(expcovs, diag = !corinput)] <- expcovsVec
+  expcovs[upper.tri(expcovs, diag = !corinput)] <- t(expcovs)[upper.tri(expcovs, diag = !corinput)]
 
-  modMatrices$lambda <- matrixsetup_lambda(lambda, expcov=list(expCors), nGroup = nGroup, equal = FALSE,
+  modMatrices$lambda <- matrixsetup_lambda(lambda, expcov=list(expcovs), nGroup = nGroup, equal = FALSE,
                                            observednames = vars, latentnames = latents,
                                            sampletable = sampleStats, identification = identification, simple = FALSE)
 
@@ -386,7 +403,7 @@ meta_lvm <- function(
   if (randomEffects == "cov"){
     modMatrices$sigma_randomEffects <- matrixsetup_sigma(sigma_randomEffects,
                                                          expcov=list(expRanEffects),
-                                                         nNode = nCor,
+                                                         nNode = nCov,
                                                          nGroup = nGroup,
                                                          labels = corvars,
                                                          equal = FALSE,
@@ -395,7 +412,7 @@ meta_lvm <- function(
   } else if (randomEffects == "chol"){
     modMatrices$lowertri_randomEffects <- matrixsetup_lowertri(lowertri_randomEffects,
                                                                expcov=list(expRanEffects),
-                                                               nNode = nCor,
+                                                               nNode = nCov,
                                                                nGroup = nGroup,
                                                                labels = corvars,
                                                                equal = FALSE,
@@ -404,7 +421,7 @@ meta_lvm <- function(
   } else if (randomEffects == "ggm"){
     modMatrices$omega_randomEffects <- matrixsetup_omega(omega_randomEffects,
                                                          expcov=list(expRanEffects),
-                                                         nNode = nCor,
+                                                         nNode = nCov,
                                                          nGroup = nGroup,
                                                          labels = corvars,
                                                          equal = FALSE,
@@ -412,7 +429,7 @@ meta_lvm <- function(
                                                          name = "omega_randomEffects")
     modMatrices$delta_randomEffects <- matrixsetup_delta(delta_randomEffects,
                                                          expcov=list(expRanEffects),
-                                                         nNode = nCor,
+                                                         nNode = nCov,
                                                          nGroup = nGroup,
                                                          labels = corvars,
                                                          equal = FALSE,
@@ -422,7 +439,7 @@ meta_lvm <- function(
   } else if (randomEffects == "prec"){
     modMatrices$kappa_randomEffects <- matrixsetup_kappa(kappa_randomEffects,
                                                          expcov=list(expRanEffects),
-                                                         nNode = nCor,
+                                                         nNode = nCov,
                                                          nGroup = nGroup,
                                                          labels = corvars,
                                                          equal = FALSE,
@@ -431,7 +448,7 @@ meta_lvm <- function(
   } else if (randomEffects == "cor"){
     modMatrices$rho_randomEffects <- matrixsetup_rho(rho_randomEffects,
                                                      expcov=list(expRanEffects),
-                                                     nNode = nCor,
+                                                     nNode = nCov,
                                                      nGroup = nGroup,
                                                      labels = corvars,
                                                      equal = FALSE,
@@ -439,7 +456,7 @@ meta_lvm <- function(
                                                      name = "rho_randomEffects")
     modMatrices$SD_randomEffects <- matrixsetup_SD(SD_randomEffects,
                                                    expcov=list(expRanEffects),
-                                                   nNode = nCor,
+                                                   nNode = nCov,
                                                    nGroup = nGroup,
                                                    labels = corvars,
                                                    equal = FALSE,
@@ -474,14 +491,14 @@ meta_lvm <- function(
     Cbeta = as(lavaan::lav_matrix_commutation(nLatent, nLatent),"dMatrix"),
     Aeta = psychonetrics::diagonalizationMatrix(nLatent),
 
-    # Random effects matrices (nCor dimension):
-    D_c = psychonetrics::duplicationMatrix(nCor),
-    L_c = psychonetrics::eliminationMatrix(nCor),
-    Lstar_c = psychonetrics::eliminationMatrix(nCor, diag=FALSE),
-    Dstar_c = psychonetrics::duplicationMatrix(nCor,diag = FALSE),
-    In_c = as(diag(nCor),"dMatrix"),
-    A_c = psychonetrics::diagonalizationMatrix(nCor),
-    C_c = as(lavaan::lav_matrix_commutation(nCor,nCor),"dMatrix"),
+    # Random effects matrices (nCov dimension):
+    D_c = psychonetrics::duplicationMatrix(nCov),
+    L_c = psychonetrics::eliminationMatrix(nCov),
+    Lstar_c = psychonetrics::eliminationMatrix(nCov, diag=FALSE),
+    Dstar_c = psychonetrics::duplicationMatrix(nCov,diag = FALSE),
+    In_c = as(diag(nCov),"dMatrix"),
+    A_c = psychonetrics::diagonalizationMatrix(nCov),
+    C_c = as(lavaan::lav_matrix_commutation(nCov,nCov),"dMatrix"),
 
     # V matrices:
     V = avgVmat,
@@ -501,7 +518,7 @@ meta_lvm <- function(
 
     # Form baseline model:
     model@baseline_saturated$baseline <- varcov(data,
-                                                mu = rep(0,nCor),
+                                                mu = rep(0,nCov),
                                                 type = "chol",
                                                 lowertri = "diag",
                                                 vars = corvars,

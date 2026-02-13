@@ -4,11 +4,19 @@ checkJacobian <- function(x, f = "default", jac = "default", transpose = FALSE, 
   start <- parVector(x)
   
   if (identical(f,"default")){
-    f <- psychonetrics_fitfunction_cpp
+    if (x@cpp){
+      f <- psychonetrics_fitfunction_cpp
+    } else {
+      f <- psychonetrics_fitfunction
+    }
   }
-  
+
   if (identical(jac,"default")){
-    jac <- psychonetrics_gradient_cpp
+    if (x@cpp){
+      jac <- psychonetrics_gradient_cpp
+    } else {
+      jac <- psychonetrics_gradient
+    }
   }
 
   if (perturbStart){
@@ -82,11 +90,19 @@ checkFisher <- function(x, f = "default", fis = "default", transpose = FALSE, pl
   # }
   
   if (identical(f,"default")){
-    f <- psychonetrics_fitfunction_cpp
+    if (x@cpp){
+      f <- psychonetrics_fitfunction_cpp
+    } else {
+      f <- psychonetrics_fitfunction
+    }
   }
-  
+
   if (identical(fis,"default")){
-    fis <- psychonetrics_FisherInformation_cpp
+    if (x@cpp){
+      fis <- psychonetrics_FisherInformation_cpp
+    } else {
+      fis <- psychonetrics_FisherInformation
+    }
   }
   
   
