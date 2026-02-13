@@ -57,17 +57,24 @@ meta_lvm <- function(
   boot_resample
 ){
   
-  # FIXME: Add support for cors:
-
-
   message(paste0("Note: 'meta_lvm()' is experimental in psychonetrics ",
                  utils::packageVersion("psychonetrics"),
                  ". Please report any unexpected behavior to https://github.com/SachaEpskamp/psychonetrics/issues"))
 
+  # Check if input matrices are correlation matrices (all diagonals equal 1):
+  allCor <- all(sapply(covs, function(x){
+    d <- diag(x)
+    d <- d[!is.na(d)]
+    all(d == 1)
+  }))
+  if (allCor){
+    stop("All input matrices appear to be correlation matrices (diagonal elements are all 1). Correlation input is not yet supported in meta_lvm(); please supply covariance matrices instead.")
+  }
+
   sampleSizes <- nobs
 
-  # Treat input correlations as covariances (with free sigma_epsilon diagonal):
-  corinput <- FALSE # FIXME: This should become a argument
+  # Treat input as covariances (with free sigma_epsilon diagonal):
+  corinput <- FALSE # FIXME: correlation input still in development
   estimator <- match.arg(estimator)
 
   randomEffects <- match.arg(randomEffects)
