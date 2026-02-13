@@ -681,6 +681,22 @@ prepare_ml_lvm_cpp <- function(x, model) {
     .Call(`_psychonetrics_prepare_ml_lvm_cpp`, x, model)
 }
 
+d_phi_theta_meta_lvm_group_cpp <- function(grouplist) {
+    .Call(`_psychonetrics_d_phi_theta_meta_lvm_group_cpp`, grouplist)
+}
+
+d_phi_theta_meta_lvm_cpp <- function(prep) {
+    .Call(`_psychonetrics_d_phi_theta_meta_lvm_cpp`, prep)
+}
+
+implied_meta_lvm_cpp <- function(model, all = FALSE) {
+    .Call(`_psychonetrics_implied_meta_lvm_cpp`, model, all)
+}
+
+prepare_meta_lvm_cpp <- function(x, model) {
+    .Call(`_psychonetrics_prepare_meta_lvm_cpp`, x, model)
+}
+
 updateModel_cpp <- function(x, model, updateMatrices) {
     .Call(`_psychonetrics_updateModel_cpp`, x, model, updateMatrices)
 }

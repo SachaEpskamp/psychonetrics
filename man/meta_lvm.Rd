@@ -4,10 +4,10 @@
 Meta-analytic latent variable model
 }
 \description{
-Single-stage meta-analytic latent variable model (LVM) for correlation matrices. Combines a latent variable model (CFA/SEM) for the mean structure with a random-effects model for between-study heterogeneity. Input is always correlation matrices. Based on the MAGNA framework (Epskamp et al., 2024).
+Single-stage meta-analytic latent variable model (LVM) for covariance or correlation matrices. Combines a latent variable model (CFA/SEM) for the mean structure with a random-effects model for between-study heterogeneity. Based on the MAGNA framework (Epskamp et al., 2024).
 }
 \usage{
-meta_lvm(cors, nobs, Vmats, Vmethod = c("individual", "pooled",
+meta_lvm(covs, nobs, Vmats, Vmethod = c("individual", "pooled",
                    "metaSEM_individual", "metaSEM_weighted"), Vestimation
                    = c("averaged", "per_study"),
                    lambda, beta = "zero",
@@ -19,7 +19,8 @@ meta_lvm(cors, nobs, Vmats, Vmethod = c("individual", "pooled",
                    sigma_epsilon = "diag", kappa_epsilon = "diag",
                    omega_epsilon = "zero", lowertri_epsilon = "diag",
                    delta_epsilon = "diag",
-                   identification = "variance",
+                   identify = TRUE,
+                   identification = c("loadings", "variance"),
                    randomEffects = c("chol", "cov", "prec", "ggm", "cor"),
                    sigma_randomEffects = "full",
                    kappa_randomEffects = "full",
@@ -35,8 +36,8 @@ meta_lvm(cors, nobs, Vmats, Vmethod = c("individual", "pooled",
                    bootstrap = FALSE, boot_sub, boot_resample)
 }
 \arguments{
-  \item{cors}{
-A list of correlation matrices. Must contain rows and columns with \code{NA}s for variables not included in a study.
+  \item{covs}{
+A list of covariance or correlation matrices. Must contain rows and columns with \code{NA}s for variables not included in a study.
 }
   \item{nobs}{
 A vector with the number of observations per study.
@@ -92,8 +93,11 @@ Residual Cholesky factor specification (used when \code{residual = "chol"}).
   \item{delta_epsilon}{
 Residual scaling matrix specification (used when \code{residual = "ggm"}).
 }
+  \item{identify}{
+Logical, should the model be identified? Defaults to \code{TRUE}.
+}
   \item{identification}{
-How to identify the model. Only \code{"variance"} is supported for correlation input.
+How to identify the model. \code{"loadings"} or \code{"variance"}.
 }
   \item{randomEffects}{
 Parameterization of the random effects covariance structure.
@@ -198,7 +202,7 @@ for (i in 1:nStudies) {
 }
 
 # Fit meta-analytic CFA
-mod <- meta_lvm(cors = cors, nobs = nobs, lambda = lambda_true != 0)
+mod <- meta_lvm(covs = cors, nobs = nobs, lambda = lambda_true != 0)
 mod <- mod \%>\% runmodel
 
 # Inspect results

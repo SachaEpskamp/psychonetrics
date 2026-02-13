@@ -568,9 +568,6 @@ meta_lvm <- function(
     model <- setoptimizer(model, optimizer)
   }
 
-  # FIXME: No C++ implementation yet, force R-only:
-  model <- usecpp(model, FALSE)
-
   # Return model:
   return(model)
 }

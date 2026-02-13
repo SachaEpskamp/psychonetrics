@@ -18,7 +18,7 @@ prepareModel <- function(x, model){
                       "meta_varcov" = prepare_meta_varcov_cpp, # <- updated!
                       "Ising" = prepare_Ising_cpp, # <- Updated!
                       "ml_lvm" = prepare_ml_lvm_cpp, # <- Udated!!!
-                      "meta_lvm" = prepare_meta_lvm # FIXME: no cpp version yet
+                      "meta_lvm" = prepare_meta_lvm_cpp
                       # "cholesky" = prepare_cholesky
     )
   } else {

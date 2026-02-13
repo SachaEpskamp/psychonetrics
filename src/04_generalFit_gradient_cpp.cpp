@@ -14,6 +14,7 @@
 #include "18_dlvm1_derivatives_cpp.h"
 #include "19_tsdlvm1_derivatives_cpp.h"
 #include "20_meta_varcov_derivatives_cpp.h"
+#include "23_meta_lvm_derivatives_cpp.h"
 #include "21_Ising_derivatives_cpp.h"
 #include "22_ml_lvm_derivatives_cpp.h"
 #include "02_algebrahelpers_modelMatrix_cpp.h"
@@ -149,9 +150,13 @@ void psychonetrics_gradient_cpp_inner(
     modelPart = d_phi_theta_Ising_cpp(prep);
     
   }  else if (usemodel == "ml_lvm"){
-    
+
     modelPart = d_phi_theta_ml_lvm_cpp(prep);
-    
+
+  }  else if (usemodel == "meta_lvm"){
+
+    modelPart = d_phi_theta_meta_lvm_cpp(prep);
+
   }
   
   // Compute the gradient

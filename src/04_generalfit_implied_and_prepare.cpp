@@ -19,6 +19,8 @@
 #include "19_tsdlvm1_prepare_cpp.h"
 #include "20_meta_varcov_implied_cpp.h"
 #include "20_meta_varcov_prepare_cpp.h"
+#include "23_meta_lvm_implied_cpp.h"
+#include "23_meta_lvm_prepare_cpp.h"
 #include "21_Ising_implied_cpp.h"
 #include "21_Ising_prepare_cpp.h"
 #include "22_ml_lvm_prepare_cpp.h"
@@ -117,20 +119,24 @@ Rcpp::List impliedModel_cpp(
     // imp = impfun(Rcpp::_["model"] = model, Rcpp::_["all"] =   all);
     
   }  else if (framework == "ml_lvm"){
-    
-    
+
+
     imp = implied_ml_lvm_cpp(model, all); // = Updated!
-    // 
+    //
     // // Obtain environment containing function
-    // Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
-    // 
+    // Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ;
+    //
     // // Make function callable from C++
-    // Rcpp::Function impfun = base["implied_ml_lvm"]; 
-    // 
+    // Rcpp::Function impfun = base["implied_ml_lvm"];
+    //
     // imp = impfun(Rcpp::_["model"] = model, Rcpp::_["all"] =   all);
-    // 
+    //
+  }  else if (framework == "meta_lvm"){
+
+    imp = implied_meta_lvm_cpp(model, all);
+
   }
-  
+
   // Return:
   return(imp);
 }
@@ -226,19 +232,23 @@ Rcpp::List prepareModel_cpp(
     // prep = prepfun(Rcpp::_["x"] = x, Rcpp::_["model"] =   model);
     
   }  else if (framework == "ml_lvm"){
-    
+
     prep = prepare_ml_lvm_cpp(x, model); // = Updated!
-    // // 
+    // //
     // // Obtain environment containing function
-    // Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
-    // 
+    // Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ;
+    //
     // // Make function callable from C++
-    // Rcpp::Function prepfun = base["prepare_ml_lvm"]; 
-    // 
+    // Rcpp::Function prepfun = base["prepare_ml_lvm"];
+    //
     // prep = prepfun(Rcpp::_["x"] = x, Rcpp::_["model"] =   model);
-    // 
+    //
+  }  else if (framework == "meta_lvm"){
+
+    prep = prepare_meta_lvm_cpp(x, model);
+
   }
-  
+
   // Read constant data from workspace (no S4 slot reads):
   const Rcpp::List& fimldata = ws.fimldata;
   const Rcpp::List& WLS_W = ws.WLS_W;
