@@ -7,7 +7,8 @@ Meta-analytic latent variable model
 Single-stage meta-analytic latent variable model (LVM) for covariance or correlation matrices. Combines a latent variable model (CFA/SEM) for the mean structure with a random-effects model for between-study heterogeneity. Based on the MAGNA framework (Epskamp et al., 2024).
 }
 \usage{
-meta_lvm(covs, nobs, Vmats, Vmethod = c("individual", "pooled",
+meta_lvm(covs, nobs, data, cors, studyvar, groups, groupvar,
+                   corinput, Vmats, Vmethod = c("individual", "pooled",
                    "metaSEM_individual", "metaSEM_weighted"), Vestimation
                    = c("averaged", "per_study"),
                    lambda, beta = "zero",
@@ -41,6 +42,24 @@ A list of covariance or correlation matrices. Must contain rows and columns with
 }
   \item{nobs}{
 A vector with the number of observations per study.
+}
+  \item{data}{
+Optional data frame. When supplied together with \code{studyvar}, covariance matrices and sample sizes are computed internally per study. Cannot be used together with \code{covs}, \code{cors}, or \code{nobs}.
+}
+  \item{cors}{
+A list of correlation matrices. When supplied, the matrices are treated as covariance matrices with a warning (appropriate for standardized data). Requires \code{nobs}.
+}
+  \item{studyvar}{
+A string indicating the column name in \code{data} that identifies the study. Required when \code{data} is supplied.
+}
+  \item{groups}{
+Deprecated. Use \code{groupvar} instead. Multi-group support is not yet included for meta-analytic models.
+}
+  \item{groupvar}{
+Not yet supported for meta-analytic models. Supplying this argument will produce an error.
+}
+  \item{corinput}{
+Logical. Defaults to \code{FALSE}. Controls whether the input is treated as correlation matrices.
 }
   \item{Vmats}{
 Optional list with 'V' matrices (sampling error variance approximations).

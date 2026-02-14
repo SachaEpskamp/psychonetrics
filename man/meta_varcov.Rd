@@ -9,7 +9,8 @@ Variance-covariance and GGM meta analysis
 Meta analysis of correlation matrices to fit a homogenous correlation matrix or Gaussian graphical model. Based on meta-analytic SEM (Jak and Cheung, 2019).
 }
 \usage{
-meta_varcov(cors, nobs, Vmats, Vmethod = c("individual", "pooled",
+meta_varcov(cors, nobs, data, covs, studyvar, groups, groupvar,
+                   corinput, Vmats, Vmethod = c("individual", "pooled",
                    "metaSEM_individual", "metaSEM_weighted"), Vestimation
                    = c("averaged", "per_study"), type = c("cor", "ggm"),
                    sigma_y = "full", kappa_y = "full", omega_y = "full",
@@ -33,6 +34,24 @@ A list of correlation matrices. Must contain rows and columns with \code{NA}s fo
 }
   \item{nobs}{
 A vector with the number of observations per study.
+}
+  \item{data}{
+Optional data frame. When supplied together with \code{studyvar}, correlation matrices and sample sizes are computed internally per study. Cannot be used together with \code{cors}, \code{covs}, or \code{nobs}.
+}
+  \item{covs}{
+A list of covariance matrices. Alternative to \code{cors}; when supplied, \code{corinput} defaults to \code{FALSE}.
+}
+  \item{studyvar}{
+A string indicating the column name in \code{data} that identifies the study. Required when \code{data} is supplied.
+}
+  \item{groups}{
+Deprecated. Use \code{groupvar} instead. Multi-group support is not yet included for meta-analytic models.
+}
+  \item{groupvar}{
+Not yet supported for meta-analytic models. Supplying this argument will produce an error.
+}
+  \item{corinput}{
+Logical. Defaults to \code{TRUE} when \code{cors} is used, \code{FALSE} when \code{covs} is used. Controls whether the input is treated as correlation matrices.
 }
   \item{Vmats}{
 Optional list with 'V' matrices (sampling error variance approximations).

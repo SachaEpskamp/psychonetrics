@@ -21,11 +21,11 @@ lvm(data, lambda, latent = c("cov", "chol", "prec",
                    delta_epsilon = "diag", beta = "zero", nu, nu_eta, tau,
                    identify = TRUE, identification = c("loadings",
                    "variance"), vars, ordered = character(0), latents,
-                   groups, covs, means, nobs,
+                   groups, groupvar, covs, cors, means, nobs,
                    missing = "auto", equal = "none",
                    baseline_saturated = TRUE, estimator = "default",
                    optimizer, storedata = FALSE, WLS.W, covtype =
-                   c("choose", "ML", "UB"), standardize = c("none", "z",
+                   c("choose", "ML", "UB"), corinput, standardize = c("none", "z",
                    "quantile"), sampleStats, verbose = FALSE,
                    simplelambdastart = FALSE, start = "default",
                    bootstrap = FALSE,
@@ -108,16 +108,25 @@ Character vector of variable names to treat as ordinal, or \code{TRUE} to treat 
 An optional character vector with names of the latent variables.
 }
   \item{groups}{
-An optional string indicating the name of the group variable in \code{data}.
+Deprecated. Use \code{groupvar} instead. An optional string indicating the name of the group variable in \code{data}.
+}
+  \item{groupvar}{
+An optional string indicating the name of the group variable in \code{data}. Replaces the deprecated \code{groups} argument; if both are supplied, \code{groupvar} takes precedence with a warning.
 }
   \item{covs}{
-A sample variance--covariance matrix, or a list/array of such matrices for multiple groups. Make sure \code{covtype} argument is set correctly to the type of covariances used. 
+A sample variance--covariance matrix, or a list/array of such matrices for multiple groups. Make sure \code{covtype} argument is set correctly to the type of covariances used.
+}
+  \item{cors}{
+A sample correlation matrix, or a list/array of such matrices for multiple groups. When supplied, the matrix is treated as a covariance matrix with a warning (appropriate for standardized data). Requires \code{nobs}. Note: \code{corinput = TRUE} is not supported in \code{lvm}; use \code{\link{varcov}} with \code{type = "cor"} for correlation-based models.
 }
   \item{means}{
 A vector of sample means, or a list/matrix containing such vectors for multiple groups.
 }
   \item{nobs}{
 The number of observations used in \code{covs} and \code{means}, or a vector of such numbers of observations for multiple groups.
+}
+  \item{corinput}{
+Logical. Only supported for ordinal data in \code{lvm()}; defaults to \code{FALSE} for continuous data. Setting \code{corinput = TRUE} is not supported for \code{lvm()} and will produce an error; use \code{\link{varcov}} with \code{type = "cor"} instead.
 }
   \item{missing}{
 How should missingness be handled in computing the sample covariances and number of observations when \code{data} is used. Can be \code{"auto"} (default) for automatic detection, \code{"listwise"} for listwise deletion, or \code{"pairwise"} for pairwise deletion. When \code{"auto"}, the function checks for missing data and switches ML to FIML, PML to PFIML, or defaults to listwise for LS estimators.

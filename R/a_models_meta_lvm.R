@@ -1,7 +1,15 @@
 # Meta-analytic latent variable model (single-stage random effects)
 meta_lvm <- function(
-  covs, # List of correlation matrices as input. Must contain NAs for missing variables
+  covs, # List of covariance matrices as input. Must contain NAs for missing variables
   nobs, # vector of sample sizes as input
+
+  # New standardized input arguments:
+  data, # Raw data (use with studyvar to split by study)
+  cors, # List of correlation matrices (treated as covariances with warning)
+  studyvar, # Column name in data indicating study membership
+  groups, # deprecated, use groupvar instead
+  groupvar, # grouping variable (errors: multi-group not yet supported)
+  corinput, # defaults to FALSE for meta_lvm
 
   Vmats, # Optional list of V matrices for each group. Will be averaged.
   Vmethod = c("individual","pooled","metaSEM_individual","metaSEM_weighted"), # How to obtain V matrices if Vmats is not supplied?
@@ -61,20 +69,25 @@ meta_lvm <- function(
                  utils::packageVersion("psychonetrics"),
                  ". Please report any unexpected behavior to https://github.com/SachaEpskamp/psychonetrics/issues"))
 
-  # Check if input matrices are correlation matrices (all diagonals equal 1):
-  allCor <- all(sapply(covs, function(x){
-    d <- diag(x)
-    d <- d[!is.na(d)]
-    all(d == 1)
-  }))
-  if (allCor){
-    stop("All input matrices appear to be correlation matrices (diagonal elements are all 1). Correlation input is not yet supported in meta_lvm(); please supply covariance matrices instead.")
-  }
+  # Standardize input arguments:
+  si <- standardize_input(
+    data = if(missing(data)) NULL else data,
+    covs = if(missing(covs)) NULL else covs,
+    cors = if(missing(cors)) NULL else cors,
+    nobs = if(missing(nobs)) NULL else nobs,
+    corinput = if(missing(corinput)) NULL else corinput,
+    groups = if(missing(groups)) NULL else groups,
+    groupvar = if(missing(groupvar)) NULL else groupvar,
+    studyvar = if(missing(studyvar)) NULL else studyvar,
+    vars = if(missing(vars)) NULL else vars,
+    family = "meta_lvm", is_meta = TRUE,
+    caller = "meta_lvm()", estimator = match.arg(estimator)
+  )
+  covs <- si$covs
+  nobs <- si$nobs
+  corinput <- if(!is.null(si$corinput)) si$corinput else FALSE
 
   sampleSizes <- nobs
-
-  # Treat input as covariances (with free sigma_epsilon diagonal):
-  corinput <- FALSE # FIXME: correlation input still in development
   estimator <- match.arg(estimator)
 
   randomEffects <- match.arg(randomEffects)

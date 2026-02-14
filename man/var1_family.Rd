@@ -13,7 +13,7 @@ var1(data, contemporaneous = c("cov", "chol", "prec",
                    "ggm"), beta = "full", omega_zeta = "full", delta_zeta
                    = "full", kappa_zeta = "full", sigma_zeta = "full",
                    lowertri_zeta = "full", mu, beepvar, dayvar, idvar,
-                   vars, groups, covs, means, nobs, missing = "auto",
+                   vars, groups, groupvar, covs, cors, means, nobs, corinput, missing = "auto",
                    equal = "none", baseline_saturated = TRUE, estimator =
                    "ML", optimizer, storedata = FALSE, covtype =
                    c("choose", "ML", "UB"), standardize = c("none", "z",
@@ -66,16 +66,25 @@ Optional string indicating the subject ID
 An optional character vector encoding the variables used in the analyis. Must equal names of the dataset in \code{data}.
 }
   \item{groups}{
-An optional string indicating the name of the group variable in \code{data}.
+Deprecated. Use \code{groupvar} instead. An optional string indicating the name of the group variable in \code{data}.
+}
+  \item{groupvar}{
+An optional string indicating the name of the group variable in \code{data}. Replaces the deprecated \code{groups} argument; if both are supplied, \code{groupvar} takes precedence with a warning.
 }
   \item{covs}{
-A sample variance--covariance matrix, or a list/array of such matrices for multiple groups. Make sure \code{covtype} argument is set correctly to the type of covariances used. 
+A sample variance--covariance matrix, or a list/array of such matrices for multiple groups. Make sure \code{covtype} argument is set correctly to the type of covariances used.
+}
+  \item{cors}{
+A sample correlation matrix, or a list/array of such matrices for multiple groups. When supplied, the matrix is treated as a covariance matrix with a warning (appropriate for standardized data). Requires \code{nobs}. Note: \code{corinput = TRUE} is not supported in \code{var1}.
 }
   \item{means}{
 A vector of sample means, or a list/matrix containing such vectors for multiple groups.
 }
   \item{nobs}{
 The number of observations used in \code{covs} and \code{means}, or a vector of such numbers of observations for multiple groups.
+}
+  \item{corinput}{
+Logical. Not supported in \code{var1()} and will produce an error if set to \code{TRUE}.
 }
   \item{missing}{
 How should missingness be handled in computing the sample covariances and number of observations when \code{data} is used. Can be \code{"auto"} (default) for automatic detection, \code{"listwise"} for listwise deletion, or \code{"pairwise"} for pairwise deletion. When \code{"auto"}, the function checks for missing data and switches ML to FIML, PML to PFIML, or defaults to listwise for LS estimators.

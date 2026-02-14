@@ -1,3 +1,27 @@
+Changes in Version 0.14.24
+  o Standardized input arguments across model families. All model constructors
+    (varcov, lvm, var1, tsdlvm1, dlvm1, meta_varcov, meta_lvm) now accept a
+    consistent set of input arguments:
+    - New 'cors' argument: supply correlation matrices directly (with 'nobs').
+      In varcov/meta_varcov, 'corinput' defaults to TRUE. In other families,
+      correlations are treated as covariances with a warning.
+    - New 'groupvar' argument: replaces the deprecated 'groups' argument. If both
+      are supplied, 'groupvar' takes precedence with a deprecation warning.
+    - New 'corinput' argument added to lvm, var1, tsdlvm1, and dlvm1 signatures
+      (errors if set to TRUE, as correlation input is only supported in varcov
+      and meta_varcov).
+  o Meta-analytic models (meta_varcov, meta_lvm) now support raw data input via
+    'data' + 'studyvar' arguments. Correlation/covariance matrices and sample
+    sizes are computed internally per study.
+  o meta_varcov() now also accepts covariance matrices via 'covs' argument.
+  o meta_lvm() now also accepts correlation matrices via 'cors' argument.
+  o Shared input validation consolidated into standardize_input() helper function,
+    providing consistent error messages for mutual exclusion violations, missing
+    required arguments, and unsupported combinations.
+  o Fixed pre-existing bug in meta_varcov() baseline/saturated model construction
+    where R's missing() function was passed as the 'missing' argument to varcov()
+    instead of a string value.
+
 Changes in Version 0.14.23
   o Strip debug symbols from compiled shared library via linker flags in Makevars,
     reducing installed libs/ size on CRAN macOS builds (from ~29MB to ~2MB).

@@ -2,14 +2,20 @@
 meta_varcov <- function(
   cors, # List of correlation matrices as input. Must contain NAs
   nobs, # vector of sample sizes as input
-  
+
+  # New standardized input arguments:
+  data, # Raw data (use with studyvar to split by study)
+  covs, # List of covariance matrices (alternative to cors)
+  studyvar, # Column name in data indicating study membership
+  groups, # deprecated, use groupvar instead
+  groupvar, # grouping variable (errors: multi-group not yet supported)
+  corinput, # defaults to TRUE when cors is used
+
   Vmats, # Optional list of V matrices for each group. Will be averaged.
-  # Vmethod = c("default","individual","weighted","psychonetrics_individual", "psychonetrics_weighted", "psychonetrics_pooled", "metaSEM_individual","metaSEM_weighted"), # How to obtain V matrices if Vmats is not supplied?
-  # Vestimation = c("averaged","per_study"),
 
   Vmethod = c("individual","pooled","metaSEM_individual","metaSEM_weighted"), # How to obtain V matrices if Vmats is not supplied?
-  Vestimation = c("averaged","per_study"),  
-  
+  Vestimation = c("averaged","per_study"),
+
   # Model setup:
   type = c("cor", "ggm"), # Same as in varcov. Currently only cor and ggm are supported.
   sigma_y = "full", # (only lower tri is used) "diag", "full" or kappa structure, array (nvar * nvar * ngroup). NA indicates free, numeric indicates equality constraint, numeric indicates constraint
@@ -47,10 +53,27 @@ meta_varcov <- function(
 ){
 
   # warning("'meta_varcov' is still experimental.")
+
+  # Standardize input arguments:
+  si <- standardize_input(
+    data = if(missing(data)) NULL else data,
+    covs = if(missing(covs)) NULL else covs,
+    cors = if(missing(cors)) NULL else cors,
+    nobs = if(missing(nobs)) NULL else nobs,
+    corinput = if(missing(corinput)) NULL else corinput,
+    groups = if(missing(groups)) NULL else groups,
+    groupvar = if(missing(groupvar)) NULL else groupvar,
+    studyvar = if(missing(studyvar)) NULL else studyvar,
+    vars = if(missing(vars)) NULL else vars,
+    family = "meta_varcov", is_meta = TRUE,
+    caller = "meta_varcov()", estimator = match.arg(estimator)
+  )
+  # Apply resolved values (map covs back to cors for minimal disruption to body):
+  cors <- si$covs
+  nobs <- si$nobs
+  corinput <- if(!is.null(si$corinput)) si$corinput else TRUE
+
   sampleSizes <- nobs # FIXME
-  
-  # For now, I will always assume correlations were used in the input:
-  corinput <- TRUE
   estimator <- match.arg(estimator)
   
   randomEffects <- match.arg(randomEffects)
@@ -610,7 +633,7 @@ meta_varcov <- function(
                                                 type = "chol",
                                                 lowertri = "diag",
                                                 vars = corvars,
-                                                missing = missing,
+                                                missing = "listwise",
                                                 estimator = estimator,
                                                 baseline_saturated = FALSE,
                                                 sampleStats=sampleStats2)
@@ -628,7 +651,7 @@ meta_varcov <- function(
                                                  type = "chol",
                                                  lowertri = "full",
                                                  vars = corvars,
-                                                 missing = missing,
+                                                 missing = "listwise",
                                                  estimator = estimator,
                                                  baseline_saturated = FALSE,
                                                  sampleStats=sampleStats2)

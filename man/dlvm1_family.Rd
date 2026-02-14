@@ -34,7 +34,7 @@ dlvm1(data, vars, datatype = c("auto", "wide", "long"),
                    = "diag", sigma_epsilon_between = "diag",
                    lowertri_epsilon_between = "diag", nu, mu_eta,
                    identify = TRUE, identification = c("loadings",
-                   "variance"), latents, groups, covs, means, nobs, start
+                   "variance"), latents, groups, groupvar, covs, cors, means, nobs, corinput, start
                    = "version2", covtype = c("choose", "ML", "UB"),
                    missing = "auto", equal = "none",
                    baseline_saturated = TRUE, estimator = "ML",
@@ -170,16 +170,25 @@ Type of identification used. \code{"loadings"} to fix the first factor loadings 
 An optional character vector with names of the latent variables.
 }
   \item{groups}{
-An optional string indicating the name of the group variable in \code{data}.
+Deprecated. Use \code{groupvar} instead. An optional string indicating the name of the group variable in \code{data}.
+}
+  \item{groupvar}{
+An optional string indicating the name of the group variable in \code{data}. Replaces the deprecated \code{groups} argument; if both are supplied, \code{groupvar} takes precedence with a warning.
 }
   \item{covs}{
 A sample variance--covariance matrix, or a list/array of such matrices for multiple groups. IMPORTANT NOTE: psychonetrics expects the maximum likelihood (ML) covariance matrix, which is NOT obtained from \code{\link{cov}} directly. Manually rescale the result of \code{\link{cov}} with \code{(nobs - 1)/nobs} to obtain the ML covariance matrix.
+}
+  \item{cors}{
+A sample correlation matrix, or a list/array of such matrices for multiple groups. When supplied, the matrix is treated as a covariance matrix with a warning (appropriate for standardized data). Requires \code{nobs}. Note: \code{corinput = TRUE} is not supported in \code{dlvm1}.
 }
   \item{means}{
 A vector of sample means, or a list/matrix containing such vectors for multiple groups.
 }
   \item{nobs}{
 The number of observations used in \code{covs} and \code{means}, or a vector of such numbers of observations for multiple groups.
+}
+  \item{corinput}{
+Logical. Not supported in \code{dlvm1()} and will produce an error if set to \code{TRUE}.
 }
 \item{start}{Start value specification. Can be either a string or a psychonetrics model. If it is a string, \code{"version2"} indicates the latest version of start value computation, \code{"version1"} indicates start values as they were computed up to version 0.11, and \code{"simple"} indicate simple starting values. If this is a psychonetrics model the starting values will be based on the ouptut. This can be useful, for example, if you first estimate a model with matrices set to a Cholesky decomposition, then use those values as start values for estimating Gaussian graphical models.}
   \item{missing}{

@@ -42,10 +42,13 @@ tsdlvm1 <- function(
   dayvar,
   idvar,
   vars, # character indicating the variables Extracted if missing from data - group variable
-  groups, # ignored if missing. Can be character indicating groupvar, or vector with names of groups
+  groups, # deprecated, use groupvar instead
+  groupvar, # grouping variable (character column name or vector of group names)
   covs, # alternative covs (array nvar * nvar * ngroup)
+  cors, # alternative cors (treated as covs with warning in tsdlvm1)
   means, # alternative means (matrix nvar * ngroup)
   nobs, # Alternative if data is missing (length ngroup)
+  corinput, # not supported in tsdlvm1 (errors if TRUE)
   missing = "auto",
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
@@ -70,16 +73,34 @@ tsdlvm1 <- function(
   contemporaneous <- match.arg(contemporaneous)
   residual <- match.arg(residual)
   identification <- match.arg(identification)
-  
+
+  # Standardize input arguments:
+  si <- standardize_input(
+    data = if(missing(data)) NULL else data,
+    covs = if(missing(covs)) NULL else covs,
+    cors = if(missing(cors)) NULL else cors,
+    nobs = if(missing(nobs)) NULL else nobs,
+    corinput = if(missing(corinput)) NULL else corinput,
+    groups = if(missing(groups)) NULL else groups,
+    groupvar = if(missing(groupvar)) NULL else groupvar,
+    family = "tsdlvm1", caller = "tsdlvm1()", estimator = estimator
+  )
+  # Only overwrite when standardize_input actually resolved a value,
+  # so that the original missing() state is preserved for downstream code:
+  if (!is.null(si$data)) data <- si$data
+  if (!is.null(si$covs)) covs <- si$covs
+  if (!is.null(si$nobs)) nobs <- si$nobs
+  if (!is.null(si$groups)) groups <- si$groups
+
   # FIXME: Not sure why needed...
   if (missing(vars)) vars2 <- NULL else vars2 <- vars
   if (missing(idvar)) idvar <- NULL
   if (missing(dayvar)) dayvar <- NULL
   if (missing(beepvar)) beepvar <- NULL
   if (missing(groups)) groups <- NULL
-  
+
   # If data is missing with rawts, stop:
-  if (!missing(data)){
+  if (!is.null(data)){
     data <- as.data.frame(data)
     if (is.null(names(data))){
       names(data) <- paste0("V",seq_len(ncol(data)))

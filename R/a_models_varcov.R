@@ -14,8 +14,10 @@ varcov <- function(
   tau,
   vars, # character indicating the variables Extracted if missing from data - group variable
   ordered = character(0), # character indicating the variables that are ordinal
-  groups, # ignored if missing. Can be character indicating groupvar, or vector with names of groups
+  groups, # deprecated, use groupvar instead
+  groupvar, # grouping variable (character column name or vector of group names)
   covs, # alternative covs (array nvar * nvar * ngroup)
+  cors, # alternative cors (treated as covs with corinput=TRUE for varcov)
   means, # alternative means (matrix nvar * ngroup)
   nobs, # Alternative if data is missing (length ngroup)
   missing = "auto",
@@ -40,6 +42,25 @@ varcov <- function(
   penalty_alpha = 1,   # Elastic net mixing: 1 = LASSO, 0 = ridge
   penalize_matrices  # Character vector of matrix names to penalize. Default: defaultPenalizeMatrices()
 ){
+  # Standardize input arguments:
+  si <- standardize_input(
+    data = if(missing(data)) NULL else data,
+    covs = if(missing(covs)) NULL else covs,
+    cors = if(missing(cors)) NULL else cors,
+    nobs = if(missing(nobs)) NULL else nobs,
+    corinput = if(missing(corinput)) NULL else corinput,
+    groups = if(missing(groups)) NULL else groups,
+    groupvar = if(missing(groupvar)) NULL else groupvar,
+    family = "varcov", caller = "varcov()", estimator = estimator
+  )
+  # Only overwrite when standardize_input actually resolved a value,
+  # so that the original missing() state is preserved for downstream code:
+  if (!is.null(si$data)) data <- si$data
+  if (!is.null(si$covs)) covs <- si$covs
+  if (!is.null(si$nobs)) nobs <- si$nobs
+  if (!is.null(si$corinput)) corinput <- si$corinput
+  if (!is.null(si$groups)) groups <- si$groups
+
   rawts = FALSE
   if (rawts){
     warning("'rawts' is only included for testing purposes. Please do not use!")

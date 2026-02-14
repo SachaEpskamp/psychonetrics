@@ -17,7 +17,7 @@ varcov(data, type = c("cov", "chol", "prec", "ggm", "cor"),
                    sigma = "full", kappa = "full", omega = "full",
                    lowertri = "full", delta = "diag", rho = "full", SD =
                    "full", mu, tau, vars, ordered = character(0), groups,
-                   covs, means, nobs, missing = "auto", equal =
+                   groupvar, covs, cors, means, nobs, missing = "auto", equal =
                    "none", baseline_saturated = TRUE, estimator =
                    "default", optimizer, storedata = FALSE, WLS.W,
                    sampleStats, meanstructure, corinput, verbose = FALSE,
@@ -71,10 +71,16 @@ Optional list encoding the thresholds per variable.
 An optional character vector encoding the variables used in the analyis. Must equal names of the dataset in \code{data}.
 }
   \item{groups}{
-An optional string indicating the name of the group variable in \code{data}.
+Deprecated. Use \code{groupvar} instead. An optional string indicating the name of the group variable in \code{data}.
+}
+  \item{groupvar}{
+An optional string indicating the name of the group variable in \code{data}. Replaces the deprecated \code{groups} argument; if both are supplied, \code{groupvar} takes precedence with a warning.
 }
   \item{covs}{
-A sample variance--covariance matrix, or a list/array of such matrices for multiple groups. Make sure \code{covtype} argument is set correctly to the type of covariances used. 
+A sample variance--covariance matrix, or a list/array of such matrices for multiple groups. Make sure \code{covtype} argument is set correctly to the type of covariances used.
+}
+  \item{cors}{
+A sample correlation matrix, or a list/array of such matrices for multiple groups. When supplied, \code{corinput} defaults to \code{TRUE} and the matrix is used in place of \code{covs}. Requires \code{nobs}.
 }
   \item{means}{
 A vector of sample means, or a list/matrix containing such vectors for multiple groups.

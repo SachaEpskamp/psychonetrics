@@ -69,10 +69,13 @@ dlvm1 <- function(
   latents,
   
   # The rest:
-  groups, # ignored if missing. Can be character indicating groupvar, or vector with names of groups
+  groups, # deprecated, use groupvar instead
+  groupvar, # grouping variable (character column name or vector of group names)
   covs, # alternative covs (array nvar * nvar * ngroup)
+  cors, # alternative cors (treated as covs with warning in dlvm1)
   means, # alternative means (matrix nvar * ngroup)
   nobs, # Alternative if data is missing (length ngroup)
+  corinput, # not supported in dlvm1 (errors if TRUE)
   start = "version2", # <- start values,  "version 2" (defualt), "version 1", "simple" or a psychonetrics model
   covtype = c("choose","ML","UB"),
   missing = "auto",
@@ -104,6 +107,26 @@ dlvm1 <- function(
   covtype <- match.arg(covtype)
   datatype <- match.arg(datatype)
   standardize <- match.arg(standardize)
+
+  # Standardize input arguments:
+  .data_missing <- missing(data)
+  .groups_missing <- missing(groups)
+  si <- standardize_input(
+    data = if(.data_missing) NULL else data,
+    covs = if(missing(covs)) NULL else covs,
+    cors = if(missing(cors)) NULL else cors,
+    nobs = if(missing(nobs)) NULL else nobs,
+    corinput = if(missing(corinput)) NULL else corinput,
+    groups = if(.groups_missing) NULL else groups,
+    groupvar = if(missing(groupvar)) NULL else groupvar,
+    family = "dlvm1", caller = "dlvm1()", estimator = estimator
+  )
+  # Only overwrite when standardize_input actually resolved a value,
+  # so that the original missing() state is preserved for downstream code:
+  if (!is.null(si$data)) data <- si$data
+  if (!is.null(si$covs)) covs <- si$covs
+  if (!is.null(si$nobs)) nobs <- si$nobs
+  if (!is.null(si$groups)) groups <- si$groups
 
   # CRAN Check workarounds for long-format conversion:
   variable <- NULL
@@ -163,7 +186,7 @@ dlvm1 <- function(
       vars <- names(data)
       vars <- vars[vars != idvar]
       if (!missing(beepvar)) vars <- vars[vars != beepvar]
-      if (!missing(groups)) vars <- vars[vars != groups]
+      if (!.groups_missing || !is.null(si$groups)) vars <- vars[vars != groups]
     } else {
       stop("'vars' argument may not be missing")
     }
@@ -217,7 +240,7 @@ dlvm1 <- function(
     }
 
     # Handle groups for long data:
-    if (missing(groups)){
+    if (.groups_missing && is.null(si$groups)){
       groups <- "GROUPID"
       data[[groups]] <- "fullsample"
     }
@@ -274,7 +297,7 @@ dlvm1 <- function(
   allVars <- na.omit(as.vector(vars))
 
   # --- Wide-format standardization (global per variable across waves) ---
-  if (standardize %in% c("z", "quantile") && !missing(data) && !is.null(data)){
+  if (standardize %in% c("z", "quantile") && !.data_missing && !is.null(data)){
     if (is.matrix(data)) data <- as.data.frame(data)
     for (v in seq_len(nrow(vars))){
       varCols <- na.omit(vars[v, ])
@@ -303,7 +326,7 @@ dlvm1 <- function(
   
   # Auto-detect missing data handling:
   if (missing == "auto") {
-    if (!missing(data) && !is.null(data)){
+    if (!.data_missing && !is.null(data)){
       has_missing <- any(is.na(data[, allVars, drop = FALSE]))
       if (has_missing) {
         if (estimator == "ML") {
@@ -324,7 +347,7 @@ dlvm1 <- function(
 
   # Obtain sample stats:
   if (missing(sampleStats)){
-    if (missing(data)){
+    if (.data_missing || is.null(data)){
       sampleStats <- samplestats(vars = allVars,
                                  groups = groups,
                                  covs = covs,
