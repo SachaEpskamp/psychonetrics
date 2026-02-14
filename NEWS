@@ -1,3 +1,10 @@
+Changes in Version 0.14.23
+  o Strip debug symbols from compiled shared library via linker flags in Makevars,
+    reducing installed libs/ size on CRAN macOS builds (from ~29MB to ~2MB).
+  o Added C++ pipeline for meta_lvm (implied, prepare, derivatives), providing
+    ~2.8x speedup over the R-only implementation.
+  o Fixed meta_lvm.Rd documentation to match actual function signature.
+
 Changes in Version 0.14.22
   o meta_lvm() now accepts covariance matrices (not just correlations). The data vector
     includes diagonal elements (variances) alongside off-diagonal covariances, with free

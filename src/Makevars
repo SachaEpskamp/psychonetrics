@@ -10,6 +10,10 @@
 ## support within Armadillo prefers / requires it
 # CXX_STD = CXX11
 
-PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS) 
+PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS)
 PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
 PKG_CPPFLAGS = -DARMA_DONT_USE_OPENMP -I../inst/include
+
+# Strip debug symbols to reduce installed library size on platforms
+# where DWARF info is embedded in the shared library (e.g. CRAN macOS):
+SHLIB_CXXLDFLAGS = $(SHLIB_LDFLAGS) -Wl,-S
