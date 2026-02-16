@@ -16,7 +16,7 @@ impliedModel <- function(model, types, all = FALSE){
                      "Ising" = implied_Ising_cpp, # <- Updated!
                      "ml_lvm" = implied_ml_lvm_cpp, # <- Updated!
                      "meta_lvm" = implied_meta_lvm_cpp,
-                     "meta_var1" = implied_meta_var1 # R-only for now
+                     "meta_var1" = implied_meta_var1_cpp
     )
   } else {
     impFun <- switch(framework,

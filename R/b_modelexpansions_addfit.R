@@ -36,7 +36,7 @@ compute_wlsmv_correction <- function(x) {
       "Ising" = d_phi_theta_Ising_cpp,
       "ml_lvm" = d_phi_theta_ml_lvm_cpp,
       "meta_lvm" = d_phi_theta_meta_lvm,
-      "meta_var1" = d_phi_theta_meta_var1
+      "meta_var1" = d_phi_theta_meta_var1_cpp
     )
   } else {
     modelJacobian <- switch(

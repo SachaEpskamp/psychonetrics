@@ -21,6 +21,8 @@
 #include "20_meta_varcov_prepare_cpp.h"
 #include "23_meta_lvm_implied_cpp.h"
 #include "23_meta_lvm_prepare_cpp.h"
+#include "24_meta_var1_implied_cpp.h"
+#include "24_meta_var1_prepare_cpp.h"
 #include "21_Ising_implied_cpp.h"
 #include "21_Ising_prepare_cpp.h"
 #include "22_ml_lvm_prepare_cpp.h"
@@ -135,6 +137,10 @@ Rcpp::List impliedModel_cpp(
 
     imp = implied_meta_lvm_cpp(model, all);
 
+  }  else if (framework == "meta_var1"){
+
+    imp = implied_meta_var1_cpp(model, all);
+
   }
 
   // Return:
@@ -246,6 +252,10 @@ Rcpp::List prepareModel_cpp(
   }  else if (framework == "meta_lvm"){
 
     prep = prepare_meta_lvm_cpp(x, model);
+
+  }  else if (framework == "meta_var1"){
+
+    prep = prepare_meta_var1_cpp(x, model);
 
   }
 

@@ -1,3 +1,18 @@
+Changes in Version 0.14.27
+  o Added C++ pipeline for meta_var1/meta_gvar models. The C++ implementation
+    (cpp=TRUE, the default) uses OptimWorkspace caching and
+    formModelMatrices_direct for efficient parameter-to-matrix mapping.
+  o C++ implied model (implied_meta_var1_cpp) computes BetaStar, Sigma0,
+    Sigma1, and meta-analytic mu/sigma/kappa entirely in C++.
+  o C++ derivatives (d_phi_theta_meta_var1_cpp) reuse existing var1 C++
+    derivative helpers for the mean part and varcov helpers for the
+    random effects variance part.
+  o C++ prepare (prepare_meta_var1_cpp) follows the meta_lvm_prepare_cpp
+    pattern with D_c override for the ML gradient.
+  o Registered meta_var1 in all C++ dispatchers: prepareModel_cpp,
+    impliedModel_cpp, psychonetrics_gradient_cpp_inner, and
+    psychonetrics_FisherInformation_cpp_inner.
+
 Changes in Version 0.14.26
   o New meta_var1() model family: meta-analytic VAR(1) model for pooling
     temporal and contemporaneous network structures across multiple studies.

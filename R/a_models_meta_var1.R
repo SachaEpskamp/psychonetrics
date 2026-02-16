@@ -308,9 +308,6 @@ meta_var1 <- function(
                                   meanstructure = TRUE,
                                   verbose = verbose)
 
-  # No C++ implementations yet for meta_var1:
-  model@cpp <- FALSE
-
   # Number of groups:
   nGroup <- 1  # Multi-group not yet supported
 

@@ -19,7 +19,7 @@ prepareModel <- function(x, model){
                       "Ising" = prepare_Ising_cpp, # <- Updated!
                       "ml_lvm" = prepare_ml_lvm_cpp, # <- Udated!!!
                       "meta_lvm" = prepare_meta_lvm_cpp,
-                      "meta_var1" = prepare_meta_var1 # R-only for now
+                      "meta_var1" = prepare_meta_var1_cpp
                       # "cholesky" = prepare_cholesky
     )
   } else {

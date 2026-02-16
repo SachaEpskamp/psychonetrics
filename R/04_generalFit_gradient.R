@@ -89,7 +89,7 @@ psychonetrics_gradient <- function(x, model){
       "Ising" = d_phi_theta_Ising_cpp, # <- updated!
       "ml_lvm" = d_phi_theta_ml_lvm_cpp, # <- updated!
       "meta_lvm" = d_phi_theta_meta_lvm_cpp,
-      "meta_var1" = d_phi_theta_meta_var1 # R-only for now
+      "meta_var1" = d_phi_theta_meta_var1_cpp
       # "cholesky" = d_phi_theta_cholesky
     )
   } else {
