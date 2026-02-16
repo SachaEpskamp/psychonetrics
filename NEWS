@@ -1,3 +1,22 @@
+Changes in Version 0.14.26
+  o New meta_var1() model family: meta-analytic VAR(1) model for pooling
+    temporal and contemporaneous network structures across multiple studies.
+    Uses a one-stage random effects framework. Accepts either raw time-series
+    data (via data + studyvar) or pre-computed Toeplitz covariance matrices
+    (via covs + nobs).
+  o New meta_gvar() wrapper: convenience function that calls meta_var1()
+    with contemporaneous = "ggm" for graphical VAR estimation.
+  o meta_var1/meta_gvar model the stationary covariance (Sigma0) and lag-1
+    cross-covariance (Sigma1) blocks, excluding the nuisance exogenous
+    covariance block from the Toeplitz matrix.
+  o Derivatives for meta_var1 reuse existing var1 Jacobian helpers
+    (d_sigma0_beta_var1_cpp, etc.) for the mean part, and meta_lvm random
+    effects Jacobians for the variance part.
+  o R-only implementation (no C++ yet); model@cpp is set to FALSE.
+  o If studyvar is not assigned but idvar is, studyvar is set to idvar
+    with a warning. If both are assigned, idvar functions within each study
+    for collating time series.
+
 Changes in Version 0.14.24
   o Standardized input arguments across model families. All model constructors
     (varcov, lvm, var1, tsdlvm1, dlvm1, meta_varcov, meta_lvm) now accept a

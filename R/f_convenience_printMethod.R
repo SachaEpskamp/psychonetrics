@@ -48,6 +48,7 @@ definition = function(object){
     "tsdlvm1" = "Lag-1 dynamic latent variable model for time-series data (tsdlvm1)",
     "meta_varcov" = "Variance-covariance matrix meta analysis",
     "meta_lvm" = "Meta-analytic latent variable model",
+    "meta_var1" = "Meta-analytic VAR(1) model",
     "Ising" = "Ising model",
     "ml_lvm" = "Multi-level latent variable model"
   )
@@ -65,7 +66,9 @@ definition = function(object){
     "gvar" = "Graphical vector-autoregression (GVAR)",
     "var" = "Vector-autoregression (VAR)",
     "ml_lnm" = "Multi-level latent network model",
-    "ml_rnm" = "Multi-level residual network model"
+    "ml_rnm" = "Multi-level residual network model",
+    "meta_gvar" = "Meta-analytic graphical VAR (meta_gvar)",
+    "meta_var" = "Meta-analytic VAR (meta_var)"
   )
   if (is.null(submod)){
     submod <- object@submodel

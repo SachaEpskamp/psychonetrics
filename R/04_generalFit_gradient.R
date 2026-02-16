@@ -88,7 +88,8 @@ psychonetrics_gradient <- function(x, model){
       "meta_varcov" = d_phi_theta_meta_varcov_cpp, # <- updated!
       "Ising" = d_phi_theta_Ising_cpp, # <- updated!
       "ml_lvm" = d_phi_theta_ml_lvm_cpp, # <- updated!
-      "meta_lvm" = d_phi_theta_meta_lvm_cpp
+      "meta_lvm" = d_phi_theta_meta_lvm_cpp,
+      "meta_var1" = d_phi_theta_meta_var1 # R-only for now
       # "cholesky" = d_phi_theta_cholesky
     )
   } else {
@@ -107,7 +108,8 @@ psychonetrics_gradient <- function(x, model){
       "meta_varcov" = d_phi_theta_meta_varcov,
       "Ising" = d_phi_theta_Ising,
       "ml_lvm" = d_phi_theta_ml_lvm,
-      "meta_lvm" = d_phi_theta_meta_lvm
+      "meta_lvm" = d_phi_theta_meta_lvm,
+      "meta_var1" = d_phi_theta_meta_var1
       # "cholesky" = d_phi_theta_cholesky
     )
   }

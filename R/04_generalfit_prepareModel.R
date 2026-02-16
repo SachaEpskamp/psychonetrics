@@ -18,7 +18,8 @@ prepareModel <- function(x, model){
                       "meta_varcov" = prepare_meta_varcov_cpp, # <- updated!
                       "Ising" = prepare_Ising_cpp, # <- Updated!
                       "ml_lvm" = prepare_ml_lvm_cpp, # <- Udated!!!
-                      "meta_lvm" = prepare_meta_lvm_cpp
+                      "meta_lvm" = prepare_meta_lvm_cpp,
+                      "meta_var1" = prepare_meta_var1 # R-only for now
                       # "cholesky" = prepare_cholesky
     )
   } else {
@@ -36,7 +37,8 @@ prepareModel <- function(x, model){
                       "meta_varcov" = prepare_meta_varcov,
                       "Ising" = prepare_Ising,
                       "ml_lvm" = prepare_ml_lvm,
-                      "meta_lvm" = prepare_meta_lvm
+                      "meta_lvm" = prepare_meta_lvm,
+                      "meta_var1" = prepare_meta_var1
                       # "cholesky" = prepare_cholesky
     )
   }

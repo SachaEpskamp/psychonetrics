@@ -15,7 +15,8 @@ impliedModel <- function(model, types, all = FALSE){
                      "meta_varcov" = implied_meta_varcov_cpp, # <- Updated!
                      "Ising" = implied_Ising_cpp, # <- Updated!
                      "ml_lvm" = implied_ml_lvm_cpp, # <- Updated!
-                     "meta_lvm" = implied_meta_lvm_cpp
+                     "meta_lvm" = implied_meta_lvm_cpp,
+                     "meta_var1" = implied_meta_var1 # R-only for now
     )
   } else {
     impFun <- switch(framework,
@@ -29,7 +30,8 @@ impliedModel <- function(model, types, all = FALSE){
                      "meta_varcov" = implied_meta_varcov,
                      "Ising" = implied_Ising,
                      "ml_lvm" = implied_ml_lvm,
-                     "meta_lvm" = implied_meta_lvm
+                     "meta_lvm" = implied_meta_lvm,
+                     "meta_var1" = implied_meta_var1
     )
   }
 
