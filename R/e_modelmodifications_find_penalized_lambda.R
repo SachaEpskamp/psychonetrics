@@ -202,7 +202,7 @@ find_penalized_lambda <- function(
 
   # Resolve beta_min
   if (is.character(beta_min)) {
-    beta_min <- match.arg(beta_min, c("numerical", "theoretical"))
+    beta_min <- match.arg(beta_min)
     if (beta_min == "numerical") {
       beta_min <- 1e-05
     } else {

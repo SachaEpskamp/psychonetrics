@@ -259,9 +259,5 @@ mod_pml@optim$lambda_search
 
 # Obtain the sparse network:
 getmatrix(mod_pml, "omega")
-
-# Refit for standard errors and fit indices:
-mod_pml_refit <- mod_pml \%>\% refit
-mod_pml_refit \%>\% parameters
 }
 }
