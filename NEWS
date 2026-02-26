@@ -1,3 +1,55 @@
+Changes in Version 0.14.x:
+  The package has gone through a large overhaul in the 0.14.x series of
+  package versions. The most important changes are:
+  o Major C++ optimization of the estimation pipeline, resulting in ~45%
+    cumulative speedup. This includes O(nFreePar) direct parameter-to-matrix
+    mapping, OptimWorkspace caching of constant data across iterations,
+    cache-aware prepareModel to skip redundant computations, and the new
+    LBFGS++ pure C++ optimizer.
+  o Added ordinal data support and WLSMV estimation for the lvm framework.
+    lvm() now accepts ordinal variables via the 'ordered' argument, with
+    WLS, DWLS, and ULS estimators. The WLSMV scaled test statistic
+    (Asparouhov & Muthen, 2010) provides scaled chi-square, scaled RMSEA,
+    and scaled incremental fit indices matching lavaan output.
+  o Restructured dlvm1() to accept both wide-format and long-format data,
+    unifying the interface for panel data models. Deprecated ml_tsdlvm1(),
+    ml_gvar(), ml_var(), and related wrappers in favor of dlvm1() and
+    panellvgvar().
+  o Penalized maximum likelihood (PML) and penalized FIML (PFIML) estimation
+    with automatic lambda selection via EBIC-based grid search. Includes
+    beta_min thresholding, warm starts across the lambda path, and refit()
+    for post-selection inference.
+  o New meta_lvm() model family for single-stage meta-analytic latent variable
+    modeling (extending the MAGNA framework to CFA/SEM), and new meta_var1()
+    / meta_gvar() for meta-analytic VAR(1) network models pooling temporal
+    and contemporaneous structures across studies.
+  o New write_psychonetrics() function for exporting comprehensive
+    Mplus/LISREL-style output to a text file, intended for supplementary
+    materials in publications.
+  o Standardized input arguments across all model families: new 'cors',
+    'groupvar', and 'corinput' arguments with consistent validation via
+    standardize_input(). Meta-analytic models now accept raw data input.
+  o Added SRMR (Standardized Root Mean Square Residual) fit measure using
+    Bentler (1995) standardization. Ising models now also compute
+    model-implied means and covariances enabling SRMR computation.
+  o Improved starting values: OLS-based beta starting values for SEM models,
+    fixed the 'equal' argument in multi-group lvm() models.
+  o New loop_psychonetrics() convenience function for parallel bootstrapping
+    and simulations with automatic variable export and progress bars.
+  o Changed default missing data handling to missing = "auto", automatically
+    switching to FIML/PFIML when missing data is detected.
+  o Automatic fallback to approximate standard errors when the Fisher
+    information matrix cannot be inverted.
+  o Various bugfixes for Ising Fisher information, dlvm1 Jacobian
+    construction, dplyr/ggplot2 deprecation warnings, and CRAN compliance.
+
+Changes in Version 0.14.28
+  o Ising models now compute model-implied means (mu) and covariances (sigma)
+    from the exact Ising expectations after optimization. This enables SRMR
+    and other residual-based fit measures for Ising models (previously returned
+    NA). The computation uses the existing isingExpectation() C++ function:
+    mu = E[X] and sigma = E[XX'] - E[X]E[X]'.
+
 Changes in Version 0.14.27
   o Removed roptim-based C++ optimizers (cpp_L-BFGS-B, cpp_BFGS, cpp_CG,
     cpp_SANN, cpp_Nelder-Mead) from the public interface. These optimizers

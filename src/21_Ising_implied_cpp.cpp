@@ -8,6 +8,7 @@
 #include "03_modelformation_formModelMatrices_cpp.h"
 #include "03_modelformation_impliedcovstructures.h"
 #include "04_generalfit_optimWorkspace.h"
+#include "21_Ising_helperfunctions.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -60,6 +61,30 @@ Rcpp::List implied_Ising_cpp_core(
    x[g] = grouplist;
   }
 
+  // When all = true, compute model-implied means and covariances
+  // from the Ising expectations (used after optimization for fit measures):
+  if (all) {
+    const Rcpp::List& extramatrices = ws.extramatrices;
+    arma::vec responses = extramatrices["responses"];
+    double min_sum = extramatrices["min_sum"];
+
+    for (g = 0; g < nGroup; g++) {
+      Rcpp::List grouplist = x[g];
+
+      Rcpp::List exp = isingExpectation(
+        grouplist["omega"], grouplist["tau"], grouplist["beta"],
+        responses, min_sum
+      );
+
+      arma::vec exp_v1 = exp["exp_v1"];
+      arma::mat exp_v2 = exp["exp_v2"];
+
+      grouplist["mu"] = exp_v1;
+      grouplist["sigma"] = exp_v2 - exp_v1 * exp_v1.t();
+
+      x[g] = grouplist;
+    }
+  }
 
   return(x);
 }
@@ -75,4 +100,3 @@ Rcpp::List implied_Ising_cpp(
 
   return implied_Ising_cpp_core(x, model, all);
 }
-
