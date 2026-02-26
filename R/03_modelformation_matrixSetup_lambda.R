@@ -75,48 +75,24 @@ matrixsetup_lambda <- function(
   
           # Correlation between factor loadings:
           # Generate 100 different permutations and choose the best:
-          if (nLat > 1){
-            
-            
-            ### FIXME: OLD CODE FROM VERSION 0.10 ###
-            # perms <- combinat::permn(1:nLat)
-            # # fit <- sapply(perms, function(x)sum(diag(stats::cor(abs(load[,x]), lambda[,,g]))))
-            # fit <- sapply(perms, function(x)sum(abs(load)[,x] * (lambda[,,g]!=0)))
-            # best <- perms[[which.max(fit)]]        
-            
-            ### FIXME: NEW CODE (CHECK):
-            # REMOVED IN VERSION 0.12, make simpler#
-            # corFL_LY <- cor(lambda[,,g] + rnorm(prod(dim(lambda[,,g])),0,0.0001), load)
-            # 
-            # 
-            # best_per_lat <- apply(corFL_LY, 1, order, decreasing=TRUE)
-            # 
-            # # FIXME: Not optimal, but put all duplicated factors to second choice (better is to do optimisation algoritm)
-            # row <- 1
-            # 
-            # while (any(duplicated(best_per_lat[1,]))){
-            #   row <- row + 1
-            #   if (row > nrow(best_per_lat)){
-            #     warning("No proper starting values found for lambda, using simple starting values.")
-            #     simple <- TRUE
-            #     break
-            #   } 
-            #   best_per_lat[1,duplicated(best_per_lat[1,])] <- best_per_lat[row,duplicated(best_per_lat[1,])]
-            # }
-            # 
-            # 
-            # 
-            # best <- best_per_lat[1,]
-            
-            ### FIXME: NEWER NEW CODE:
-            # Simply pick the factor with strongest loadings for each latent variable:
+          # Check if lambda is full (all elements free):
+          is_full_lambda <- all(lambdaMask[,,g] != 0)
+
+          if (is_full_lambda && nLat > 1){
+            # Full lambda: use FA factors in natural order (promax already
+            # rotates toward approximate simple structure):
+            best <- seq_len(nLat)
+
+          } else if (nLat > 1){
+            # Simple structure: pick the factor with strongest loadings
+            # for each latent variable:
             best <- numeric(nLat)
-            
+
             for (l in seq_len(nLat)){
               best[l] <- which.max(colSums(abs(lambdaMask[,l,g] * load)))
             }
-            
-            
+
+
           } else {
             best <- 1
           }

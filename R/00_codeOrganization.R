@@ -21,13 +21,13 @@
   packageStartupMessage("This is ",paste(pkgname, version),"! For questions, issues, and bug reports, please see github.com/SachaEpskamp/psychonetrics.")
 }
 
-# Helper to emit a one-time experimental feature warning (only when version < 0.15):
+# Helper to emit a one-time experimental feature warning (only when version < 0.16):
 .experimental_warned <- new.env(parent = emptyenv())
 
 experimentalWarning <- function(feature) {
-  # Only warn for pre-0.15 versions:
+  # Only warn for pre-0.16 versions:
   ver <- utils::packageVersion("psychonetrics")
-  if (ver >= "0.15") return(invisible())
+  if (ver >= "0.16") return(invisible())
   # Only warn once per feature per session:
   if (isTRUE(.experimental_warned[[feature]])) return(invisible())
   .experimental_warned[[feature]] <- TRUE

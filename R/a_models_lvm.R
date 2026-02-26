@@ -288,12 +288,20 @@ lvm <- function(
     meanstructure * nMeans + # Means per group
     nThresh # Thresholds
   
-  # Stop if lambda is missing or a character:
+  # Stop if lambda is missing:
   if (missing(lambda)){
     stop("'lambda' may not be missing")
   }
+  # Handle lambda = "full":
   if (is.character(lambda)){
-    stop("'lambda' may not be a string")
+    if (lambda == "full") {
+      if (missing(latents)) {
+        stop("'latents' must be specified when lambda = 'full'")
+      }
+      lambda <- matrix(1, nrow = nNode, ncol = length(latents))
+    } else {
+      stop("'lambda' must be a numeric matrix, or 'full'")
+    }
   }
   
   # Number of latents:

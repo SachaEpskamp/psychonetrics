@@ -59,6 +59,9 @@ penalize <- function(
   # Track how many parameters were penalized:
   nPenalized <- 0
 
+  # Check if lambda is a matrix (per-element penalty specification):
+  lambda_is_matrix <- is.matrix(lambda) || (is.array(lambda) && length(dim(lambda)) >= 2)
+
   for (mat in matrix) {
     # Validate matrix name:
     if (!mat %in% x@parameters$matrix) {
@@ -73,70 +76,142 @@ penalize <- function(
       is_sym <- mat_info$symmetrical[1]
     }
 
-    # Build the selection mask
-    if (missing(row) && missing(col)) {
-      # Penalize whole matrix (off-diagonal for symmetric, all for non-symmetric like beta)
-      if (is_sym) {
-        # Symmetric matrices: only off-diagonal (row != col)
-        whichPen <- which(
-          x@parameters$matrix == mat &
-            !x@parameters$fixed &
-            x@parameters$par > 0 &
-            x@parameters$row != x@parameters$col &
-            x@parameters$group_id %in% group
-        )
-      } else {
-        # Non-symmetric matrices (e.g., beta): all elements
-        whichPen <- which(
-          x@parameters$matrix == mat &
-            !x@parameters$fixed &
-            x@parameters$par > 0 &
-            x@parameters$group_id %in% group
-        )
+    if (lambda_is_matrix) {
+      # --- Matrix-form lambda: per-element penalty specification ---
+      lambda_mat <- if (length(dim(lambda)) == 3) lambda[,,1] else as.matrix(lambda)
+
+      # Validate dimensions:
+      mat_nrow <- max(x@parameters$row[x@parameters$matrix == mat])
+      mat_ncol <- max(x@parameters$col[x@parameters$matrix == mat])
+      if (nrow(lambda_mat) != mat_nrow || ncol(lambda_mat) != mat_ncol) {
+        stop("Dimensions of lambda matrix (", nrow(lambda_mat), "x", ncol(lambda_mat),
+             ") don't match model matrix '", mat, "' (", mat_nrow, "x", mat_ncol, ")")
       }
+
+      nFreed <- 0
+      for (i in seq_len(nrow(lambda_mat))) {
+        for (j in seq_len(ncol(lambda_mat))) {
+          # For symmetric matrices, only process lower triangle (including diagonal):
+          if (is_sym && i < j) next
+
+          val <- lambda_mat[i, j]
+
+          # Determine row/col in parameter table (symmetric: row >= col):
+          r <- i; cl <- j
+          if (is_sym) { r <- max(i, j); cl <- min(i, j) }
+
+          # Find matching parameter table rows:
+          matching <- which(
+            x@parameters$matrix == mat &
+              x@parameters$row == r &
+              x@parameters$col == cl &
+              x@parameters$group_id %in% group
+          )
+          if (length(matching) == 0) next
+
+          if (!is.na(val) && val == 0) {
+            # 0 = don't penalize (set penalty_lambda to 0)
+            x@parameters$penalty_lambda[matching] <- 0
+          } else {
+            # NA or > 0 = penalize this element
+            # Auto-free any fixed parameters first:
+            for (idx in matching) {
+              if (x@parameters$fixed[idx] && x@parameters$par[idx] == 0) {
+                curMax <- max(x@parameters$par)
+                x@parameters$par[idx] <- curMax + 1
+                x@parameters$fixed[idx] <- FALSE
+                x@parameters$est[idx] <- 0  # Start at 0 for penalized params
+                nFreed <- nFreed + 1
+              }
+            }
+            # Set penalty for all free matching params:
+            matching_free <- matching[!x@parameters$fixed[matching] &
+                                       x@parameters$par[matching] > 0]
+            if (length(matching_free) > 0) {
+              x@parameters$penalty_lambda[matching_free] <- val
+              nPenalized <- nPenalized + length(matching_free)
+            }
+          }
+        }
+      }
+
+      # Relabel parameter indices after freeing:
+      if (nFreed > 0) {
+        x@parameters <- parRelabel(x@parameters)
+      }
+
     } else {
-      # Specific row/col selection
-      r <- if (!missing(row)) row else unique(x@parameters$row[x@parameters$matrix == mat])
-      cl <- if (!missing(col)) col else unique(x@parameters$col[x@parameters$matrix == mat])
+      # --- Scalar lambda: existing behavior ---
+      # Build the selection mask
+      if (missing(row) && missing(col)) {
+        # Penalize whole matrix (off-diagonal for symmetric, all for non-symmetric like beta)
+        if (is_sym) {
+          # Symmetric matrices: only off-diagonal (row != col)
+          whichPen <- which(
+            x@parameters$matrix == mat &
+              !x@parameters$fixed &
+              x@parameters$par > 0 &
+              x@parameters$row != x@parameters$col &
+              x@parameters$group_id %in% group
+          )
+        } else {
+          # Non-symmetric matrices (e.g., beta): all elements
+          whichPen <- which(
+            x@parameters$matrix == mat &
+              !x@parameters$fixed &
+              x@parameters$par > 0 &
+              x@parameters$group_id %in% group
+          )
+        }
+      } else {
+        # Specific row/col selection
+        r <- if (!missing(row)) row else unique(x@parameters$row[x@parameters$matrix == mat])
+        cl <- if (!missing(col)) col else unique(x@parameters$col[x@parameters$matrix == mat])
 
-      # If row/col are character, convert to indices
-      if (is.character(r) || is.character(cl)) {
-        labs <- labtoind(x, r, cl, mat)
-        if (is.character(r)) r <- labs$row
-        if (is.character(cl)) cl <- labs$col
+        # If row/col are character, convert to indices
+        if (is.character(r) || is.character(cl)) {
+          labs <- labtoind(x, r, cl, mat)
+          if (is.character(r)) r <- labs$row
+          if (is.character(cl)) cl <- labs$col
+        }
+
+        # For symmetric matrices, ensure consistent ordering (row >= col)
+        if (is_sym) {
+          r0 <- r; cl0 <- cl
+          r <- pmax(r0, cl0)
+          cl <- pmin(r0, cl0)
+        }
+
+        whichPen <- which(
+          x@parameters$matrix == mat &
+            x@parameters$row %in% r &
+            x@parameters$col %in% cl &
+            !x@parameters$fixed &
+            x@parameters$par > 0 &
+            x@parameters$group_id %in% group
+        )
       }
 
-      # For symmetric matrices, ensure consistent ordering (row >= col)
-      if (is_sym) {
-        r0 <- r; cl0 <- cl
-        r <- pmax(r0, cl0)
-        cl <- pmin(r0, cl0)
+      # Set penalty_lambda for matching rows:
+      if (length(whichPen) > 0) {
+        x@parameters$penalty_lambda[whichPen] <- lambda
+        nPenalized <- nPenalized + length(whichPen)
       }
-
-      whichPen <- which(
-        x@parameters$matrix == mat &
-          x@parameters$row %in% r &
-          x@parameters$col %in% cl &
-          !x@parameters$fixed &
-          x@parameters$par > 0 &
-          x@parameters$group_id %in% group
-      )
-    }
-
-    # Set penalty_lambda for matching rows:
-    if (length(whichPen) > 0) {
-      x@parameters$penalty_lambda[whichPen] <- lambda
-      nPenalized <- nPenalized + length(whichPen)
     }
   }
 
   if (verbose) {
-    message(paste0("Penalized ", nPenalized, " parameter table entries (lambda = ", lambda, ")"))
+    if (lambda_is_matrix) {
+      message(paste0("Penalized ", nPenalized, " parameter table entries (matrix-form lambda)"))
+    } else {
+      message(paste0("Penalized ", nPenalized, " parameter table entries (lambda = ", lambda, ")"))
+    }
   }
 
   if (log) {
+    lambda_str <- if (lambda_is_matrix) "matrix" else as.character(lambda)
     x <- addLog(x, paste0("Penalized ", nPenalized, " entries in matrix/matrices: ",
-                           paste(matrix, collapse = ", "), " (lambda = ", lambda, ")"))
+                           paste(matrix, collapse = ", "), " (lambda = ", lambda_str, ")"))
   }
 
   # Set model to not computed:

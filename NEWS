@@ -1,6 +1,6 @@
-Changes in Version 0.14.x:
-  The package has gone through a large overhaul in the 0.14.x series of
-  package versions. The most important changes are:
+Changes in Version 0.15
+  o The package has gone through a large overhaul in the 0.14.x series of
+    package versions. The most important changes are listed below.
   o Major C++ optimization of the estimation pipeline, resulting in ~45%
     cumulative speedup. This includes O(nFreePar) direct parameter-to-matrix
     mapping, OptimWorkspace caching of constant data across iterations,
@@ -40,6 +40,17 @@ Changes in Version 0.14.x:
     switching to FIML/PFIML when missing data is detected.
   o Automatic fallback to approximate standard errors when the Fisher
     information matrix cannot be inverted.
+  o lvm() now accepts lambda = "full" to specify a full loading matrix where
+    all cross-loadings are free. Requires the 'latents' argument to be
+    specified. FA-based starting values use promax-rotated loadings directly
+    (no permutation matching needed for full lambda).
+  o penalize() now accepts a matrix for the 'lambda' argument, enabling
+    per-element penalty specification: 0 = don't penalize, NA = auto-select
+    via EBIC grid search, numeric > 0 = fixed penalty strength. Parameters
+    that are fixed at zero in the model are automatically freed when a
+    non-zero penalty is specified, combining freepar() and penalize() in
+    one step. Works for both symmetric (e.g., sigma_epsilon) and
+    non-symmetric (e.g., lambda) matrices.
   o Various bugfixes for Ising Fisher information, dlvm1 Jacobian
     construction, dplyr/ggplot2 deprecation warnings, and CRAN compliance.
 
