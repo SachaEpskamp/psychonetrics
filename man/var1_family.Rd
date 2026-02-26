@@ -99,7 +99,7 @@ A logical indicating if the baseline and saturated model should be included. Mos
 The estimator to be used. Currently implemented are \code{"ML"} for maximum likelihood estimation, \code{"FIML"} for full-information maximum likelihood estimation, \code{"PML"} for penalized maximum likelihood estimation, \code{"PFIML"} for penalized full-information maximum likelihood estimation, \code{"ULS"} for unweighted least squares estimation, \code{"WLS"} for weighted least squares estimation, and \code{"DWLS"} for diagonally weighted least squares estimation. When \code{missing = "auto"} (default), \code{"ML"} is automatically switched to \code{"FIML"} and \code{"PML"} to \code{"PFIML"} if missing data is detected.
 }
   \item{optimizer}{
-The optimizer to be used. Can be one of \code{"nlminb"} (the default R \code{nlminb} function), \code{"ucminf"} (from the \code{optimr} package), and C++ based optimizers \code{"cpp_L-BFGS-B"}, \code{"cpp_BFGS"}, \code{"cpp_CG"}, \code{"cpp_SANN"}, and \code{"cpp_Nelder-Mead"}. The C++ optimizers are faster but slightly less stable. Defaults to \code{"nlminb"}.
+The optimizer to be used. Can be one of \code{"nlminb"} (the default R \code{nlminb} function), \code{"ucminf"} (from the \code{optimr} package), \code{"nloptr_TNEWTON"} (preconditioned truncated Newton via \code{nloptr}), and \code{"LBFGS++"} (pure C++ L-BFGS-B). Defaults to \code{"nlminb"}.
 }
   \item{storedata}{
 Logical, should the raw data be stored? Needed for bootstrapping (see \code{bootstrap}).

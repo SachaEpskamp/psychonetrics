@@ -163,7 +163,7 @@ plot.esa_manual <- function(x,...){
   
   if(!requireNamespace("ggplot2")) stop("'ggplot2' package needs to be installed.")
   
-  g <- ggplot2::ggplot(df, ggplot2::aes_string(x = "ev", y = "ergodicity")) + 
+  g <- ggplot2::ggplot(df, ggplot2::aes(x = .data[["ev"]], y = .data[["ergodicity"]])) +
     ggplot2::geom_line(lwd = 1.5) + ggplot2::geom_point(cex = 3) + ggplot2::ylim(-1,1) + 
     ggplot2::geom_text(ggplot2::aes(x=mean(seq_along(x$ergodicity)), y = 1, label = "Dominantly between-subject"), colour = "black") + 
     ggplot2::geom_text(ggplot2::aes(x=mean(seq_along(x$ergodicity)), y = -1, label = "Dominantly Within-subject"), colour = "black") + 
@@ -199,9 +199,9 @@ plot.esa <- function(x, plot = c("observed","latent"),...){
     
     # Create base plot:
     if (nGroups == 1){
-      g <- ggplot2::ggplot(df, ggplot2::aes_string(x = "ev", y = "ergodicity"))
+      g <- ggplot2::ggplot(df, ggplot2::aes(x = .data[["ev"]], y = .data[["ergodicity"]]))
     } else {
-      g <- ggplot2::ggplot(df, ggplot2::aes_string(x = "ev", y = "ergodicity", colour = "factor(group)"))
+      g <- ggplot2::ggplot(df, ggplot2::aes(x = .data[["ev"]], y = .data[["ergodicity"]], colour = factor(.data[["group"]])))
     }
     
     g <- g + 

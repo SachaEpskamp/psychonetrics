@@ -1,4 +1,11 @@
 Changes in Version 0.14.27
+  o Removed roptim-based C++ optimizers (cpp_L-BFGS-B, cpp_BFGS, cpp_CG,
+    cpp_SANN, cpp_Nelder-Mead) from the public interface. These optimizers
+    are no longer available via setoptimizer() or documented in help pages.
+    Users should use "nlminb" (default), "ucminf", "nloptr_TNEWTON", or
+    "LBFGS++" instead.
+  o Replaced deprecated ggplot2::aes_string() calls with
+    ggplot2::aes(.data[[]]) in CIplot() and ESA plot methods.
   o Added SRMR (Standardized Root Mean Square Residual) fit measure.
     Uses Bentler (1995) standardization, matching lavaan's default
     srmr_bentler. Includes mean residuals when a mean structure is

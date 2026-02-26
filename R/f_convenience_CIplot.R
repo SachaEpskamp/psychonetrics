@@ -261,18 +261,18 @@ CIplot <- function(
       df_cis$hjust <- ifelse(df_cis$upper > labelstart, 1.05, -0.05)
       
       plots <- ggplot2::ggplot(df_cis,
-                               ggplot2::aes_string(x = "edge", y = "est", colour = "sig",
-                                                   ymin = "lower", ymax = "upper")) +
+                               ggplot2::aes(x = .data[["edge"]], y = .data[["est"]], colour = .data[["sig"]],
+                                                   ymin = .data[["lower"]], ymax = .data[["upper"]])) +
         ggplot2::geom_hline(yintercept = 0, alpha = 0.2) +
         ggplot2::geom_errorbar() + 
         ggplot2::geom_point(cex = 1.5) +
         # geom_point(cex = 1.5, aes(y = edge_pruned)) +
         # geom_point(cex = 0.5*1.5, aes(y = edge_pruned), colour = "white") +
-        ggplot2::geom_text(ggplot2::aes_string(y = "labstart", label = "edge", hjust = "hjust"), colour = rgb(0.2,0.2,0.2), cex = 2.5) +
-        ggplot2::coord_flip() + 
+        ggplot2::geom_text(ggplot2::aes(y = .data[["labstart"]], label = .data[["edge"]], hjust = .data[["hjust"]]), colour = rgb(0.2,0.2,0.2), cex = 2.5) +
+        ggplot2::coord_flip() +
         # facet_grid( ~  model) +
         ggplot2::scale_y_continuous(breaks = seq(floor(min(df_cis$lower)),ceiling(max(df_cis$upper)),by=major_break),
-                                    minor_breaks = seq(floor(min(df_cis$lower)),ceiling(max(df_cis$upper)),by=minor_break)) + 
+                                    minor_breaks = seq(floor(min(df_cis$lower)),ceiling(max(df_cis$upper)),by=minor_break)) +
         ggplot2::theme_bw(base_size = 12) +
         ggplot2::scale_colour_manual("",values = c("black",colors),drop=FALSE) +  ggplot2::theme(legend.position = "top", # axis.text.y = element_text(size = 7),
                                                                                                  axis.text.y=ggplot2::element_blank(),
@@ -385,14 +385,14 @@ CIplot <- function(
       df_cis$hjust <- ifelse(df_cis$upper > labelstart, 1.05, -0.05)
       
       plots <- ggplot2::ggplot(df_cis %>% filter(.data[["type"]] == "Bootstrap mean"),
-                               ggplot2::aes_string(x = "edge", y = "est", 
-                                                   ymin = "lower", ymax = "upper")) +
+                               ggplot2::aes(x = .data[["edge"]], y = .data[["est"]],
+                                                   ymin = .data[["lower"]], ymax = .data[["upper"]])) +
         ggplot2::geom_hline(yintercept = 0, alpha = 0.2) +
-        ggplot2::geom_errorbar(ggplot2::aes_string(alpha = 'alpha')) + 
-        ggplot2::geom_point(ggplot2::aes_string(alpha = 'alpha', colour = "type"),cex = 1.5, data = df_cis) +
+        ggplot2::geom_errorbar(ggplot2::aes(alpha = .data[["alpha"]])) +
+        ggplot2::geom_point(ggplot2::aes(alpha = .data[["alpha"]], colour = .data[["type"]]),cex = 1.5, data = df_cis) +
         # geom_point(cex = 1.5, aes(y = edge_pruned)) +
         # geom_point(cex = 0.5*1.5, aes(y = edge_pruned), colour = "white") +
-        ggplot2::geom_text(ggplot2::aes_string(y = "labstart", label = "edge", hjust = "hjust"), colour = rgb(0.2,0.2,0.2), cex = 2.5) +
+        ggplot2::geom_text(ggplot2::aes(y = .data[["labstart"]], label = .data[["edge"]], hjust = .data[["hjust"]]), colour = rgb(0.2,0.2,0.2), cex = 2.5) +
         ggplot2::coord_flip() + 
         # facet_grid( ~  model) +
         ggplot2::scale_y_continuous(breaks = seq(floor(min(df_cis$lower)),ceiling(max(df_cis$upper)),by=major_break),

@@ -13,9 +13,7 @@ These functions can be used to change some estimator options.
 setestimator(x, estimator)
 
 setoptimizer(x, optimizer = c("default", "nlminb", "ucminf",
-                 "nloptr_TNEWTON", "cpp_L-BFGS-B", "LBFGS++",
-                 "cpp_BFGS", "cpp_CG", "cpp_SANN",
-                 "cpp_Nelder-Mead"), optim.args)
+                 "nloptr_TNEWTON", "LBFGS++"), optim.args)
 
 
 usecpp(x, use = TRUE)
@@ -37,18 +35,9 @@ The optimizer to be used. The following optimizers are available:
   \item{\code{"ucminf"}}{Unconstrained minimization using a quasi-Newton method (via the \code{optimr} package). Does not support box constraints. Fast for unconstrained problems.}
 }
 
-\bold{C++ based optimizers (via roptim, wrapping R's \code{optim()} C routines):}
+\bold{C++ based optimizer:}
 \describe{
-  \item{\code{"cpp_L-BFGS-B"}}{Limited-memory BFGS with box constraints. Calls R's internal L-BFGS-B implementation from C++ via the \code{roptim} package.}
-  \item{\code{"cpp_BFGS"}}{BFGS quasi-Newton method without box constraints.}
-  \item{\code{"cpp_CG"}}{Conjugate gradient method.}
-  \item{\code{"cpp_SANN"}}{Simulated annealing. Does not use gradients.}
-  \item{\code{"cpp_Nelder-Mead"}}{Nelder-Mead simplex method. Does not use gradients.}
-}
-
-\bold{Pure C++ optimizer:}
-\describe{
-  \item{\code{"LBFGS++"}}{L-BFGS-B optimizer from the LBFGSpp library (Yixuan Qiu). This is a pure C++ implementation that computes the objective function and gradient in a single combined call, avoiding redundant computation via internal caching. Supports box constraints. Approximately 1.6x faster than \code{"cpp_L-BFGS-B"} on benchmark models. Recommended when speed is important.}
+  \item{\code{"LBFGS++"}}{L-BFGS-B optimizer from the LBFGSpp library (Yixuan Qiu). This is a pure C++ implementation that computes the objective function and gradient in a single combined call, avoiding redundant computation via internal caching. Supports box constraints. Recommended when speed is important.}
 }
 
 \bold{NLopt-based optimizer (via nloptr):}
