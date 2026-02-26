@@ -2,7 +2,7 @@ Changes in Version 0.15
   o The package has gone through a large overhaul in the 0.14.x series of
     package versions. The most important changes are listed below.
   o Major C++ optimization of the estimation pipeline, resulting in ~45%
-    cumulative speedup. This includes O(nFreePar) direct parameter-to-matrix
+    cumulative speedup. This includes direct parameter-to-matrix
     mapping, OptimWorkspace caching of constant data across iterations,
     cache-aware prepareModel to skip redundant computations, and the new
     LBFGS++ pure C++ optimizer.
@@ -14,11 +14,11 @@ Changes in Version 0.15
   o Restructured dlvm1() to accept both wide-format and long-format data,
     unifying the interface for panel data models. Deprecated ml_tsdlvm1(),
     ml_gvar(), ml_var(), and related wrappers in favor of dlvm1() and
-    panellvgvar().
+    panelvar() / panelgvar().
   o Penalized maximum likelihood (PML) and penalized FIML (PFIML) estimation
     with automatic lambda selection via EBIC-based grid search. Includes
     beta_min thresholding, warm starts across the lambda path, and refit()
-    for post-selection inference.
+    for refitting parameters without regularization.
   o New meta_lvm() model family for single-stage meta-analytic latent variable
     modeling (extending the MAGNA framework to CFA/SEM), and new meta_var1()
     / meta_gvar() for meta-analytic VAR(1) network models pooling temporal
