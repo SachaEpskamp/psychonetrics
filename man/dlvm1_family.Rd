@@ -34,7 +34,8 @@ dlvm1(data, vars, datatype = c("auto", "wide", "long"),
                    = "diag", sigma_epsilon_between = "diag",
                    lowertri_epsilon_between = "diag", nu, mu_eta,
                    identify = TRUE, identification = c("loadings",
-                   "variance"), latents, groups, groupvar, covs, cors, means, nobs, corinput, start
+                   "variance"), latents, groups, groupvar, covs,
+                   cors, means, nobs, corinput, start
                    = "version2", covtype = c("choose", "ML", "UB"),
                    missing = "auto", equal = "none",
                    baseline_saturated = TRUE, estimator = "ML",

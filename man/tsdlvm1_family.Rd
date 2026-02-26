@@ -18,7 +18,8 @@ tsdlvm1(data, lambda, contemporaneous = c("cov", "chol",
                    sigma_epsilon = "diag", lowertri_epsilon = "diag", nu,
                    mu_eta, identify = TRUE, identification =
                    c("loadings", "variance"), latents, beepvar, dayvar,
-                   idvar, vars, groups, groupvar, covs, cors, means, nobs, corinput, missing =
+                   idvar, vars, groups, groupvar, covs, cors,
+                   means, nobs, corinput, missing =
                    "auto", equal = "none", baseline_saturated = TRUE,
                    estimator = "ML", optimizer, storedata = FALSE,
                    sampleStats, covtype = c("choose", "ML", "UB"),

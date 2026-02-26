@@ -13,7 +13,8 @@ var1(data, contemporaneous = c("cov", "chol", "prec",
                    "ggm"), beta = "full", omega_zeta = "full", delta_zeta
                    = "full", kappa_zeta = "full", sigma_zeta = "full",
                    lowertri_zeta = "full", mu, beepvar, dayvar, idvar,
-                   vars, groups, groupvar, covs, cors, means, nobs, corinput, missing = "auto",
+                   vars, groups, groupvar, covs, cors, means,
+                   nobs, corinput, missing = "auto",
                    equal = "none", baseline_saturated = TRUE, estimator =
                    "ML", optimizer, storedata = FALSE, covtype =
                    c("choose", "ML", "UB"), standardize = c("none", "z",
