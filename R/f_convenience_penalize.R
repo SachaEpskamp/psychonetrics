@@ -125,9 +125,9 @@ penalize <- function(
                 nPenalized <- nPenalized + length(matching_free)
               }
             } else {
-              # what == "fixed": free fixed parameters and penalize them (silently skip free):
+              # what == "fixed": free parameters fixed to zero and penalize them (silently skip free/non-zero):
               for (idx in matching) {
-                if (x@parameters$fixed[idx] && x@parameters$par[idx] == 0) {
+                if (x@parameters$fixed[idx] && x@parameters$par[idx] == 0 && x@parameters$est[idx] == 0) {
                   curMax <- max(x@parameters$par)
                   x@parameters$par[idx] <- curMax + 1
                   x@parameters$fixed[idx] <- FALSE
@@ -172,12 +172,13 @@ penalize <- function(
             )
           }
         } else {
-          # what == "fixed": free fixed parameters and penalize them
+          # what == "fixed": free parameters fixed to zero and penalize them
           if (is_sym) {
             whichFixed <- which(
               x@parameters$matrix == mat &
                 x@parameters$fixed &
                 x@parameters$par == 0 &
+                x@parameters$est == 0 &
                 x@parameters$row != x@parameters$col &
                 x@parameters$group_id %in% group
             )
@@ -186,6 +187,7 @@ penalize <- function(
               x@parameters$matrix == mat &
                 x@parameters$fixed &
                 x@parameters$par == 0 &
+                x@parameters$est == 0 &
                 x@parameters$group_id %in% group
             )
           }
@@ -239,9 +241,10 @@ penalize <- function(
                     "' when what = 'free'. Use what = 'fixed' to first free these parameters before penalizing them.")
           }
         } else {
-          # what == "fixed": free fixed parameters and penalize; warn about free ones:
+          # what == "fixed": free parameters fixed to zero and penalize; warn about free ones:
           whichFixed <- allMatching[x@parameters$fixed[allMatching] &
-                                     x@parameters$par[allMatching] == 0]
+                                     x@parameters$par[allMatching] == 0 &
+                                     x@parameters$est[allMatching] == 0]
           whichSkipped <- allMatching[!x@parameters$fixed[allMatching] &
                                        x@parameters$par[allMatching] > 0]
           if (length(whichSkipped) > 0) {
