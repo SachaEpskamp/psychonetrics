@@ -32,11 +32,13 @@ penalize <- function(
     col,          # Optional: specific cols
     lambda,       # Optional: per-parameter lambda. Default: x@penalty$lambda
     group,        # Optional: specific group(s)
+    what = c("free", "fixed"),  # Penalize free or fixed parameters
     verbose,
     log = TRUE
 ) {
   if (!is(x, "psychonetrics")) stop("input must be a psychonetrics object")
   if (missing(verbose)) verbose <- x@verbose
+  what <- match.arg(what)
 
   # Default matrix selection:
   if (missing(matrix)) {
@@ -114,22 +116,28 @@ penalize <- function(
             x@parameters$penalty_lambda[matching] <- 0
           } else {
             # NA or > 0 = penalize this element
-            # Auto-free any fixed parameters first:
-            for (idx in matching) {
-              if (x@parameters$fixed[idx] && x@parameters$par[idx] == 0) {
-                curMax <- max(x@parameters$par)
-                x@parameters$par[idx] <- curMax + 1
-                x@parameters$fixed[idx] <- FALSE
-                x@parameters$est[idx] <- 0  # Start at 0 for penalized params
-                nFreed <- nFreed + 1
+            if (what == "free") {
+              # Only penalize already-free parameters (silently skip fixed):
+              matching_free <- matching[!x@parameters$fixed[matching] &
+                                         x@parameters$par[matching] > 0]
+              if (length(matching_free) > 0) {
+                x@parameters$penalty_lambda[matching_free] <- val
+                nPenalized <- nPenalized + length(matching_free)
               }
-            }
-            # Set penalty for all free matching params:
-            matching_free <- matching[!x@parameters$fixed[matching] &
-                                       x@parameters$par[matching] > 0]
-            if (length(matching_free) > 0) {
-              x@parameters$penalty_lambda[matching_free] <- val
-              nPenalized <- nPenalized + length(matching_free)
+            } else {
+              # what == "fixed": free fixed parameters and penalize them (silently skip free):
+              for (idx in matching) {
+                if (x@parameters$fixed[idx] && x@parameters$par[idx] == 0) {
+                  curMax <- max(x@parameters$par)
+                  x@parameters$par[idx] <- curMax + 1
+                  x@parameters$fixed[idx] <- FALSE
+                  x@parameters$est[idx] <- 0  # Start at 0 for penalized params
+                  nFreed <- nFreed + 1
+                  # Set penalty:
+                  x@parameters$penalty_lambda[idx] <- val
+                  nPenalized <- nPenalized + 1
+                }
+              }
             }
           }
         }
@@ -142,26 +150,56 @@ penalize <- function(
 
     } else {
       # --- Scalar lambda: existing behavior ---
-      # Build the selection mask
+
       if (missing(row) && missing(col)) {
-        # Penalize whole matrix (off-diagonal for symmetric, all for non-symmetric like beta)
-        if (is_sym) {
-          # Symmetric matrices: only off-diagonal (row != col)
-          whichPen <- which(
-            x@parameters$matrix == mat &
-              !x@parameters$fixed &
-              x@parameters$par > 0 &
-              x@parameters$row != x@parameters$col &
-              x@parameters$group_id %in% group
-          )
+        # Penalize whole matrix
+        if (what == "free") {
+          # Penalize free parameters (current default behavior)
+          if (is_sym) {
+            whichPen <- which(
+              x@parameters$matrix == mat &
+                !x@parameters$fixed &
+                x@parameters$par > 0 &
+                x@parameters$row != x@parameters$col &
+                x@parameters$group_id %in% group
+            )
+          } else {
+            whichPen <- which(
+              x@parameters$matrix == mat &
+                !x@parameters$fixed &
+                x@parameters$par > 0 &
+                x@parameters$group_id %in% group
+            )
+          }
         } else {
-          # Non-symmetric matrices (e.g., beta): all elements
-          whichPen <- which(
-            x@parameters$matrix == mat &
-              !x@parameters$fixed &
-              x@parameters$par > 0 &
-              x@parameters$group_id %in% group
-          )
+          # what == "fixed": free fixed parameters and penalize them
+          if (is_sym) {
+            whichFixed <- which(
+              x@parameters$matrix == mat &
+                x@parameters$fixed &
+                x@parameters$par == 0 &
+                x@parameters$row != x@parameters$col &
+                x@parameters$group_id %in% group
+            )
+          } else {
+            whichFixed <- which(
+              x@parameters$matrix == mat &
+                x@parameters$fixed &
+                x@parameters$par == 0 &
+                x@parameters$group_id %in% group
+            )
+          }
+          # Free them:
+          if (length(whichFixed) > 0) {
+            for (idx in whichFixed) {
+              curMax <- max(x@parameters$par)
+              x@parameters$par[idx] <- curMax + 1
+              x@parameters$fixed[idx] <- FALSE
+              x@parameters$est[idx] <- 0  # Start at 0 for penalized params
+            }
+            x@parameters <- parRelabel(x@parameters)
+          }
+          whichPen <- whichFixed
         }
       } else {
         # Specific row/col selection
@@ -182,14 +220,46 @@ penalize <- function(
           cl <- pmin(r0, cl0)
         }
 
-        whichPen <- which(
+        # Find all matching entries:
+        allMatching <- which(
           x@parameters$matrix == mat &
             x@parameters$row %in% r &
             x@parameters$col %in% cl &
-            !x@parameters$fixed &
-            x@parameters$par > 0 &
             x@parameters$group_id %in% group
         )
+
+        if (what == "free") {
+          # Penalize free parameters; warn about fixed ones:
+          whichPen <- allMatching[!x@parameters$fixed[allMatching] &
+                                    x@parameters$par[allMatching] > 0]
+          whichSkipped <- allMatching[x@parameters$fixed[allMatching] |
+                                       x@parameters$par[allMatching] == 0]
+          if (length(whichSkipped) > 0) {
+            warning("Cannot penalize ", length(whichSkipped), " fixed parameter(s) in '", mat,
+                    "' when what = 'free'. Use what = 'fixed' to first free these parameters before penalizing them.")
+          }
+        } else {
+          # what == "fixed": free fixed parameters and penalize; warn about free ones:
+          whichFixed <- allMatching[x@parameters$fixed[allMatching] &
+                                     x@parameters$par[allMatching] == 0]
+          whichSkipped <- allMatching[!x@parameters$fixed[allMatching] &
+                                       x@parameters$par[allMatching] > 0]
+          if (length(whichSkipped) > 0) {
+            warning("Cannot penalize ", length(whichSkipped), " already-free parameter(s) in '", mat,
+                    "' when what = 'fixed'. Use what = 'free' to penalize parameters that are already free.")
+          }
+          # Free them:
+          if (length(whichFixed) > 0) {
+            for (idx in whichFixed) {
+              curMax <- max(x@parameters$par)
+              x@parameters$par[idx] <- curMax + 1
+              x@parameters$fixed[idx] <- FALSE
+              x@parameters$est[idx] <- 0  # Start at 0 for penalized params
+            }
+            x@parameters <- parRelabel(x@parameters)
+          }
+          whichPen <- whichFixed
+        }
       }
 
       # Set penalty_lambda for matching rows:
@@ -202,16 +272,16 @@ penalize <- function(
 
   if (verbose) {
     if (lambda_is_matrix) {
-      message(paste0("Penalized ", nPenalized, " parameter table entries (matrix-form lambda)"))
+      message(paste0("Penalized ", nPenalized, " parameter table entries (matrix-form lambda, what = '", what, "')"))
     } else {
-      message(paste0("Penalized ", nPenalized, " parameter table entries (lambda = ", lambda, ")"))
+      message(paste0("Penalized ", nPenalized, " parameter table entries (lambda = ", lambda, ", what = '", what, "')"))
     }
   }
 
   if (log) {
     lambda_str <- if (lambda_is_matrix) "matrix" else as.character(lambda)
     x <- addLog(x, paste0("Penalized ", nPenalized, " entries in matrix/matrices: ",
-                           paste(matrix, collapse = ", "), " (lambda = ", lambda_str, ")"))
+                           paste(matrix, collapse = ", "), " (lambda = ", lambda_str, ", what = '", what, "')"))
   }
 
   # Set model to not computed:
