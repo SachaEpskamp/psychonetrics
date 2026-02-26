@@ -60,10 +60,11 @@ parameters <- function(x){
   }
   
   
-  # if not computed, remove est, se and p:
+  # if not computed, remove est, se and p (only if they exist):
   if (!x@computed){
     warning("Model has not been computed! Not returning estimates, standard errors and p-values. Use runmodel() to compute the model.")
-    parTable <- parTable %>% select(-.data[['est']],-.data[['se']],-.data[['p']])
+    drop_cols <- intersect(c("est", "se", "p"), names(parTable))
+    parTable <- parTable %>% select(-all_of(drop_cols))
   }
   
   # For each group:
