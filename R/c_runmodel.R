@@ -20,7 +20,7 @@ runmodel <- function(
     bounded = TRUE,
     approximate_SEs=FALSE,
     criterion = "ebic.5",
-    beta_min = c("numerical", "theoretical")
+    beta_min = c("theoretical", "numerical")
     # cholesky_start # If TRUE, a model is formed with Cholesky decompositions first which is run for obtaining starting values.
 ){
   # cholesky_start <- FALSE

@@ -16,7 +16,7 @@ runmodel(x, level = c("gradient", "fitfunction"), addfit =
                    return_improper = TRUE, bounded = TRUE,
                    approximate_SEs = FALSE,
                    criterion = "ebic.5",
-                   beta_min = c("numerical", "theoretical"))
+                   beta_min = c("theoretical", "numerical"))
 
 }
 %- maybe also 'usage' for other objects documented here.

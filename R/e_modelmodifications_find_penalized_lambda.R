@@ -171,7 +171,7 @@ find_penalized_lambda <- function(
     criterion = "ebic.5",
     nLambda = 50,
     lambda_min_ratio = 1e-4,
-    beta_min = c("numerical", "theoretical"),
+    beta_min = c("theoretical", "numerical"),
     verbose
 ) {
   if (!is(model, "psychonetrics")) stop("input must be a psychonetrics object")
