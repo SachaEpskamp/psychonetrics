@@ -75,17 +75,14 @@ tsData <- function(data,
   
 
   # Obtain person specific means:
- MeansData <-data %>% dplyr::group_by(.data[[idvar]]) %>% dplyr::summarise_at(funs(mean(.,na.rm=TRUE)),.vars = vars)
- 
-  #FIXME: Replace with?
- data %>% dplyr::group_by(.data[[idvar]]) %>% dplyr::summarise_at(list(~mean(.,na.rm=TRUE)),.vars = vars)
+ MeansData <-data %>% dplyr::group_by(.data[[idvar]]) %>% dplyr::summarise(across(all_of(vars), ~mean(.,na.rm=TRUE)))
  
   
   # Within-person center:
   if (centerWithin){
     # Only if N > 1 (very minimal floating point error can lead to different layout to older version otherwise)
     if (length(unique(data[[idvar]])) > 1){
-      data <- data %>% dplyr::group_by(.data[[idvar]]) %>% dplyr::mutate_at(funs(scale(.,center=TRUE,scale=FALSE)),.vars = vars)         
+      data <- data %>% dplyr::group_by(.data[[idvar]]) %>% dplyr::mutate(across(all_of(vars), ~scale(.,center=TRUE,scale=FALSE)))         
     }
   }
 
@@ -131,7 +128,7 @@ tsData <- function(data,
   
   # Lagged datasets:
   data_l <- do.call(cbind,lapply(lags, function(l){
-    data_lagged <- augData %>% dplyr::group_by(.data[[idvar]],.data[[dayvar]]) %>% dplyr::mutate_at(funs(shift),.vars = vars) %>% ungroup %>% dplyr::select(all_of(vars))
+    data_lagged <- augData %>% dplyr::group_by(.data[[idvar]],.data[[dayvar]]) %>% dplyr::mutate(across(all_of(vars), shift)) %>% ungroup %>% dplyr::select(all_of(vars))
     names(data_lagged) <- paste0(vars,"_lag",l)
     data_lagged
   }))

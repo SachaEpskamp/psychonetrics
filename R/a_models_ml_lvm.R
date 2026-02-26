@@ -180,11 +180,11 @@ ml_lvm <- function(
   ### For start values, compute pairwise covs of sample means and deviations from means ###
   
   # Mean dataset:
-  data_means <- data %>% group_by(!!as.name(clusters),!!as.name(groups)) %>% summarize_at(.vars=vars,funs(mean(.,na.rm=TRUE)))
-  
+  data_means <- data %>% group_by(!!as.name(clusters),!!as.name(groups)) %>% summarize(across(all_of(vars), ~mean(.,na.rm=TRUE)))
+
   # Within person dataset:
-  data_centered <- data %>% group_by(!!as.name(clusters),!!as.name(groups)) %>% 
-    mutate_at(.vars=vars,funs(scale(.,scale = FALSE)))
+  data_centered <- data %>% group_by(!!as.name(clusters),!!as.name(groups)) %>%
+    mutate(across(all_of(vars), ~scale(.,scale = FALSE)))
   
   
   start_between_covs <- list()
