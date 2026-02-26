@@ -37,7 +37,11 @@ matrixsetup_delta <- function(
     }
     
     # Network starting values:
-    deltaStart[,,g] <- diag(1/sqrt(diag(wi)))
+    startVals <- diag(1/sqrt(diag(wi)))
+    # Preserve zeros for diagonal elements fixed at zero:
+    fixedZero <- diag(delta[,,g]) == 0
+    startVals[cbind(which(fixedZero), which(fixedZero))] <- 0
+    deltaStart[,,g] <- startVals
     
     if (onlyStartSign){
       deltaStart[,,g] <- ifelse(deltaStart[,,g]!=0,sign(deltaStart[,,g]), 0)

@@ -6,6 +6,9 @@ Changes in Version 0.14.27
     "LBFGS++" instead.
   o Replaced deprecated ggplot2::aes_string() calls with
     ggplot2::aes(.data[[]]) in CIplot() and ESA plot methods.
+  o Fixed delta matrix starting values when using delta_* = "zero":
+    diagonal elements fixed at zero now correctly show est = 0 in the
+    parameter table instead of data-derived starting values.
   o Added SRMR (Standardized Root Mean Square Residual) fit measure.
     Uses Bentler (1995) standardization, matching lavaan's default
     srmr_bentler. Includes mean residuals when a mean structure is
