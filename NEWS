@@ -1,4 +1,14 @@
 Changes in Version 0.14.27
+  o Added SRMR (Standardized Root Mean Square Residual) fit measure.
+    Uses Bentler (1995) standardization, matching lavaan's default
+    srmr_bentler. Includes mean residuals when a mean structure is
+    present. Under FIML, uses the saturated model's EM-estimated
+    covariance as the observed statistic (matching lavaan's h1 approach).
+    Multi-group models use an N-weighted average across groups.
+  o The 'beta_min' argument in find_penalized_lambda() and runmodel() now
+    accepts "numerical" (default, uses 1e-05), "theoretical"
+    (uses sqrt(log(p)/n)), or a numeric value. The previous default was
+    the theoretical formula; the new default is the fixed numerical threshold.
   o Added C++ pipeline for meta_var1/meta_gvar models. The C++ implementation
     (cpp=TRUE, the default) uses OptimWorkspace caching and
     formModelMatrices_direct for efficient parameter-to-matrix mapping.

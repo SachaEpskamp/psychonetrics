@@ -15,7 +15,8 @@ runmodel(x, level = c("gradient", "fitfunction"), addfit =
                    warn_gradient = TRUE, warn_bounds = TRUE,
                    return_improper = TRUE, bounded = TRUE,
                    approximate_SEs = FALSE,
-                   criterion = "ebic.5", beta_min)
+                   criterion = "ebic.5",
+                   beta_min = c("numerical", "theoretical"))
 
 }
 %- maybe also 'usage' for other objects documented here.
@@ -68,7 +69,7 @@ Should a warning be given when a parameter is estimated near its bounds?
 Character string specifying the information criterion for automatic lambda selection in PML/PFIML models. One of \code{"bic"}, \code{"ebic.25"}, \code{"ebic.5"} (default), \code{"ebic.75"}, or \code{"ebic1"}. Only used when the model contains auto-select penalty parameters (\code{penalty_lambda = NA}). See \code{\link{find_penalized_lambda}} for details.
 }
 \item{beta_min}{
-Numeric threshold for zeroing out small penalized parameters during automatic lambda selection. Default is \code{sqrt(log(p)/n)}. See \code{\link{find_penalized_lambda}} for details.
+Threshold for zeroing out small penalized parameters during automatic lambda selection. Can be \code{"numerical"} (default; uses \code{1e-05}), \code{"theoretical"} (uses \code{sqrt(log(p)/n)}), or a numeric value. See \code{\link{find_penalized_lambda}} for details.
 }
 }
 \details{

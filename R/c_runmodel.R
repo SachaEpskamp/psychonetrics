@@ -20,7 +20,7 @@ runmodel <- function(
     bounded = TRUE,
     approximate_SEs=FALSE,
     criterion = "ebic.5",
-    beta_min
+    beta_min = c("numerical", "theoretical")
     # cholesky_start # If TRUE, a model is formed with Cholesky decompositions first which is run for obtaining starting values.
 ){
   # cholesky_start <- FALSE
@@ -77,9 +77,8 @@ runmodel <- function(
     # Auto-select lambda if any penalty_lambda values are NA:
     if (hasAutoLambda(x)) {
       if (verbose) message("Auto-selecting lambda via grid search...")
-      search_args <- list(model = x, criterion = criterion, verbose = verbose)
-      if (!missing(beta_min)) search_args$beta_min <- beta_min
-      x <- do.call(find_penalized_lambda, search_args)
+      x <- find_penalized_lambda(x, criterion = criterion, beta_min = beta_min,
+                                    verbose = verbose)
       if (log) {
         x <- addLog(x, paste0("Auto-selected lambda = ",
                                formatC(x@penalty$lambda, format = "e", digits = 3),

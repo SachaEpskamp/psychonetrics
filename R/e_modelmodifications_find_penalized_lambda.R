@@ -171,7 +171,7 @@ find_penalized_lambda <- function(
     criterion = "ebic.5",
     nLambda = 50,
     lambda_min_ratio = 1e-4,
-    beta_min,            # default: sqrt(log(p)/n)
+    beta_min = c("numerical", "theoretical"),
     verbose
 ) {
   if (!is(model, "psychonetrics")) stop("input must be a psychonetrics object")
@@ -200,9 +200,14 @@ find_penalized_lambda <- function(
     return(model)
   }
 
-  # Default beta_min
-  if (missing(beta_min)) {
-    beta_min <- sqrt(log(p) / n)
+  # Resolve beta_min
+  if (is.character(beta_min)) {
+    beta_min <- match.arg(beta_min, c("numerical", "theoretical"))
+    if (beta_min == "numerical") {
+      beta_min <- 1e-05
+    } else {
+      beta_min <- sqrt(log(p) / n)
+    }
   }
 
   if (verbose) {

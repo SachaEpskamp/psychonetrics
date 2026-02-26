@@ -13,7 +13,8 @@ This function is called automatically by \code{\link{runmodel}} when the model c
 }
 \usage{
 find_penalized_lambda(model, criterion = "ebic.5", nLambda = 50,
-                      lambda_min_ratio = 1e-4, beta_min,
+                      lambda_min_ratio = 1e-4,
+                      beta_min = c("numerical", "theoretical"),
                       verbose)
 }
 \arguments{
@@ -38,7 +39,12 @@ Integer, the number of lambda values in the search grid. Default is 50. The grid
 Numeric, the ratio of the smallest to the largest lambda in the grid. Default is \code{1e-4}, so that \code{lambda_min = lambda_max * 1e-4}.
 }
   \item{beta_min}{
-Numeric threshold for zeroing out small penalized parameter estimates. Parameters with absolute value below \code{beta_min} are set to zero, both during EBIC evaluation (for parameter counting) and in the final model. Default is \code{sqrt(log(p) / n)} where \code{p} is the number of penalized parameters and \code{n} is the total sample size.
+Threshold for zeroing out small penalized parameter estimates. Parameters with absolute value below \code{beta_min} are set to zero, both during EBIC evaluation (for parameter counting) and in the final model. Can be:
+\describe{
+  \item{\code{"numerical"}}{Uses a fixed threshold of \code{1e-05} (default).}
+  \item{\code{"theoretical"}}{Uses \code{sqrt(log(p) / n)} where \code{p} is the number of penalized parameters and \code{n} is the total sample size.}
+  \item{numeric value}{Uses the provided value directly as the threshold.}
+}
 }
   \item{verbose}{
 Logical, should progress messages be printed? Defaults to the model's \code{verbose} setting.

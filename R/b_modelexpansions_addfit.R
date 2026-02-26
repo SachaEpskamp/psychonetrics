@@ -449,6 +449,56 @@ addfit <- function(
     fitMeasures$rmsea.scaled <- fitMeasures$rmsea.scaled * sqrt(nGroups)
   }
 
+  # SRMR (Bentler, 1995):
+  # Standardized Root Mean Square Residual.
+  # Standardize both observed and implied covariances by observed SDs.
+  # When a mean structure is present, include standardized mean residuals
+  # (matching lavaan's default srmr_bentler behavior).
+  # Under FIML, use the saturated model's implied moments as "observed"
+  # (EM estimate, matching lavaan's h1 approach).
+  if (length(x@sample@covs) > 0 && length(x@modelmatrices) > 0) {
+    use_saturated <- x@estimator == "FIML" &&
+      !is.null(x@baseline_saturated$saturated) &&
+      x@baseline_saturated$saturated@computed
+    has_means <- x@meanstructure
+    srmr_groups <- numeric(nGroups)
+    nobs_per_group <- x@sample@groups$nobs
+    for (g in seq_len(nGroups)) {
+      if (use_saturated) {
+        S <- as.matrix(x@baseline_saturated$saturated@modelmatrices[[g]]$sigma)
+      } else {
+        S <- as.matrix(x@sample@covs[[g]])
+      }
+      Sigma <- as.matrix(x@modelmatrices[[g]]$sigma)
+      obs_sd <- sqrt(diag(S))
+      # Guard against zero/near-zero variances:
+      obs_sd[obs_sd < sqrt(.Machine$double.eps)] <- NA
+      scale_mat <- tcrossprod(obs_sd)
+      E <- (S - Sigma) / scale_mat
+      e_cov <- E[lower.tri(E, diag = TRUE)]
+      e_cov <- e_cov[!is.na(e_cov)]
+      # Include mean residuals if mean structure is present:
+      if (has_means) {
+        if (use_saturated) {
+          obs_mu <- as.numeric(x@baseline_saturated$saturated@modelmatrices[[g]]$mu)
+        } else {
+          obs_mu <- as.numeric(x@sample@means[[g]])
+        }
+        imp_mu <- as.numeric(x@modelmatrices[[g]]$mu)
+        e_mean <- (obs_mu - imp_mu) / obs_sd
+        e_mean <- e_mean[!is.na(e_mean)]
+        e_all <- c(e_mean, e_cov)
+      } else {
+        e_all <- e_cov
+      }
+      srmr_groups[g] <- if (length(e_all) > 0) sqrt(mean(e_all^2)) else NA_real_
+    }
+    fitMeasures$srmr <- sum(nobs_per_group / sampleSize * srmr_groups, na.rm = TRUE)
+    if (all(is.na(srmr_groups))) fitMeasures$srmr <- NA
+  } else {
+    fitMeasures$srmr <- NA
+  }
+
   # information criteria:
 
 
