@@ -456,7 +456,8 @@ addfit <- function(
   # (matching lavaan's default srmr_bentler behavior).
   # Under FIML, use the saturated model's implied moments as "observed"
   # (EM estimate, matching lavaan's h1 approach).
-  if (length(x@sample@covs) > 0 && length(x@modelmatrices) > 0) {
+  has_sigma <- length(x@modelmatrices) > 0 && !is.null(x@modelmatrices[[1]]$sigma)
+  if (length(x@sample@covs) > 0 && has_sigma) {
     use_saturated <- x@estimator == "FIML" &&
       !is.null(x@baseline_saturated$saturated) &&
       x@baseline_saturated$saturated@computed
