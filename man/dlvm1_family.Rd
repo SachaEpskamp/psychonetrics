@@ -9,7 +9,7 @@
 Lag-1 dynamic latent variable model family of psychonetrics models for panel data
 }
 \description{
-This is the family of models that models a dynamic factor model on panel data. The function accepts both wide-format data (with a design matrix for \code{vars}) and long-format data (with a character vector for \code{vars} plus \code{idvar} and optionally \code{beepvar}). The format is auto-detected from the type of \code{vars}. There are four covariance structures that can be modeled in different ways: \code{within_latent}, \code{between_latent} for the within-person and between-person latent (contemporaneous) models respectively, and \code{within_residual}, \code{between_residual} for the within-person and between-person residual models respectively. The \code{panelgvar} wrapper function sets the \code{lambda} to an identity matrix, all residual variances to zero, and models within-person and between-person latent (contemporaneous) models as GGMs. The \code{panelvar} wrapper does the same but models contemporaneous relations as a variance-covariance matrix. Finally, the \code{panellvgvar} wrapper automatically models all latent networks as GGMs. The old name \code{panel_lvgvar} is deprecated in favor of \code{panellvgvar}.
+This is the family of models that models a dynamic factor model on panel data. All functions accept both wide-format data (with a design matrix for \code{vars}) and long-format data (with a character vector for \code{vars} plus \code{idvar} and optionally \code{beepvar}). The format is auto-detected from the type of \code{vars}. There are four covariance structures that can be modeled in different ways: \code{within_latent}, \code{between_latent} for the within-person and between-person latent (contemporaneous) models respectively, and \code{within_residual}, \code{between_residual} for the within-person and between-person residual models respectively. The \code{panelgvar} wrapper function sets the \code{lambda} to an identity matrix, all residual variances to zero, and models within-person and between-person latent (contemporaneous) models as GGMs. The \code{panelvar} wrapper does the same but models contemporaneous relations as a variance-covariance matrix. Finally, the \code{panellvgvar} wrapper automatically models all latent networks as GGMs. The old name \code{panel_lvgvar} is deprecated in favor of \code{panellvgvar}. For long-format data, pass the \code{idvar} (and optionally \code{beepvar}) arguments to \code{panelgvar} or \code{panelvar} via \code{\dots}; see the examples below.
 }
 \usage{
 dlvm1(data, vars, datatype = c("auto", "wide", "long"),
@@ -276,5 +276,24 @@ mod <- mod \%>\% runmodel
 
 # Evaluate fit:
 mod \%>\% fit
+}
+
+# panelgvar and panelvar also accept long-format data.
+# For long-format data, pass vars as a character vector
+# and provide idvar (and optionally beepvar) via ...:
+\donttest{
+# Simulate some long-format panel data:
+longdata <- data.frame(
+  id = rep(1:50, each = 3),
+  time = rep(1:3, 50),
+  x = rnorm(150),
+  y = rnorm(150)
+)
+
+# Use panelgvar with long-format data:
+mod_long <- panelgvar(data = longdata,
+                      vars = c("x", "y"),
+                      idvar = "id",
+                      beepvar = "time")
 }
 }

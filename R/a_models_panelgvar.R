@@ -10,18 +10,25 @@ panelvar <- function(data,vars,
   if (missing(vars)){
     stop("'vars' argument may not be missing")
   }
-  if (!is.matrix(vars)){
-    stop("'vars' must be a design matrix, with rows indicating variables and columns indicating measurements.")
+
+  # Determine number of variables and set up lambda/residuals:
+  if (is.matrix(vars)){
+    # Wide format: vars is a design matrix
+    nVars <- nrow(vars)
+    if (is.null(rownames(vars))){
+      rownames(vars) <- paste0("Eta_",seq_len(nVars))
+    }
+    latentNames <- rownames(vars)
+  } else if (is.character(vars)){
+    # Long format: vars is a character vector of variable names
+    nVars <- length(vars)
+    latentNames <- vars
+  } else {
+    stop("'vars' must be a design matrix (wide format) or a character vector of variable names (long format).")
   }
 
-
-  I <- diag(nrow(vars))
-  O <- matrix(0,nrow(vars),nrow(vars))
-
-
-  if (is.null(rownames(vars))){
-    rownames(vars) <- paste0("Eta_",seq_len(nrow(vars)))
-  }
+  I <- diag(nVars)
+  O <- matrix(0, nVars, nVars)
 
   # Conditionally pass data (allows covs-only usage without data):
   if (missing(data)) {
@@ -31,7 +38,7 @@ panelvar <- function(data,vars,
           within_residual = "cov", sigma_epsilon_within = O,
           between_latent = between_latent,
           between_residual = "cov", sigma_epsilon_between = O,
-          latents = rownames(vars),
+          latents = latentNames,
           ...
     )
   } else {
@@ -41,7 +48,7 @@ panelvar <- function(data,vars,
           within_residual = "cov", sigma_epsilon_within = O,
           between_latent = between_latent,
           between_residual = "cov", sigma_epsilon_between = O,
-          latents = rownames(vars),
+          latents = latentNames,
           ...
     )
   }
@@ -59,17 +66,25 @@ panelgvar <- function(data,vars,
   if (missing(vars)){
     stop("'vars' argument may not be missing")
   }
-  if (!is.matrix(vars)){
-    stop("'vars' must be a design matrix, with rows indicating variables and columns indicating measurements.")
+
+  # Determine number of variables and set up lambda/residuals:
+  if (is.matrix(vars)){
+    # Wide format: vars is a design matrix
+    nVars <- nrow(vars)
+    if (is.null(rownames(vars))){
+      rownames(vars) <- paste0("Eta_",seq_len(nVars))
+    }
+    latentNames <- rownames(vars)
+  } else if (is.character(vars)){
+    # Long format: vars is a character vector of variable names
+    nVars <- length(vars)
+    latentNames <- vars
+  } else {
+    stop("'vars' must be a design matrix (wide format) or a character vector of variable names (long format).")
   }
 
-
-  I <- diag(nrow(vars))
-  O <- matrix(0,nrow(vars),nrow(vars))
-
-  if (is.null(rownames(vars))){
-    rownames(vars) <- paste0("Eta_",seq_len(nrow(vars)))
-  }
+  I <- diag(nVars)
+  O <- matrix(0, nVars, nVars)
 
   # Conditionally pass data (allows covs-only usage without data):
   if (missing(data)) {
@@ -79,7 +94,7 @@ panelgvar <- function(data,vars,
           within_residual = "cov", sigma_epsilon_within = O,
           between_latent = between_latent,
           between_residual = "cov", sigma_epsilon_between = O,
-          latents = rownames(vars),
+          latents = latentNames,
           ...
     )
   } else {
@@ -89,7 +104,7 @@ panelgvar <- function(data,vars,
           within_residual = "cov", sigma_epsilon_within = O,
           between_latent = between_latent,
           between_residual = "cov", sigma_epsilon_between = O,
-          latents = rownames(vars),
+          latents = latentNames,
           ...
     )
   }

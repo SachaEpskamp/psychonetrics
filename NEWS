@@ -1,3 +1,13 @@
+Changes in Version 0.15.1
+  o panelgvar() and panelvar() now accept both wide-format (design matrix)
+    and long-format (character vector of variable names) data, matching the
+    flexibility of the underlying dlvm1(). Previously these convenience
+    wrappers only accepted wide-format data. For long-format usage, pass
+    vars as a character vector and provide idvar (and optionally beepvar)
+    via ... (GitHub issue #48).
+  o Updated dlvm1 family documentation to reflect long-format support in
+    panelgvar() and panelvar(), with examples.
+
 Changes in Version 0.15
   o The package has gone through a large overhaul in the 0.14.x series of
     package versions. The most important changes are listed below.
