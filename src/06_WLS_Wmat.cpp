@@ -60,7 +60,7 @@ arma::mat WLS_wmat(
             }
           }
         } else {
-          Rf_error("Missing data is not yet supported for WLS without ordered categorical variables");
+          Rcpp::stop("Missing data is not yet supported for WLS without ordered categorical variables");
         }
       }
     }

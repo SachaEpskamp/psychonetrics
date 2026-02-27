@@ -32,7 +32,7 @@ List covPrepare_cpp(
   // Number of variables:
   int nVar = data.ncol();
   if (isOrdered.length() != nVar){
-    Rf_error("'isOrdered' is not of the same length as the number of variables.");
+    Rcpp::stop("'isOrdered' is not of the same length as the number of variables.");
   }
   
   // List that stores data as vectors:
@@ -159,9 +159,9 @@ List covPrepare_cpp(
 
           
         } else if (isOrdered[i] && !isOrdered[j]){
-          Rf_error("Polyserial correlation not yet supported");
+          Rcpp::stop("Polyserial correlation not yet supported");
         } else if (!isOrdered[i] && isOrdered[j]){
-          Rf_error("Polyserial correlation not yet supported");
+          Rcpp::stop("Polyserial correlation not yet supported");
         } else {
           covMat(i,j) = covMat(j,i) = pearsonCov(DataList[i], DataList[j], meansAndThresholds[i], meansAndThresholds[j]);
         }
@@ -338,7 +338,7 @@ List covPrepare_cpp(
             if (isOrdered[var1[i]]){
               D[i] = threshold_grad_singlesubject(((IntegerVector)DataList[var1[i]])[p], whichPar[i], meansAndThresholds_aug[var1[i]]);
             } else {
-              Rf_error("Only ordinal data supported now...");
+              Rcpp::stop("Only ordinal data supported now...");
             }
           } else {
 
@@ -363,7 +363,7 @@ List covPrepare_cpp(
 
               
             } else {
-              Rf_error("Only ordinal data supported now...");
+              Rcpp::stop("Only ordinal data supported now...");
             }         
           }
         }

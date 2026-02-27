@@ -412,7 +412,7 @@ arma::mat cbind_psychonetrics(
     totalcol += cols[i];
     rows[i] = curmat.n_rows;
     if (rows[i] != totalrow){
-      Rf_error("Number of rows are not consistent");
+      Rcpp::stop("Number of rows are not consistent");
     }
     // totalrow += rows[i];
   }

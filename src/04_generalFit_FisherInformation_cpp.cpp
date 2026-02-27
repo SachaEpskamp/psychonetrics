@@ -101,7 +101,7 @@ void psychonetrics_FisherInformation_cpp_inner(
       estimatorPart = as<arma::mat>(hesFun(prep));
 
     } else {
-      Rf_error("Distribution not supported for ML estimator.");
+      Rcpp::stop("Distribution not supported for ML estimator.");
     }
 
   } else if (estimator == "ULS" || estimator == "WLS" || estimator == "DWLS"){
@@ -113,7 +113,7 @@ void psychonetrics_FisherInformation_cpp_inner(
     estimatorPart = expected_hessian_fiml_Gaussian_cppVersion(prep);
 
   } else {
-    Rf_error("Estimator not supported.");
+    Rcpp::stop("Estimator not supported.");
   }
 
   // Model part:

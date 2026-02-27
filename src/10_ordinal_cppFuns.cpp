@@ -123,7 +123,7 @@ double pearsonCov(
   int n = y1.length();
   
   if (y2.length() != n){
-    Rf_error("Length of y1 is not equal to length of y2.");
+    Rcpp::stop("Length of y1 is not equal to length of y2.");
   }
   
   // FIXME: Instead of this, let's use the supplied means already, as just like with thresholds,
@@ -228,7 +228,7 @@ IntegerMatrix cpp_table(
   int n = y1.length();
   
   if (y2.length() != n){
-    Rf_error("Length of y1 is not equal to length of y2.");
+    Rcpp::stop("Length of y1 is not equal to length of y2.");
   }
   
   // iterators:
@@ -265,10 +265,10 @@ double polychoric_fit_summary(double rho, NumericMatrix tab, NumericVector t1, N
   
   // Check size of t1 and t2:
   if (t1.length() != nLevels1 - 1){
-    Rf_error("Length of thresholds of variable 1 is not equal to number of levels - 1");
+    Rcpp::stop("Length of thresholds of variable 1 is not equal to number of levels - 1");
   }
   if (t2.length() != nLevels2 - 1){
-    Rf_error("Length of thresholds of variable 2 is not equal to number of levels - 1");
+    Rcpp::stop("Length of thresholds of variable 2 is not equal to number of levels - 1");
   }
   
   // Make augmented thresholds:
@@ -360,10 +360,10 @@ double polychoric_grad_summary(double rho, NumericMatrix tab, NumericVector t1, 
   
   // Check size of t1 and t2:
   if (t1.length() != nLevels1 - 1){
-    Rf_error("Length of thresholds of variable 1 is not equal to number of levels - 1");
+    Rcpp::stop("Length of thresholds of variable 1 is not equal to number of levels - 1");
   }
   if (t2.length() != nLevels2 - 1){
-    Rf_error("Length of thresholds of variable 2 is not equal to number of levels - 1");
+    Rcpp::stop("Length of thresholds of variable 2 is not equal to number of levels - 1");
   }
   
   // Make augmented thresholds:
@@ -600,7 +600,7 @@ double estimate_polychoric(IntegerVector y1, IntegerVector y2, NumericVector t1,
   } while (curIt < maxIt && std::abs(newGrad) > tol && rho > -1.0 && rho < 1.0);
   
   if (curIt >= maxIt){
-    Rf_error("Polychoric correlation estimator did not converge.");
+    Rcpp::stop("Polychoric correlation estimator did not converge.");
   }
   
   return(rho);

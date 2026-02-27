@@ -45,7 +45,7 @@ S4 updateModel_cpp(
   
   // Add model:
   if (updateMatrices){
-    Rf_error("updateMatrices not yet implemented in C++");
+    Rcpp::stop("updateMatrices not yet implemented in C++");
     
   }
   

@@ -66,7 +66,7 @@ double psychonetrics_fitfunction_cpp(
     } else if (distribution == "Ising"){
       fit = maxLikEstimator_Ising_cpp(prep);
     } else {
-      Rf_error("Distribution not supported for ML estimator.");
+      Rcpp::stop("Distribution not supported for ML estimator.");
     }
 
   } else if (estimator == "PML"){
@@ -77,7 +77,7 @@ double psychonetrics_fitfunction_cpp(
     } else if (distribution == "Ising"){
       fit = penMaxLikEstimator_Ising_cpp(prep, x, ws);
     } else {
-      Rf_error("Distribution not supported for PML estimator.");
+      Rcpp::stop("Distribution not supported for PML estimator.");
     }
 
   } else if (estimator == "ULS" || estimator == "WLS" || estimator == "DWLS"){
@@ -94,7 +94,7 @@ double psychonetrics_fitfunction_cpp(
     fit = fimlestimator_Gauss_cpp(prep);
 
   } else {
-    Rf_error("Estimator not supported.");
+    Rcpp::stop("Estimator not supported.");
   }
 
   return(fit);

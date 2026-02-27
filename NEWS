@@ -7,6 +7,9 @@ Changes in Version 0.15.1
     via ... (GitHub issue #48).
   o Updated dlvm1 family documentation to reflect long-format support in
     panelgvar() and panelvar(), with examples.
+  o Replaced all Rf_error() calls in C++ code with Rcpp::stop() for proper
+    C++ stack unwinding and destructor calls, avoiding potential memory
+    leaks (GitHub issue #49).
 
 Changes in Version 0.15
   o The package has gone through a large overhaul in the 0.14.x series of

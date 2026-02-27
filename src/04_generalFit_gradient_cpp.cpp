@@ -100,7 +100,7 @@ void psychonetrics_gradient_cpp_inner(
       estimatorPart = jacobian_Ising_cpp(prep);
 
     } else {
-      Rf_error("Distribution not supported for ML estimator.");
+      Rcpp::stop("Distribution not supported for ML estimator.");
     }
 
   } else if (estimator == "ULS" || estimator == "WLS" || estimator == "DWLS"){
@@ -116,7 +116,7 @@ void psychonetrics_gradient_cpp_inner(
     estimatorPart = jacobian_fiml_gaussian_sigma_cpp(prep);
 
   } else {
-    Rf_error("Estimator not supported.");
+    Rcpp::stop("Estimator not supported.");
   }
   
   // Model part:
