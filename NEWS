@@ -1,3 +1,12 @@
+Changes in Version 0.15.2
+  o Fixed incorrect (negative) chi-square and fit indices for FIML
+    estimation with panel data. The saturated model log-likelihood is now
+    computed analytically from pattern-specific sample statistics, following
+    the standard approach used by lavaan and Mplus. Previously, the
+    saturated varcov model was numerically optimized, which could fail to
+    converge for high-dimensional panel data (e.g. many variables x waves),
+    producing a saturated LL worse than the structured model's LL.
+
 Changes in Version 0.15.1
   o panelgvar() and panelvar() now accept both wide-format (design matrix)
     and long-format (character vector of variable names) data, matching the

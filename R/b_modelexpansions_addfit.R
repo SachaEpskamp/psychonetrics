@@ -177,6 +177,51 @@ compute_wlsmv_correction <- function(x) {
 }
 
 
+# Compute analytical saturated log-likelihood for FIML estimation.
+# Avoids optimizing the (potentially huge) saturated varcov model by
+# computing the pattern-specific ML directly from sample statistics.
+# Formula per pattern: n_p/2 * [-log|S_p| - p_p*log(2*pi) - p_p]
+fiml_saturated_loglikelihood <- function(x) {
+  fimldata <- x@sample@fimldata
+  nGroups <- nrow(x@sample@groups)
+
+  total_ll <- 0
+
+  for (g in seq_len(nGroups)) {
+    patterns <- fimldata[[g]]
+
+    for (p in seq_along(patterns)) {
+      pat <- patterns[[p]]
+      n_p <- pat$n
+      S_p <- pat$S
+      p_p <- sum(pat$obs)
+
+      if (n_p < 1 || p_p < 1) next
+
+      if (n_p < 2) {
+        # Single observation: no covariance information, only constant
+        ll_p <- n_p * (-p_p * log(2 * pi))
+      } else {
+        # Compute log pseudo-determinant (handles singular S_p)
+        ev <- eigen(S_p, symmetric = TRUE, only.values = TRUE)$values
+        pos_ev <- ev[ev > .Machine$double.eps * max(1, ev[1]) * p_p]
+
+        if (length(pos_ev) == 0) {
+          ll_p <- n_p * (-p_p * log(2 * pi))
+        } else {
+          log_det_S <- sum(log(pos_ev))
+          rank_S <- length(pos_ev)
+          ll_p <- n_p * (-log_det_S - p_p * log(2 * pi) - rank_S)
+        }
+      }
+
+      total_ll <- total_ll + ll_p
+    }
+  }
+
+  total_ll / 2
+}
+
 # Computes fit measures
 addfit <- function(
  x, #, ebicTuning = 0.25
@@ -206,8 +251,11 @@ addfit <- function(
   # log likelihoods:
   # Saturated:
   if (x@estimator %in% c("FIML","ML")){
-    if (!is.null(x@baseline_saturated$saturated)){
-      satLL <- psychonetrics_logLikelihood(x@baseline_saturated$saturated)    
+    if (x@estimator == "FIML" && length(x@sample@fimldata) > 0) {
+      # Analytical saturated LL for FIML (avoids optimizing huge saturated model):
+      satLL <- fiml_saturated_loglikelihood(x)
+    } else if (!is.null(x@baseline_saturated$saturated)){
+      satLL <- psychonetrics_logLikelihood(x@baseline_saturated$saturated)
     } else {
       satLL <- NA
     }
