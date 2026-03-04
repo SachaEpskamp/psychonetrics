@@ -133,17 +133,13 @@ runmodel <- function(
   }
   
   # Evaluate saturated model:
-  # Resolve saturated method: "default" means "analytic" for FIML, "model" otherwise
-  saturated_method <- saturated
-  if (saturated_method == "default") {
-    saturated_method <- if (x@estimator == "FIML" && length(x@sample@fimldata) > 0) "analytic" else "model"
-  }
-  x@baseline_saturated$saturated_method <- saturated_method
+  x@baseline_saturated$satMethod <- saturated
 
-  if (saturated_method == "model") {
+  if (saturated != "analytic") {
     if (!isSaturated && !is.null(x@baseline_saturated$saturated) && !x@baseline_saturated$saturated@computed){
       if (verbose) message("Estimating saturated model...")
-      x@baseline_saturated$saturated@optimizer <- optimizer
+      # Always use nlminb for the saturated model (more robust for large models):
+      x@baseline_saturated$saturated@optimizer <- "nlminb"
       # Run:
       x@baseline_saturated$saturated <- runmodel(x@baseline_saturated$saturated, addfit = FALSE, addMIs = FALSE, verbose = FALSE,addSEs=FALSE, addInformation = FALSE, analyticFisher = FALSE)
     }

@@ -251,14 +251,11 @@ addfit <- function(
   # log likelihoods:
   # Saturated:
   if (x@estimator %in% c("FIML","ML")){
-    # Determine saturated LL method: check stored preference, default to analytic for FIML
-    sat_method <- x@baseline_saturated$saturated_method
-    if (is.null(sat_method)) {
-      sat_method <- if (x@estimator == "FIML" && length(x@sample@fimldata) > 0) "analytic" else "model"
-    }
+    sat_method <- x@baseline_saturated$satMethod
+    if (is.null(sat_method)) sat_method <- "default"
 
     if (sat_method == "analytic" && length(x@sample@fimldata) > 0) {
-      # Analytical saturated LL for FIML (avoids optimizing huge saturated model):
+      # Forced analytical saturated LL:
       satLL <- fiml_saturated_loglikelihood(x)
     } else if (!is.null(x@baseline_saturated$saturated)){
       satLL <- psychonetrics_logLikelihood(x@baseline_saturated$saturated)
@@ -274,6 +271,19 @@ addfit <- function(
     
     # Model:
     LL <-  psychonetrics_logLikelihood(x)
+
+    # Fallback: if model-based saturated LL < model LL (optimizer failed),
+    # use analytical saturated LL for FIML and warn:
+    if (!is.na(satLL) && !is.na(LL) && satLL < LL &&
+        sat_method != "analytic" &&
+        x@estimator == "FIML" && length(x@sample@fimldata) > 0) {
+      satLL_fallback <- fiml_saturated_loglikelihood(x)
+      if (satLL_fallback >= LL) {
+        warning("Saturated model optimization did not converge properly (saturated LL < model LL). ",
+                "Using analytical saturated LL instead. Consider using saturated = 'analytic' in runmodel().")
+        satLL <- satLL_fallback
+      }
+    }
   } else {
     satLL <- NA
     basLL <- NA
