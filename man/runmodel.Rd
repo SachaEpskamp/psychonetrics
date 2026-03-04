@@ -73,7 +73,7 @@ Character string specifying the information criterion for automatic lambda selec
 Threshold for zeroing out small penalized parameters during automatic lambda selection. Can be \code{"numerical"} (default; uses \code{1e-05}), \code{"theoretical"} (uses \code{sqrt(log(p)/n)}), or a numeric value. See \code{\link{find_penalized_lambda}} for details.
 }
 \item{saturated}{
-Method for computing the saturated model log-likelihood. \code{"default"} uses the analytical formula for FIML estimation and runs the saturated model for ML; \code{"analytic"} always uses the analytical formula (fast, recommended for high-dimensional panel data); \code{"model"} always runs the saturated varcov model numerically (the old behavior).
+Method for computing the saturated model log-likelihood. \code{"default"} runs the saturated varcov model numerically, with automatic fallback to the analytical formula if the optimizer fails (saturated LL < model LL). \code{"analytic"} skips the saturated model optimization and uses the analytical pattern-specific formula directly (fast, useful for high-dimensional panel data where optimization is slow or fails). \code{"model"} always runs the saturated varcov model numerically with no fallback.
 }
 }
 \details{
