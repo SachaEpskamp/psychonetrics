@@ -404,8 +404,10 @@ addfit <- function(
     
 
     
-    fitMeasures$rfi <-  (Tb/dfb - Tm/dfm) / (Tb/dfb )
-    fitMeasures$ifi <-  (Tb - Tm) / (Tb - dfm)
+    rfi_val <- (Tb/dfb - Tm/dfm) / (Tb/dfb)
+    fitMeasures$rfi <- ifelse(Tb/dfb <= 0, 1, rfi_val)
+    ifi_denom <- Tb - dfm
+    fitMeasures$ifi <- ifelse(ifi_denom <= 0, 1, (Tb - Tm) / ifi_denom)
     fitMeasures$rni <-  ((Tb- dfb) - (Tm - dfm)) / (Tb - dfb)
     fitMeasures$cfi <- ifelse(dfm > Tm, 1, 1 - (Tm - dfm)/(Tb - dfb))
 
@@ -421,8 +423,10 @@ addfit <- function(
       t1_s <- (Tm_s - dfm_s)*dfb_s
       t2_s <- (Tb_s - dfb_s)*dfm_s
       fitMeasures$nnfi.scaled <- ifelse(dfm_s > 0 & abs(t2_s) > 0, 1 - t1_s/t2_s, 1)
-      fitMeasures$rfi.scaled <- (Tb_s/dfb_s - Tm_s/dfm_s) / (Tb_s/dfb_s)
-      fitMeasures$ifi.scaled <- (Tb_s - Tm_s) / (Tb_s - dfm_s)
+      rfi_val_s <- (Tb_s/dfb_s - Tm_s/dfm_s) / (Tb_s/dfb_s)
+      fitMeasures$rfi.scaled <- ifelse(Tb_s/dfb_s <= 0, 1, rfi_val_s)
+      ifi_denom_s <- Tb_s - dfm_s
+      fitMeasures$ifi.scaled <- ifelse(ifi_denom_s <= 0, 1, (Tb_s - Tm_s) / ifi_denom_s)
       fitMeasures$rni.scaled <- ((Tb_s - dfb_s) - (Tm_s - dfm_s)) / (Tb_s - dfb_s)
       fitMeasures$cfi.scaled <- ifelse(dfm_s > Tm_s, 1, 1 - (Tm_s - dfm_s)/(Tb_s - dfb_s))
     }
