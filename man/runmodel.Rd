@@ -16,7 +16,8 @@ runmodel(x, level = c("gradient", "fitfunction"), addfit =
                    return_improper = TRUE, bounded = TRUE,
                    approximate_SEs = FALSE,
                    criterion = "ebic.5",
-                   beta_min = c("theoretical", "numerical"))
+                   beta_min = c("theoretical", "numerical"),
+                   saturated = c("default", "analytic", "model"))
 
 }
 %- maybe also 'usage' for other objects documented here.
@@ -70,6 +71,9 @@ Character string specifying the information criterion for automatic lambda selec
 }
 \item{beta_min}{
 Threshold for zeroing out small penalized parameters during automatic lambda selection. Can be \code{"numerical"} (default; uses \code{1e-05}), \code{"theoretical"} (uses \code{sqrt(log(p)/n)}), or a numeric value. See \code{\link{find_penalized_lambda}} for details.
+}
+\item{saturated}{
+Method for computing the saturated model log-likelihood. \code{"default"} uses the analytical formula for FIML estimation and runs the saturated model for ML; \code{"analytic"} always uses the analytical formula (fast, recommended for high-dimensional panel data); \code{"model"} always runs the saturated varcov model numerically (the old behavior).
 }
 }
 \details{

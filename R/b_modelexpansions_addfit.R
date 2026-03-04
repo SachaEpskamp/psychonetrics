@@ -251,7 +251,13 @@ addfit <- function(
   # log likelihoods:
   # Saturated:
   if (x@estimator %in% c("FIML","ML")){
-    if (x@estimator == "FIML" && length(x@sample@fimldata) > 0) {
+    # Determine saturated LL method: check stored preference, default to analytic for FIML
+    sat_method <- x@baseline_saturated$saturated_method
+    if (is.null(sat_method)) {
+      sat_method <- if (x@estimator == "FIML" && length(x@sample@fimldata) > 0) "analytic" else "model"
+    }
+
+    if (sat_method == "analytic" && length(x@sample@fimldata) > 0) {
       # Analytical saturated LL for FIML (avoids optimizing huge saturated model):
       satLL <- fiml_saturated_loglikelihood(x)
     } else if (!is.null(x@baseline_saturated$saturated)){

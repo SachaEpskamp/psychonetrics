@@ -20,7 +20,8 @@ runmodel <- function(
     bounded = TRUE,
     approximate_SEs=FALSE,
     criterion = "ebic.5",
-    beta_min = c("theoretical", "numerical")
+    beta_min = c("theoretical", "numerical"),
+    saturated = c("default", "analytic", "model")
     # cholesky_start # If TRUE, a model is formed with Cholesky decompositions first which is run for obtaining starting values.
 ){
   # cholesky_start <- FALSE
@@ -40,6 +41,8 @@ runmodel <- function(
   #   stop("'cholesky_start' is only supported for Gaussian models")
   # }
   
+  saturated <- match.arg(saturated)
+
   if (!missing(optim.control)){
     warning("'optim.control' is deprecated and will be removed in a future version. Please use setoptimizer(..., optim.args = ...).")
     x@optim.args <- optim.control
@@ -130,12 +133,22 @@ runmodel <- function(
   }
   
   # Evaluate saturated model:
-  
-  if (!isSaturated && !is.null(x@baseline_saturated$saturated) && !x@baseline_saturated$saturated@computed){
-    if (verbose) message("Estimating saturated model...")
-    x@baseline_saturated$saturated@optimizer <- optimizer
-    # Run:
-    x@baseline_saturated$saturated <- runmodel(x@baseline_saturated$saturated, addfit = FALSE, addMIs = FALSE, verbose = FALSE,addSEs=FALSE, addInformation = FALSE, analyticFisher = FALSE)
+  # Resolve saturated method: "default" means "analytic" for FIML, "model" otherwise
+  saturated_method <- saturated
+  if (saturated_method == "default") {
+    saturated_method <- if (x@estimator == "FIML" && length(x@sample@fimldata) > 0) "analytic" else "model"
+  }
+  x@baseline_saturated$saturated_method <- saturated_method
+
+  if (saturated_method == "model") {
+    if (!isSaturated && !is.null(x@baseline_saturated$saturated) && !x@baseline_saturated$saturated@computed){
+      if (verbose) message("Estimating saturated model...")
+      x@baseline_saturated$saturated@optimizer <- optimizer
+      # Run:
+      x@baseline_saturated$saturated <- runmodel(x@baseline_saturated$saturated, addfit = FALSE, addMIs = FALSE, verbose = FALSE,addSEs=FALSE, addInformation = FALSE, analyticFisher = FALSE)
+    }
+  } else {
+    if (verbose) message("Using analytical saturated log-likelihood...")
   }
   
   
