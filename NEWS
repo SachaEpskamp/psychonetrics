@@ -1,3 +1,10 @@
+Changes in Version 0.15.3
+  o Fixed meta_ggm() crashing with "non-numeric argument to mathematical
+    function" when using Vestimation = "per_study". The SRMR computation
+    in addfit() assumed sigma was a numeric matrix, but for meta_varcov
+    models with per-study estimation it is a list of per-study matrices.
+    SRMR now gracefully returns NA for such models.
+
 Changes in Version 0.15.2
   o Fixed incorrect (negative) chi-square and fit indices for FIML
     estimation with high-dimensional panel data. By default, the saturated
