@@ -328,10 +328,23 @@ stepup <- function(
         }
         
       } else {
+        # If any searched matrix has equality constraints across groups, fall
+        # back to the non-greedy path. The greedy branch assigns unique par
+        # indices to each added parameter, which would silently break
+        # groupequal() constraints in multi-group models. Non-greedy handles
+        # this correctly via freepar() + groupequal() on each iteration.
+        if (any(vapply(matrices, function(m) hasEqualConstrainedElements(x, m), logical(1)))) {
+          if (verbose) {
+            message("Equality constraints detected; falling back to non-greedy stepup to preserve them.")
+          }
+          greedy <- FALSE
+          next
+        }
+
         # Add al significant effects:
         # nTest <- sum(x@parameters$matrix %in% matrices & x@parameters$fixed)
         # best <- which(x@parameters[[mi]] > qchisq(alpha,1,lower.tail=FALSE) & x@parameters$matrix %in% matrices & x@parameters$fixed)
-        
+
         parsToTest <- which(x@parameters$matrix %in% matrices & x@parameters$fixed & !x@parameters$identified)
         x@parameters[[mi]] <- ifelse(is.na(x@parameters[[mi]]),0,x@parameters[[mi]])
         best <- parsToTest[p.adjust(pchisq(x@parameters[[mi]][parsToTest],1,lower.tail=FALSE), method = greedyadjust) < alpha]
