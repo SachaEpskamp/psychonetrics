@@ -92,7 +92,13 @@ groupequal <- function(
 
   # Relabel:
   x@parameters   <- parRelabel(x@parameters)
-  
+
+  # Track equality constraint at the matrix level (for backwards compatibility
+  # with code that reads @equal; stepup() now infers from the parameters table):
+  if (!(matrix %in% x@equal)) {
+    x@equal <- unique(c(x@equal[x@equal != "none"], matrix))
+  }
+
   # Clear the parameters:
   # x@parameters$est[whichCons] <- 0
   # x@parameters$std[whichCons] <- 0

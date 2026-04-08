@@ -84,9 +84,13 @@ groupfree <- function(
 
   # Relabel:
   x@parameters <- parRelabel(x@parameters)
-  
 
-  
+  # Clean up @equal slot: if no equality-constrained elements remain in this
+  # matrix, remove it from @equal (maintained for backwards compatibility).
+  if (matrix %in% x@equal && !hasEqualConstrainedElements(x, matrix)) {
+    x@equal <- x@equal[x@equal != matrix]
+    if (length(x@equal) == 0) x@equal <- "none"
+  }
 
   # Clear the parameters (let's keep the old estimates, why not):
   # x@parameters$est[whichFree] <- 0

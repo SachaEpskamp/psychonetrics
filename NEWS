@@ -4,6 +4,15 @@ Changes in Version 0.15.3
     in addfit() assumed sigma was a numeric matrix, but for meta_varcov
     models with per-study estimation it is a list of per-study matrices.
     SRMR now gracefully returns NA for such models.
+  o Fixed stepup() breaking equality constraints set by groupequal() in
+    multi-group models (GitHub issue #50). stepup() previously relied on
+    the @equal slot to detect cross-group equality constraints, but
+    groupequal() never populated it, so stepup() always freed parameters
+    for a single group - silently breaking the constraint. stepup() now
+    infers equality constraints directly from the parameters table
+    (shared non-zero par indices), which is the canonical representation.
+    groupequal() and groupfree() also now maintain the @equal slot for
+    backwards compatibility with model reconstruction code.
 
 Changes in Version 0.15.2
   o Fixed incorrect (negative) chi-square and fit indices for FIML
