@@ -13,6 +13,12 @@ Changes in Version 0.15.3
     (shared non-zero par indices), which is the canonical representation.
     groupequal() and groupfree() also now maintain the @equal slot for
     backwards compatibility with model reconstruction code.
+  o stepup(greedy = TRUE) now falls back to the non-greedy path when
+    any searched matrix has cross-group equality constraints. The greedy
+    branch previously bypassed freepar()/groupequal() and assigned unique
+    par indices to each added parameter, which would silently break
+    equality constraints. Single-group models and multi-group models
+    without equality constraints take the fast greedy path as before.
 
 Changes in Version 0.15.2
   o Fixed incorrect (negative) chi-square and fit indices for FIML
