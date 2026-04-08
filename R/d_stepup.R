@@ -1,3 +1,22 @@
+# Helper: does this matrix have any equality-constrained elements across groups?
+# Equality constraints are encoded as shared non-zero `par` indices in the
+# parameters table (the canonical representation). Returns TRUE if at least
+# one (row, col) position in the matrix has matching par indices across all
+# groups (and the par is non-zero). Returns FALSE for single-group models.
+hasEqualConstrainedElements <- function(x, matrix) {
+  if (nrow(x@sample@groups) < 2) return(FALSE)
+  pars <- x@parameters[x@parameters$matrix == matrix &
+                       !x@parameters$fixed &
+                       !x@parameters$identified &
+                       x@parameters$par != 0, ]
+  if (nrow(pars) == 0) return(FALSE)
+  nGroups <- nrow(x@sample@groups)
+  split_pars <- split(pars, list(pars$row, pars$col), drop = TRUE)
+  any(vapply(split_pars, function(df) {
+    nrow(df) == nGroups && length(unique(df$par)) == 1
+  }, logical(1)))
+}
+
 # Stepwise up search:
 stepup <- function(
   x, # psychonetrics model
@@ -170,8 +189,9 @@ stepup <- function(
         x@parameters[[mi]] <- ifelse(is.na(x@parameters[[mi]]),0,x@parameters[[mi]])
         best <- which(x@parameters$matrix %in% matrices & x@parameters[[mi]] == max(x@parameters[[mi]][x@parameters$matrix %in% matrices & x@parameters$fixed & !x@parameters$identified]))[1]
         
-        # Check if equal constrained:
-        if (x@parameters$matrix[best] %in% x@equal){
+        # Check if the matrix has equality-constrained elements across groups
+        # (inferred from the parameters table, which is the canonical source):
+        if (hasEqualConstrainedElements(x, x@parameters$matrix[best])){
           x <- freepar(x, matrix = x@parameters$matrix[best],row = x@parameters$row[best],
                        col = x@parameters$col[best], 
                        verbose = FALSE, log = FALSE, startEPC=startEPC)
