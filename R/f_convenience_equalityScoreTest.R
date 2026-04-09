@@ -103,9 +103,9 @@
   if (method == "jacobian"){
     # Reproduce lavaan::lavTestScore exactly. Translation of psychonetrics
     # quantities to lavaan's:
-    #   score_lav = -(N/2) * g       (lavaan's gradient.logl = dlogL/dθ)
+    #   score_lav = -(N/2) * g       (lavaan's gradient.logl = dlogL/dtheta)
     #   Info_lav  = H / (8 * N)      (lavaan's information.expected, per obs)
-    # because psychonetrics works in F = -(2/N) logL, so dlogL/dθ = -(N/2) g
+    # because psychonetrics works in F = -(2/N) logL, so dlogL/dtheta = -(N/2) g
     # and J_per_obs = I_F / 2 = (H/(4N))/2 = H/(8N).
     npar <- ncol(H)
     score_lav <- -(nTotal / 2) * g
