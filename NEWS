@@ -1,3 +1,27 @@
+Changes in Version 0.15.4
+  o New function equalityScoreTest() that computes the score (Lagrange
+    multiplier) test for cross-group equality constraints in a multi-group
+    model. Returns both per-group univariate score statistics and a joint
+    multivariate score statistic (one per equality-constrained parameter,
+    df = G - 1). Inspired by lavaan::lavTestScore but implemented entirely
+    within psychonetrics (no lavaan dependency). Statistics are scaled to
+    the -2 log L convention used by lavaan, so values match lavaan
+    exactly for balanced multi-group models.
+  o The parameter table now carries three new columns: mi_free_joint,
+    pmi_free_joint, and df_free_joint, populated whenever modification
+    indices of type "free" are computed.
+  o MIs() now prints two tables for type = "free": the existing summed
+    per-group univariate statistics (header updated to "Top N summed
+    equality-free modification indices") and a new "Top N joint
+    equality-free modification indices" table based on the multivariate
+    score test.
+  o partialprune() gains a new argument useMIs = c("joint","simple"). The
+    default "joint" ranks candidate equality releases by the joint score
+    test (correctly accounting for cross-group covariance for G >= 3).
+    Set useMIs = "simple" to reproduce the psychonetrics <= 0.15.3
+    behavior of summing per-group univariate MIs. The two options are
+    equivalent for two-group models.
+
 Changes in Version 0.15.3
   o Fixed meta_ggm() crashing with "non-numeric argument to mathematical
     function" when using Vestimation = "per_study". The SRMR computation

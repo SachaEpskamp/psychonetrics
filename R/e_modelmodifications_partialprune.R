@@ -8,7 +8,9 @@ partialprune <- function(
   criterion = "bic",
   best = c("lowest","highest"),
   final_prune = c("saturated","partialprune"),
+  useMIs = c("joint","simple"),
   ...){
+  useMIs <- match.arg(useMIs)
   # Verbose:
   if (missing(verbose)){
     verbose <- x@verbose
@@ -226,12 +228,24 @@ partialprune <- function(
     repeat{
       pars <- curMod@parameters
       pars$equal <- pars$par != 0 & (duplicated(pars$par) | rev(duplicated(rev(pars$par))))
-      
-      # Make a data frame in which the equality free parameters are summed:
-      miDF <- pars %>% filter(drop(!fixed), drop(equal)) %>% group_by(.data[["row"]],.data[["col"]],.data[["matrix"]]) %>%
-        filter(drop(matrix %in% matrices)) %>%
-        summarize(mi_free = sum(mi_free)) %>% 
-        arrange(-mi_free)
+
+      if (useMIs == "joint"){
+        # Use the joint score-test (Lagrange multiplier) statistic, one value per
+        # equality-constrained (matrix,row,col). Stored on every group's row; take the
+        # first to avoid double counting.
+        miDF <- pars %>% filter(drop(!fixed), drop(equal)) %>%
+          filter(drop(matrix %in% matrices)) %>%
+          group_by(.data[["row"]],.data[["col"]],.data[["matrix"]]) %>%
+          summarize(mi_free = dplyr::first(.data[["mi_free_joint"]])) %>%
+          filter(drop(!is.na(.data[["mi_free"]]))) %>%
+          arrange(-mi_free)
+      } else {
+        # Legacy (<= 0.15.3): sum of per-group univariate score statistics.
+        miDF <- pars %>% filter(drop(!fixed), drop(equal)) %>% group_by(.data[["row"]],.data[["col"]],.data[["matrix"]]) %>%
+          filter(drop(matrix %in% matrices)) %>%
+          summarize(mi_free = sum(mi_free)) %>%
+          arrange(-mi_free)
+      }
       
       # break if empty:
       if (nrow(miDF)==0){

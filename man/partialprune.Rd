@@ -12,7 +12,8 @@ partialprune(x, alpha = 0.01, matrices, verbose,
              combinefun = c("unionmodel", "intersectionmodel", "identity"), 
              return = c("partialprune","best","union_equal","prune"),
              criterion = "bic",  best = c("lowest","highest"),
-             final_prune = c("saturated","partialprune"), ...)
+             final_prune = c("saturated","partialprune"),
+             useMIs = c("joint","simple"), ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -42,6 +43,9 @@ What criterion to use for the model selection in the last step? Defaults to \cod
 }
 \item{final_prune}{
 Should the last prune step be based on removing edges not significant in the last model in the partialprune algorithm or the first model (saturated model) in the algorithm? Defaults to \code{"saturated"}. Set to \code{"partialprune"} to mimic psychonetrics < 0.13.1 behavior.
+}
+\item{useMIs}{
+How to rank candidate equality constraints in the stepwise release loop. The default \code{"joint"} (introduced in 0.15.4) uses the joint multivariate score / Lagrange-multiplier test (one statistic per equality-constrained parameter, df = G - 1; see \code{\link{equalityScoreTest}}). The legacy \code{"simple"} option sums the per-group univariate modification indices instead, which reproduces the behavior of psychonetrics <= 0.15.3. For two-group models the two options are equivalent; they differ for G >= 3.
 }
   \item{\dots}{
 Arguments sent to \code{\link{prune}}.
