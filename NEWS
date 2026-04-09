@@ -1,3 +1,17 @@
+Changes in Version 0.15.5
+  o partialprune() gains a new argument release_model = c("pruned",
+    "saturated"), defaulting to "pruned". This changes the alternative
+    model used in the stepwise BIC comparison when deciding whether to
+    release an equality constraint: with "pruned" the just-released
+    parameter is immediately fixed to zero in any group where the
+    initial per-group prune (Step 1) had already removed it, before
+    refitting and comparing BIC. The equality-constrained model is
+    therefore tested against the asymmetric structure suggested by the
+    initial per-group prune rather than against a fully saturated
+    per-group alternative, which improves specificity at low sample
+    sizes. Set release_model = "saturated" to reproduce the 0.15.4
+    behavior.
+
 Changes in Version 0.15.4
   o New function equalityScoreTest() that computes the score (Lagrange
     multiplier) test for cross-group equality constraints in a multi-group

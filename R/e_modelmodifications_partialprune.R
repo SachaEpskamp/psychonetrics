@@ -9,8 +9,10 @@ partialprune <- function(
   best = c("lowest","highest"),
   final_prune = c("saturated","partialprune"),
   useMIs = c("joint","simple"),
+  release_model = c("pruned","saturated"),
   ...){
   useMIs <- match.arg(useMIs)
+  release_model <- match.arg(release_model)
   # Verbose:
   if (missing(verbose)){
     verbose <- x@verbose
@@ -256,9 +258,29 @@ partialprune <- function(
             
       # Free the best parameter:
       tryres <- try({
-      propMod <- curMod %>% 
-        groupfree(miDF$matrix[1],miDF$row[1],miDF$col[1]) %>% 
-        runmodel
+      mat_i <- miDF$matrix[1]; row_i <- miDF$row[1]; col_i <- miDF$col[1]
+      propMod <- curMod %>%
+        groupfree(mat_i, row_i, col_i)
+      # release_model = "pruned": before refitting and comparing BIC, fix the
+      # just-released parameter to zero in any group where Step 1's mod_prune
+      # had it removed. This tests the equality constraint against the
+      # asymmetric structure suggested by the per-group prune (rather than
+      # against the fully saturated per-group alternative), which improves
+      # specificity at low sample sizes.
+      if (release_model == "pruned"){
+        prune_rows <- which(mod_prune@parameters$matrix == mat_i &
+                              mod_prune@parameters$row == row_i &
+                              mod_prune@parameters$col == col_i)
+        for (pr in prune_rows){
+          if (isTRUE(mod_prune@parameters$fixed[pr])){
+            propMod <- propMod %>% fixpar(
+              matrix = mat_i, row = row_i, col = col_i,
+              group = mod_prune@parameters$group_id[pr],
+              verbose = FALSE)
+          }
+        }
+      }
+      propMod <- propMod %>% runmodel
       })
       
       # if (inherits(tryres, "try-error")){

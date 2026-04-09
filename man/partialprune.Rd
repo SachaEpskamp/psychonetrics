@@ -13,7 +13,8 @@ partialprune(x, alpha = 0.01, matrices, verbose,
              return = c("partialprune","best","union_equal","prune"),
              criterion = "bic",  best = c("lowest","highest"),
              final_prune = c("saturated","partialprune"),
-             useMIs = c("joint","simple"), ...)
+             useMIs = c("joint","simple"),
+             release_model = c("pruned","saturated"), ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -46,6 +47,9 @@ Should the last prune step be based on removing edges not significant in the las
 }
 \item{useMIs}{
 How to rank candidate equality constraints in the stepwise release loop. The default \code{"joint"} (introduced in 0.15.4) uses the joint multivariate score / Lagrange-multiplier test (one statistic per equality-constrained parameter, df = G - 1; see \code{\link{equalityScoreTest}}). The legacy \code{"simple"} option sums the per-group univariate modification indices instead, which reproduces the behavior of psychonetrics <= 0.15.3. For two-group models the two options are equivalent; they differ for G >= 3.
+}
+\item{release_model}{
+Specifies the alternative model used in the BIC comparison when deciding whether to release an equality constraint in the stepwise loop. With the default \code{"pruned"} (new in 0.15.5), the just-released parameter is immediately fixed to zero in any group where the initial per-group prune (Step 1) had already removed it, BEFORE refitting and comparing BIC. The equality-constrained model is therefore tested against the asymmetric structure suggested by the initial per-group prune, rather than against a fully saturated per-group alternative. This improves specificity at low sample sizes by penalizing the alternative less heavily for spurious cross-group differences. Set to \code{"saturated"} to reproduce the psychonetrics 0.15.4 behavior in which the released parameter is freed in all groups with no per-group zero pattern applied until the final prune step.
 }
   \item{\dots}{
 Arguments sent to \code{\link{prune}}.
