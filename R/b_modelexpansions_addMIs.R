@@ -63,6 +63,13 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
     x@parameters$mi_free[] <- 0
     x@parameters$pmi_free[] <- NA
     x@parameters$epc_free[] <- NA
+    # Joint score-test columns (added in 0.15.4). Create if absent for older models:
+    if (is.null(x@parameters$mi_free_joint)) x@parameters$mi_free_joint <- NA_real_
+    if (is.null(x@parameters$pmi_free_joint)) x@parameters$pmi_free_joint <- NA_real_
+    if (is.null(x@parameters$df_free_joint)) x@parameters$df_free_joint <- NA_real_
+    x@parameters$mi_free_joint[] <- NA_real_
+    x@parameters$pmi_free_joint[] <- NA_real_
+    x@parameters$df_free_joint[] <- NA_real_
   } else {
     x@parameters$mi_equal[] <- 0
     x@parameters$pmi_equal[] <- NA
@@ -216,6 +223,25 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
     x@parameters$mi_free[fillInds[!is.na(fillInds)]] <- round(mi[!is.na(fillInds)],10) # round(mi, 3)
     x@parameters$pmi_free[fillInds[!is.na(fillInds)]] <- round(p[!is.na(fillInds)],10)
     x@parameters$epc[fillInds[!is.na(fillInds)]] <- round(epc[!is.na(fillInds)],10)
+
+    # --- Joint score test (Lagrange Multiplier) for releasing each equality constraint ---
+    # We delegate to .equalityScoreTestInner (in f_convenience_equalityScoreTest.R) which
+    # does its own clean augmentation (only releasing equality constraints, not freeing
+    # zero pars). The result populates mi_free_joint / pmi_free_joint / df_free_joint
+    # columns; the original per-parameter mi_free values above are left as-is.
+    est_res <- tryCatch(.equalityScoreTestInner(x, analyticFisher = analyticFisher),
+                        error = function(e) NULL)
+    if (!is.null(est_res) && !is.null(est_res$total) && nrow(est_res$total) > 0){
+      tot <- est_res$total
+      for (i in seq_len(nrow(tot))){
+        write_rows <- which(x@parameters$matrix == tot$matrix[i] &
+                              x@parameters$row == tot$row[i] &
+                              x@parameters$col == tot$col[i])
+        x@parameters$mi_free_joint[write_rows] <- round(tot$X2[i], 10)
+        x@parameters$pmi_free_joint[write_rows] <- round(tot$p.value[i], 10)
+        x@parameters$df_free_joint[write_rows] <- tot$df[i]
+      }
+    }
   } else {
     x@parameters$mi_equal[fillInds[!is.na(fillInds)]] <- round(mi[!is.na(fillInds)],10) # round(mi,3)
     x@parameters$pmi_equal[fillInds[!is.na(fillInds)]] <- round(p[!is.na(fillInds)], 10)

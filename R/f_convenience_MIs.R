@@ -85,10 +85,29 @@ MIs_inner <- function(x,all = FALSE, matrices, type = c("normal","equal","free")
     message <- switch(type,
               "normal" = paste0("\nTop ",top," modification indices:\n\n"),
               "equal" = paste0("\nTop ",top," group-constrained modification indices:\n\n"),
-              "free" = paste0("\nTop ",top," equality-free modification indices:\n\n"))
+              "free" = paste0("\nTop ",top," summed equality-free modification indices (sum of per-group univariate score statistics):\n\n"))
     cat(message)
     print.data.frame(topx, row.names=FALSE)
-    
+
+    # For "free", also print the joint score-test table (one row per equality-constrained
+    # (matrix,row,col)) - this is the multivariate score / Lagrange multiplier test:
+    if (type == "free" && !is.null(x@parameters$mi_free_joint)){
+      jointTab <- x@parameters %>%
+        filter(drop(.data[["matrix"]] %in% matrices),
+               drop(!is.na(.data[["mi_free_joint"]]))) %>%
+        select(.data[["var1"]],.data[["op"]],.data[["var2"]],
+               .data[["matrix"]],.data[["row"]],.data[["col"]],
+               .data[["mi_free_joint"]],.data[["df_free_joint"]],.data[["pmi_free_joint"]]) %>%
+        distinct(.data[["matrix"]],.data[["row"]],.data[["col"]], .keep_all = TRUE)
+      if (nrow(jointTab) > 0){
+        jointTab <- jointTab[order(jointTab$mi_free_joint, decreasing = TRUE),] %>% head(top)
+        jointTab$mi_free_joint <- goodNum(jointTab$mi_free_joint)
+        jointTab$pmi_free_joint <- goodNum(jointTab$pmi_free_joint)
+        cat(paste0("\nTop ",top," joint equality-free modification indices (multivariate score / LM test, df = G-1):\n\n"))
+        print.data.frame(jointTab, row.names = FALSE)
+      }
+    }
+
   } else {
     parTable <- parTable[order(parTable[[micol]],decreasing = TRUE),] 
     # Make the entire table nice:

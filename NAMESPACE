@@ -24,6 +24,7 @@ export(transmod)
 export(CIplot)
 export(emergencystart)
 export(partialprune)
+export(equalityScoreTest)
 
 export(factorscores)
 
