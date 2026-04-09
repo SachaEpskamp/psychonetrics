@@ -10,27 +10,41 @@ the per-group univariate score statistics and the joint multivariate score
 statistic (one statistic per equality-constrained parameter, with df = G - 1)
 are returned.
 
-This function is inspired by \code{lavaan::lavTestScore} from the \pkg{lavaan}
-package and is intended to produce comparable output without depending on
-\pkg{lavaan}. The underlying machinery reuses the Fisher-information
-infrastructure already used by \code{addMIs} for ordinary modification
-indices, so no refitting of the model is required.
+The algorithm used by \code{method = "jacobian"} (the default) is a direct
+port of the score-test logic in \code{lavaan::lavTestScore} (Rosseel, 2012)
+and reproduces \pkg{lavaan}'s output to numerical precision. The derivation
+closely follows the implementation in \code{R/lav_test_score.R} of the
+\pkg{lavaan} source code (\url{https://github.com/yrosseel/lavaan}), reused
+here with thanks to Yves Rosseel under the GPL (\eqn{\geq} 2) license shared
+by both packages. The underlying gradient and Fisher-information machinery
+is provided by \pkg{psychonetrics}, so no refitting and no run-time
+dependence on \pkg{lavaan} is required.
 
-The reported statistics are scaled (by a factor of 2) to be on the same
-\eqn{-2\log L} scale as \code{lavaan::lavTestScore}, so for balanced
-multi-group models the values match \code{lavaan} exactly. Two minor
-sources of discrepancy can remain: (i) \pkg{psychonetrics} can use either
-the maximum-likelihood (\eqn{1/n}) or unbiased (\eqn{1/(n-1)}) sample
-covariance via the \code{covtype} argument of e.g. \code{\link{varcov}},
-while \pkg{lavaan} always uses the unbiased version, and (ii)
-\pkg{psychonetrics} constructs the score test from the Schur complement
-of the augmented Fisher information (the same construction used for
-ordinary modification indices), while \pkg{lavaan} uses a
-constraint-Jacobian construction. The two formulations are asymptotically
-equivalent and follow the same chi-square reference distribution.
+With the default \code{method = "jacobian"} the algorithm reproduces
+\code{lavaan::lavTestScore} exactly: the model is augmented with G-1
+extra parameters per equality-constrained tuple (one per non-reference
+group), the gradient and expected information are computed at the
+constrained MLE, and for each constraint the test statistic
+\deqn{T = N \cdot s' \cdot \tilde{J}^{-1} \cdot s}
+is formed, where \eqn{s} is the gradient of the log-likelihood and
+\eqn{\tilde{J}^{-1}} is the upper-left block of the generalised inverse
+of the bordered information matrix \eqn{[J\ R'^T;\ R\ 0]}, with \eqn{R}
+the rows of the constraint Jacobian for the constraints that are NOT
+being tested. This is the same construction used by
+\code{lavaan::lavTestScore}.
+
+\code{method = "schur"} uses a faster Schur-complement construction
+(the same used by \pkg{psychonetrics} for ordinary modification
+indices). It is much faster for complex models because it inverts only
+the (smaller) block of the information matrix corresponding to the
+currently free parameters, but it is not exactly equivalent to
+\code{lavaan} in unbalanced multi-group samples (it agrees in
+balanced samples). Both methods follow the same asymptotic
+chi-square reference distribution.
 }
 \usage{
-equalityScoreTest(x, matrices, top = 10, verbose = TRUE)
+equalityScoreTest(x, matrices, top = 10, verbose = TRUE,
+                  method = c("jacobian","schur"))
 }
 \arguments{
   \item{x}{A fitted (run) multi-group \code{psychonetrics} model.}
@@ -38,6 +52,11 @@ equalityScoreTest(x, matrices, top = 10, verbose = TRUE)
     default all matrices are considered.}
   \item{top}{How many rows to print in each table.}
   \item{verbose}{Logical, should the formatted tables be printed?}
+  \item{method}{Construction of the score test. \code{"jacobian"}
+    (default) reproduces \code{lavaan::lavTestScore} exactly.
+    \code{"schur"} uses a Schur-complement construction that is faster
+    for complex models but only matches \code{lavaan} for balanced
+    multi-group samples.}
 }
 \value{
 Invisibly returns a list with two data frames:
@@ -65,6 +84,9 @@ or otherwise aggregating univariate statistics.
 \references{
 Rosseel, Y. (2012). lavaan: An R Package for Structural Equation Modeling.
 Journal of Statistical Software, 48(2), 1-36. \doi{10.18637/jss.v048.i02}
+
+lavaan source code: \url{https://github.com/yrosseel/lavaan} (in particular
+\code{R/lav_test_score.R}).
 }
 \examples{
 \donttest{
@@ -84,5 +106,7 @@ equalityScoreTest(mod)
 }
 }
 \author{
-Sacha Epskamp <mail@sachaepskamp.com>
+Sacha Epskamp <mail@sachaepskamp.com>. The \code{method = "jacobian"}
+implementation is a port of the score-test machinery in
+\code{lavaan::lavTestScore} by Yves Rosseel.
 }

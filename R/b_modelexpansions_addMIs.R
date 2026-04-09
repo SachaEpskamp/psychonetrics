@@ -229,7 +229,8 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
     # does its own clean augmentation (only releasing equality constraints, not freeing
     # zero pars). The result populates mi_free_joint / pmi_free_joint / df_free_joint
     # columns; the original per-parameter mi_free values above are left as-is.
-    est_res <- tryCatch(.equalityScoreTestInner(x, analyticFisher = analyticFisher),
+    est_res <- tryCatch(.equalityScoreTestInner(x, analyticFisher = analyticFisher,
+                                                method = "jacobian"),
                         error = function(e) NULL)
     if (!is.null(est_res) && !is.null(est_res$total) && nrow(est_res$total) > 0){
       tot <- est_res$total

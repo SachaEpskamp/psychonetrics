@@ -3,10 +3,12 @@ Changes in Version 0.15.4
     multiplier) test for cross-group equality constraints in a multi-group
     model. Returns both per-group univariate score statistics and a joint
     multivariate score statistic (one per equality-constrained parameter,
-    df = G - 1). Inspired by lavaan::lavTestScore but implemented entirely
-    within psychonetrics (no lavaan dependency). Statistics are scaled to
-    the -2 log L convention used by lavaan, so values match lavaan
-    exactly for balanced multi-group models.
+    df = G - 1). With the default method = "jacobian" the test
+    reproduces lavaan::lavTestScore exactly (to numerical precision)
+    for both balanced and unbalanced multi-group samples. A faster
+    method = "schur" alternative is available for complex models; it
+    inverts only the smaller "currently free" block of the information
+    matrix and matches lavaan in balanced samples.
   o The parameter table now carries three new columns: mi_free_joint,
     pmi_free_joint, and df_free_joint, populated whenever modification
     indices of type "free" are computed.
