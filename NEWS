@@ -1,3 +1,14 @@
+Changes in Version 0.15.6
+  o Performance: addMIs() now skips the univariate score-test loop in
+    .equalityScoreTestInner() (added in 0.15.4), which was computed on
+    every runmodel() call but never consumed -- only the joint score-test
+    statistic populates the parameter table. The univariate output is
+    still produced on demand when equalityScoreTest() or MIs(type="free")
+    are called. partialprune() no longer pays this cost on every inner
+    refit. Speedup scales with the number of groups: ~1.2x for G=2,
+    ~1.5x for G=3, ~2.5x for G=4 on a small Ising example. Final
+    partialprune() output is bit-identical to 0.15.5.
+
 Changes in Version 0.15.5
   o partialprune() gains a new argument release_model = c("pruned",
     "saturated"), defaulting to "pruned". This changes the alternative

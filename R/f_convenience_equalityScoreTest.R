@@ -17,7 +17,8 @@
 # joint statistics are uncontaminated.
 # ---------------------------------------------------------------------------
 .equalityScoreTestInner <- function(x, matrices = NULL, analyticFisher = TRUE,
-                                    method = c("jacobian","schur")){
+                                    method = c("jacobian","schur"),
+                                    joint_only = FALSE){
   method <- match.arg(method)
   if (is.null(matrices)) matrices <- x@matrices$name
 
@@ -146,21 +147,27 @@
     }
 
     # Univariate: one stat per row of R (release just that one row).
-    for (r in seq_len(nrow(R))){
-      R1 <- R[-r, , drop = FALSE]
-      Z <- tryCatch(Z1plus1(R1), error = function(e) NULL)
-      X2_uni <- if (is.null(Z)) NA_real_
-      else as.numeric(t(score_lav) %*% Z %*% score_lav / (2 * nTotal))
-      tup_i <- row_tuple[r]; j_in_tup <- row_within_tuple[r]
-      info <- tuples[[tup_i]]
-      uni_rows[[length(uni_rows) + 1L]] <- data.frame(
-        var1 = info$var1, op = info$op, var2 = info$var2,
-        matrix = info$mat, row = info$row, col = info$col,
-        group = info$group_labels[j_in_tup], group_id = info$group_ids[j_in_tup],
-        X2 = X2_uni, df = 1L,
-        p.value = if (is.na(X2_uni)) NA_real_ else pchisq(X2_uni, 1, lower.tail = FALSE),
-        stringsAsFactors = FALSE
-      )
+    # Skipped when joint_only = TRUE: addMIs() only consumes the joint result,
+    # so the univariate ginv loop is wasted work during partialprune's repeat
+    # loop. The user-facing equalityScoreTest() and MIs() always pass
+    # joint_only = FALSE so the printed "Univariate" table is unaffected.
+    if (!joint_only){
+      for (r in seq_len(nrow(R))){
+        R1 <- R[-r, , drop = FALSE]
+        Z <- tryCatch(Z1plus1(R1), error = function(e) NULL)
+        X2_uni <- if (is.null(Z)) NA_real_
+        else as.numeric(t(score_lav) %*% Z %*% score_lav / (2 * nTotal))
+        tup_i <- row_tuple[r]; j_in_tup <- row_within_tuple[r]
+        info <- tuples[[tup_i]]
+        uni_rows[[length(uni_rows) + 1L]] <- data.frame(
+          var1 = info$var1, op = info$op, var2 = info$var2,
+          matrix = info$mat, row = info$row, col = info$col,
+          group = info$group_labels[j_in_tup], group_id = info$group_ids[j_in_tup],
+          X2 = X2_uni, df = 1L,
+          p.value = if (is.na(X2_uni)) NA_real_ else pchisq(X2_uni, 1, lower.tail = FALSE),
+          stringsAsFactors = FALSE
+        )
+      }
     }
 
     # Joint per tuple: release the G-1 rows belonging to that tuple at once.
@@ -195,21 +202,23 @@
       S_pos <- S_par - curMax
       Vsub <- V[S_pos, S_pos, drop = FALSE]
       gsub <- (-nTotal) * g[S_par]
-      Vdiag <- diag(Vsub)
-      for (j in seq_along(S_pos)){
-        X2_uni <- if (!is.finite(Vdiag[j]) || Vdiag[j] < sqrt(.Machine$double.eps)) {
-          NA_real_
-        } else {
-          2 * (gsub[j]^2) / Vdiag[j]
+      if (!joint_only){
+        Vdiag <- diag(Vsub)
+        for (j in seq_along(S_pos)){
+          X2_uni <- if (!is.finite(Vdiag[j]) || Vdiag[j] < sqrt(.Machine$double.eps)) {
+            NA_real_
+          } else {
+            2 * (gsub[j]^2) / Vdiag[j]
+          }
+          uni_rows[[length(uni_rows) + 1L]] <- data.frame(
+            var1 = info$var1, op = info$op, var2 = info$var2,
+            matrix = info$mat, row = info$row, col = info$col,
+            group = info$group_labels[j], group_id = info$group_ids[j],
+            X2 = X2_uni, df = 1L,
+            p.value = if (is.na(X2_uni)) NA_real_ else pchisq(X2_uni, 1, lower.tail = FALSE),
+            stringsAsFactors = FALSE
+          )
         }
-        uni_rows[[length(uni_rows) + 1L]] <- data.frame(
-          var1 = info$var1, op = info$op, var2 = info$var2,
-          matrix = info$mat, row = info$row, col = info$col,
-          group = info$group_labels[j], group_id = info$group_ids[j],
-          X2 = X2_uni, df = 1L,
-          p.value = if (is.na(X2_uni)) NA_real_ else pchisq(X2_uni, 1, lower.tail = FALSE),
-          stringsAsFactors = FALSE
-        )
       }
       Tjoint <- tryCatch(
         as.numeric(2 * t(gsub) %*% solve(Vsub) %*% gsub),

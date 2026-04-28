@@ -229,8 +229,15 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
     # does its own clean augmentation (only releasing equality constraints, not freeing
     # zero pars). The result populates mi_free_joint / pmi_free_joint / df_free_joint
     # columns; the original per-parameter mi_free values above are left as-is.
+    # joint_only = TRUE: addMIs only writes the joint columns (mi_free_joint
+    # etc.); the univariate score-test rows are not consumed here. Skipping
+    # them avoids K * (G - 1) MASS::ginv calls per runmodel(), which dominate
+    # the cost of partialprune() on multi-group models with many equality
+    # constraints. The user-facing equalityScoreTest() and MIs() compute both
+    # tables on demand.
     est_res <- tryCatch(.equalityScoreTestInner(x, analyticFisher = analyticFisher,
-                                                method = "jacobian"),
+                                                method = "jacobian",
+                                                joint_only = TRUE),
                         error = function(e) NULL)
     if (!is.null(est_res) && !is.null(est_res$total) && nrow(est_res$total) > 0){
       tot <- est_res$total
