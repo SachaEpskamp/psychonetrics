@@ -280,7 +280,53 @@ partialprune <- function(
           }
         }
       }
-      propMod <- propMod %>% runmodel
+      # Inner-loop refit: only need BIC (from addfit) and the joint score-test
+      # statistic mi_free_joint to pick the next release. Skip addMIs (which
+      # calls psychonetrics_FisherInformation_cpp three times for type =
+      # normal/free/equal). KEEP addSEs and addInformation enabled because
+      # the post-loop prune() reads p-values (from addSEs) and @information
+      # (from addInformation) on the final curMod. Disabling either breaks
+      # the post-loop prune step on cases where the inner loop iterates
+      # more than once.
+      # For multi-group Ising at high node counts the addMIs Fisher builds
+      # dominate the per-iteration cost because each Fisher build enumerates
+      # 2^N states.
+      propMod <- propMod %>% runmodel(addMIs = FALSE)
+      # Re-populate mi_free_joint via the joint score test only (the inner
+      # loop reads this column to choose which equality constraint to release
+      # next). Mirrors the joint-test write block in addMIs_inner_full(type =
+      # "free"). For useMIs == "simple" we fall back to a full addMIs call
+      # to populate the legacy per-parameter mi_free column the simple
+      # branch reads.
+      if (useMIs == "joint" && nrow(propMod@sample@groups) >= 2){
+        if (is.null(propMod@parameters$mi_free_joint))
+          propMod@parameters$mi_free_joint <- NA_real_
+        if (is.null(propMod@parameters$pmi_free_joint))
+          propMod@parameters$pmi_free_joint <- NA_real_
+        if (is.null(propMod@parameters$df_free_joint))
+          propMod@parameters$df_free_joint <- NA_real_
+        propMod@parameters$mi_free_joint[]  <- NA_real_
+        propMod@parameters$pmi_free_joint[] <- NA_real_
+        propMod@parameters$df_free_joint[]  <- NA_real_
+        est_res <- tryCatch(
+          .equalityScoreTestInner(propMod, method = "jacobian",
+                                  joint_only = TRUE),
+          error = function(e) NULL
+        )
+        if (!is.null(est_res) && !is.null(est_res$total) && nrow(est_res$total) > 0){
+          tot <- est_res$total
+          for (ii in seq_len(nrow(tot))){
+            wr <- which(propMod@parameters$matrix == tot$matrix[ii] &
+                          propMod@parameters$row == tot$row[ii] &
+                          propMod@parameters$col == tot$col[ii])
+            propMod@parameters$mi_free_joint[wr]  <- round(tot$X2[ii], 10)
+            propMod@parameters$pmi_free_joint[wr] <- round(tot$p.value[ii], 10)
+            propMod@parameters$df_free_joint[wr]  <- tot$df[ii]
+          }
+        }
+      } else if (useMIs == "simple"){
+        propMod <- addMIs(propMod, verbose = FALSE)
+      }
       })
       
       # if (inherits(tryres, "try-error")){

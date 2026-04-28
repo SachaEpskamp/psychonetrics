@@ -1,3 +1,26 @@
+Changes in Version 0.15.7
+  o Performance: partialprune() inner refits skip addMIs(). The
+    repeat-loop only consumes the BIC and the joint score-test
+    statistic mi_free_joint, so addMIs's three Fisher-information
+    builds (type = normal / free / equal) are wasted on every
+    iteration. mi_free_joint is repopulated directly via
+    .equalityScoreTestInner(joint_only = TRUE) on each candidate fit
+    so the next selection still has the data it needs.
+
+    addSEs and addInformation are kept enabled because the post-loop
+    prune() reads p-values (from addSEs) and @information (from
+    addInformation) on the final curMod; disabling them changed the
+    post-loop prune behavior on multi-group cases where the inner
+    loop iterated more than once.
+
+    For useMIs = "simple" we fall back to a full addMIs() call inside
+    the loop so the legacy per-parameter mi_free column is still
+    populated (the simple branch reads it).
+
+    Final partialprune() output is unchanged: the user-facing returned
+    model is produced by the regular post-loop runmodel() / prune()
+    chain, which uses default flags and populates MIs / SEs / @information.
+
 Changes in Version 0.15.6
   o Performance: addMIs() now skips the univariate score-test loop in
     .equalityScoreTestInner() (added in 0.15.4), which was computed on
