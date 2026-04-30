@@ -8,13 +8,14 @@ Partial pruning of multi-group models
 This function will search for a multi-group model with equality constrains on some but not all parameters. This is called partial pruning (Epskamp, Isvoranu, & Cheung, 2020; Haslbeck, 2020).  The algorithm is as follows: 1. remove all parameters not significant at alpha in all groups (without equality constrains), 2. create a union model with all parameters included in any group included in all groups and constrained equal. 3. Stepwise free equality constrains of the parameter that features the largest sum of modification indices until BIC can no longer be improved. 4. Select and return (by default) the best model according to BIC (original model, pruned model, union model and partially pruned model). 
 }
 \usage{
-partialprune(x, alpha = 0.01, matrices, verbose, 
-             combinefun = c("unionmodel", "intersectionmodel", "identity"), 
+partialprune(x, alpha = 0.01, matrices, verbose,
+             combinefun = c("unionmodel", "intersectionmodel", "identity"),
              return = c("partialprune","best","union_equal","prune"),
              criterion = "bic",  best = c("lowest","highest"),
              final_prune = c("saturated","partialprune"),
              useMIs = c("joint","simple"),
-             release_model = c("pruned","saturated"), ...)
+             release_model = c("pruned","saturated"),
+             identify = TRUE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -50,6 +51,9 @@ How to rank candidate equality constraints in the stepwise release loop. The def
 }
 \item{release_model}{
 Specifies the alternative model used in the BIC comparison when deciding whether to release an equality constraint in the stepwise loop. With the default \code{"pruned"} (new in 0.15.5), the just-released parameter is immediately fixed to zero in any group where the initial per-group prune (Step 1) had already removed it, BEFORE refitting and comparing BIC. The equality-constrained model is therefore tested against the asymmetric structure suggested by the initial per-group prune, rather than against a fully saturated per-group alternative. This improves specificity at low sample sizes by penalizing the alternative less heavily for spurious cross-group differences. Set to \code{"saturated"} to reproduce the psychonetrics 0.15.4 behavior in which the released parameter is freed in all groups with no per-group zero pattern applied until the final prune step.
+}
+\item{identify}{
+Logical, passed to the internal \code{\link{prune}}, \code{\link{unionmodel}}, \code{\link{intersectionmodel}}, \code{\link{groupequal}}, and \code{\link{groupfree}} calls. When \code{FALSE}, \code{\link{identify}} is not invoked on the intermediate models, so user-fixed parameters (e.g. \code{fixpar("beta", 1, 1, value = 1)} in a multi-group Ising model) are not re-freed when equality constraints are introduced on \code{matrices}. Defaults to \code{TRUE}, which preserves the historical behavior.
 }
   \item{\dots}{
 Arguments sent to \code{\link{prune}}.

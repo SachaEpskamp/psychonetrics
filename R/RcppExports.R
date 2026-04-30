@@ -641,6 +641,10 @@ expHessianCpp <- function(states, probabilities, omega, tau, beta, nstate, nvar)
     .Call(`_psychonetrics_expHessianCpp`, states, probabilities, omega, tau, beta, nstate, nvar)
 }
 
+expected_hessian_Ising_full_cpp <- function(prep) {
+    .Call(`_psychonetrics_expected_hessian_Ising_full_cpp`, prep)
+}
+
 H <- function(state, graph, tau) {
     .Call(`_psychonetrics_H`, state, graph, tau)
 }

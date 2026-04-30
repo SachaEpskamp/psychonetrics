@@ -16,6 +16,7 @@
 #include "23_meta_lvm_derivatives_cpp.h"
 #include "24_meta_var1_derivatives_cpp.h"
 #include "21_Ising_derivatives_cpp.h"
+#include "21_Ising_expectedHessian_full.h"
 #include "22_ml_lvm_derivatives_cpp.h"
 #include "02_algebrahelpers_modelMatrix_cpp.h"
 
@@ -92,13 +93,11 @@ void psychonetrics_FisherInformation_cpp_inner(
 
     } else if (distribution == "Ising"){
 
-      // Obtain environment containing function
-      Rcpp::Environment base = Environment::namespace_env( "psychonetrics" ) ; 
-      
-      // Make function callable from C++
-      Rcpp::Function hesFun = base["expected_hessian_Ising"]; 
-      
-      estimatorPart = as<arma::mat>(hesFun(prep));
+      // Pure-C++ single-pass Hessian (replaces R callback to
+      // expected_hessian_Ising / expHessianCpp, which previously walked
+      // the 2^N state space four times: IsingSampler::IsingLikelihood +
+      // expHcpp + expH2cpp + the main moment-accumulation loop).
+      estimatorPart = expected_hessian_Ising_full_cpp(prep);
 
     } else {
       Rcpp::stop("Distribution not supported for ML estimator.");

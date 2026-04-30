@@ -1,3 +1,29 @@
+Changes in Version 0.15.9
+  o Performance: the expected Fisher information for Ising models is
+    now computed entirely in C++ in a single 2^N state-enumeration pass
+    (psychonetrics_FisherInformation_cpp -> expected_hessian_Ising_full_cpp).
+    The previous path made an R callback to expected_hessian_Ising_group,
+    which itself called IsingSampler::IsingLikelihood (one full state
+    enumeration plus materialization of a 2^N x N states matrix) and
+    then expHessianCpp (which made three more passes through all
+    2^N states: expHcpp, expH2cpp, and the main moment-accumulation
+    loop). The new single-pass implementation also fills only the
+    canonical lower-tri shapes of the 3rd- and 4th-order moment
+    tensors that the Hessian assembly actually reads, eliminating the
+    O(2^N N^4) dense fill in favour of O(2^N N^4 / 8).
+
+    Per-call benchmarks (multi-group Ising):
+      N=10 G=2  : 11.8x
+      N=12 G=2  : 21.2x
+      N=14 G=2  : 28.2x
+    End-to-end partialprune() at N=15 G=2 (sample 800/group) drops
+    from ~700s (0.15.7) to ~43s. Output is bit-identical (max abs
+    diff in the @information slot: 6.7e-16, machine epsilon).
+
+    The R-level expected_hessian_Ising / expected_hessian_Ising_group
+    functions and the Rcpp::export expHessianCpp are kept as-is for
+    callers outside the cpp Fisher-information path.
+
 Changes in Version 0.15.8
   o partialprune() gains an 'identify' argument (default TRUE) that is
     threaded through prune(), unionmodel(), intersectionmodel(),

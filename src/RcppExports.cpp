@@ -2055,6 +2055,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// expected_hessian_Ising_full_cpp
+arma::mat expected_hessian_Ising_full_cpp(const Rcpp::List& prep);
+RcppExport SEXP _psychonetrics_expected_hessian_Ising_full_cpp(SEXP prepSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prep(prepSEXP);
+    rcpp_result_gen = Rcpp::wrap(expected_hessian_Ising_full_cpp(prep));
+    return rcpp_result_gen;
+END_RCPP
+}
 // H
 double H(arma::vec state, arma::mat graph, arma::vec tau);
 RcppExport SEXP _psychonetrics_H(SEXP stateSEXP, SEXP graphSEXP, SEXP tauSEXP) {
@@ -2462,6 +2473,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_d_phi_theta_Ising_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_Ising_cpp, 1},
     {"_psychonetrics_expHcpp", (DL_FUNC) &_psychonetrics_expHcpp, 6},
     {"_psychonetrics_expHessianCpp", (DL_FUNC) &_psychonetrics_expHessianCpp, 7},
+    {"_psychonetrics_expected_hessian_Ising_full_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_Ising_full_cpp, 1},
     {"_psychonetrics_H", (DL_FUNC) &_psychonetrics_H, 3},
     {"_psychonetrics_Pot", (DL_FUNC) &_psychonetrics_Pot, 4},
     {"_psychonetrics_isingExpectation", (DL_FUNC) &_psychonetrics_isingExpectation, 5},
