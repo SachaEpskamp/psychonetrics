@@ -194,8 +194,8 @@ partialprune <- function(
       
       # But obtain starting values from unionmodel function:
       mod_union@parameters$est <- intersectionmodel(mod_prune, matrices = matrices, runmodel = TRUE,identify =identify ) %>%
-        groupequal(matrices) %>%
-        runmodel %>% 
+        groupequal(matrices, identify = identify) %>%
+        runmodel %>%
         '@'('parameters') %>% '$'('est')
       
     }
@@ -344,7 +344,7 @@ partialprune <- function(
     
     # Final prune step:
     if (final_prune=="partialprune"){
-      mod_partialpooled <- curMod %>% prune(alpha=alpha,verbose=FALSE,runmodel=TRUE,matrices=matrices,...)   
+      mod_partialpooled <- curMod %>% prune(alpha=alpha,verbose=FALSE,runmodel=TRUE,matrices=matrices,identify=identify,...)
     } else {
       
      # loop over all parameters in the matrices:

@@ -1,3 +1,12 @@
+Changes in Version 0.15.8
+  o partialprune() gains an 'identify' argument (default TRUE) that is
+    threaded through prune(), unionmodel(), intersectionmodel(),
+    groupequal(), and groupfree(). Setting identify = FALSE prevents
+    identify() from being called on the intermediate models, so user-
+    fixed parameters (e.g. fixpar(\"beta\", 1, 1, value = 1) in a multi-
+    group Ising) are not re-freed when omega equality constraints are
+    introduced. Default behavior (identify = TRUE) is unchanged.
+
 Changes in Version 0.15.7
   o Performance: partialprune() inner refits skip addMIs(). The
     repeat-loop only consumes the BIC and the joint score-test
