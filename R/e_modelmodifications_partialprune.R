@@ -10,6 +10,7 @@ partialprune <- function(
   final_prune = c("saturated","partialprune"),
   useMIs = c("joint","simple"),
   release_model = c("pruned","saturated"),
+  identify = TRUE,
   ...){
   useMIs <- match.arg(useMIs)
   release_model <- match.arg(release_model)
@@ -171,7 +172,7 @@ partialprune <- function(
   
   # Prune first:
   if (verbose) message("Pruning model...")
-  mod_prune <- prune(x,alpha=alpha,verbose=FALSE,runmodel=TRUE,matrices=matrices,...) %>% runmodel
+  mod_prune <- prune(x,alpha=alpha,verbose=FALSE,runmodel=TRUE,matrices=matrices,identify=identify,...) %>% runmodel
   
   # if not empty, look for equality:
   if (!all(mod_prune@parameters$est[mod_prune@parameters$matrix%in%matrices&!mod_prune@parameters$fixed]==0)){
@@ -183,16 +184,16 @@ partialprune <- function(
  # browser()
     # First union or intersection:
     if (combinefun == "unionmodel"){
-      mod_union <- unionmodel(mod_prune, matrices = matrices)
+      mod_union <- unionmodel(mod_prune, matrices = matrices,identify =identify)
     } else if (combinefun == "intersectionmodel"){
-      mod_union <- intersectionmodel(mod_prune, matrices = matrices)
+      mod_union <- intersectionmodel(mod_prune, matrices = matrices,identify =identify)
     } else {
       
       # for each parameter in the relevant matrices, make equal if both included:
       mod_union <- mod_prune
       
       # But obtain starting values from unionmodel function:
-      mod_union@parameters$est <- intersectionmodel(mod_prune, matrices = matrices, runmodel = TRUE) %>%
+      mod_union@parameters$est <- intersectionmodel(mod_prune, matrices = matrices, runmodel = TRUE,identify =identify ) %>%
         groupequal(matrices) %>%
         runmodel %>% 
         '@'('parameters') %>% '$'('est')
@@ -212,7 +213,7 @@ partialprune <- function(
           mod_union <- mod_union %>% groupequal(
             matrix = mod_union@parameters$matrix[p],
             row = mod_union@parameters$row[p],
-            col = mod_union@parameters$col[p], verbose = FALSE)
+            col = mod_union@parameters$col[p], verbose = FALSE,identify =identify )
         }
         
       }
@@ -260,7 +261,7 @@ partialprune <- function(
       tryres <- try({
       mat_i <- miDF$matrix[1]; row_i <- miDF$row[1]; col_i <- miDF$col[1]
       propMod <- curMod %>%
-        groupfree(mat_i, row_i, col_i)
+        groupfree(mat_i, row_i, col_i,identify =identify )
       # release_model = "pruned": before refitting and comparing BIC, fix the
       # just-released parameter to zero in any group where Step 1's mod_prune
       # had it removed. This tests the equality constraint against the
