@@ -37,6 +37,8 @@ export(meta_ggm)
 export(simplestructure)
 
 export(setverbose)
+export(update_baseline)
+export(update_saturated)
 
 # Multi-level models:
 export(ml_tsdlvm1)

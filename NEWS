@@ -1,3 +1,10 @@
+Changes in Version 0.15.11
+  o New convenience setters update_baseline() and update_saturated()
+    overwrite the @baseline_saturated$baseline / $saturated slots of
+    a psychonetrics model. Together with `baseline_saturated = FALSE`
+    on the model constructor they make it straightforward to attach
+    hand-built reference models before calling runmodel().
+
 Changes in Version 0.15.10
   o Fix: the internal saturated reference model no longer inherits
     cross-group equality from the target. Previously the saturated
