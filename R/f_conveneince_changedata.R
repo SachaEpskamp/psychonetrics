@@ -59,16 +59,17 @@ changedata <- function(x, data, covs, nobs, means, groups, missing = "listwise")
   
   
   ### Saturated model ###
+  # No `equal = x@equal`: the saturated reference is unconstrained per
+  # group; cross-group equality belongs to the target/baseline only.
   x@baseline_saturated$saturated <- varcov(data,
-                                               type = "chol", 
-                                               lowertri = "full", 
+                                               type = "chol",
+                                               lowertri = "full",
                                                vars = vars,
                                                groups = groups,
                                                covs = covs,
                                                means = means,
                                                nobs = nobs,
                                                missing = missing,
-                                               equal = x@equal,
                                                estimator = estimator,
                                                baseline_saturated = FALSE)
   

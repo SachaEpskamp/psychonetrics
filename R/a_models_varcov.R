@@ -412,17 +412,21 @@ varcov <- function(
     
     
     ### Saturated model ###
+    # The saturated reference model is intentionally left unconstrained
+    # (no `equal = equal`): the LR-based fit measures must reference a
+    # model in which each group's covariance/threshold structure is fully
+    # free. Cross-group equality is a property of the target/baseline,
+    # not the saturated. (Was a long-standing bug pre-0.15.10.)
     if (!corinput){
       model@baseline_saturated$saturated <- varcov(data,
-                                                   type = "chol", 
-                                                   lowertri = "full", 
+                                                   type = "chol",
+                                                   lowertri = "full",
                                                    vars = vars,
                                                    groups = groups,
                                                    covs = covs,
                                                    means = means,
                                                    nobs = nobs,
                                                    missing = missing,
-                                                   equal = equal,
                                                    estimator = estimator,
                                                    meanstructure=meanstructure,
                                                    corinput = corinput,
@@ -430,15 +434,14 @@ varcov <- function(
                                                    baseline_saturated = FALSE,sampleStats=sampleStats)
     } else {
       model@baseline_saturated$saturated <- varcov(data,
-                                                   type = "cor", 
-                                                   lowertri = "full", 
+                                                   type = "cor",
+                                                   lowertri = "full",
                                                    vars = vars,
                                                    groups = groups,
                                                    covs = covs,
                                                    means = means,
                                                    nobs = nobs,
                                                    missing = missing,
-                                                   equal = equal,
                                                    estimator = estimator,
                                                    meanstructure=meanstructure,
                                                    corinput = corinput,

@@ -61,13 +61,14 @@ bootstrap <- function(x, replacement = TRUE, proportion = 1, verbose = TRUE, sto
     
     
     ### Saturated model ###
+    # No `equal = x@equal`: the saturated reference is unconstrained per
+    # group; cross-group equality belongs to the target/baseline only.
     x@baseline_saturated$saturated <- varcov(data,
-                                             type = "chol", 
-                                             lowertri = "full", 
+                                             type = "chol",
+                                             lowertri = "full",
                                              vars = attr(data, "vars"),
                                              groups = attr(data, "groups"),
                                              missing = attr(data, "missing"),
-                                             equal = x@equal,
                                              estimator = x@estimator,
                                              baseline_saturated = FALSE)
     

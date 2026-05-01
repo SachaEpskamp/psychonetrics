@@ -327,15 +327,16 @@ var1 <- function(
     # Add model:
     # model@baseline_saturated$baseline@fitfunctions$extramatrices$M <- Mmatrix(model@baseline_saturated$baseline@parameters)
     ### Saturated model ###
-    model@baseline_saturated$saturated <- cholesky(data = data, 
-                                                   lowertri = "full", 
+    # No `equal = equal`: the saturated reference is unconstrained per
+    # group; cross-group equality belongs to the target/baseline only.
+    model@baseline_saturated$saturated <- cholesky(data = data,
+                                                   lowertri = "full",
                                                    vars = vars,
                                                    groups = groups,
                                                    covs = covs,
                                                    means = means,
                                                    nobs = nobs,
                                                    missing = missing,
-                                                   equal = equal,
                                                    estimator = estimator,
                                                    baseline_saturated = FALSE,
                                                    sampleStats = sampleStats)

@@ -211,6 +211,8 @@ Ising <- function(
     
     
     ### Saturated model ###
+    # No `equal = equal`: the saturated reference is unconstrained per
+    # group; cross-group equality belongs to the target/baseline only.
     model@baseline_saturated$saturated <- Ising(data,
                                                beta_model = beta_model,
                                                omega = "full",
@@ -220,7 +222,6 @@ Ising <- function(
                                                means = means,
                                                nobs = nobs,
                                                missing = missing,
-                                               equal = equal,
                                                estimator = estimator,
                                                responses = responses,
                                                baseline_saturated = FALSE,sampleStats=sampleStats)

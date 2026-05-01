@@ -353,6 +353,15 @@ addfit <- function(
     }
     fitMeasures$baseline.npar <- max(x@baseline_saturated$baseline@parameters$par)
     fitMeasures$baseline.df <- fitMeasures$nobs - max(x@baseline_saturated$baseline@parameters$par)
+    if (!is.null(x@baseline_saturated$saturated)){
+      # Mirror the adjustment applied to fitMeasures$df above: the baseline
+      # chisq (-2 * (basLL - satLL)) is referenced against the saturated
+      # model, so its df is npar_sat - npar_baseline. When the saturated
+      # model itself is constrained (e.g. multi-group with equal=) so
+      # npar_sat < nobs, baseline.df must subtract (nobs_sat - npar_sat).
+      # If the saturated is fully saturated this subtracts zero (legacy case).
+      fitMeasures$baseline.df <- fitMeasures$baseline.df - (x@baseline_saturated$saturated@sample@nobs - max(x@baseline_saturated$saturated@parameters$par))
+    }
     fitMeasures$baseline.pvalue <- pchisq(fitMeasures$baseline.chisq, fitMeasures$baseline.df, lower.tail = FALSE)
 
     # WLSMV scaled baseline:

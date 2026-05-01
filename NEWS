@@ -1,3 +1,33 @@
+Changes in Version 0.15.10
+  o Fix: the internal saturated reference model no longer inherits
+    cross-group equality from the target. Previously the saturated
+    builders in 10 model files (varcov / ggm, lvm, ml_lvm, var1,
+    dlvm1, tsdlvm1, Ising, plus changedata() / bootstrap()) passed
+    `equal = equal` into the saturated, so a multi-group model fit
+    with e.g. `equal = "omega"` produced a saturated whose covariance
+    structure was constrained equal across groups too. The saturated
+    is meant to be a fully-unrestricted per-group reference, so this
+    inflated chi-square pvalues and could produce nonsensical
+    negative df (the target was no longer nested in the saturated:
+    e.g. ggm(equal="omega") on 4 vars / 2 groups gave df = -4).
+
+    The recommended pipeline of imposing cross-group equality via
+    groupequal() after model construction was unaffected by this bug;
+    only the `equal = ...` shortcut at construction time triggered it.
+    After the fix, both pipelines produce sensible chi-square tests
+    and incremental fit indices.
+
+  o Fix (issue #51, jwe4ec): baseline.df was not adjusted for the
+    case where the saturated reference model has fewer free
+    parameters than nobs. The target df already had this adjustment;
+    baseline.df now mirrors it. With the saturated-equal fix above
+    this correction is usually zero, but it now also handles the
+    case where the user supplies a custom non-fully-saturated
+    saturated via @baseline_saturated$saturated. Affects the chi-
+    square reference for the baseline test and any incremental fit
+    indices that depend on baseline.df (CFI, TLI, NFI, RFI, IFI,
+    RNI, NNFI).
+
 Changes in Version 0.15.9
   o Performance: the expected Fisher information for Ising models is
     now computed entirely in C++ in a single 2^N state-enumeration pass

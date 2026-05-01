@@ -1268,16 +1268,17 @@ dlvm1 <- function(
     
     
     ### Saturated model ###
+    # No `equal = equal`: the saturated reference is unconstrained per
+    # group; cross-group equality belongs to the target/baseline only.
     model@baseline_saturated$saturated <- varcov(data,
-                                                 type = "chol", 
-                                                 lowertri = "full", 
+                                                 type = "chol",
+                                                 lowertri = "full",
                                                  vars = allVars,
                                                  groups = groups,
                                                  covs = covs,
                                                  means = means,
                                                  nobs = nobs,
                                                  missing = missing,
-                                                 equal = equal,
                                                  estimator = estimator,
                                                  baseline_saturated = FALSE,
                                                  sampleStats = sampleStats)

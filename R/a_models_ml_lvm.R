@@ -542,6 +542,8 @@ ml_lvm <- function(
     
     
     ### Saturated model ###
+    # No `equal = equal`: the saturated reference is unconstrained per
+    # group; cross-group equality belongs to the target/baseline only.
     model@baseline_saturated$saturated <- ml_lvm(data,
                                                  within_latent = "chol",
                                                  sigma_zeta_within = "full",
@@ -553,7 +555,6 @@ ml_lvm <- function(
                                                  vars = vars,
                                                  clusters = clusters,
                                                  groups = groups,
-                                                 equal = equal,
                                                  estimator = estimator,
                                                  baseline_saturated = FALSE,
                                                  sampleStats = sampleStats)

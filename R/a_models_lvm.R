@@ -673,6 +673,8 @@ lvm <- function(
 
 
     ### Saturated model ###
+    # No `equal = equal`: the saturated reference is unconstrained per
+    # group; cross-group equality belongs to the target/baseline only.
     if (!corinput){
       model@baseline_saturated$saturated <- varcov(data,
              type = "chol",
@@ -683,7 +685,6 @@ lvm <- function(
              means = means,
              nobs = nobs,
              missing = missing,
-             equal = equal,
              estimator = estimator,
              meanstructure = meanstructure,
              corinput = corinput,
@@ -699,7 +700,6 @@ lvm <- function(
              means = means,
              nobs = nobs,
              missing = missing,
-             equal = equal,
              estimator = estimator,
              meanstructure = meanstructure,
              corinput = corinput,
