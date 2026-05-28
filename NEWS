@@ -1,3 +1,23 @@
+Changes in Version 0.15.12
+  o The random intercept cross-lagged panel model (RI-CLPM) framework
+    has been finalized. ri_clpm() now accepts the same data input as
+    the dlvm1 family: wide-format data with a design matrix, or
+    long-format data via 'idvar' (and optionally 'beepvar'), with the
+    format auto-detected. A 'standardize' argument ("z", "z_per_wave"
+    or "quantile") was added. ri_clpm() models now also build an
+    independence baseline so that incremental fit indices (CFI/TLI)
+    are available.
+  o New function ri_clpm_search() runs a sequential stationarity
+    search: starting from the unconstrained model it adds, one at a
+    time, stationarity of intercepts, temporal effects, contemporaneous
+    relations and innovation variances, and finally the panelVAR model
+    (wave 1 endogenous), retaining each constraint only if it does not
+    worsen fit according to AIC, BIC, or a chi-square difference test.
+  o Fix: parequal() constrained parameters incorrectly (a misplaced
+    parenthesis passed the indices as unlist()'s 'recursive'
+    argument), which broke the temporal / contemporaneous / innovation
+    branches of ri_clpm_stationary().
+
 Changes in Version 0.15.11
   o New convenience setters update_baseline() and update_saturated()
     overwrite the @baseline_saturated$baseline / $saturated slots of

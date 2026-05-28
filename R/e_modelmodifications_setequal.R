@@ -11,7 +11,7 @@ parequal <- function(
     verbose <- x@verbose
   }
 
-  inds <- c(unlist(list(...),inds))
+  inds <- c(unlist(list(...)),inds)
   # current max par:
   curMax <- max(x@parameters$par)
   

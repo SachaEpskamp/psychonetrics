@@ -4,35 +4,159 @@
 ri_clpm <- function(
     data,
     vars,
-    
+
+    # Data format (mirrors dlvm1):
+    datatype = c("auto", "wide", "long"), # auto-detected from 'vars'
+    idvar,    # Subject ID variable (required for long format)
+    beepvar,  # Measurement occasion variable (optional for long format)
+
+    # Standardization:
+    standardize = c("none", "z", "quantile", "z_per_wave"),
+
     # Lambda (not yet supported):
     lambda,
-    
+
     # Types:
     type = c("cov","chol","prec","ggm"),
-    
+
     # Which should be stationary:
     # stationary = "random_intercept", # "none", random_intercept", "contemporaneous", "innovation", "temporal" "intercepts" accepted
-    
+
     # Verbose:
     verbose = FALSE, # Verbose output
-    
+
     ... # Arguments used in lvm(...)
     ){
-  
+
   # Types to use:
   type <- match.arg(type)
+  datatype <- match.arg(datatype)
+  standardize <- match.arg(standardize)
 
-  # Check stationary:
-  # if (any(!stationary %in% c("none","contemporaneous","innovation","temporal","intercepts","random_intercept"))){
-  #   stop("Stationary should include only 'none', 'random_intercept', 'contemporaneous', 'innovation', 'temporal', or 'intercepts'")
-  # }
-  
-  # No NA in vars supported:
-  if (any(is.na(vars))){
-    stop("NA values in the design matrix ('vars') are not supported yet for the RI-CLPM.")
+  # Track whether data was supplied:
+  .data_missing <- missing(data)
+
+  # CRAN-check workarounds for long-format conversion:
+  variable <- NULL
+  value <- NULL
+
+  # --- Auto-detect data format (like dlvm1) ---
+  if (missing(vars)){
+    # If vars is missing but idvar is provided, assume long format:
+    if (!missing(idvar)){
+      datatype <- "long"
+      if (is.matrix(data)) data <- as.data.frame(data)
+      if (!is.data.frame(data)) stop("'data' must be a data frame")
+      vars <- names(data)
+      vars <- vars[vars != idvar]
+      if (!missing(beepvar)) vars <- vars[vars != beepvar]
+    } else {
+      stop("'vars' argument may not be missing")
+    }
   }
-  
+  if (datatype == "auto"){
+    if (is.matrix(vars)){
+      datatype <- "wide"
+    } else if (is.character(vars)){
+      datatype <- "long"
+    } else {
+      stop("Could not auto-detect data type from 'vars'. Please specify datatype = 'wide' or 'long'.")
+    }
+  }
+
+  # --- Long-to-wide conversion (mirrors dlvm1) ---
+  if (datatype == "long"){
+    if (missing(idvar)){
+      stop("'idvar' is required when datatype = 'long' or when 'vars' is a character vector.")
+    }
+    if (is.matrix(data)) data <- as.data.frame(data)
+    if (!is.data.frame(data)) stop("'data' must be a data frame")
+    if (!is.character(vars) || is.matrix(vars)){
+      stop("When datatype = 'long', 'vars' must be a character vector of variable names.")
+    }
+    if (!idvar %in% names(data)){
+      stop("'idvar' argument does not correspond to column name of 'data'")
+    }
+
+    # Remove rows with NA cluster:
+    if (any(is.na(data[[idvar]]))){
+      warning("Rows with NA in idvar removed.")
+      data <- data[!is.na(data[[idvar]]),]
+    }
+
+    # Handle beepvar:
+    if (missing(beepvar)){
+      data <- data[order(data[[idvar]]),]
+      beepvar <- "BEEPVAR"
+      data[[beepvar]] <- unlist(tapply(data[[idvar]], data[[idvar]], seq_along))
+    }
+    if (any(data[[beepvar]][!is.na(data[[beepvar]])] %% 1 != 0)){
+      stop("'beepvar' does not encode integer values.")
+    }
+    if (any(tapply(data[[beepvar]], data[[idvar]], function(x) any(duplicated(x)), simplify = TRUE))){
+      stop("'beepvar' contains duplicate values for one or more cases.")
+    }
+
+    maxInCluster <- max(data[[beepvar]])
+
+    # Reshape long to wide:
+    datalong <- tidyr::gather(data, variable, value, vars)
+    datawide <- tidyr::pivot_wider(datalong, id_cols = idvar,
+                                   values_from = "value", names_from = c("variable", beepvar))
+
+    # Construct design matrix:
+    rowVars <- vars
+    colVars <- as.character(seq(maxInCluster))
+    designLong <- matrix(NA, length(rowVars), length(colVars))
+    for (i in seq_along(rowVars)){
+      for (j in seq_along(colVars)){
+        varName <- paste0("^", rowVars[i], "_", colVars[j], "$")
+        if (length(which(grepl(varName, names(datawide)))) == 1){
+          designLong[i, j] <- paste0(rowVars[i], "_", colVars[j])
+        }
+      }
+    }
+    rownames(designLong) <- rowVars
+
+    data <- datawide
+    vars <- designLong
+  }
+
+  # --- Validate vars is now a design matrix ---
+  if (!is.matrix(vars)){
+    stop("'vars' must be a design matrix (rows = variables, columns = measurements) or a character vector of variable names when using long-format data.")
+  }
+
+  # --- Standardization (per variable across waves, or per variable x wave) ---
+  if (standardize != "none" && !.data_missing && !is.null(data)){
+    # Coerce to a plain data.frame so single-column extraction returns vectors
+    # (tibbles from pivot_wider would otherwise return 1-column tibbles):
+    data <- as.data.frame(data)
+    for (v in seq_len(nrow(vars))){
+      varCols <- na.omit(vars[v, ])
+      if (length(varCols) == 0) next
+      if (standardize == "z"){
+        # Pool all waves of this variable, single mean/SD:
+        allValues <- unlist(data[, varCols, drop = FALSE])
+        m <- mean(allValues, na.rm = TRUE); s <- sd(allValues, na.rm = TRUE)
+        for (col in varCols) data[[col]] <- (data[[col]] - m) / s
+      } else if (standardize == "z_per_wave"){
+        # Standardize each variable x wave column separately:
+        for (col in varCols) data[[col]] <- (data[[col]] - mean(data[[col]], na.rm = TRUE)) / sd(data[[col]], na.rm = TRUE)
+      } else if (standardize == "quantile"){
+        allValues <- unlist(data[, varCols, drop = FALSE])
+        allTransformed <- quantiletransform(allValues)
+        n <- nrow(data)
+        for (ci in seq_along(varCols)) data[[varCols[ci]]] <- allTransformed[((ci - 1) * n + 1):(ci * n)]
+      }
+    }
+  }
+
+  # Structural missing waves not yet supported (NA in the design matrix):
+  if (any(is.na(vars))){
+    stop("Structural missing waves (NA in the design matrix 'vars') are not yet supported for the RI-CLPM. Each variable must be measured at every wave. (Incomplete cases / dropout are handled automatically via FIML.)")
+  }
+
   # Design matrix:
   # design <- as(1*(!is.na(vars)),"dMatrix")
   design <- as.matrix(1*(!is.na(vars)))
@@ -204,21 +328,26 @@ ri_clpm <- function(
   # Add extra matrices:
   mod@extramatrices$vars <- vars
   mod@extramatrices$varsDF <- varsDF
+  mod@extramatrices$ri_clpm_type <- type
   
   # Submodel:
   mod@submodel <- "RI_CLPM"
   
-  # Add saturated:
+  # Add saturated (all observed variances/covariances free):
   mod@baseline_saturated$saturated <- varcov(data,
-                                               type = "chol", 
-                                               lowertri = "full", 
+                                               type = "chol",
+                                               lowertri = "full",
                                                vars = varsDF$column,
                                                ...,
                                                baseline_saturated = FALSE)
-   
-  # FIXME: Add baseline model
-  
-  # FIXME: Add constraints (flexible function to do this also in steps)
+
+  # Add baseline (independence: free observed variances and means, no covariances):
+  mod@baseline_saturated$baseline <- varcov(data,
+                                            type = "chol",
+                                            lowertri = "diag",
+                                            vars = varsDF$column,
+                                            ...,
+                                            baseline_saturated = FALSE)
   
   # Return model:
   return(mod)

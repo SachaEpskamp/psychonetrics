@@ -3,6 +3,7 @@ useDynLib(psychonetrics, .registration = TRUE)
 
 export(ri_clpm)
 export(ri_clpm_stationary)
+export(ri_clpm_search)
 
 export(logbook)
 
@@ -68,6 +69,7 @@ S3method(plot, esa_manual)
 S3method(print, esa)
 S3method(print, esa_manual)
 S3method(print, psychonetrics_compare)
+S3method(print, ri_clpm_search)
 
 S3method(print, psychonetrics_log)
 
