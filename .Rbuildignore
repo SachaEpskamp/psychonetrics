@@ -14,6 +14,7 @@ psychonetrics\.Rproj
 ^test_.*\.R$
 ^WLSMV_IMPLEMENTATION_NOTES\.txt$
 ^claude_chat_history\.jsonl$
+extra/
 
 ^READINGS$
 
