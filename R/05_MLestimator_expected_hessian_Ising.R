@@ -8,18 +8,22 @@ expected_hessian_Ising_group <- function(omega,tau,beta,responses,nobs,min_sum,.
   graph <- as.matrix(omega)
   beta <- as.numeric(beta)
   
-  # Compute likelihood table:
-  LikTable <- IsingSampler::IsingLikelihood(graph,thresholds,beta,responses,potential=TRUE)
-  states <- as.matrix(LikTable[,-1])
-  
+  # Enumerate all states over the ordered response set (the same set is used
+  # for every variable). Generalizes the original binary enumeration to any
+  # number of integer response options:
+  nVar <- ncol(graph)
+  states <- as.matrix(do.call(expand.grid, rep(list(as.numeric(responses)), nVar)))
+  dimnames(states) <- NULL
+
   # Cut out states if needed for min_sum:
   if (min_sum > -Inf){
-    LikTable <- LikTable[rowSums(states) >= min_sum,]
-    states <- states[rowSums(states) >= min_sum, ]
+    states <- states[rowSums(states) >= min_sum, , drop = FALSE]
   }
-  
-  Z <- sum(LikTable$Potential)
-  probabilities <- LikTable$Potential / Z
+
+  # Potentials and probabilities:
+  potentials <- apply(states, 1, function(s) Pot(s, graph, thresholds, beta))
+  Z <- sum(potentials)
+  probabilities <- potentials / Z
   
   # Run C++:
   Hes <- expHessianCpp(

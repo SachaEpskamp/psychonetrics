@@ -1,3 +1,20 @@
+Changes in Version 0.15.13
+  o The Ising model has been generalized to more than two response
+    options. Ising() now accepts any number of ordered integer response
+    options in 'responses' (e.g., c(-1,0,1) or seq(-5,5)), encoded
+    identically across all variables and detected automatically from the
+    data when not supplied. The parameterization is unchanged (one
+    threshold per variable in 'tau' and a pairwise network in 'omega');
+    only the partition function, expected values and (expected) Hessian
+    now sum over all length(responses)^nNode response patterns. With two
+    response options the results are identical to before. Only
+    non-integer responses raise an error.
+  o New argument 'maxStates' to Ising() (default 2^maxNodes) caps the
+    number of response patterns the exact ML estimator may enumerate,
+    since this cost grows as length(responses)^nNode. For binary data
+    the default reproduces the historical 'maxNodes' limit; raise it to
+    fit larger multi-state models when feasible.
+
 Changes in Version 0.15.12
   o The random intercept cross-lagged panel model (RI-CLPM) framework
     has been finalized. ri_clpm() now accepts the same data input as

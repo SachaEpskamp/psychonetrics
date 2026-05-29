@@ -43,8 +43,7 @@ arma::mat expected_hessian_Ising_group_full_cpp(
     const int E    = nvar * (nvar - 1) / 2;          // number of edges (lower-tri of omega)
     const int nElement = nvar + E + 1;
 
-    const double r1 = responses(0);
-    const double r2 = responses(1);
+    const int nResp = responses.n_elem;
     const bool alwaysUpdate = (min_sum == R_NegInf);
 
     // ---- Edge index helper: (i,j) with i>j -> column-major lower-tri ordering
@@ -84,9 +83,12 @@ arma::mat expected_hessian_Ising_group_full_cpp(
     // index by  fp_idx(a,b) = a*(a+1)/2 + b   for a >= b
     std::vector<double> four_u((size_t)E * (E + 1) / 2, 0.0);
 
-    // ---- Enumerate all 2^N states (mirrors isingExpectation pattern) ----
-    arma::vec curstate(nvar, fill::value(r1));
-    bool all_r2 = false;
+    // ---- Enumerate all nResp^N states via a mixed-radix counter ----
+    // (digit 0 fastest; reduces exactly to the binary r1/r2 enumeration when
+    // nResp == 2, so the two-outcome expected Hessian is unchanged).
+    std::vector<int> idx(nvar, 0);
+    arma::vec curstate(nvar, fill::value(responses(0)));
+    bool done = false;
 
     do {
         bool update = alwaysUpdate || (sum(curstate) >= min_sum);
@@ -147,21 +149,20 @@ arma::mat expected_hessian_Ising_group_full_cpp(
             }
         }
 
-        // Increment state in lex order (mirrors isingExpectation):
-        if (curstate(0) == r2) {
-            all_r2 = true;
-            for (int i = 0; i < nvar && all_r2; i++) {
-                if (curstate(i) == r1) {
-                    all_r2 = false;
-                    curstate(i) = r2;
-                    for (int j = 0; j < i; j++) curstate(j) = r1;
-                    break;
-                }
-            }
-        } else {
-            curstate(0) = r2;
+        // Increment the mixed-radix counter (digit 0 fastest):
+        int c = 0;
+        while (c < nvar && idx[c] == nResp - 1) {
+            idx[c] = 0;
+            curstate(c) = responses(0);
+            c++;
         }
-    } while (!all_r2);
+        if (c == nvar) {
+            done = true;
+        } else {
+            idx[c]++;
+            curstate(c) = responses(idx[c]);
+        }
+    } while (!done);
 
     // ---- Normalize ----
     const double invZ = 1.0 / Z;

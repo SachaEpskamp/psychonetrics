@@ -5,7 +5,7 @@
 Ising model
 }
 \description{
-This is the family of Ising models fit to dichotomous datasets. Note that the input matters (see also https://arxiv.org/abs/1811.02916) in this model! Models based on a dataset that is encoded with -1 and 1 are not entirely equivalent to models based on datasets encoded with 0 and 1 (non-equivalences occur in multi-group settings with equality constrains). 
+This is the family of Ising models fit to datasets with two or more ordered integer response options. The classical case is a dichotomous dataset (e.g., encoded with -1 and 1 or with 0 and 1), but the same parameterization---one threshold (\code{tau}) per variable and a pairwise network (\code{omega})---is also used for any number of integer response options (e.g., \code{c(-1,0,1)} or \code{seq(-5,5)}), encoded identically across all variables. Only the partition function changes: it sums over all \code{length(responses)^nNode} response patterns rather than only \code{2^nNode}. Note that the input matters (see also https://arxiv.org/abs/1811.02916) in this model! Models based on a dataset that is encoded with -1 and 1 are not entirely equivalent to models based on datasets encoded with 0 and 1 (non-equivalences occur in multi-group settings with equality constrains).
 }
 \usage{
 Ising(data, omega = "full", tau, beta, beta_model =
@@ -15,7 +15,8 @@ Ising(data, omega = "full", tau, beta, beta_model =
                  baseline_saturated = TRUE, estimator = "default",
                  optimizer, storedata = FALSE, WLS.W, sampleStats,
                  identify = TRUE, verbose = FALSE, maxNodes = 20,
-                 min_sum = -Inf, bootstrap = FALSE, boot_sub,
+                 maxStates = 2^maxNodes, min_sum = -Inf,
+                 bootstrap = FALSE, boot_sub,
                  boot_resample, penalty_lambda = NA,
                 penalty_alpha = 1, penalize_matrices)
 }
@@ -53,7 +54,7 @@ The number of observations used in \code{covs} and \code{means}, or a vector of 
   If 'covs' is used, this is the type of covariance (maximum likelihood or unbiased) the input covariance matrix represents. Set to \code{"ML"} for maximum likelihood estimates (denominator n) and \code{"UB"} to unbiased estimates (denominator n-1). The default will try to find the type used, by investigating which is most likely to result from integer valued datasets.
 }
   \item{responses}{
-A vector of dichotemous responses used (e.g., \code{c(-1,1)} or \code{c(0,1)}. Only needed when 'covs' is used.)
+A vector of the integer response options used, encoded identically across all variables (e.g., \code{c(-1,1)}, \code{c(0,1)}, \code{c(-1,0,1)} or \code{seq(-5,5)}). Automatically detected from the data when not supplied; required when \code{covs} is used. Any number of response options is allowed; only non-integer responses give an error.
 }
   \item{missing}{
 How should missingness be handled in computing the sample covariances and number of observations when \code{data} is used. Can be \code{"listwise"} for listwise deletion, or \code{"pairwise"} for pairwise deletion. NOT RECOMMENDED TO BE USED YET IN ISING MODEL.
@@ -86,7 +87,10 @@ Logical, should the model be identified?
 Logical, should messages be printed?
 }
   \item{maxNodes}{
-The maximum number of nodes allowed in the analysis. This function will stop with an error if more nodes are used (it is not recommended to set this higher).
+The maximum number of nodes allowed in the analysis. Used to set the default of \code{maxStates} (\code{2^maxNodes}); for binary data this reproduces the historical node limit. It is not recommended to set this higher.
+}
+\item{maxStates}{
+The maximum number of response patterns the exact ML estimator may enumerate. Exact ML estimation of the Ising model sums over every possible response pattern when computing the partition function, expected values and (expected) Hessian, so the cost grows as \code{length(responses)^nNode}. The function stops with an error when \code{length(responses)^nNode} exceeds \code{maxStates}. The default \code{2^maxNodes} reproduces the historical binary node limit while accounting for more than two response options. Raise this only if the computation is feasible (note that the number of states---and hence the run time---grows very quickly with both the number of nodes and the number of response options).
 }
 \item{min_sum}{
  The minimum sum score that is artifically possible in the dataset. Defaults to -Inf. Set this only if you know a lower sum score is not possible in the data, for example due to selection bias.
@@ -116,6 +120,8 @@ H(y) = - sum_i tau_i y_i - sum_<i,j> omega_ij y_i y_j
 }
 
 And Z representing the partition function or normalizing constant.
+
+The responses \eqn{y_i} need not be dichotomous: they may take any number of ordered integer values (the same set for every variable), supplied through \code{responses} or detected automatically from the data. The Hamiltonian above is unchanged; only the partition function \eqn{Z} (and the expected values and Hessian derived from it) sums over all \code{length(responses)^nNode} response patterns instead of only \code{2^nNode}. With two response options the model is the usual Ising model and reproduces the same estimates as before. With more than two response options the model remains a maximum-entropy distribution matching the means (via \code{tau}) and the pairwise products (via \code{omega}); it does not model higher-order interactions or the within-variable second moments, and the enumeration cost grows steeply with the number of nodes and response options (see \code{maxStates}).
 
 }
 \value{

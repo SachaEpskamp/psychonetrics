@@ -23,6 +23,7 @@ Ising <- function(
   identify = TRUE,
   verbose = FALSE,
   maxNodes = 20,
+  maxStates = 2^maxNodes, # Max number of response patterns enumerated by ML (length(responses)^nNode)
   min_sum = -Inf, # Used for threhsolded Ising model estimation
   bootstrap = FALSE,
   boot_sub,
@@ -47,11 +48,21 @@ Ising <- function(
     } else {
       responses <- sort(unique(unlist(c(as.matrix(data[,vars])))))
     }
-
-    if (length(responses) != 2){
-      stop("Only binary responses that are encoded in the same way are supported.")
-    }
+  } else {
+    responses <- sort(unique(responses))
   }
+
+  # The Ising model supports any number of ordered response options, encoded
+  # identically across all variables. Only non-integer responses are an error
+  # (a single unique value is degenerate and also rejected):
+  if (length(responses) < 2){
+    stop("At least two distinct response options are required.")
+  }
+  if (any(is.na(responses)) ||
+      any(abs(responses - round(responses)) > sqrt(.Machine$double.eps))){
+    stop("Only integer responses are supported (encoded identically across all variables).")
+  }
+  responses <- round(responses)
   
   # Check minimum sum score:
   if (min_sum > -Inf){
@@ -113,14 +124,25 @@ Ising <- function(
  
   # Check some things:
   nNode <- nrow(sampleStats@variables)
-  
-  # Check number of nodes:
-  if (nNode > maxNodes){
-    stop("Aborting because the number of nodes is larger than 'maxNodes'. High-dimensional Ising models are not possible with ML estimation.")
+
+  # Check size of the state space. ML estimation of the Ising model enumerates
+  # every possible response pattern, so the cost grows as length(responses)^nNode.
+  # The default 'maxStates' = 2^maxNodes reproduces the historical binary node
+  # cap (2^nNode > 2^maxNodes  <=>  nNode > maxNodes) while accounting for more
+  # than two response options. Raise 'maxStates' to override.
+  nStates <- length(responses)^nNode
+  if (nStates > maxStates){
+    stop(paste0(
+      "Aborting because the number of response patterns to enumerate (",
+      length(responses), "^", nNode, " = ", format(nStates, scientific = TRUE, digits = 3),
+      ") exceeds 'maxStates' (", format(maxStates, scientific = TRUE, digits = 3),
+      "). Exact ML estimation enumerates every response pattern, which grows as ",
+      "length(responses)^nNode. Reduce the number of nodes or response options, or ",
+      "raise 'maxStates' if the computation is feasible."))
   }
-  
+
   # Make type:
-  type <- paste0("(",responses[1]," & ",responses[2],")")
+  type <- paste0("(", paste(responses, collapse = " & "), ")")
   
   # Generate model object:
   model <- generate_psychonetrics(model = "Ising", sample = sampleStats, computed = FALSE, 
@@ -198,6 +220,7 @@ Ising <- function(
                                                   equal = equal,
                                                   estimator = estimator,
                                                   responses = responses,
+                                                  maxStates = maxStates,
                                                   baseline_saturated = FALSE,sampleStats=sampleStats,
                                                min_sum=min_sum)
     
@@ -224,6 +247,7 @@ Ising <- function(
                                                missing = missing,
                                                estimator = estimator,
                                                responses = responses,
+                                               maxStates = maxStates,
                                                baseline_saturated = FALSE,sampleStats=sampleStats)
     # Identify model:
     if (identify){
