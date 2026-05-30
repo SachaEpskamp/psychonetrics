@@ -53,17 +53,13 @@ Ising <- function(
   }
 
   # The Ising model supports any number of ordered response options, encoded
-  # identically across all variables. Only non-integer responses are an error
-  # (a single unique value is degenerate and also rejected):
+  # identically across all variables. The values need not be integers; only a
+  # degenerate single-value response set is rejected (NAs are dropped by the
+  # sort(unique()) above):
   if (length(responses) < 2){
     stop("At least two distinct response options are required.")
   }
-  if (any(is.na(responses)) ||
-      any(abs(responses - round(responses)) > sqrt(.Machine$double.eps))){
-    stop("Only integer responses are supported (encoded identically across all variables).")
-  }
-  responses <- round(responses)
-  
+
   # Check minimum sum score:
   if (min_sum > -Inf){
     if (missing(vars)){

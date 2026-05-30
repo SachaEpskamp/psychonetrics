@@ -1,3 +1,8 @@
+Changes in Version 0.15.14
+  o Ising() no longer requires the response options to be integers. Any
+    set of two or more distinct ordered response values is accepted in
+    'responses' (or detected from the data), integer or not.
+
 Changes in Version 0.15.13
   o The Ising model has been generalized to more than two response
     options. Ising() now accepts any number of ordered integer response
