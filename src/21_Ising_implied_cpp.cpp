@@ -72,7 +72,7 @@ Rcpp::List implied_Ising_cpp_core(
       Rcpp::List grouplist = x[g];
 
       Rcpp::List exp = isingExpectation(
-        grouplist["omega"], grouplist["tau"], grouplist["beta"],
+        grouplist["omega"], grouplist["tau"], grouplist["delta"], grouplist["beta"],
         responses, min_sum
       );
 

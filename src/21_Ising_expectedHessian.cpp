@@ -9,33 +9,38 @@
 using namespace Rcpp;
 using namespace arma;
 
-// Expected Hamiltonian
+// Expected Hamiltonian for the Spin distribution. The Hamiltonian includes the
+// per-node quadratic (Blume-Capel) term delta_i x_i^2 (delta = 0 -> classical
+// Ising):
+//   H(x) = - sum_i tau_i x_i + sum_i delta_i x_i^2 - sum_{i<j} omega_ij x_i x_j
 // [[Rcpp::export]]
 double expHcpp(
     const arma::mat& states,
     const arma::vec& probabilities,
     const arma::mat& omega,
     const arma::vec& tau,
+    const arma::vec& delta,
     const int nstate,
     const int nvar) {
   int s, i, j;
-  
+
   // Value to store:
   double expH = 0;
-  
-  // Start looping:  
+
+  // Start looping:
   for (s=0; s < nstate; s++){
     // row:
     for (i=0; i < nvar; i++){
       expH -= probabilities[s] * tau[i] * states(s,i);
-      
+      expH += probabilities[s] * delta[i] * states(s,i) * states(s,i);
+
       //col:
       for (j=0; j<i; j++){
         expH -= probabilities[s] * omega(i,j) * states(s,i) * states(s,j);
       }
     }
   }
-  
+
   // Return
   return expH;
 }
@@ -46,22 +51,24 @@ double expH2cpp(
     const arma::vec& probabilities,
     const arma::mat& omega,
     const arma::vec& tau,
+    const arma::vec& delta,
     const int nstate,
     const int nvar) {
   int s, i, j;
-  
+
   // Value to store:
   double expH = 0;
-  
-  // Start looping:  
+
+  // Start looping:
   for (s=0; s < nstate; s++){
     // Dummy for current state:
     double stateH = 0;
-    
+
     // row:
     for (i=0; i < nvar; i++){
       stateH -= tau[i] * states(s,i);
-      
+      stateH += delta[i] * states(s,i) * states(s,i);
+
       //col:
       for (j=0; j<i; j++){
         stateH -= omega(i,j) * states(s,i) * states(s,j);
@@ -69,7 +76,7 @@ double expH2cpp(
     }
     expH += probabilities[s] *  stateH * stateH;
   }
-  
+
   // Return
   return expH;
 }
@@ -81,29 +88,34 @@ arma::mat expHessianCpp(
     const arma::vec& probabilities,
     const arma::mat& omega,
     const arma::vec& tau,
+    const arma::vec& delta,
     double beta,
     const int nstate,
     const int nvar) {
-  // Borrowing heavily on the WLS computation code, order of parameters is (thresholds, omega[lower.tri], beta)
+  // Order of parameters is (thresholds, omega[lower.tri], delta, beta). The
+  // delta block is inserted between omega and beta so that beta remains the
+  // last parameter (the beta-* fills below index it as nElement-1).
   int i, j, g, h, s, ii, jj;
-  
 
-  
+
+
   // Compute expected hamiltonian:
   double expH = expHcpp(
     states,
     probabilities,
     omega,
     tau,
+    delta,
     nstate,
     nvar);
-  
+
   // And its square:
   double expH2 = expH2cpp(
     states,
     probabilities,
     omega,
     tau,
+    delta,
     nstate,
     nvar);
   
@@ -135,10 +147,13 @@ arma::mat expHessianCpp(
     // first compute the Hamiltonian:
     allHs[s] = 0;
     for (ii=0;ii<nvar;ii++){
-      
+
       // Update threshold part:
       allHs[s] -= tau[ii] * states(s,ii);
-      
+
+      // Update quadratic (Blume-Capel) part:
+      allHs[s] += delta[ii] * states(s,ii) * states(s,ii);
+
       for (jj=0;jj<ii;jj++){
         // Update network part:
         allHs[s] -= omega(ii,jj) * states(s,ii)  * states(s,jj);
@@ -203,8 +218,12 @@ arma::mat expHessianCpp(
     
   }
   
-  // Now it is time to form the expected Hessian matrix:
-  int nElement = nvar + (nvar * (nvar-1) / 2.0) + 1;
+  // Now it is time to form the expected Hessian matrix. Parameter order is
+  // (thresholds, omega[lower.tri], delta, beta): nvar thresholds, nvar*(nvar-1)/2
+  // network parameters, nvar quadratic (delta) parameters, and 1 beta.
+  int nE_omega = nvar * (nvar - 1) / 2;
+  int deltaOffset = nvar + nE_omega;            // first index of the delta block
+  int nElement = nvar + nE_omega + nvar + 1;    // beta is the last parameter
   arma::mat Hessian = arma::mat(nElement,nElement,fill::zeros);
   
   // Fill threshold-threshold part:
@@ -264,6 +283,50 @@ arma::mat expHessianCpp(
     }  
   }
   
+  // ---- delta (Blume-Capel quadratic) blocks ----
+  // The expected-Hessian entry for parameters (a, b) is 2 * Cov(g_a, g_b) of the
+  // per-observation score features: g_tau_i = beta x_i, g_omega_ab = beta x_a x_b,
+  // g_delta_i = -beta x_i^2, g_beta = -H. The delta features carry a minus sign,
+  // which flips the sign relative to the corresponding tau/omega blocks.
+
+  // Fill the delta - threshold part:
+  //   2 Cov(-beta x_i^2, beta x_j) = -2 beta^2 ( E[x_i^2 x_j] - E[x_i^2] E[x_j] )
+  for (i=0;i<nvar;i++){
+    for (j=0;j<nvar;j++){
+      Hessian(deltaOffset + i, j) =
+        -2.0 * pow(beta, 2.0) * ( thi(i,i,j) - sec(i,i) * fir(j) );
+    }
+  }
+
+  // Fill the delta - omega part:
+  //   2 Cov(-beta x_i^2, beta x_a x_b) = -2 beta^2 ( E[x_i^2 x_a x_b] - E[x_i^2] E[x_a x_b] )
+  // omega edges (a,b) with a>b in the same column-major lower-triangle order as above.
+  for (i=0;i<nvar;i++){
+    int curcol_d = nvar;
+    for (j=0;j<nvar;j++){
+      for (ii=j+1;ii<nvar;ii++){
+        Hessian(deltaOffset + i, curcol_d) =
+          -2.0 * pow(beta, 2.0) * ( four(i,i,ii,j) - sec(i,i) * sec(ii,j) );
+        curcol_d++;
+      }
+    }
+  }
+
+  // Fill the delta - delta part (lower triangle):
+  //   2 Cov(-beta x_i^2, -beta x_j^2) = 2 beta^2 ( E[x_i^2 x_j^2] - E[x_i^2] E[x_j^2] )
+  for (i=0;i<nvar;i++){
+    for (j=0;j<=i;j++){
+      Hessian(deltaOffset + i, deltaOffset + j) =
+        2.0 * pow(beta, 2.0) * ( four(i,i,j,j) - sec(i,i) * sec(j,j) );
+    }
+  }
+
+  // Fill the beta - delta part (beta is the last parameter, row nElement-1):
+  //   2 Cov(-beta x_i^2, -H) = 2 beta ( E[x_i^2 H] - E[x_i^2] E[H] )
+  for (i=0;i<nvar;i++){
+    Hessian(nElement-1, deltaOffset + i) = 2.0 * beta * ( sec_H(i,i) - sec(i,i) * expH );
+  }
+
   // Fill the beta - threshold part:
   for (i=0;i<nvar;i++){
     Hessian(nElement-1,i) =  2.0 * beta * (fir(i) * expH - fir_H(i));

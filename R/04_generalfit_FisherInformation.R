@@ -37,7 +37,7 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
       model@estimator,
       "ML" = switch(model@distribution,
                     "Gaussian" = expected_hessian_Gaussian_cpp, # <- Updated!
-                    "Ising" = expected_hessian_Ising
+                    "Spin" = expected_hessian_Ising
       ),
       "ULS" = switch(model@distribution,
                      "Gaussian" = expected_hessian_ULS_Gaussian_cpp # <- Updated!
@@ -58,7 +58,7 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
       model@estimator,
       "ML" = switch(model@distribution,
                     "Gaussian" = expected_hessian_Gaussian,
-                    "Ising" = expected_hessian_Ising
+                    "Spin" = expected_hessian_Ising
       ),
       "ULS" = switch(model@distribution,
                      "Gaussian" = expected_hessian_ULS_Gaussian
@@ -94,7 +94,8 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
       "dlvm1" = d_phi_theta_dlvm1_cpp, # <- updated!
       "tsdlvm1" = d_phi_theta_tsdlvm1_cpp, # <- updated!
       "meta_varcov" = d_phi_theta_meta_varcov_cpp, # <- updated!
-      "Ising" = d_phi_theta_Ising_cpp, # <- updated!
+      "Ising" = ,
+      "BlumeCapel" = d_phi_theta_Ising_cpp, # <- updated!
       "ml_lvm" = d_phi_theta_ml_lvm_cpp, # <- updated!
       "meta_lvm" = d_phi_theta_meta_lvm, # FIXME: no cpp version yet
       "meta_var1" = d_phi_theta_meta_var1_cpp
@@ -114,7 +115,8 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
       "dlvm1" = d_phi_theta_dlvm1,
       "tsdlvm1" = d_phi_theta_tsdlvm1,
       "meta_varcov" = d_phi_theta_meta_varcov,
-      "Ising" = d_phi_theta_Ising,
+      "Ising" = ,
+      "BlumeCapel" = d_phi_theta_Ising,
       "ml_lvm" = d_phi_theta_ml_lvm,
       "meta_lvm" = d_phi_theta_meta_lvm,
       "meta_var1" = d_phi_theta_meta_var1

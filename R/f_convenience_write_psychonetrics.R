@@ -221,6 +221,7 @@ write_psychonetrics <- function(x, file = "psychonetrics_output.txt",
     "tsdlvm1" = "Lag-1 dynamic latent variable model for time-series data (tsdlvm1)",
     "meta_varcov" = "Variance-covariance matrix meta analysis",
     "Ising" = "Ising model",
+    "BlumeCapel" = "Blume-Capel model",
     "ml_lvm" = "Multi-level latent variable model",
     x@model
   )

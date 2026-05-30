@@ -8,6 +8,7 @@
 arma::mat expected_hessian_Ising_group_full_cpp(
     const arma::mat& omega,
     const arma::vec& tau,
+    const arma::vec& delta,
     double beta,
     const arma::vec& responses,
     double min_sum

@@ -30,18 +30,24 @@ using namespace arma;
 //    omega(1,0), omega(2,0), .., omega(N-1,0),
 //    omega(2,1), omega(3,1), .., omega(N-1,1),
 //    .., omega(N-1, N-2),
+//    delta_0 .. delta_{N-1},
 //    beta]
-// i.e. column-major lower triangle of omega between thresholds and beta.
+// i.e. column-major lower triangle of omega between thresholds and the delta
+// (Blume-Capel quadratic) block, with beta last. delta = 0 reproduces the
+// classical Ising expected Hessian (the delta rows/cols are then dropped by
+// the model's parameter table).
 arma::mat expected_hessian_Ising_group_full_cpp(
     const arma::mat& omega,
     const arma::vec& tau,
+    const arma::vec& delta,
     double beta,
     const arma::vec& responses,
     double min_sum
 ){
     const int nvar = omega.n_rows;
     const int E    = nvar * (nvar - 1) / 2;          // number of edges (lower-tri of omega)
-    const int nElement = nvar + E + 1;
+    const int deltaOffset = nvar + E;                // first index of the delta block
+    const int nElement = nvar + E + nvar + 1;        // beta is the last parameter
 
     const int nResp = responses.n_elem;
     const bool alwaysUpdate = (min_sum == R_NegInf);
@@ -83,6 +89,15 @@ arma::mat expected_hessian_Ising_group_full_cpp(
     // index by  fp_idx(a,b) = a*(a+1)/2 + b   for a >= b
     std::vector<double> four_u((size_t)E * (E + 1) / 2, 0.0);
 
+    // ---- delta (Blume-Capel) moments. Write y_i = x_i^2. We need, per node i:
+    //   dt_u(i,j)  = sum pot * x_i^2 * x_j          (delta-tau)
+    //   dd_u(i,j)  = sum pot * x_i^2 * x_j^2         (delta-delta, lower tri j<=i)
+    //   do_u(i,a)  = sum pot * x_i^2 * x_a1 * x_a2   (delta-omega, a = edge index)
+    // E[x_i^2] itself is the diagonal sec(i,i), already accumulated below.
+    arma::mat dt_u(nvar, nvar, fill::zeros);
+    arma::mat dd_u(nvar, nvar, fill::zeros);
+    arma::mat do_u(nvar, E,    fill::zeros);
+
     // ---- Enumerate all nResp^N states via a mixed-radix counter ----
     // (digit 0 fastest; reduces exactly to the binary r1/r2 enumeration when
     // nResp == 2, so the two-outcome expected Hessian is unchanged).
@@ -94,10 +109,11 @@ arma::mat expected_hessian_Ising_group_full_cpp(
         bool update = alwaysUpdate || (sum(curstate) >= min_sum);
 
         if (update) {
-            // Hamiltonian for current state
+            // Hamiltonian for current state (includes the Blume-Capel delta term)
             double H = 0.0;
             for (int i = 0; i < nvar; i++) {
                 H -= tau(i) * curstate(i);
+                H += delta(i) * curstate(i) * curstate(i);
                 for (int j = 0; j < i; j++) {
                     H -= omega(i, j) * curstate(i) * curstate(j);
                 }
@@ -147,6 +163,25 @@ arma::mat expected_hessian_Ising_group_full_cpp(
                     four_u[base + b] += pot_xij * curstate(ii) * curstate(jj);
                 }
             }
+
+            // delta moments (y_i = x_i^2):
+            for (int i = 0; i < nvar; i++) {
+                const double yi = curstate(i) * curstate(i);
+                const double pot_yi = pot * yi;
+
+                // delta-tau: E[x_i^2 x_j]
+                for (int j = 0; j < nvar; j++) {
+                    dt_u(i, j) += pot_yi * curstate(j);
+                }
+                // delta-delta: E[x_i^2 x_j^2] (lower tri j<=i)
+                for (int j = 0; j <= i; j++) {
+                    dd_u(i, j) += pot_yi * curstate(j) * curstate(j);
+                }
+                // delta-omega: E[x_i^2 x_a1 x_a2] over edges
+                for (int a = 0; a < E; a++) {
+                    do_u(i, a) += pot_yi * curstate(edge_i[a]) * curstate(edge_j[a]);
+                }
+            }
         }
 
         // Increment the mixed-radix counter (digit 0 fastest):
@@ -178,6 +213,9 @@ arma::mat expected_hessian_Ising_group_full_cpp(
     arma::mat sec_H = sec_H_u * invZ;
 
     arma::mat thi   = thi_u   * invZ;
+    arma::mat dt    = dt_u    * invZ;   // E[x_i^2 x_j]
+    arma::mat dd    = dd_u    * invZ;   // E[x_i^2 x_j^2] (lower tri)
+    arma::mat do_   = do_u    * invZ;   // E[x_i^2 x_a1 x_a2]
     // four_u in-place divide:
     {
         const size_t fsz = four_u.size();
@@ -225,6 +263,48 @@ arma::mat expected_hessian_Ising_group_full_cpp(
         }
     }
 
+    // ---- delta (Blume-Capel) blocks ----
+    // Entry for parameters (a,b) is 2 * Cov(g_a, g_b) of the score features:
+    // g_tau_i = beta x_i, g_omega_ab = beta x_a x_b, g_delta_i = -beta x_i^2,
+    // g_beta = -H. The minus sign on the delta feature flips the block sign
+    // relative to the corresponding tau/omega blocks.
+
+    // delta-tau: rows deltaOffset..deltaOffset+nvar-1, cols 0..nvar-1
+    //   -2 beta^2 ( E[x_i^2 x_j] - E[x_i^2] E[x_j] )
+    for (int i = 0; i < nvar; i++) {
+        for (int j = 0; j < nvar; j++) {
+            Hessian(deltaOffset + i, j) =
+                -2.0 * beta2 * (dt(i, j) - sec(i, i) * fir(j));
+        }
+    }
+
+    // delta-omega: rows deltaOffset+i, cols nvar+a (edge a)
+    //   -2 beta^2 ( E[x_i^2 x_a1 x_a2] - E[x_i^2] E[x_a1 x_a2] )
+    for (int i = 0; i < nvar; i++) {
+        for (int a = 0; a < E; a++) {
+            const int ii = edge_i[a];
+            const int jj = edge_j[a];
+            Hessian(deltaOffset + i, nvar + a) =
+                -2.0 * beta2 * (do_(i, a) - sec(i, i) * sec(ii, jj));
+        }
+    }
+
+    // delta-delta (lower tri):
+    //   2 beta^2 ( E[x_i^2 x_j^2] - E[x_i^2] E[x_j^2] )
+    for (int i = 0; i < nvar; i++) {
+        for (int j = 0; j <= i; j++) {
+            Hessian(deltaOffset + i, deltaOffset + j) =
+                2.0 * beta2 * (dd(i, j) - sec(i, i) * sec(j, j));
+        }
+    }
+
+    // beta-delta (last row):
+    //   2 beta ( E[x_i^2 H] - E[x_i^2] E[H] )
+    for (int i = 0; i < nvar; i++) {
+        Hessian(nElement - 1, deltaOffset + i) =
+            2.0 * beta * (sec_H(i, i) - sec(i, i) * expH);
+    }
+
     // beta-tau block (last row)
     for (int i = 0; i < nvar; i++) {
         Hessian(nElement - 1, i) = 2.0 * beta * (fir(i) * expH - fir_H(i));
@@ -267,6 +347,7 @@ arma::mat expected_hessian_Ising_full_cpp(const Rcpp::List& prep) {
         Rcpp::List grp = groupModels[g];
         arma::mat omega    = grp["omega"];
         arma::vec tau      = grp["tau"];
+        arma::vec delta    = grp["delta"];
         double    beta     = grp["beta"];
         arma::vec responses = grp["responses"];
 
@@ -280,7 +361,7 @@ arma::mat expected_hessian_Ising_full_cpp(const Rcpp::List& prep) {
         }
 
         arma::mat H = expected_hessian_Ising_group_full_cpp(
-            omega, tau, beta, responses, min_sum);
+            omega, tau, delta, beta, responses, min_sum);
 
         // Weight by group size
         H *= (nPerGroup(g) / nTotal);

@@ -93,8 +93,9 @@ export(corr)
 # export(meta_varcov)
 export(modelsearch)
 
-# Ising models:
+# Ising / Spin models:
 export(Ising)
+export(BlumeCapel)
 
 # lvm models:
 export(lvm)

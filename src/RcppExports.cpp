@@ -2023,8 +2023,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // expHcpp
-double expHcpp(const arma::mat& states, const arma::vec& probabilities, const arma::mat& omega, const arma::vec& tau, const int nstate, const int nvar);
-RcppExport SEXP _psychonetrics_expHcpp(SEXP statesSEXP, SEXP probabilitiesSEXP, SEXP omegaSEXP, SEXP tauSEXP, SEXP nstateSEXP, SEXP nvarSEXP) {
+double expHcpp(const arma::mat& states, const arma::vec& probabilities, const arma::mat& omega, const arma::vec& tau, const arma::vec& delta, const int nstate, const int nvar);
+RcppExport SEXP _psychonetrics_expHcpp(SEXP statesSEXP, SEXP probabilitiesSEXP, SEXP omegaSEXP, SEXP tauSEXP, SEXP deltaSEXP, SEXP nstateSEXP, SEXP nvarSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -2032,15 +2032,16 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::vec& >::type probabilities(probabilitiesSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type omega(omegaSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type delta(deltaSEXP);
     Rcpp::traits::input_parameter< const int >::type nstate(nstateSEXP);
     Rcpp::traits::input_parameter< const int >::type nvar(nvarSEXP);
-    rcpp_result_gen = Rcpp::wrap(expHcpp(states, probabilities, omega, tau, nstate, nvar));
+    rcpp_result_gen = Rcpp::wrap(expHcpp(states, probabilities, omega, tau, delta, nstate, nvar));
     return rcpp_result_gen;
 END_RCPP
 }
 // expHessianCpp
-arma::mat expHessianCpp(const arma::mat& states, const arma::vec& probabilities, const arma::mat& omega, const arma::vec& tau, double beta, const int nstate, const int nvar);
-RcppExport SEXP _psychonetrics_expHessianCpp(SEXP statesSEXP, SEXP probabilitiesSEXP, SEXP omegaSEXP, SEXP tauSEXP, SEXP betaSEXP, SEXP nstateSEXP, SEXP nvarSEXP) {
+arma::mat expHessianCpp(const arma::mat& states, const arma::vec& probabilities, const arma::mat& omega, const arma::vec& tau, const arma::vec& delta, double beta, const int nstate, const int nvar);
+RcppExport SEXP _psychonetrics_expHessianCpp(SEXP statesSEXP, SEXP probabilitiesSEXP, SEXP omegaSEXP, SEXP tauSEXP, SEXP deltaSEXP, SEXP betaSEXP, SEXP nstateSEXP, SEXP nvarSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -2048,10 +2049,11 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::vec& >::type probabilities(probabilitiesSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type omega(omegaSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type delta(deltaSEXP);
     Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
     Rcpp::traits::input_parameter< const int >::type nstate(nstateSEXP);
     Rcpp::traits::input_parameter< const int >::type nvar(nvarSEXP);
-    rcpp_result_gen = Rcpp::wrap(expHessianCpp(states, probabilities, omega, tau, beta, nstate, nvar));
+    rcpp_result_gen = Rcpp::wrap(expHessianCpp(states, probabilities, omega, tau, delta, beta, nstate, nvar));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -2067,59 +2069,63 @@ BEGIN_RCPP
 END_RCPP
 }
 // H
-double H(arma::vec state, arma::mat graph, arma::vec tau);
-RcppExport SEXP _psychonetrics_H(SEXP stateSEXP, SEXP graphSEXP, SEXP tauSEXP) {
+double H(arma::vec state, arma::mat graph, arma::vec tau, arma::vec delta);
+RcppExport SEXP _psychonetrics_H(SEXP stateSEXP, SEXP graphSEXP, SEXP tauSEXP, SEXP deltaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::vec >::type state(stateSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type graph(graphSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type tau(tauSEXP);
-    rcpp_result_gen = Rcpp::wrap(H(state, graph, tau));
+    Rcpp::traits::input_parameter< arma::vec >::type delta(deltaSEXP);
+    rcpp_result_gen = Rcpp::wrap(H(state, graph, tau, delta));
     return rcpp_result_gen;
 END_RCPP
 }
 // Pot
-double Pot(arma::vec state, arma::mat graph, arma::vec tau, double beta);
-RcppExport SEXP _psychonetrics_Pot(SEXP stateSEXP, SEXP graphSEXP, SEXP tauSEXP, SEXP betaSEXP) {
+double Pot(arma::vec state, arma::mat graph, arma::vec tau, arma::vec delta, double beta);
+RcppExport SEXP _psychonetrics_Pot(SEXP stateSEXP, SEXP graphSEXP, SEXP tauSEXP, SEXP deltaSEXP, SEXP betaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::vec >::type state(stateSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type graph(graphSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type delta(deltaSEXP);
     Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
-    rcpp_result_gen = Rcpp::wrap(Pot(state, graph, tau, beta));
+    rcpp_result_gen = Rcpp::wrap(Pot(state, graph, tau, delta, beta));
     return rcpp_result_gen;
 END_RCPP
 }
 // isingExpectation
-Rcpp::List isingExpectation(arma::mat graph, arma::vec tau, double beta, arma::vec responses, double min_sum);
-RcppExport SEXP _psychonetrics_isingExpectation(SEXP graphSEXP, SEXP tauSEXP, SEXP betaSEXP, SEXP responsesSEXP, SEXP min_sumSEXP) {
+Rcpp::List isingExpectation(arma::mat graph, arma::vec tau, arma::vec delta, double beta, arma::vec responses, double min_sum);
+RcppExport SEXP _psychonetrics_isingExpectation(SEXP graphSEXP, SEXP tauSEXP, SEXP deltaSEXP, SEXP betaSEXP, SEXP responsesSEXP, SEXP min_sumSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type graph(graphSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type delta(deltaSEXP);
     Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type responses(responsesSEXP);
     Rcpp::traits::input_parameter< double >::type min_sum(min_sumSEXP);
-    rcpp_result_gen = Rcpp::wrap(isingExpectation(graph, tau, beta, responses, min_sum));
+    rcpp_result_gen = Rcpp::wrap(isingExpectation(graph, tau, delta, beta, responses, min_sum));
     return rcpp_result_gen;
 END_RCPP
 }
 // computeZ_cpp
-double computeZ_cpp(arma::mat graph, arma::vec tau, double beta, arma::vec responses, double min_sum);
-RcppExport SEXP _psychonetrics_computeZ_cpp(SEXP graphSEXP, SEXP tauSEXP, SEXP betaSEXP, SEXP responsesSEXP, SEXP min_sumSEXP) {
+double computeZ_cpp(arma::mat graph, arma::vec tau, arma::vec delta, double beta, arma::vec responses, double min_sum);
+RcppExport SEXP _psychonetrics_computeZ_cpp(SEXP graphSEXP, SEXP tauSEXP, SEXP deltaSEXP, SEXP betaSEXP, SEXP responsesSEXP, SEXP min_sumSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type graph(graphSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type delta(deltaSEXP);
     Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type responses(responsesSEXP);
     Rcpp::traits::input_parameter< double >::type min_sum(min_sumSEXP);
-    rcpp_result_gen = Rcpp::wrap(computeZ_cpp(graph, tau, beta, responses, min_sum));
+    rcpp_result_gen = Rcpp::wrap(computeZ_cpp(graph, tau, delta, beta, responses, min_sum));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -2471,13 +2477,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_prepare_meta_varcov_cpp", (DL_FUNC) &_psychonetrics_prepare_meta_varcov_cpp, 2},
     {"_psychonetrics_d_phi_theta_Ising_group_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_Ising_group_cpp, 1},
     {"_psychonetrics_d_phi_theta_Ising_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_Ising_cpp, 1},
-    {"_psychonetrics_expHcpp", (DL_FUNC) &_psychonetrics_expHcpp, 6},
-    {"_psychonetrics_expHessianCpp", (DL_FUNC) &_psychonetrics_expHessianCpp, 7},
+    {"_psychonetrics_expHcpp", (DL_FUNC) &_psychonetrics_expHcpp, 7},
+    {"_psychonetrics_expHessianCpp", (DL_FUNC) &_psychonetrics_expHessianCpp, 8},
     {"_psychonetrics_expected_hessian_Ising_full_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_Ising_full_cpp, 1},
-    {"_psychonetrics_H", (DL_FUNC) &_psychonetrics_H, 3},
-    {"_psychonetrics_Pot", (DL_FUNC) &_psychonetrics_Pot, 4},
-    {"_psychonetrics_isingExpectation", (DL_FUNC) &_psychonetrics_isingExpectation, 5},
-    {"_psychonetrics_computeZ_cpp", (DL_FUNC) &_psychonetrics_computeZ_cpp, 5},
+    {"_psychonetrics_H", (DL_FUNC) &_psychonetrics_H, 4},
+    {"_psychonetrics_Pot", (DL_FUNC) &_psychonetrics_Pot, 5},
+    {"_psychonetrics_isingExpectation", (DL_FUNC) &_psychonetrics_isingExpectation, 6},
+    {"_psychonetrics_computeZ_cpp", (DL_FUNC) &_psychonetrics_computeZ_cpp, 6},
     {"_psychonetrics_implied_Ising_cpp", (DL_FUNC) &_psychonetrics_implied_Ising_cpp, 2},
     {"_psychonetrics_prepare_Ising_cpp", (DL_FUNC) &_psychonetrics_prepare_Ising_cpp, 2},
     {"_psychonetrics_d_phi_theta_ml_lvm_group_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_ml_lvm_group_cpp, 1},

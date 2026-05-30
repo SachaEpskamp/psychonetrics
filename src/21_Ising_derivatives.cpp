@@ -18,7 +18,12 @@ arma::mat d_phi_theta_Ising_group_cpp(
 ){
   arma::mat omega = grouplist["omega"];
   int n = omega.n_rows;
-  int ntotal = n +  n * (n-1) / 2 + 1;
+  // Distribution parameters phi = (tau, omega[lower.tri], delta, beta).
+  // The map from model parameters theta to phi is the identity (the Ising and
+  // BlumeCapel models map their parameters directly onto the Spin distribution);
+  // for the Ising model the delta entries are fixed to zero in the parameter
+  // table, so the corresponding identity columns are simply never used.
+  int ntotal = n +  n * (n-1) / 2 + n + 1;
 
   arma::mat Jac = eye(ntotal,ntotal);
   

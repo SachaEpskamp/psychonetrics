@@ -91,7 +91,7 @@ void psychonetrics_FisherInformation_cpp_inner(
 
       estimatorPart = expected_hessian_Gaussian_cpp(prep);
 
-    } else if (distribution == "Ising"){
+    } else if (distribution == "Spin"){
 
       // Pure-C++ single-pass Hessian (replaces R callback to
       // expected_hessian_Ising / expHessianCpp, which previously walked
@@ -142,7 +142,7 @@ void psychonetrics_FisherInformation_cpp_inner(
 
     modelPart = d_phi_theta_meta_varcov_cpp(prep);
 
-  }  else if (usemodel == "Ising"){
+  }  else if (usemodel == "Ising" || usemodel == "BlumeCapel"){
 
     modelPart = d_phi_theta_Ising_cpp(prep);
 

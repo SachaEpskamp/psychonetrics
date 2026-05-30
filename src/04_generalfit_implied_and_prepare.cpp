@@ -108,8 +108,8 @@ Rcpp::List impliedModel_cpp(
     // 
     // imp = impfun(Rcpp::_["model"] = model, Rcpp::_["all"] =   all);
     
-  }  else if (framework == "Ising"){
-    
+  }  else if (framework == "Ising" || framework == "BlumeCapel"){
+
     imp = implied_Ising_cpp(model, all); // = Updated!
     
     // // Obtain environment containing function
@@ -225,8 +225,8 @@ Rcpp::List prepareModel_cpp(
     // 
     // prep = prepfun(Rcpp::_["x"] = x, Rcpp::_["model"] =   model);
     
-  }  else if (framework == "Ising"){
-    
+  }  else if (framework == "Ising" || framework == "BlumeCapel"){
+
     prep = prepare_Ising_cpp(x, model); // = Updated!
     // 
     // // Obtain environment containing function

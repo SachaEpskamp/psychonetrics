@@ -95,7 +95,7 @@ void psychonetrics_gradient_cpp_inner(
 
       estimatorPart = jacobian_gaussian_sigma_cpp(prep);
 
-    } else if (distribution == "Ising"){
+    } else if (distribution == "Spin"){
 
       estimatorPart = jacobian_Ising_cpp(prep);
 
@@ -143,13 +143,13 @@ void psychonetrics_gradient_cpp_inner(
     modelPart = d_phi_theta_tsdlvm1_cpp(prep);
     
   }  else if (usemodel == "meta_varcov"){
-    
+
     modelPart = d_phi_theta_meta_varcov_cpp(prep);
-    
-  }  else if (usemodel == "Ising"){
-    
+
+  }  else if (usemodel == "Ising" || usemodel == "BlumeCapel"){
+
     modelPart = d_phi_theta_Ising_cpp(prep);
-    
+
   }  else if (usemodel == "ml_lvm"){
 
     modelPart = d_phi_theta_ml_lvm_cpp(prep);

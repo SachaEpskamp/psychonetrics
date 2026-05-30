@@ -50,6 +50,7 @@ definition = function(object){
     "meta_lvm" = "Meta-analytic latent variable model",
     "meta_var1" = "Meta-analytic VAR(1) model",
     "Ising" = "Ising model",
+    "BlumeCapel" = "Blume-Capel model",
     "ml_lvm" = "Multi-level latent variable model"
   )
   

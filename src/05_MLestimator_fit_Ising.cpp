@@ -17,29 +17,32 @@ double maxLikEstimator_Ising_group_cpp(
     const Rcpp::List& grouplist
 ){
   arma::vec thresholds = grouplist["tau"];
+  arma::vec delta = grouplist["delta"];
   arma::vec responses = grouplist["responses"];
   arma::mat squares = grouplist["squares"];
   arma::vec means = grouplist["means"];
   arma::mat graph = grouplist["omega"];
   double beta = grouplist["beta"];
   double nobs = grouplist["nobs"];
-  
-  
-  
+
+
+
   // Compute Z:
-  double Z = grouplist["Z"]; // computeZ_cpp(graph, thresholds, beta, responses);
-  
+  double Z = grouplist["Z"]; // computeZ_cpp(graph, thresholds, delta, beta, responses);
+
   // Compute summary statistics:
   // FIXME: Not nice, will make things double
   arma::vec v1 = means * nobs;
   arma::mat v2 = squares;
-  
+
   arma::vec part1 = thresholds % v1;
   arma::mat part2 = graph % v2;
-  
-  
+
+  // Hamiltonian including the Blume-Capel quadratic term + sum_i delta_i * sum_obs x_i^2.
+  // The diagonal of 'squares' holds sum_obs x_i^2:
   double H =  (
-    - sum(part1) - 
+    - sum(part1) +
+      sum(delta % v2.diag()) -
       sum(vech(part2, false))
   );
   

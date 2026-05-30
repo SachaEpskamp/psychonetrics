@@ -63,7 +63,7 @@ double psychonetrics_fitfunction_cpp(
 
     if (distribution == "Gaussian"){
       fit = maxLikEstimator_Gauss_cpp(prep);
-    } else if (distribution == "Ising"){
+    } else if (distribution == "Spin"){
       fit = maxLikEstimator_Ising_cpp(prep);
     } else {
       Rcpp::stop("Distribution not supported for ML estimator.");
@@ -74,7 +74,7 @@ double psychonetrics_fitfunction_cpp(
     const OptimWorkspace& ws = getOrBuildWorkspace(model);
     if (distribution == "Gaussian"){
       fit = penMaxLikEstimator_Gauss_cpp(prep, x, ws);
-    } else if (distribution == "Ising"){
+    } else if (distribution == "Spin"){
       fit = penMaxLikEstimator_Ising_cpp(prep, x, ws);
     } else {
       Rcpp::stop("Distribution not supported for PML estimator.");

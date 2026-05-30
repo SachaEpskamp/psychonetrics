@@ -129,7 +129,7 @@ intersectionmodel <- function(
         matrices <- c(matrices,"omega_epsilon")
       }
       
-    }  else if (x@model == "Ising"){
+    }  else if (x@model %in% c("Ising", "BlumeCapel")){
       matrices <- c("omega")
       
     }  else stop("No default argument for 'matrices' for current model.")

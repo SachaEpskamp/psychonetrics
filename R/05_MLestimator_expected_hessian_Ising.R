@@ -1,12 +1,13 @@
 # Per group:
-expected_hessian_Ising_group <- function(omega,tau,beta,responses,nobs,min_sum,...){
-  
+expected_hessian_Ising_group <- function(omega,tau,beta,delta,responses,nobs,min_sum,...){
+
   # FIXME: Hi 2020 Sacha, this is 2023 Sacha. Why is this in R? Why not in C++?
-  
+
   # Graph and thresholds:
   thresholds <- as.vector(tau)
   graph <- as.matrix(omega)
   beta <- as.numeric(beta)
+  delta <- as.vector(delta)
   
   # Enumerate all states over the ordered response set (the same set is used
   # for every variable). Generalizes the original binary enumeration to any
@@ -21,16 +22,17 @@ expected_hessian_Ising_group <- function(omega,tau,beta,responses,nobs,min_sum,.
   }
 
   # Potentials and probabilities:
-  potentials <- apply(states, 1, function(s) Pot(s, graph, thresholds, beta))
+  potentials <- apply(states, 1, function(s) Pot(s, graph, thresholds, delta, beta))
   Z <- sum(potentials)
   probabilities <- potentials / Z
-  
+
   # Run C++:
   Hes <- expHessianCpp(
     states,
     probabilities,
     graph,
     thresholds,
+    delta,
     beta,
     nrow(states),
     ncol(states))

@@ -16,7 +16,7 @@ expectedmodel <- function(x){
         }
       }
     }
-  } else if (x@distribution == "Ising"){
+  } else if (x@distribution == "Spin"){
     start <- parVector(x)
     prep <- prepareModel(start, x)
     for (g in 1:nrow(x@sample@groups)){

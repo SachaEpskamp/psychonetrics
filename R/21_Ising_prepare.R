@@ -45,10 +45,11 @@ prepare_Ising <- function(x, model){
     exp <-  isingExpectation(
       groupModels[[g]]$omega,
       groupModels[[g]]$tau,
+      groupModels[[g]]$delta,
       groupModels[[g]]$beta,
       groupModels[[g]]$responses,
       groupModels[[g]]$min_sum
-    )    
+    )
     groupModels[[g]]$Z <- exp$Z
     groupModels[[g]]$exp_v1 <- exp$exp_v1
     groupModels[[g]]$exp_v2 <- exp$exp_v2

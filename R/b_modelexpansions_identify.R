@@ -21,7 +21,7 @@ identify <- function(x){
   } else if (x@model == "tsdlvm1"){
     x <- identify_tsdlvm1(x)
     return(x)
-  } else if (x@model == "Ising"){
+  } else if (x@model == "Ising" || x@model == "BlumeCapel"){
     x <- identify_Ising(x)
     return(x)
   } else if (x@model == "ml_lvm"){

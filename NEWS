@@ -1,3 +1,22 @@
+Changes in Version 0.15.15
+  o New model: BlumeCapel(). The Ising distribution has been generalized
+    to the 'Spin' distribution, which adds a per-node quadratic potential
+    delta:
+        P(X = x) propto exp( sum_i tau_i x_i - sum_i delta_i x_i^2
+                             + sum_{i<j} omega_ij x_i x_j ).
+    Two models are built on this distribution: the Ising model (delta
+    fixed to zero, exactly reproducing the previous Ising behavior) and
+    the new BlumeCapel model (delta freely estimated). BlumeCapel()
+    shares the Ising() engine, fit, gradient, expected Hessian and
+    standard errors. For the ternary -1/0/1 coding this is the usual
+    Blume-Capel model; any ordered response set is allowed (a warning is
+    raised when the coding departs from the conventional one).
+  o Ising() now warns when 'responses' is not -1/1 or 0/1, since the
+    behavior is then not exactly that of the classical Ising model.
+  o Internally, the model distribution previously labelled "Ising" is now
+    labelled "Spin"; both the Ising and BlumeCapel models use it. This is
+    transparent to users.
+
 Changes in Version 0.15.14
   o Ising() no longer requires the response options to be integers. Any
     set of two or more distinct ordered response values is accepted in

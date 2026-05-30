@@ -16,7 +16,8 @@ prepareModel <- function(x, model){
                       "dlvm1" = prepare_dlvm1_cpp, # <- Updayed!
                       "tsdlvm1" = prepare_tsdlvm1_cpp, # <- Updated!
                       "meta_varcov" = prepare_meta_varcov_cpp, # <- updated!
-                      "Ising" = prepare_Ising_cpp, # <- Updated!
+                      "Ising" = ,
+                      "BlumeCapel" = prepare_Ising_cpp, # <- Updated!
                       "ml_lvm" = prepare_ml_lvm_cpp, # <- Udated!!!
                       "meta_lvm" = prepare_meta_lvm_cpp,
                       "meta_var1" = prepare_meta_var1_cpp
@@ -35,7 +36,8 @@ prepareModel <- function(x, model){
                       "dlvm1" = prepare_dlvm1,
                       "tsdlvm1" = prepare_tsdlvm1,
                       "meta_varcov" = prepare_meta_varcov,
-                      "Ising" = prepare_Ising,
+                      "Ising" = ,
+                      "BlumeCapel" = prepare_Ising,
                       "ml_lvm" = prepare_ml_lvm,
                       "meta_lvm" = prepare_meta_lvm,
                       "meta_var1" = prepare_meta_var1

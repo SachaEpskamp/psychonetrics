@@ -1,9 +1,10 @@
 # jacobian function per group:
-jacobian_Ising_group <- function(omega,tau,beta,squares,means,responses,nobs,exp_v1,exp_v2,exp_H,...){
+jacobian_Ising_group <- function(omega,tau,beta,delta,squares,means,responses,nobs,exp_v1,exp_v2,exp_H,...){
   # Graph and thresholds:
   thresholds <- as.vector(tau)
   graph <- as.matrix(omega)
   beta <- as.numeric(beta)
+  delta <- as.vector(delta)
   
   # Compute likelihood table:
   # LikTable <- IsingSampler::IsingLikelihood(graph,thresholds,beta,responses,potential=TRUE)
@@ -33,31 +34,39 @@ jacobian_Ising_group <- function(omega,tau,beta,squares,means,responses,nobs,exp
   v1 <- as.vector(means * nobs)
   v2 <- as.matrix(squares)
 
-  # Hamiltionian:  
+  # Hamiltonian (includes the Blume-Capel quadratic term; diag(v2) = sum_obs x_i^2):
   H <-  (
-    - sum(thresholds * v1) - 
+    - sum(thresholds * v1) +
+      sum(delta * diag(v2)) -
       sum((graph * v2)[lower.tri(v2,diag=FALSE)])
   )
-  
+
   # Thresholds gradient:
   threshGrad <- (
     2 * beta * exp_v1 - 2 * beta * v1 / nobs
   )
-  
-  
+
+
   # Network: gradient
   graphGrad <- (
     2 * beta * exp_v2 - 2 * beta * v2 / nobs
   )[lower.tri(v2,diag=FALSE)]
-  
+
+
+  # delta gradient: d Fml / d delta_i = 2 beta ( obs E[x_i^2] - model E[x_i^2] ).
+  # delta enters the exponent with a minus sign, hence the opposite sign pattern
+  # to the threshold gradient. diag(v2) = sum_obs x_i^2, diag(exp_v2) = E[x_i^2].
+  deltaGrad <- (
+    2 * beta * diag(v2) / nobs - 2 * beta * diag(exp_v2)
+  )
 
   # beta gradient
   betaGrad <- (
     2*(H/nobs - exp_H)
   )
-  
-  # Final gradient:
-  grad <- Matrix(c(threshGrad, graphGrad, betaGrad),nrow = 1)
+
+  # Final gradient (order: tau, omega[lower.tri], delta, beta):
+  grad <- Matrix(c(threshGrad, graphGrad, deltaGrad, betaGrad),nrow = 1)
   
   # Return:
   return(grad)

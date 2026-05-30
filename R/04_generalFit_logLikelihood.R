@@ -11,7 +11,7 @@ psychonetrics_logLikelihood <- function(model){
   loglikFun <- switch(
     distribution,
     "Gaussian" = logLikelihood_gaussian,
-    "Ising" = logLikelihood_Ising
+    "Spin" = logLikelihood_Ising
   )
   
   # Run and return:

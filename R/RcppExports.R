@@ -633,32 +633,32 @@ d_phi_theta_Ising_cpp <- function(prep) {
     .Call(`_psychonetrics_d_phi_theta_Ising_cpp`, prep)
 }
 
-expHcpp <- function(states, probabilities, omega, tau, nstate, nvar) {
-    .Call(`_psychonetrics_expHcpp`, states, probabilities, omega, tau, nstate, nvar)
+expHcpp <- function(states, probabilities, omega, tau, delta, nstate, nvar) {
+    .Call(`_psychonetrics_expHcpp`, states, probabilities, omega, tau, delta, nstate, nvar)
 }
 
-expHessianCpp <- function(states, probabilities, omega, tau, beta, nstate, nvar) {
-    .Call(`_psychonetrics_expHessianCpp`, states, probabilities, omega, tau, beta, nstate, nvar)
+expHessianCpp <- function(states, probabilities, omega, tau, delta, beta, nstate, nvar) {
+    .Call(`_psychonetrics_expHessianCpp`, states, probabilities, omega, tau, delta, beta, nstate, nvar)
 }
 
 expected_hessian_Ising_full_cpp <- function(prep) {
     .Call(`_psychonetrics_expected_hessian_Ising_full_cpp`, prep)
 }
 
-H <- function(state, graph, tau) {
-    .Call(`_psychonetrics_H`, state, graph, tau)
+H <- function(state, graph, tau, delta) {
+    .Call(`_psychonetrics_H`, state, graph, tau, delta)
 }
 
-Pot <- function(state, graph, tau, beta) {
-    .Call(`_psychonetrics_Pot`, state, graph, tau, beta)
+Pot <- function(state, graph, tau, delta, beta) {
+    .Call(`_psychonetrics_Pot`, state, graph, tau, delta, beta)
 }
 
-isingExpectation <- function(graph, tau, beta, responses, min_sum) {
-    .Call(`_psychonetrics_isingExpectation`, graph, tau, beta, responses, min_sum)
+isingExpectation <- function(graph, tau, delta, beta, responses, min_sum) {
+    .Call(`_psychonetrics_isingExpectation`, graph, tau, delta, beta, responses, min_sum)
 }
 
-computeZ_cpp <- function(graph, tau, beta, responses, min_sum) {
-    .Call(`_psychonetrics_computeZ_cpp`, graph, tau, beta, responses, min_sum)
+computeZ_cpp <- function(graph, tau, delta, beta, responses, min_sum) {
+    .Call(`_psychonetrics_computeZ_cpp`, graph, tau, delta, beta, responses, min_sum)
 }
 
 implied_Ising_cpp <- function(model, all = FALSE) {

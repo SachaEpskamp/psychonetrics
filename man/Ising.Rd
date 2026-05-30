@@ -133,6 +133,9 @@ Epskamp, S., Maris, G., Waldorp, L. J., & Borsboom, D. (2018). Network Psychomet
 \author{
 Sacha Epskamp <mail@sachaepskamp.com>
 }
+\seealso{
+\code{\link{BlumeCapel}} for the more general Blume-Capel model, which adds a quadratic node potential (\code{delta}) and reduces to the Ising model when all \code{delta} are fixed to zero.
+}
 
 
 \examples{

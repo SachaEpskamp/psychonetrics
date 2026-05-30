@@ -23,7 +23,7 @@ implied_Ising <- function(model, all = FALSE){
     if (all) {
       for (g in 1:nGroup) {
         exp <- isingExpectation(
-          x[[g]]$omega, x[[g]]$tau, x[[g]]$beta,
+          x[[g]]$omega, x[[g]]$tau, x[[g]]$delta, x[[g]]$beta,
           model@extramatrices$responses,
           model@extramatrices$min_sum
         )

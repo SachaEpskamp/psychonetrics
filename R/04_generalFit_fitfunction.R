@@ -21,7 +21,7 @@ psychonetrics_fitfunction <- function(x, model){
       estimator,
       "ML" = switch(distribution,
                     "Gaussian" = maxLikEstimator_Gauss_cpp, # <- updated!
-                    "Ising" = maxLikEstimator_Ising_cpp # <- updated!
+                    "Spin" = maxLikEstimator_Ising_cpp # <- updated!
                     ),
       "ULS" =  switch(distribution,"Gaussian" = ULS_Gauss_cpp), # <- updated
       "DWLS" = switch(distribution,"Gaussian" = ULS_Gauss_cpp), # <- updated
@@ -31,7 +31,7 @@ psychonetrics_fitfunction <- function(x, model){
   } else {
     estFun <- switch(
       estimator,
-      "ML" = switch(distribution,"Gaussian" = maxLikEstimator_Gauss, "Ising" = maxLikEstimator_Ising),
+      "ML" = switch(distribution,"Gaussian" = maxLikEstimator_Gauss, "Spin" = maxLikEstimator_Ising),
       "ULS" =  switch(distribution,"Gaussian" = ULS_Gauss),
       "DWLS" = switch(distribution,"Gaussian" = ULS_Gauss),
       "WLS" = switch(distribution,"Gaussian" = ULS_Gauss),
@@ -43,7 +43,7 @@ psychonetrics_fitfunction <- function(x, model){
   if (estimator == "PML") {
     fit <- switch(distribution,
                   "Gaussian" = penMaxLikEstimator_Gauss(prep, x, model),
-                  "Ising" = penMaxLikEstimator_Ising(prep, x, model))
+                  "Spin" = penMaxLikEstimator_Ising(prep, x, model))
   } else if (estimator == "PFIML") {
     fit <- switch(distribution,
                   "Gaussian" = penFIMLEstimator_Gauss(prep, x, model))

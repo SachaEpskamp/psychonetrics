@@ -14,6 +14,7 @@ using namespace arma;
 double computeZ_cpp(
                 arma::mat graph,
                 arma::vec tau,
+                arma::vec delta,
                 double beta,
                 arma::vec responses,
                 double min_sum
@@ -23,6 +24,7 @@ double computeZ_cpp(
 Rcpp::List isingExpectation(
     arma::mat graph,
     arma::vec tau,
+    arma::vec delta,
     double beta,
     arma::vec responses,
     double min_sum

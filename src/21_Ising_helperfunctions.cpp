@@ -11,12 +11,20 @@
 using namespace Rcpp;
 using namespace arma;
 
-// Hammiltonian (copied from IsingSampler):
+// Hamiltonian for the Spin distribution. Generalizes the classical Ising
+// Hamiltonian with a per-node quadratic (Blume-Capel) term delta_i:
+//
+//   H(x) = - sum_i tau_i x_i + sum_i delta_i x_i^2 - sum_{i<j} omega_ij x_i x_j
+//
+// so that P(x) propto exp(-beta H(x)) =
+//   exp( beta [ sum_i tau_i x_i - sum_i delta_i x_i^2 + sum_{i<j} omega_ij x_i x_j ] ).
+// Setting delta = 0 recovers the classical Ising Hamiltonian exactly.
 // [[Rcpp::export]]
 double H(
     arma::vec state,
     arma::mat graph,
-    arma::vec tau
+    arma::vec tau,
+    arma::vec delta
 ){
 
 
@@ -25,6 +33,7 @@ double H(
   for (int i=0;i<N;i++)
   {
     Res -=  tau(i) * state(i);
+    Res +=  delta(i) * state(i) * state(i);
     for (int j=i;j<N;j++)
     {
       if (j!=i) Res -= graph(i,j) * state(i) * state(j);
@@ -40,9 +49,10 @@ double Pot(
     arma::vec state,
     arma::mat graph,
     arma::vec tau,
+    arma::vec delta,
     double beta
 ){
-  return exp(-1.0 * beta * H(state,graph,tau));
+  return exp(-1.0 * beta * H(state,graph,tau,delta));
 }
 
 
@@ -57,6 +67,7 @@ double Pot(
 Rcpp::List isingExpectation(
     arma::mat graph,
     arma::vec tau,
+    arma::vec delta,
     double beta,
     arma::vec responses,
     double min_sum
@@ -107,7 +118,7 @@ Rcpp::List isingExpectation(
 
     // Update the expected values:
     if (update){
-      curH = H(curstate, graph, tau);
+      curH = H(curstate, graph, tau, delta);
 
       curpot = exp(-1.0 * beta * curH);
 
@@ -163,6 +174,7 @@ Rcpp::List isingExpectation(
 double computeZ_cpp(
     arma::mat graph,
     arma::vec tau,
+    arma::vec delta,
     double beta,
     arma::vec responses,
     double min_sum
@@ -198,7 +210,7 @@ double computeZ_cpp(
 
     if (update){
       // Update Z:
-      Z += Pot(curstate, graph, tau, beta);
+      Z += Pot(curstate, graph, tau, delta, beta);
     }
 
     // Increment the mixed-radix counter (digit 0 fastest):

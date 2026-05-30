@@ -55,7 +55,7 @@ Rcpp::List prepare_Ising_cpp(
     
     // Compute expectation:
     Rcpp::List exp = isingExpectation(
-      grouplist["omega"], grouplist["tau"],  grouplist["beta"],  grouplist["responses"], extramatrices["min_sum"]
+      grouplist["omega"], grouplist["tau"], grouplist["delta"], grouplist["beta"], grouplist["responses"], extramatrices["min_sum"]
     );
     
     growlist(grouplist, exp);

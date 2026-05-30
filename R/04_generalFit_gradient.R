@@ -20,11 +20,11 @@ psychonetrics_gradient <- function(x, model){
       model@estimator,
       "ML" = switch(model@distribution,
                     "Gaussian" = jacobian_gaussian_sigma_cpp, # <- Updated!
-                    "Ising" = jacobian_Ising_cpp # <- updated!
+                    "Spin" = jacobian_Ising_cpp # <- updated!
       ),
       "PML" = switch(model@distribution,
                      "Gaussian" = jacobian_gaussian_sigma_cpp,
-                     "Ising" = jacobian_Ising_cpp
+                     "Spin" = jacobian_Ising_cpp
       ),
       "PFIML" = switch(model@distribution,
                        "Gaussian" = jacobian_fiml_gaussian_sigma_cpp
@@ -46,11 +46,11 @@ psychonetrics_gradient <- function(x, model){
       model@estimator,
       "ML" = switch(model@distribution,
                     "Gaussian" = jacobian_gaussian_sigma,
-                    "Ising" = jacobian_Ising
+                    "Spin" = jacobian_Ising
       ),
       "PML" = switch(model@distribution,
                      "Gaussian" = jacobian_gaussian_sigma,
-                     "Ising" = jacobian_Ising
+                     "Spin" = jacobian_Ising
       ),
       "PFIML" = switch(model@distribution,
                        "Gaussian" = jacobian_fiml_gaussian_sigma
@@ -86,7 +86,8 @@ psychonetrics_gradient <- function(x, model){
       "dlvm1" = d_phi_theta_dlvm1_cpp, # <- updated!
       "tsdlvm1" = d_phi_theta_tsdlvm1_cpp, # <- updated!
       "meta_varcov" = d_phi_theta_meta_varcov_cpp, # <- updated!
-      "Ising" = d_phi_theta_Ising_cpp, # <- updated!
+      "Ising" = ,
+      "BlumeCapel" = d_phi_theta_Ising_cpp, # <- updated!
       "ml_lvm" = d_phi_theta_ml_lvm_cpp, # <- updated!
       "meta_lvm" = d_phi_theta_meta_lvm_cpp,
       "meta_var1" = d_phi_theta_meta_var1_cpp
@@ -106,7 +107,8 @@ psychonetrics_gradient <- function(x, model){
       "dlvm1" = d_phi_theta_dlvm1,
       "tsdlvm1" = d_phi_theta_tsdlvm1,
       "meta_varcov" = d_phi_theta_meta_varcov,
-      "Ising" = d_phi_theta_Ising,
+      "Ising" = ,
+      "BlumeCapel" = d_phi_theta_Ising,
       "ml_lvm" = d_phi_theta_ml_lvm,
       "meta_lvm" = d_phi_theta_meta_lvm,
       "meta_var1" = d_phi_theta_meta_var1
