@@ -78,6 +78,14 @@ spinModel <- function(
                      "(defined for binary -1/1 or 0/1 responses)."))
     }
   } else if (model_name == "BlumeCapel"){
+    # The Blume-Capel quadratic term delta_i * x_i^2 is not identifiable with
+    # only two response options: x_i^2 is then constant across the two states,
+    # so delta is confounded with the threshold and the normalizing constant.
+    if (length(responses) < 3){
+      stop(paste0("The Blume-Capel model requires at least three response options; ",
+                  "with only two responses (here '", paste(responses, collapse = ", "),
+                  "') the quadratic 'delta' term is not identifiable. Use Ising() for binary data."))
+    }
     if (!resp_equals(responses, c(-1, 0, 1))){
       warning(paste0("Responses set to '", paste(responses, collapse = ", "),
                      "'; the Blume-Capel model is conventionally defined for ",

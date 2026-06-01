@@ -1,3 +1,10 @@
+Changes in Version 0.15.17
+  o BlumeCapel() now gives an error (instead of a warning) when fewer than
+    three response options are supplied. With only two responses the
+    quadratic 'delta' term is not identifiable (x^2 is constant across the
+    two states), so it is confounded with the thresholds; use Ising() for
+    binary data.
+
 Changes in Version 0.15.16
   o New function allequal(): constrains all free elements of a model
     matrix to be equal within each group (a single shared parameter per
