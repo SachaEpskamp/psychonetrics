@@ -97,11 +97,12 @@ psychonetrics_proximal_gradient <- function(x, lower, upper, bounded) {
       par_new <- z
       pen_idx <- which(lambda_vec > 0)
       if (length(pen_idx) > 0) {
+        # Plain soft-thresholding: the ridge (L2) part of the elastic net is
+        # already included in the smooth objective/gradient (smooth = ML + L2),
+        # so the proximal operator only handles the L1 part. Applying the
+        # elastic-net denominator adjustment here as well would count the
+        # ridge penalty twice.
         par_new[pen_idx] <- soft_thresh(z[pen_idx], t_k * lambda_vec[pen_idx] * alpha)
-        # Elastic net scaling (denominator adjustment for L2)
-        if (alpha < 1) {
-          par_new[pen_idx] <- par_new[pen_idx] / (1 + t_k * lambda_vec[pen_idx] * (1 - alpha))
-        }
       }
 
       # Enforce bounds

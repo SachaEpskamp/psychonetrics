@@ -68,7 +68,7 @@ fixAdj <- function(kappa, nGroup, nNode, equal = FALSE, diag0 = FALSE, diagonal 
     }
   }
   
-  # Should there be equality constrains?
+  # Should there be equality constraints?
   if (equal && any(kappa==1)){
     curMax <- max(kappa)
     kappa[,,1][kappa[,,1]==1&lower.tri(kappa[,,1],diag=TRUE)] <- curMax + seq_len(sum(kappa[,,1]==1&lower.tri(kappa[,,1],diag=TRUE)))

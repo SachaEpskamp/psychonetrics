@@ -41,34 +41,34 @@ A data frame encoding the data used in the analysis. Can be missing if \code{cov
 The type of model used. See description.
 }
   \item{sigma}{
-Only used when \code{type = "cov"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{type = "cov"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{kappa}{
-Only used when \code{type = "prec"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{type = "prec"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{omega}{
-Only used when \code{type = "ggm"}. Either \code{"full"} to estimate every element freely, \code{"zero"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{type = "ggm"}. Either \code{"full"} to estimate every element freely, \code{"zero"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{lowertri}{
-Only used when \code{type = "chol"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{type = "chol"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
 \item{delta}{
-Only used when \code{type = "ggm"}. Either \code{"diag"} or \code{"zero"} (not recommended), or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{type = "ggm"}. Either \code{"diag"} or \code{"zero"} (not recommended), or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
 \item{rho}{
-Only used when \code{type = "cor"}. Either \code{"full"} to estimate every element freely, \code{"zero"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{type = "cor"}. Either \code{"full"} to estimate every element freely, \code{"zero"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
 \item{SD}{
-Only used when \code{type = "cor"}. Either \code{"diag"} or \code{"zero"} (not recommended), or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{type = "cor"}. Either \code{"diag"} or \code{"zero"} (not recommended), or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{mu}{
-Optional vector encoding the mean structure. Set elements to 0 to indicate fixed to zero constrains, 1 to indicate free means, and higher integers to indicate equality constrains. For multiple groups, this argument can be a list or array with each element/column encoding such a vector.
+Optional vector encoding the mean structure. Set elements to 0 to indicate fixed to zero constrains, 1 to indicate free means, and higher integers to indicate equality constraints. For multiple groups, this argument can be a list or array with each element/column encoding such a vector.
 }
   \item{tau}{
 Optional list encoding the thresholds per variable.
 }
   \item{vars}{
-An optional character vector encoding the variables used in the analyis. Must equal names of the dataset in \code{data}.
+An optional character vector encoding the variables used in the analysis. Must equal names of the dataset in \code{data}.
 }
   \item{groups}{
 Deprecated. Use \code{groupvar} instead. An optional string indicating the name of the group variable in \code{data}.
@@ -122,7 +122,7 @@ An optional sample statistics object. Mostly used internally.
 Logical, should progress be printed to the console?
 }
 \item{ordered}{
-A vector with strings indicating the variables that are ordered catagorical, or set to \code{TRUE} to model all variables as ordered catagorical.
+A vector with strings indicating the variables that are ordered categorical, or set to \code{TRUE} to model all variables as ordered categorical.
 }
 \item{meanstructure}{
 Logical, should the meanstructure be modeled explicitly?
@@ -156,7 +156,7 @@ The model used in this family is:
 
 \eqn{\mathcal{E}( \boldsymbol{y} ) = \boldsymbol{\mu}}{E(y) = mu}
 
-in which the covariance matrix can further be modeled in three ways. With \code{type = "chol"} as Cholesky decomposition:
+in which the covariance matrix can further be modeled in four ways. With \code{type = "chol"} as Cholesky decomposition:
 
 \eqn{\boldsymbol{\Sigma} = \boldsymbol{L}\boldsymbol{L}^{\top}}{sigma = lowertri * lowertri'},
 
@@ -164,9 +164,15 @@ with \code{type = "prec"} as Precision matrix:
 
 \eqn{\boldsymbol{\Sigma} = \boldsymbol{K}^{-1}}{sigma = kappa^(-1)},
 
-and finally with \code{type = "ggm"} as Gaussian graphical model:
+with \code{type = "ggm"} as Gaussian graphical model:
 
-\eqn{\boldsymbol{\Sigma} = \boldsymbol{\Delta}(\boldsymbol{I} - \boldsymbol{\Omega})^(-1) \boldsymbol{\Delta}}{sigma = delta * (I - omega)^(-1) * delta}.
+\eqn{\boldsymbol{\Sigma} = \boldsymbol{\Delta}(\boldsymbol{I} - \boldsymbol{\Omega})^(-1) \boldsymbol{\Delta}}{sigma = delta * (I - omega)^(-1) * delta},
+
+and finally with \code{type = "cor"} as a correlation matrix scaled by standard deviations:
+
+\eqn{\boldsymbol{\Sigma} = \boldsymbol{D}\boldsymbol{R}\boldsymbol{D}}{sigma = SD * rho * SD},
+
+in which \eqn{\boldsymbol{D}} is a diagonal matrix of standard deviations and \eqn{\boldsymbol{R}} a correlation matrix.
 }
 \value{
 An object of the class psychonetrics 

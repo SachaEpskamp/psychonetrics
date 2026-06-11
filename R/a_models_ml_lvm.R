@@ -63,7 +63,7 @@ ml_lvm <- function(
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   # fitfunctions, 
-  estimator = c("FIML","MUML"),
+  estimator = "FIML",
   optimizer,
   storedata = FALSE,
   verbose = FALSE,

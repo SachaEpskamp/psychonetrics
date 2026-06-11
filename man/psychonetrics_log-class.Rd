@@ -4,7 +4,7 @@
 \alias{psychonetrics_log-class}
 \alias{show,psychonetrics_log-method}
 
-\title{Class \code{"psychonetrics"}}
+\title{Class \code{"psychonetrics_log"}}
 \description{
 A logbook entry in the psychonetrics logbook
 }
@@ -14,9 +14,9 @@ Objects can be created by calls of the form \code{new("psychonetrics_log", ...)}
 }
 \section{Slots}{
   \describe{
-    \item{\code{event}:}{Object of class \code{"character"} ~~ }
-    \item{\code{time}:}{Object of class \code{"POSIXct"} ~~ }
-    \item{\code{sessionInfo}:}{Object of class \code{"sessionInfo"} ~~ }
+    \item{\code{event}:}{Object of class \code{"character"}: a description of the logged event.}
+    \item{\code{time}:}{Object of class \code{"POSIXct"}: the time at which the event was logged.}
+    \item{\code{sessionInfo}:}{Object of class \code{"sessionInfo"}: the R session information at the time of the event.}
   }
 }
 \section{Methods}{

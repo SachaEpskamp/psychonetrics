@@ -5,7 +5,7 @@
 Stepwise model search
 }
 \description{
-This function peforms stepwise model search to find an optimal model that (locally) minimzes some criterion (by default, the BIC). 
+This function performs stepwise model search to find an optimal model that (locally) minimizes some criterion (by default, the BIC). 
 }
 \usage{
 modelsearch(x, criterion = "bic", matrices, prunealpha = 0.01,

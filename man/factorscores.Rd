@@ -5,7 +5,7 @@
 Compute factor scores
 }
 \description{
-Currently, only the \code{lvm} framework with single group and no missing data is supported.
+Currently, only the \code{lvm} framework with no missing data is supported.
 }
 \usage{
 factorscores(data, model, method = c("bartlett", "regression"))
@@ -22,7 +22,9 @@ A psychonetrics model
 The method to use: \code{"regression"} or \code{"bartlett"}
 }
 }
-
+\value{
+A data frame of factor scores (one column per latent variable). For multi-group models a group column is appended.
+}
 \author{
 Sacha Epskamp <mail@sachaepskamp.com>
 }

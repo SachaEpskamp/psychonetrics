@@ -5,7 +5,7 @@
 Partial pruning of multi-group models
 }
 \description{
-This function will search for a multi-group model with equality constrains on some but not all parameters. This is called partial pruning (Epskamp, Isvoranu, & Cheung, 2020; Haslbeck, 2020).  The algorithm is as follows: 1. remove all parameters not significant at alpha in all groups (without equality constrains), 2. create a union model with all parameters included in any group included in all groups and constrained equal. 3. Stepwise free equality constrains of the parameter that features the largest sum of modification indices until BIC can no longer be improved. 4. Select and return (by default) the best model according to BIC (original model, pruned model, union model and partially pruned model). 
+This function will search for a multi-group model with equality constraints on some but not all parameters. This is called partial pruning (Epskamp, Isvoranu, & Cheung, 2020; Haslbeck, 2020).  The algorithm is as follows: 1. remove all parameters not significant at alpha in all groups (without equality constraints), 2. create a union model with all parameters included in any group included in all groups and constrained equal. 3. Stepwise free equality constraints of the parameter that features the largest sum of modification indices until BIC can no longer be improved. 4. Select and return (by default) the best model according to BIC (original model, pruned model, union model and partially pruned model). 
 }
 \usage{
 partialprune(x, alpha = 0.01, matrices, verbose,
@@ -59,7 +59,9 @@ Logical, passed to the internal \code{\link{prune}}, \code{\link{unionmodel}}, \
 Arguments sent to \code{\link{prune}}.
 }
 }
-
+\value{
+An object of the class psychonetrics (\link{psychonetrics-class}); which model is returned is controlled by the \code{return} argument (by default the model selected via the chosen \code{criterion}).
+}
 \references{
 Epskamp, S., Isvoranu, A. M., & Cheung, M. (2020). Meta-analytic gaussian network aggregation. PsyArXiv preprint. DOI:10.31234/osf.io/236w8.
 
@@ -89,7 +91,7 @@ mod_saturated <- ggm(ExData,
                      groups = "gender")
 
 # Partial prune model:
-mod_partial <- mod_saturated %>% 
+mod_partial <- mod_saturated \%>\%
   partialprune
 
 # Obtain the networks:

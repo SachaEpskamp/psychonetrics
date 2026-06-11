@@ -39,6 +39,6 @@ duplicationMatrix(10)
 # Elimination matrix for 10 variables:
 eliminationMatrix(10)
 
-# Diagonailzation matrix for 10 variables:
+# Diagonalization matrix for 10 variables:
 diagonalizationMatrix(10)
 }

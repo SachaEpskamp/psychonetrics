@@ -24,7 +24,7 @@ String indicating the matrix to be extracted.
   \item{group}{
 Integer indicating the group for the matrix to be extracted.
 }
-\item{threshold}{Logical. Should the matrix be thresholded (non-significant values set to zero? Can also be a value with an absolute threshold below wich parameters are set to zero.)}
+\item{threshold}{Logical. Should the matrix be thresholded (non-significant values set to zero? Can also be a value with an absolute threshold below which parameters are set to zero.)}
   \item{alpha}{
 Significance level to use.
 }
@@ -37,7 +37,7 @@ Mode for adjusting for multiple comparisons. Should all parameters be considered
 \item{diag}{Set to FALSE to set diagonal elements to zero.}
 }
 \value{
-A matrix of parameter estimates, of a list of such matrices for multiple group models.
+A matrix of parameter estimates, or a list of such matrices for multiple group models.
 }
 \author{
 Sacha Epskamp

@@ -337,9 +337,28 @@ lvm <- function(
   
    # Setup lambda:
   modMatrices$lambda <- matrixsetup_lambda(lambda, expcov=model@sample@covs, nGroup = nGroup, equal = "lambda" %in% equal,
-                                           observednames = sampleStats@variables$label, latentnames = latents, 
+                                           observednames = sampleStats@variables$label, latentnames = latents,
                                            sampletable = sampleStats, identification = identification, simple = simplelambdastart)
-  
+
+  # If nu is entirely fixed but nu_eta has free elements (e.g., latent growth
+  # models), all observed means must be absorbed by nu_eta. A start of zero can
+  # then be so far off that the optimizer diverges, so instead start nu_eta at
+  # the least-squares solution ginv(Lambda) %*% (observed means - fixed nu):
+  if (meanstructure){
+    nu_anyfree <- any(modMatrices$nu[[1]] != 0)
+    nu_eta_free <- modMatrices$nu_eta[[1]] != 0
+    if (!nu_anyfree && any(nu_eta_free)){
+      for (g in seq_len(nGroup)){
+        obsmeans <- as.vector(unlist(model@sample@means[[g]]))
+        if (length(obsmeans) == nNode && !any(is.na(obsmeans))){
+          lambdastart_g <- as.matrix(modMatrices$lambda$start[,,g])
+          nu_eta_ls <- as.vector(MASS::ginv(lambdastart_g) %*% (obsmeans - modMatrices$nu$start[,g]))
+          modMatrices$nu_eta$start[nu_eta_free[,g],g] <- nu_eta_ls[nu_eta_free[,g]]
+        }
+      }
+    }
+  }
+
   # Compute the expected latent and residual cov matrices:
   expLatSigma <- lapply(1:nGroup,function(x)matrix(0,nLatent,nLatent))
   expResidSigma <- lapply(1:nGroup,function(x)matrix(0,nNode,nNode))
@@ -510,9 +529,9 @@ lvm <- function(
                                                 nNode = nLatent, 
                                                 nGroup = nGroup, 
                                                 labels = latents,
-                                           equal = "lowertri_zeta" %in% equal, sampletable = sampleStats,
+                                           equal = "omega_zeta" %in% equal, sampletable = sampleStats,
                                            beta = modMatrices$beta[[1]])
-    
+
     # Add delta matrix:
     modMatrices$delta_zeta <- matrixsetup_delta(delta_zeta, 
                                                 name = "delta_zeta",

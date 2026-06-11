@@ -4,7 +4,7 @@
 Meta-analytic latent variable model
 }
 \description{
-Single-stage meta-analytic latent variable model (LVM) for covariance or correlation matrices. Combines a latent variable model (CFA/SEM) for the mean structure with a random-effects model for between-study heterogeneity. Based on the MAGNA framework (Epskamp et al., 2024).
+Single-stage meta-analytic latent variable model (LVM) for covariance or correlation matrices. Combines a latent variable model (CFA/SEM) for the mean structure with a random-effects model for between-study heterogeneity. Based on the MAGNA framework (Epskamp, Isvoranu, & Cheung, 2022).
 }
 \usage{
 meta_lvm(covs, nobs, data, cors, studyvar, groups, groupvar,
@@ -190,7 +190,7 @@ where \eqn{V} is the known sampling error covariance and \eqn{\Sigma^{(\textrm{r
 An object of the class psychonetrics (\link{psychonetrics-class})
 }
 \references{
-Epskamp, S. et al. (2024). Meta-Analytic Gaussian Network Aggregation. \emph{Psychometrika}.
+Epskamp, S., Isvoranu, A. M., & Cheung, M. W. L. (2022). Meta-Analytic Gaussian Network Aggregation. \emph{Psychometrika}, 87(1), 12-46.
 
 Jak, S., and Cheung, M. W. L. (2019). Meta-analytic structural equation modeling with moderating effects on SEM parameters. \emph{Psychological Methods}.
 }
@@ -199,6 +199,8 @@ Sacha Epskamp <mail@sachaepskamp.com>
 }
 \examples{
 \dontrun{
+library("dplyr")
+
 # Generate simulated data
 set.seed(42)
 nStudies <- 10

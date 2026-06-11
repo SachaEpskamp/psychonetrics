@@ -2,7 +2,7 @@
 \alias{latentgrowth}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Latnet growth curve model
+Latent growth curve model
 }
 \description{
 Wrapper to \code{lvm} to specify a latent growth curve model.

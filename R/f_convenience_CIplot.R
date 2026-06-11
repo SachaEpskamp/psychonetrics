@@ -44,6 +44,9 @@ CIplot <- function(
     prop0_alpha = 0.95,
     prop0_minAlpha = 0.25
 ){
+  # ggplot2 is only needed for the plotting and is a Suggests dependency:
+  if(!requireNamespace("ggplot2")) stop("'ggplot2' package needs to be installed.")
+
   # Check if the model is a bootstrap aggregate:
   if (is(x,"psychonetrics_bootstrap")){
     boot_agg <- TRUE

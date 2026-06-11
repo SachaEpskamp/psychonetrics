@@ -42,7 +42,7 @@ lrnm(\dots)
 A data frame encoding the data used in the analysis. Can be missing if \code{covs} and \code{nobs} are supplied.
 }
   \item{lambda}{
-A model matrix encoding the factor loading structure. Each row indicates an indicator and each column a latent. A 0 encodes a fixed to zero element, a 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+A model matrix encoding the factor loading structure. Each row indicates an indicator and each column a latent. A 0 encodes a fixed to zero element, a 1 encoding a free to estimate element, and higher integers encoding equality constraints. Can also be set to \code{"full"} to freely estimate all factor loadings, including all cross-loadings (this requires the latents to be named through the \code{latents} argument). For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{latent}{
 The type of latent model used. See description.
@@ -51,46 +51,46 @@ The type of latent model used. See description.
 The type of residual model used. See description.
 }
   \item{sigma_zeta}{
-Only used when \code{latent = "cov"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{latent = "cov"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{kappa_zeta}{
-Only used when \code{latent = "prec"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{latent = "prec"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{omega_zeta}{
-Only used when \code{latent = "ggm"}. Either \code{"full"} to estimate every element freely, \code{"zero"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{latent = "ggm"}. Either \code{"full"} to estimate every element freely, \code{"zero"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{lowertri_zeta}{
-Only used when \code{latent = "chol"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{latent = "chol"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{delta_zeta}{
-Only used when \code{latent = "ggm"}. Either \code{"diag"} or \code{"zero"}, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{latent = "ggm"}. Either \code{"diag"} or \code{"zero"}, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{sigma_epsilon}{
-Only used when \code{residual = "cov"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{residual = "cov"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{kappa_epsilon}{
-Only used when \code{residual = "prec"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{residual = "prec"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{omega_epsilon}{
-Only used when \code{residual = "ggm"}. Either \code{"full"} to estimate every element freely, \code{"zero"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{residual = "ggm"}. Either \code{"full"} to estimate every element freely, \code{"zero"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{lowertri_epsilon}{
-Only used when \code{residual = "chol"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{residual = "chol"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{delta_epsilon}{
-Only used when \code{residual = "ggm"}. Either \code{"diag"} or \code{"zero"}, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{residual = "ggm"}. Either \code{"diag"} or \code{"zero"}, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{beta}{
-A model matrix encoding the structural relations between latent variables. A 0 encodes a fixed to zero element, a 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+A model matrix encoding the structural relations between latent variables. A 0 encodes a fixed to zero element, a 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{nu}{
-Optional vector encoding the intercepts of the observed variables. Set elements to 0 to indicate fixed to zero constrains, 1 to indicate free intercepts, and higher integers to indicate equality constrains. For multiple groups, this argument can be a list or array with each element/column encoding such a vector.
+Optional vector encoding the intercepts of the observed variables. Set elements to 0 to indicate fixed to zero constrains, 1 to indicate free intercepts, and higher integers to indicate equality constraints. For multiple groups, this argument can be a list or array with each element/column encoding such a vector.
 }
   \item{nu_eta}{
-Optional vector encoding the intercepts of the latent variables. Set elements to 0 to indicate fixed to zero constrains, 1 to indicate free intercepts, and higher integers to indicate equality constrains. For multiple groups, this argument can be a list or array with each element/column encoding such a vector.
+Optional vector encoding the intercepts of the latent variables. Set elements to 0 to indicate fixed to zero constrains, 1 to indicate free intercepts, and higher integers to indicate equality constraints. For multiple groups, this argument can be a list or array with each element/column encoding such a vector.
 }
   \item{tau}{
-Optional matrix encoding the threshold parameters for ordinal variables. Each column corresponds to an observed variable and each row to a threshold. Use 0 for fixed elements, 1 for free elements, and higher integers for equality constrains. Typically set up automatically when \code{ordered} is specified.
+Optional matrix encoding the threshold parameters for ordinal variables. Each column corresponds to an observed variable and each row to a threshold. Use 0 for fixed elements, 1 for free elements, and higher integers for equality constraints. Typically set up automatically when \code{ordered} is specified.
 }
   \item{identify}{
 Logical, should the model be automatically identified?
@@ -176,7 +176,7 @@ Logical, should the bootstrap be with replacement (\code{TRUE}) or without repla
 \item{penalty_alpha}{Elastic net mixing parameter: 1 = LASSO (default), 0 = ridge.}
 \item{penalize_matrices}{Character vector of matrix names to penalize. If missing, defaults are selected based on the model type.}
 \item{\dots}{
-Arguments sent to \code{varcov}
+Arguments sent to \code{lvm}
 }
 }
 \details{
@@ -188,7 +188,7 @@ The model used in this family is:
 
 in which the latent covariance matrix can further be modeled in three ways. With \code{latent = "chol"} as Cholesky decomposition:
 
-\eqn{\boldsymbol{\Sigma}_{\zeta} = \boldsymbol{L}_{\zeta}\boldsymbol{L}_{\zeta}}{sigma_zeta = lowertri_zeta * lowertri_zeta},
+\eqn{\boldsymbol{\Sigma}_{\zeta} = \boldsymbol{L}_{\zeta}\boldsymbol{L}_{\zeta}^{\top}}{sigma_zeta = lowertri_zeta * t(lowertri_zeta)},
 
 with \code{latent = "prec"} as Precision matrix:
 
@@ -200,13 +200,13 @@ and finally with \code{latent = "ggm"} as Gaussian graphical model:
 
 Likewise, the residual covariance matrix can also further be modeled in three ways. With \code{residual = "chol"} as Cholesky decomposition:
 
-\eqn{\boldsymbol{\Sigma}_{\varepsilon} = \boldsymbol{L}_{\varepsilon}\boldsymbol{L}_{\varepsilon}}{sigma_epsilon = lowertri_epsilon * lowertri_epsilon},
+\eqn{\boldsymbol{\Sigma}_{\varepsilon} = \boldsymbol{L}_{\varepsilon}\boldsymbol{L}_{\varepsilon}^{\top}}{sigma_epsilon = lowertri_epsilon * t(lowertri_epsilon)},
 
-with \code{latent = "prec"} as Precision matrix:
+with \code{residual = "prec"} as Precision matrix:
 
 \eqn{\boldsymbol{\Sigma}_{\varepsilon} = \boldsymbol{K}_{\varepsilon}^{-1}}{sigma_epsilon = kappa_epsilon^(-1)},
 
-and finally with \code{latent = "ggm"} as Gaussian graphical model:
+and finally with \code{residual = "ggm"} as Gaussian graphical model:
 
 \eqn{\boldsymbol{\Sigma}_{\varepsilon} = \boldsymbol{\Delta}_{\varepsilon}(\boldsymbol{I} - \boldsymbol{\Omega}_{\varepsilon})^(-1) \boldsymbol{\Delta}_{\varepsilon}}{sigma_epsilon = delta_epsilon * (I - omega_epsilon)^(-1) * delta_epsilon}.
 }
@@ -313,7 +313,7 @@ semPaths(mod,
 # estimates:
     whatLabels = "est", 
     
-# This argument draws the node and edge labels as mathematical exprssions:    
+# This argument draws the node and edge labels as mathematical expressions:    
     as.expression = "nodes", 
   
 # This will plot residuals as arrows, closer to what we use in class:
@@ -337,7 +337,7 @@ semPaths(mod,
 # Size of manifest variables:
     sizeMan = 4, 
     
-# Size of latent varibales:
+# Size of latent variables:
     sizeLat = 10, 
     
 # Size of edge labels:
@@ -346,7 +346,7 @@ semPaths(mod,
 # Sets the margins:
     mar = c(9,1,8,1), 
     
-# Prevents re-ordering of ovbserved variables:
+# Prevents re-ordering of observed variables:
     reorder = FALSE, 
     
 # Width of the plot:
@@ -400,7 +400,7 @@ compare(lnm, lnm2) # Is the same as the model before.
 
 # I could also estimate a "residual network model", which adds partial correlations to 
 # the residual level:
-# This can be done using lvm(..., residal = "ggm") or with rnm(...)
+# This can be done using lvm(..., residual = "ggm") or with rnm(...)
 rnm <- rnm(StarWars, lambda = Lambda, vars = obsvars,
            latents = latents, identification = "variance")
 # Stepup search:
@@ -453,7 +453,7 @@ qgraph(as.matrix(ggmmod@modelmatrices[[1]]$omega), nodeNames = nodeNames,
 compare(original_cfa = mod1, adjusted_cfa = mod2, exploratory_ggm = ggmmod)
 
 
-### Meausrement invariance ###
+### Measurement invariance ###
 # Let's say we are interested in seeing if people >= 30 like the original trilogy better 
 # than people < 30.
 # First we can make a grouping variable:
@@ -510,7 +510,7 @@ mod_strong <- mod_weak \%>\% groupequal("nu") \%>\% runmodel
 compare(configural = mod_configural, weak = mod_weak, strong = mod_strong)
 
 # Questionable p-value and AIC difference, but ok BIC difference. This is quite good, but 
-# let's take a look. I have not yet implemented LM tests for equality constrains, but we 
+# let's take a look. I have not yet implemented LM tests for equality constraints, but we 
 # can look at something called "equality-free" MIs:
 mod_strong \%>\% MIs(matrices = "nu", type = "free")
 

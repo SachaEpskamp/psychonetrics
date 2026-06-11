@@ -6,7 +6,7 @@
 Lag-1 vector autoregression family of psychonetrics models
 }
 \description{
-This is the family of models that models time-series data using a lag-1 vector autoregressive model (VAR; Epskamp,Waldorp, Mottus, Borsboom, 2018). The model is fitted to the Toeplitz matrix, but unlike typical SEM software the block of covariances of the lagged variables is not used in estimating the temporal and contemporaneous relationships (the block is modeled completely separately using a cholesky decomposition, and does not enter the model elsewise). The \code{contemporaneous} argument can be used to define what contemporaneous model is used: \code{contemporaneous = "cov"} (default) models a variance-covariance matrix, \code{contemporaneous = "chol"} models a Cholesky decomposition, \code{contemporaneous = "prec"} models a precision matrix, and \code{contemporaneous = "ggm"} (alias: \code{gvar()}) models a Gaussian graphical model, also then known as a graphical VAR model.
+This is the family of models that models time-series data using a lag-1 vector autoregressive model (VAR; Epskamp,Waldorp, Mottus, Borsboom, 2018). The model is fitted to the Toeplitz matrix, but unlike typical SEM software the block of covariances of the lagged variables is not used in estimating the temporal and contemporaneous relationships (the block is modeled completely separately using a cholesky decomposition, and does not enter the model otherwise). The \code{contemporaneous} argument can be used to define what contemporaneous model is used: \code{contemporaneous = "cov"} (default) models a variance-covariance matrix, \code{contemporaneous = "chol"} models a Cholesky decomposition, \code{contemporaneous = "prec"} models a precision matrix, and \code{contemporaneous = "ggm"} (alias: \code{gvar()}) models a Gaussian graphical model, also then known as a graphical VAR model.
 }
 \usage{
 var1(data, contemporaneous = c("cov", "chol", "prec",
@@ -34,25 +34,25 @@ A data frame encoding the data used in the analysis. Can be missing if \code{cov
 The type of contemporaneous model used. See description.
 }
   \item{beta}{
-A model matrix encoding the temporal relationships (transpose of temporal network). A 0 encodes a fixed to zero element, a 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.  Can also be \code{"full"} for a full temporal network or \code{"zero"} for an empty temporal network.
+A model matrix encoding the temporal relationships (transpose of temporal network). A 0 encodes a fixed to zero element, a 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.  Can also be \code{"full"} for a full temporal network or \code{"zero"} for an empty temporal network.
 }
   \item{omega_zeta}{
-Only used when \code{contemporaneous = "ggm"}. Either \code{"full"} to estimate every element freely, \code{"zero"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{contemporaneous = "ggm"}. Either \code{"full"} to estimate every element freely, \code{"zero"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{delta_zeta}{
-Only used when \code{contemporaneous = "ggm"}. Either \code{"diag"} to estimate all scalings or \code{"zero"} (not recommended) to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{contemporaneous = "ggm"}. The scaling (standard deviation) matrix, which is diagonal. Either \code{"full"} (the default) or \code{"diag"} to freely estimate all diagonal scalings, \code{"zero"} (not recommended) to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{kappa_zeta}{
-Only used when \code{contemporaneous = "prec"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{contemporaneous = "prec"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{sigma_zeta}{
-Only used when \code{contemporaneous = "cov"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{contemporaneous = "cov"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{lowertri_zeta}{
-Only used when \code{contemporaneous = "chol"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{contemporaneous = "chol"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{mu}{
-Optional vector encoding the mean structure. Set elements to 0 to indicate fixed to zero constrains, 1 to indicate free means, and higher integers to indicate equality constrains. For multiple groups, this argument can be a list or array with each element/column encoding such a vector.
+Optional vector encoding the mean structure. Set elements to 0 to indicate fixed to zero constrains, 1 to indicate free means, and higher integers to indicate equality constraints. For multiple groups, this argument can be a list or array with each element/column encoding such a vector.
 }
   \item{beepvar}{
 Optional string indicating assessment beep per day. Adding this argument will cause non-consecutive beeps to be treated as missing!
@@ -64,7 +64,7 @@ Optional string indicating assessment day. Adding this argument makes sure that 
 Optional string indicating the subject ID
 }
   \item{vars}{
-An optional character vector encoding the variables used in the analyis. Must equal names of the dataset in \code{data}.
+An optional character vector encoding the variables used in the analysis. Must equal names of the dataset in \code{data}.
 }
   \item{groups}{
 Deprecated. Use \code{groupvar} instead. An optional string indicating the name of the group variable in \code{data}.
@@ -134,7 +134,7 @@ Arguments sent to \code{var1}
 }
 }
 \details{
-This will be updated in a later version.
+The lag-1 vector autoregression (VAR(1)) model describes a multivariate time series through a lag-0 (contemporaneous) and a lag-1 (temporal) structure. The temporal structure is captured by the regression matrix \code{beta} (whose transpose is the temporal network), relating each observation to the previous measurement occasion. The contemporaneous structure captures the associations among the residuals (innovations) within the same measurement occasion, and can be parameterized in several ways through the \code{contemporaneous} argument: as a covariance matrix (\code{"cov"}), a Cholesky decomposition (\code{"chol"}), a precision matrix (\code{"prec"}), or a Gaussian graphical model (\code{"ggm"}; the partial correlation network of the residuals). The \code{gvar} wrapper fixes \code{contemporaneous = "ggm"} to directly estimate a graphical VAR model. Combined, the temporal and contemporaneous networks imply the lag-0 and lag-1 (block-Toeplitz) covariance structure that is fitted to the data.
 }
 \value{
 An object of the class psychonetrics

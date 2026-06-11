@@ -16,7 +16,7 @@ runmodel(x, level = c("gradient", "fitfunction"), addfit =
                    return_improper = TRUE, bounded = TRUE,
                    approximate_SEs = FALSE,
                    criterion = "ebic.5",
-                   beta_min = c("theoretical", "numerical"),
+                   beta_min = c("numerical", "theoretical"),
                    saturated = c("default", "analytic", "model"))
 
 }
@@ -61,7 +61,7 @@ Should a result in which improper computation was used be return? Improper compu
 \item{bounded}{Logical. Should bounded estimation be used (e.g., variances should be positive)?
 }
 \item{approximate_SEs}{
-Logical, should standard errors be approximated? If true, an approximate matrix inverse of the Fischer information is used to obtain the standard errors.
+Logical, should standard errors be approximated? If true, an approximate matrix inverse of the Fisher information is used to obtain the standard errors.
 }
 \item{warn_bounds}{
 Should a warning be given when a parameter is estimated near its bounds?

@@ -52,21 +52,33 @@ factorscores <- function(data, model,
       sigma <- model@modelmatrices[[g]]$sigma
       kappa <- model@modelmatrices[[g]]$kappa
       mu <- model@modelmatrices[[g]]$mu
-      
+      nu_eta <- model@modelmatrices[[g]]$nu_eta
+
+      # Latent means E[eta] = (I - B)^(-1) nu_eta:
+      nLat <- ncol(lambda)
+      BetaStar <- solve(diag(nLat) - as.matrix(beta))
+      if (is.null(nu_eta)){
+        latmeans <- rep(0, nLat)
+      } else {
+        latmeans <- as.vector(BetaStar %*% as.vector(nu_eta))
+      }
+
       # Weights:
       if (method == "regression"){
-        
-        W <- sigma_zeta %*% t(lambda) %*% kappa
-        
+
+        # Latent covariance matrix (I - B)^(-1) sigma_zeta (I - B)^(-T):
+        sigma_eta <- BetaStar %*% sigma_zeta %*% t(BetaStar)
+        W <- sigma_eta %*% t(lambda) %*% kappa
+
       } else if (method == "bartlett") {
-        
+
         W <- solve_symmetric_cpp_matrixonly(t(lambda) %*% solve_symmetric_cpp_matrixonly(sigma_epsilon) %*% lambda) %*% t(lambda) %*% solve_symmetric_cpp_matrixonly(sigma_epsilon)
-        
+
       }
-      
+
       # PRedict:
       groupID <- model@sample@groups$label[g]
-      eta[data[[groupvar]] == groupID,] <- t(W %*% (t( data[data[[groupvar]] == groupID,obsVars]) - as.vector(mu)))
+      eta[data[[groupvar]] == groupID,] <- t(latmeans + W %*% (t( data[data[[groupvar]] == groupID,obsVars]) - as.vector(mu)))
     }
   } else {
     stop("Only 'lvm' models are currently supported.")

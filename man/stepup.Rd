@@ -5,7 +5,7 @@
 Stepup model search along modification indices
 }
 \description{
-This function automatically peforms step-up search by adding the parameter with the largest modification index until some criterion is reached or no modification indices are significant at alpha.
+This function automatically performs step-up search by adding the parameter with the largest modification index until some criterion is reached or no modification indices are significant at alpha.
 }
 \usage{
 stepup(x, alpha = 0.01, criterion = "bic", matrices, mi =
@@ -31,7 +31,7 @@ String indicating the criterion to minimize. Any criterion from \code{\link{fit}
 Vector of strings indicating which matrices should be searched. Will default to network structures and factor loadings.
 }
   \item{mi}{
-String indicating which kind of modification index should be used (\code{"mi"} is the typical MI, \code{"mi_free"} is the modification index free from equality constrains across groups, and \code{"mi_equal"} is the modification index if the parameter is added constrained equal across all groups).
+String indicating which kind of modification index should be used (\code{"mi"} is the typical MI, \code{"mi_free"} is the modification index free from equality constraints across groups, and \code{"mi_equal"} is the modification index if the parameter is added constrained equal across all groups).
 }
   \item{greedyadjust}{
 String indicating which p-value adjustment should be used in greedy start. Any method from \code{p.adjust} can be used.
@@ -40,7 +40,7 @@ String indicating which p-value adjustment should be used in greedy start. Any m
 An R expression, using objects from \code{fit}, which will break stepup search if it evaluates to \code{TRUE}. For example, \code{stopif = rmsea < 0.05} will lead to search to stop if rmsea is below 0.05. 
 }
   \item{greedy}{
-Logical, should a greedy start be used? If \code{TRUE}, the first step adds any parameter that is significant (after adjustement)
+Logical, should a greedy start be used? If \code{TRUE}, the first step adds any parameter that is significant (after adjustment)
 }
   \item{verbose}{
 Logical, should messages be printed?

@@ -3,10 +3,10 @@
 \alias{groupfree}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Group equality constrains
+Group equality constraints
 }
 \description{
-The \code{groupequal} function constrains parameters equal across groups, and the \code{groupfree} function frees equality constrains across groups.
+The \code{groupequal} function constrains parameters equal across groups, and the \code{groupfree} function frees equality constraints across groups.
 }
 \usage{
 groupequal(x, matrix, row, col, verbose, log = TRUE, runmodel =

@@ -18,7 +18,6 @@ export(fixstart)
 export(aggregate_bootstraps)
 
 export(checkJacobian)
-export(checkJacobian)
 export(checkFisher)
 export(transmod)
 

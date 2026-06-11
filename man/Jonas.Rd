@@ -5,7 +5,7 @@
 Jonas dataset
 }
 \description{
-Responses of 10 attitude items towards a researcher named Jonas. Participants were shown three photos of Jonas with the text: "This is Jonas, a researcher from Germany who is now becoming a PhD in Psychology". Subsequently, the participants had to answer 10 yes / no questions starting with "I believe that Jonas...", as well as rate their familliarity with Jonas. The sample consists of people familiar with Jonas and not familiar with Jonas, and allows for testing Attitudinal Entropy Framework <doi:10.1080/1047840X.2018.1537246>. 
+Responses of 10 attitude items towards a researcher named Jonas. Participants were shown three photos of Jonas with the text: "This is Jonas, a researcher from Germany who is now becoming a PhD in Psychology". Subsequently, the participants had to answer 10 yes / no questions starting with "I believe that Jonas...", as well as rate their familiarity with Jonas. The sample consists of people familiar with Jonas and not familiar with Jonas, and allows for testing Attitudinal Entropy Framework <doi:10.1080/1047840X.2018.1537246>. 
 }
 \usage{data("Jonas")}
 \format{
@@ -22,10 +22,12 @@ Responses of 10 attitude items towards a researcher named Jonas. Participants we
     \item{\code{makeupmind}}{... can't make up his mind}
     \item{\code{getsthingsdone}}{... gets things done}
     \item{\code{familiar}}{Answers to the question "How familiar are you with Jonas?" (three responses possible)}
-    \item{\code{group}}{The question 'familiar' categorized in two groups ("Knows Jonas" and "Doesn't Know Jonas")}
+    \item{\code{group}}{The question 'familiar' categorized in two groups ("Knows Jonas" and "Doesn't know Jonas")}
   }
 }
-
+\source{
+Data collected by the package author via social media, among people familiar and unfamiliar with the researcher Jonas.
+}
 \examples{
 data(Jonas)
 }

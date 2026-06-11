@@ -101,7 +101,7 @@ identify_dlvm1 <- function(x){
     x@parameters <- parRelabel(x@parameters)
     
   } else {
-    # Number of equality constrains:
+    # Number of equality constraints:
     cons <- x@parameters %>% group_by(.data[["matrix"]],.data[["row"]],.data[["col"]]) %>% summarize(eq = !(all(.data[['fixed']]))&allTheSame(.data[['par']]))
     consPerMat <- cons %>% group_by(.data[["matrix"]]) %>% summarize(n = sum(.data[['eq']]))
     

@@ -148,9 +148,9 @@ transmod <- function(x,...,verbose,keep_computed = FALSE, log=TRUE, identify = T
     }
     whichPars <- grepl(teststring,newmod@parameters$matrix)
     
-    # FIXME: Not yet supported for models with equality constrains:
+    # FIXME: Not yet supported for models with equality constraints:
     if (any(duplicated(x@parameters$par[whichPars][x@parameters$par[whichPars]!=0]))){
-      stop("'transmod' is not yet supported for models with equality constrains")
+      stop("'transmod' is not yet supported for models with equality constraints")
     }
     
     # Is the model diagonal or saturated?

@@ -7,7 +7,7 @@
 Maximum likelihood covariance estimate
 }
 \description{
-These functions complement the base R \code{cov} function by simplifying obtaining maximum likelihood (ML) covariance estimates (denominator n) instead of unbiased (UB) covariance estimates (denominator n-1). The function \code{covML} can be used to obtain ML estimates, the function \code{covUBtoML} transforms from UB to ML estimates, and the function \code{covMLtoUB} transforms from UB to ML estimates.
+These functions complement the base R \code{cov} function by simplifying obtaining maximum likelihood (ML) covariance estimates (denominator n) instead of unbiased (UB) covariance estimates (denominator n-1). The function \code{covML} can be used to obtain ML estimates, the function \code{covUBtoML} transforms from UB to ML estimates, and the function \code{covMLtoUB} transforms from ML to UB estimates.
 }
 \usage{
 covML(x, ...)
@@ -26,7 +26,9 @@ The sample size
 Arguments sent to the \code{cov} function.
 }
 }
-
+\value{
+A covariance matrix: the maximum likelihood (ML) or unbiased (UB) variance--covariance matrix of \code{x}, depending on the function used.
+}
 \author{
 Sacha Epskamp <mail@sachaepskamp.com>
 }

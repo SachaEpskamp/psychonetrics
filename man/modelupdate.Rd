@@ -41,7 +41,7 @@ Logical, should messages be printed?
 Logical indicating if an analytic Fisher information matrix should be used.
 }
 \item{approximate_SEs}{
-Logical, should standard errors be approximated? If true, an approximate matrix inverse of the Fischer information is used to obtain the standard errors.
+Logical, should standard errors be approximated? If true, an approximate matrix inverse of the Fisher information is used to obtain the standard errors.
 }
 }
 \author{

@@ -26,23 +26,23 @@ BlumeCapel(data, omega = "full", tau, delta, beta, beta_model =
 A data frame encoding the data used in the analysis. Can be missing if \code{covs} and \code{nobs} are supplied.
 }
   \item{omega}{
-The network structure. Either \code{"full"} to estimate every element freely, \code{"zero"} to set all elements to zero, or a matrix of the dimensions nNode x nNode with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+The network structure. Either \code{"full"} to estimate every element freely, \code{"zero"} to set all elements to zero, or a matrix of the dimensions nNode x nNode with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{tau}{
-Optional vector encoding the threshold/intercept (linear node potential) structure. Set elements to 0 to indicate fixed to zero constrains, 1 to indicate free intercepts, and higher integers to indicate equality constrains. For multiple groups, this argument can be a list or array with each element/column encoding such a vector.
+Optional vector encoding the threshold/intercept (linear node potential) structure. Set elements to 0 to indicate fixed to zero constrains, 1 to indicate free intercepts, and higher integers to indicate equality constraints. For multiple groups, this argument can be a list or array with each element/column encoding such a vector.
 }
   \item{delta}{
-Optional vector encoding the quadratic node potential (Blume-Capel) structure. Set elements to 0 to indicate fixed to zero constrains, 1 to indicate free parameters, and higher integers to indicate equality constrains. For multiple groups, this argument can be a list or array with each element/column encoding such a vector. When missing, every \code{delta} parameter is freely estimated (fixing all of them to zero would instead yield the \code{\link{Ising}} model).
+Optional vector encoding the quadratic node potential (Blume-Capel) structure. Set elements to 0 to indicate fixed to zero constrains, 1 to indicate free parameters, and higher integers to indicate equality constraints. For multiple groups, this argument can be a list or array with each element/column encoding such a vector. When missing, every \code{delta} parameter is freely estimated (fixing all of them to zero would instead yield the \code{\link{Ising}} model).
 }
   \item{beta}{
-Optional scalar encoding the inverse temperature. 1 indicate free beta parameters, and higher integers to indicate equality constrains. For multiple groups, this argument can be a list or array with each element/column encoding such scalers.
+Optional scalar encoding the inverse temperature. 1 indicate free beta parameters, and higher integers to indicate equality constraints. For multiple groups, this argument can be a list or array with each element/column encoding such scalars.
 }
 \item{beta_model}{How should beta be modeled? Set \code{beta_model = "log_beta"} to model the log of beta rather than beta directly.}
   \item{vars}{
-An optional character vector encoding the variables used in the analyis. Must equal names of the dataset in \code{data}.
+An optional character vector encoding the variables used in the analysis. Must equal names of the dataset in \code{data}.
 }
   \item{groups}{
-An optional character vector encoding the variables used in the analyis. Must equal names of the dataset in \code{data}.
+An optional string indicating the name of the group variable in the data.
 }
   \item{covs}{
 A sample variance--covariance matrix, or a list/array of such matrices for multiple groups. Make sure \code{covtype} argument is set correctly to the type of covariances used.
@@ -96,7 +96,7 @@ The maximum number of nodes allowed in the analysis. Used to set the default of 
 The maximum number of response patterns the exact ML estimator may enumerate. Exact ML estimation sums over every possible response pattern when computing the partition function, expected values and (expected) Hessian, so the cost grows as \code{length(responses)^nNode}. The function stops with an error when \code{length(responses)^nNode} exceeds \code{maxStates}. The default \code{2^maxNodes} reproduces the historical binary node limit while accounting for more than two response options. Raise this only if the computation is feasible (note that the number of states---and hence the run time---grows very quickly with both the number of nodes and the number of response options).
 }
 \item{min_sum}{
- The minimum sum score that is artifically possible in the dataset. Defaults to -Inf. Set this only if you know a lower sum score is not possible in the data, for example due to selection bias.
+ The minimum sum score that is artificially possible in the dataset. Defaults to -Inf. Set this only if you know a lower sum score is not possible in the data, for example due to selection bias.
 }
 \item{bootstrap}{
 Should the data be bootstrapped? If \code{TRUE} the data are resampled and a bootstrap sample is created. These must be aggregated using \code{\link{aggregate_bootstraps}}! Can be \code{TRUE} or \code{FALSE}. Can also be \code{"nonparametric"} (which sets \code{boot_sub = 1} and \code{boot_resample = TRUE}) or \code{"case"} (which sets \code{boot_sub = 0.75} and \code{boot_resample = FALSE}).

@@ -44,7 +44,7 @@ Logical, should the reference be printed?
 Should ergodicity of observed or latent variables be plotted?
 }
 \item{between}{
-Should the between-persons variance-covariance matrix be based on exected cross-sectional or between-person relations
+Should the between-persons variance-covariance matrix be based on expected cross-sectional or between-person relations
 }
  \item{\dots}{
 Not used

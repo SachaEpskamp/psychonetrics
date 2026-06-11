@@ -23,7 +23,7 @@ Logical, should all MIs be printed or only the highest?
 Optional vector of matrices to include in the output.
 }
   \item{type}{
-String indicating which kind of modification index should be printed. (\code{"mi"} is the typical MI, \code{"mi_free"} is the modification index free from equality constrains across groups, and \code{"mi_equal"} is the modification index if the parameter is added constrained equal across all groups).
+String (or vector of strings) indicating which kind of modification index should be printed. \code{"normal"} (the default) is the typical modification index for freeing a single parameter. \code{"free"} is the modification index for freeing the parameter in all groups (for multi-group models this is accompanied by a joint multivariate score test table). \code{"equal"} is the modification index for freeing the parameter constrained equal across all groups.
 }
   \item{top}{
 Number of MIs to include in output if \code{all = FALSE}

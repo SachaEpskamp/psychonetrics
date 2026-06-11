@@ -164,14 +164,45 @@ Sacha Epskamp <mail@sachaepskamp.com>
 }
 \examples{
 \dontrun{
-library(mlVAR)
+library("dplyr")
 set.seed(42)
-Model <- mlVARsim(nPerson = 50, nNode = 3, nTime = 50, lag = 1)
+
+# Simulate stationary VAR(1) time-series data for several subjects/studies
+# directly in base R (no extra packages needed):
+nNode  <- 3
+nTime  <- 50
+nStudy <- 20
+
+# Fixed lag-1 (temporal) coefficient matrix:
+beta <- matrix(c( 0.4,  0.1,  0.0,
+                  0.0,  0.4,  0.1,
+                  0.1,  0.0,  0.4), nNode, nNode, byrow = TRUE)
+
+# Innovation (contemporaneous) covariance:
+Sigma <- diag(nNode)
+
+varNames <- paste0("V", 1:nNode)
+
+simVAR1 <- function(id, nTime, beta, Sigma){
+  p <- nrow(beta)
+  L <- chol(Sigma)
+  Y <- matrix(0, nTime, p)
+  for (t in 2:nTime){
+    Y[t, ] <- beta \%*\% Y[t - 1, ] + as.vector(t(L) \%*\% rnorm(p))
+  }
+  out <- as.data.frame(Y)
+  names(out) <- paste0("V", 1:p)
+  out$study <- id
+  out
+}
+
+Data <- do.call(rbind, lapply(seq_len(nStudy), simVAR1,
+                              nTime = nTime, beta = beta, Sigma = Sigma))
 
 # Fit meta-analytic VAR(1):
-mod <- meta_var1(Model$Data,
-                 vars = Model$varNames,
-                 studyvar = Model$idvar,
+mod <- meta_var1(Data,
+                 vars = varNames,
+                 studyvar = "study",
                  estimator = "ML")
 mod <- mod \%>\% runmodel
 
@@ -180,9 +211,9 @@ print(mod)
 getmatrix(mod, "beta")
 
 # Fit meta-analytic GVAR (with GGM contemporaneous):
-mod_gvar <- meta_gvar(Model$Data,
-                      vars = Model$varNames,
-                      studyvar = Model$idvar,
+mod_gvar <- meta_gvar(Data,
+                      vars = varNames,
+                      studyvar = "study",
                       estimator = "ML")
 mod_gvar <- mod_gvar \%>\% runmodel
 getmatrix(mod_gvar, "omega_zeta")

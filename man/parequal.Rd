@@ -2,7 +2,7 @@
 \alias{parequal}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Set equality constrains across parameters
+Set equality constraints across parameters
 }
 \description{
 This function can be used to set parameters equal

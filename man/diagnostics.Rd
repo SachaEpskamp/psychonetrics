@@ -32,7 +32,7 @@ A custom Jacobian function or the psychonetrics default Jacobian function
 (default).
 }
   \item{fis}{
-A custom Fischer information function or the psychonetrics default Fischer 
+A custom Fisher information function or the psychonetrics default Fisher
 information function (default).
 }
   \item{transpose}{
@@ -47,6 +47,9 @@ Should start values be perturbed (only used in development)
   \item{method}{
 Numeric derivative method (default: Richardson)
 }
+}
+\value{
+Invisibly returns a list with two elements, \code{analytic} and \code{numeric}, containing the analytic and the numerically approximated gradient/Jacobian (\code{checkJacobian}) or Hessian/Fisher information (\code{checkFisher}) values being compared. A scatter plot of the two is drawn when \code{plot = TRUE}.
 }
 \author{
 Sacha Epskamp

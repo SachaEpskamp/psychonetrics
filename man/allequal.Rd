@@ -45,7 +45,7 @@ Arguments sent to \code{runmodel}
 }
 }
 \details{
-Only free parameters are affected; elements that are fixed (e.g. fixed to zero) are left unchanged. For symmetric matrices the off-diagonal free elements are constrained equal. Within each group the selected free elements are given the same parameter number and a common starting value (the mean of their current values).
+Only free parameters are affected; elements that are fixed (e.g. fixed to zero) are left unchanged. For symmetric matrices all free elements, including a free diagonal, are constrained equal; if this is not desired (for example to keep the diagonal separate from the off-diagonal elements), use the \code{row} and \code{col} arguments to restrict the constraint to the relevant elements. Within each group the selected free elements are given the same parameter number and a common starting value (the mean of their current values).
 }
 \value{
 An object of the class psychonetrics (\link{psychonetrics-class})
@@ -58,6 +58,17 @@ Sacha Epskamp
 }
 \examples{
 \dontrun{
+library("dplyr")
+
+# Simulate a small Blume-Capel data set (requires the development version of
+# IsingSampler that supports the 'delta' argument):
+library("IsingSampler")
+nNode  <- 5
+graph  <- 0.4 * (matrix(1, nNode, nNode) - diag(nNode)) *
+            (matrix(c(0,1,0,0,1, 1,0,1,0,0, 0,1,0,1,0, 0,0,1,0,1, 1,0,0,1,0), 5, 5))
+data <- IsingSampler(1000, graph = graph, thresholds = rep(0, nNode),
+                     beta = 1, delta = 1, responses = c(-1, 0, 1))
+
 # Blume-Capel model with all quadratic (delta) potentials constrained equal,
 # and all thresholds (tau) constrained equal, within the group:
 mod <- BlumeCapel(data, responses = c(-1, 0, 1)) \%>\%

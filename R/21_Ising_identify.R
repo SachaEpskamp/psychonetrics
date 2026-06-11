@@ -11,9 +11,9 @@ identify_Ising <- function(x){
     x@parameters$fixed[betas] <- TRUE
     x@parameters$identified[betas] <- TRUE
   } else {
-    # If there are equality constrains across groups in omega or tau, free all temperature
+    # If there are equality constraints across groups in omega or tau, free all temperature
     
-    # Number of equality constrains per matrix:
+    # Number of equality constraints per matrix:
     cons <- x@parameters %>% group_by(.data[["matrix"]],.data[["row"]],.data[["col"]]) %>% summarize(eq = !(all(.data[['fixed']]))&allTheSame(.data[['par']]))
     consPerMat <- cons %>% group_by(.data[["matrix"]]) %>% summarize(n = sum(.data[['eq']]))
     

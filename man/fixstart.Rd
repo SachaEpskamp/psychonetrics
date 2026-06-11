@@ -28,7 +28,9 @@ Average absolute difference between analytic and numeric gradient that is consid
 Maximum number of iterations to attempt to fix starting values.
 }
 }
-
+\value{
+An object of the class psychonetrics (\link{psychonetrics-class}) with adjusted starting values.
+}
 \author{
 Sacha Epskamp
 }

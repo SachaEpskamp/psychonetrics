@@ -521,11 +521,16 @@ addfit <- function(
   nGroups <- nrow(x@sample@groups)
   fitMeasures$rmsea <-  fitMeasures$rmsea  * sqrt(nGroups)
 
+  # Guard against astronomically large chi-square values (e.g., diverged fits):
+  # the noncentral chi-square searches below cannot be evaluated reliably then
+  # and would flood the console with pnchisq convergence warnings:
+  chisq_too_large <- is.finite(Tm) && Tm > 1e10
+
   # Codes for rmsea confidence interval taken from lavaan:
   lower.lambda <- function(lambda) {
     (pchisq(Tm, df=dfm, ncp=lambda) - 0.95)
   }
-  if(is.na(Tm) || is.na(dfm)) {
+  if(is.na(Tm) || is.na(dfm) || chisq_too_large) {
     fitMeasures$rmsea.ci.lower <- NA
   } else if(dfm < 1 || lower.lambda(0) < 0.0) {
     fitMeasures$rmsea.ci.lower <- 0
@@ -543,7 +548,7 @@ addfit <- function(
   upper.lambda <- function(lambda) {
     (pchisq(Tm, df=dfm, ncp=lambda) - 0.05)
   }
-  if(is.na(Tm) || is.na(dfm)) {
+  if(is.na(Tm) || is.na(dfm) || chisq_too_large) {
     fitMeasures$rmsea.ci.upper <- NA
   } else if(dfm < 1 || upper.lambda(N.RMSEA) > 0 || upper.lambda(0) < 0) {
     fitMeasures$rmsea.ci.upper <- 0
@@ -562,7 +567,7 @@ addfit <- function(
     fitMeasures$rmsea.ci.upper <- sqrt( lambda.u/(sampleSize*dfm) )  * sqrt(nGroups)
   }
   
-  fitMeasures$rmsea.pvalue <-
+  fitMeasures$rmsea.pvalue <- if (chisq_too_large) NA else
     1 - pchisq(Tm, df=dfm, ncp=(sampleSize*dfm*0.05^2/nGroups))
 
   # Scaled RMSEA (WLSMV):

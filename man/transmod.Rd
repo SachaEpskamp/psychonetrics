@@ -23,7 +23,7 @@ Named arguments with the new types to use (e.g., \code{between = "ggm"} or \code
 Logical, should messages be printed?
 }
   \item{keep_computed}{
-Logical, should the model be stated to be uncomputed adter the transformation? In general, a model does not need to be re-computed as transformed parameters should be at the maximum likelihood estimate.
+Logical: keep the model marked as computed after the transformation? Defaults to FALSE (the model must be re-run, although the transformed estimates are already at the ML solution). Cannot be TRUE with identification = 'variance'.
 }
   \item{log}{
 Logical, should a logbook entry be made?
@@ -34,6 +34,9 @@ Logical, should the model be identified after transforming?
 }
 \details{
 Transformations are only possible if the model is diagonal (e.g., no partial correlations) or saturated (e.g., all covariances included).
+}
+\value{
+An object of the class psychonetrics (\link{psychonetrics-class}) with the requested variance--covariance structure(s).
 }
 \author{
 Sacha Epskamp

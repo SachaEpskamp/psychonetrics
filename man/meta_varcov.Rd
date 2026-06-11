@@ -57,58 +57,58 @@ Logical. Defaults to \code{TRUE} when \code{cors} is used, \code{FALSE} when \co
 Optional list with 'V' matrices (sampling error variance approximations).
 }
   \item{Vmethod}{
-Which method should be used to apprixomate the sampling error variance?
+Which method should be used to approximate the sampling error variance? One of \code{"individual"} (the default; the sampling-error covariance matrix is approximated separately for each study), \code{"pooled"} (a single pooled approximation is used for all studies), \code{"metaSEM_individual"}, or \code{"metaSEM_weighted"}. The two \code{metaSEM_*} options compute the sampling-error covariances via \code{metaSEM::asyCov} and therefore require the Suggests package \code{metaSEM} to be installed (per study or using sample-size weighting, respectively).
 }
 \item{Vestimation}{
-How should the sampling error estimates be evaluated?
+How should the sampling error estimates be evaluated? Either \code{"averaged"} (the default; a single sampling-error covariance matrix is averaged over the studies) or \code{"per_study"} (a separate sampling-error covariance matrix is retained for each study).
 }
   \item{type}{
 What to model? Currently only \code{"cor"} and \code{"ggm"} are supported.
 }
   \item{sigma_y}{
-Only used when \code{type = "cov"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Reserved covariance-matrix specification. Not used for the currently supported values of \code{type} (\code{"cor"} and \code{"ggm"}); retained for internal use and forward compatibility.
 }
   \item{kappa_y}{
-Only used when \code{type = "prec"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Reserved precision-matrix specification. Not used for the currently supported values of \code{type} (\code{"cor"} and \code{"ggm"}); retained for internal use and forward compatibility.
 }
   \item{omega_y}{
-Only used when \code{type = "ggm"}. Either \code{"full"} to estimate every element freely, \code{"zero"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{type = "ggm"}. Either \code{"full"} to estimate every element freely, \code{"zero"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{lowertri_y}{
-Only used when \code{type = "chol"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Reserved Cholesky-factor specification. Not used for the currently supported values of \code{type} (\code{"cor"} and \code{"ggm"}); retained for internal use and forward compatibility.
 }
   \item{delta_y}{
-Only used when \code{type = "ggm"}. Either \code{"diag"} or \code{"zero"} (not recommended), or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{type = "ggm"}. Either \code{"diag"} or \code{"zero"} (not recommended), or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{rho_y}{
-Only used when \code{type = "cor"}. Either \code{"full"} to estimate every element freely, \code{"zero"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{type = "cor"}. Either \code{"full"} to estimate every element freely, \code{"zero"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{SD_y}{
-Only used when \code{type = "cor"}. Either \code{"diag"} or \code{"zero"}, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{type = "cor"}. Either \code{"diag"} or \code{"zero"}, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{randomEffects}{
 What to model for the random effects? 
 }
   \item{sigma_randomEffects}{
-Only used when \code{type = "cov"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{type = "cov"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{kappa_randomEffects}{
-Only used when \code{randomEffects = "prec"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{randomEffects = "prec"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{omega_randomEffects}{
-Only used when \code{randomEffects = "ggm"}. Either \code{"full"} to estimate every element freely, \code{"zero"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{randomEffects = "ggm"}. Either \code{"full"} to estimate every element freely, \code{"zero"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{lowertri_randomEffects}{
-Only used when \code{randomEffects = "chol"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{randomEffects = "chol"}. Either \code{"full"} to estimate every element freely, \code{"diag"} to only include diagonal elements, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{delta_randomEffects}{
-Only used when \code{randomEffects = "ggm"}. Either \code{"diag"} or \code{"zero"}, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{randomEffects = "ggm"}. Either \code{"diag"} or \code{"zero"}, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{rho_randomEffects}{
-Only used when \code{randomEffects = "cor"}. Either \code{"full"} to estimate every element freely, \code{"zero"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{randomEffects = "cor"}. Either \code{"full"} to estimate every element freely, \code{"zero"} to set all elements to zero, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{SD_randomEffects}{
-Only used when \code{randomEffects = "cor"}. Either \code{"diag"} or \code{"zero"}, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+Only used when \code{randomEffects = "cor"}. Either \code{"diag"} or \code{"zero"}, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{vars}{
 Variables to be included.
@@ -150,4 +150,28 @@ Jak, S., and Cheung, M. W. L. (2019). Meta-analytic structural equation modeling
 }
 \author{
 Sacha Epskamp <mail@sachaepskamp.com>
+}
+\examples{
+\donttest{
+# Simulate a list of correlation matrices for several studies:
+set.seed(123)
+nStudy <- 8
+nNode  <- 4
+trueRho <- diag(nNode)
+trueRho[lower.tri(trueRho)] <- trueRho[upper.tri(trueRho)] <- 0.3
+nobs <- sample(100:300, nStudy)
+cors <- lapply(seq_len(nStudy), function(i){
+  X <- MASS::mvrnorm(nobs[i], rep(0, nNode), trueRho)
+  R <- cor(X)
+  colnames(R) <- rownames(R) <- paste0("V", 1:nNode)
+  R
+})
+
+# Meta-analytic GGM using the list of correlation matrices and sample sizes:
+mod <- meta_varcov(cors = cors, nobs = nobs, type = "ggm")
+mod <- runmodel(mod)
+
+# Pooled network:
+getmatrix(mod, "omega_y")
+}
 }

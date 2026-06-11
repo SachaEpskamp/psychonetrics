@@ -1,8 +1,5 @@
 \name{find_penalized_lambda}
 \alias{find_penalized_lambda}
-\alias{compute_lambda_max}
-\alias{compute_penalized_ebic}
-\alias{apply_beta_min}
 \title{
 Automated Lambda Selection for Penalized Estimation
 }
@@ -14,7 +11,7 @@ This function is called automatically by \code{\link{runmodel}} when the model c
 \usage{
 find_penalized_lambda(model, criterion = "ebic.5", nLambda = 50,
                       lambda_min_ratio = 1e-4,
-                      beta_min = c("theoretical", "numerical"),
+                      beta_min = c("numerical", "theoretical"),
                       verbose)
 }
 \arguments{

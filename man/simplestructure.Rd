@@ -16,7 +16,9 @@ simplestructure(x)
 A vector indicating which factor each indicator loads on.
 }
 }
-
+\value{
+A binary \code{lambda} (factor loadings) matrix with one row per indicator and one column per factor, with a 1 in each cell where the indicator loads on the factor and 0 otherwise.
+}
 \author{
 Sacha Epskamp <mail@sachaepskamp.com>
 }

@@ -639,7 +639,7 @@ Changes in Version 0.14.17
 
 Changes in Version 0.14.16
   o Added automatic lambda selection for PML/PFIML estimation via EBIC-based grid search:
-    o New function find_penalized_lambda() searches over a log-spaced grid of 100 lambda values
+    o New function find_penalized_lambda() searches over a log-spaced grid of 50 lambda values
     o Lambda now defaults to NA in all model constructors, signaling automatic selection
     o runmodel() automatically triggers the grid search when NA lambdas are detected
     o Lambda_max computed analytically from KKT conditions at the null-penalized model
@@ -857,8 +857,6 @@ Changes in Version 0.12
 
 Changes in Version 0.11.5
   o Fixes to support Matrix 1.7-0
-
-Changes in Version 0.11.5
   o The groupequal, groupfree, fixpar and freepar functions can now handle multiple rows/columns for symmetric matrices
   o Fixed a bug in the identification function for ml_lvm models
   o Implemented min_sum argument for estimating Ising models on data with a minimum sum score due to selection bias. This method is further discussed in  Boot, de Ron, Haslbeck & Epskamp (in preperation). Correcting for selection bias after sum score selection in the Ising model.
@@ -880,8 +878,6 @@ Changes in Version 0.10.2
   o Built in a check to find NA sample covs
   o added diag argument to getmatrix to obtain diagonal
   o diagonal elements are now also thresholded when using getmatrix(..., threshold = ...)
-
-Changes in Version 0.10.2
   o Added 'threshold' argument to getmatrix()
   o Adjusting p-values is now done by default only for the tested p-values. This means that the number of tests is assumed to be the number of parameters of interest (matrices that are to be pruned), not the total number of parameters. Previous behavior can be reproduced with mode = "all" in prune(..).
   o panelvar and panelgvar now support arguments within_latent and between_latent

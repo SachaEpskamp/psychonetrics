@@ -91,9 +91,31 @@ latentgrowth <- function(
   # Identify:
   mod <- identify_lvm(mod)
 
-  
+  # Improve starting values for the latent means: nu is fixed to zero, so all
+  # observed means must be absorbed by nu_eta. Now that the factor loadings are
+  # fixed to their final values, start the free nu_eta elements at the
+  # per-group least-squares solution ginv(Lambda) %*% (observed means - nu):
+  for (g in seq_len(nrow(mod@sample@groups))){
+    gid <- mod@sample@groups$id[g]
+    pars <- mod@parameters
+    whichEta <- which(pars$matrix == "nu_eta" & pars$group_id == gid & !pars$fixed)
+    obsmeans <- as.vector(unlist(mod@sample@means[[g]]))
+    if (length(whichEta) > 0 && length(obsmeans) > 0 && !any(is.na(obsmeans))){
+      lampars <- pars[pars$matrix == "lambda" & pars$group_id == gid, ]
+      nupars <- pars[pars$matrix == "nu" & pars$group_id == gid, ]
+      nV <- length(obsmeans)
+      nL <- nLat
+      Lam <- matrix(0, nV, nL)
+      Lam[cbind(lampars$row, lampars$col)] <- lampars$est
+      nuvec <- numeric(nV)
+      nuvec[nupars$row] <- nupars$est
+      eta_ls <- as.vector(MASS::ginv(Lam) %*% (obsmeans - nuvec))
+      mod@parameters$est[whichEta] <- eta_ls[pars$row[whichEta]]
+    }
+  }
+
   # FIXME: Silly start values:
   # mod <- emergencystart(mod)
-  
+
   mod
 }

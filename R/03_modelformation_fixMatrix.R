@@ -67,7 +67,7 @@ fixMatrix <- function(Matrix, nGroup, nrows, ncols, equal = FALSE, diag0 = FALSE
   #   }
   # }
   
-  # Should there be equality constrains?
+  # Should there be equality constraints?
   if (equal && any(Matrix==1)){
     curMax <- max(Matrix)
     Matrix[,,1][Matrix[,,1]==1] <- curMax + seq_len(sum(Matrix[,,1]==1))

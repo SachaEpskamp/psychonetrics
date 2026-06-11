@@ -5,7 +5,7 @@
 Ising model
 }
 \description{
-This is the family of Ising models fit to datasets with two or more ordered integer response options. The classical case is a dichotomous dataset (e.g., encoded with -1 and 1 or with 0 and 1), but the same parameterization---one threshold (\code{tau}) per variable and a pairwise network (\code{omega})---is also used for any number of ordered response options (e.g., \code{c(-1,0,1)} or \code{seq(-5,5)}; the values need not be integers), encoded identically across all variables. Only the partition function changes: it sums over all \code{length(responses)^nNode} response patterns rather than only \code{2^nNode}. Note that the input matters (see also https://arxiv.org/abs/1811.02916) in this model! Models based on a dataset that is encoded with -1 and 1 are not entirely equivalent to models based on datasets encoded with 0 and 1 (non-equivalences occur in multi-group settings with equality constrains).
+This is the family of Ising models fit to datasets with two or more ordered integer response options. The classical case is a dichotomous dataset (e.g., encoded with -1 and 1 or with 0 and 1), but the same parameterization---one threshold (\code{tau}) per variable and a pairwise network (\code{omega})---is also used for any number of ordered response options (e.g., \code{c(-1,0,1)} or \code{seq(-5,5)}; the values need not be integers), encoded identically across all variables. Only the partition function changes: it sums over all \code{length(responses)^nNode} response patterns rather than only \code{2^nNode}. Note that the input matters (see also https://arxiv.org/abs/1811.02916) in this model! Models based on a dataset that is encoded with -1 and 1 are not entirely equivalent to models based on datasets encoded with 0 and 1 (non-equivalences occur in multi-group settings with equality constraints).
 }
 \usage{
 Ising(data, omega = "full", tau, beta, beta_model =
@@ -26,20 +26,20 @@ Ising(data, omega = "full", tau, beta, beta_model =
 A data frame encoding the data used in the analysis. Can be missing if \code{covs} and \code{nobs} are supplied.
 }
   \item{omega}{
-The network structure. Either \code{"full"} to estimate every element freely, \code{"zero"} to set all elements to zero, or a matrix of the dimensions nNode x nNode with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constrains. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+The network structure. Either \code{"full"} to estimate every element freely, \code{"zero"} to set all elements to zero, or a matrix of the dimensions nNode x nNode with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{tau}{
-Optional vector encoding the threshold/intercept structure. Set elements to 0 to indicate fixed to zero constrains, 1 to indicate free intercepts, and higher integers to indicate equality constrains. For multiple groups, this argument can be a list or array with each element/column encoding such a vector.
+Optional vector encoding the threshold/intercept structure. Set elements to 0 to indicate fixed to zero constrains, 1 to indicate free intercepts, and higher integers to indicate equality constraints. For multiple groups, this argument can be a list or array with each element/column encoding such a vector.
 }
   \item{beta}{
-Optional scalar encoding the inverse temperature. 1 indicate free beta parameters, and higher integers to indicate equality constrains. For multiple groups, this argument can be a list or array with each element/column encoding such scalers.
+Optional scalar encoding the inverse temperature. 1 indicate free beta parameters, and higher integers to indicate equality constraints. For multiple groups, this argument can be a list or array with each element/column encoding such scalars.
 }
 \item{beta_model}{How should beta be modeled? Set \code{beta_model = "log_beta"} to model the log of beta rather than beta directly.}
   \item{vars}{
-An optional character vector encoding the variables used in the analyis. Must equal names of the dataset in \code{data}.
+An optional character vector encoding the variables used in the analysis. Must equal names of the dataset in \code{data}.
 }
   \item{groups}{
-An optional character vector encoding the variables used in the analyis. Must equal names of the dataset in \code{data}.
+An optional string indicating the name of the group variable in the data.
 }
   \item{covs}{
 A sample variance--covariance matrix, or a list/array of such matrices for multiple groups. Make sure \code{covtype} argument is set correctly to the type of covariances used. 
@@ -66,7 +66,7 @@ A character vector indicating which matrices should be constrained equal across 
 A logical indicating if the baseline and saturated model should be included. Mostly used internally and NOT Recommended to be used manually.
 }
    \item{estimator}{
-The estimator to be used. Currently implemented are \code{"ML"} for maximum likelihood estimation, \code{"FIML"} for full-information maximum likelihood estimation, \code{"ULS"} for unweighted least squares estimation, \code{"WLS"} for weighted least squares estimation, and \code{"DWLS"} for diagonally weighted least squares estimation. Only ML estimation is currently supported for the Ising model. 
+The estimator to be used. Currently implemented are \code{"ML"} for (exact) maximum likelihood estimation and \code{"PML"} for penalized maximum likelihood estimation; no other estimators are supported for the Ising model.
 }
   \item{optimizer}{
 The optimizer to be used. Can be one of \code{"nlminb"} (the default R \code{nlminb} function), \code{"ucminf"} (from the \code{optimr} package), \code{"nloptr_TNEWTON"} (preconditioned truncated Newton via \code{nloptr}), and \code{"LBFGS++"} (pure C++ L-BFGS-B). Defaults to \code{"nlminb"}.
@@ -93,7 +93,7 @@ The maximum number of nodes allowed in the analysis. Used to set the default of 
 The maximum number of response patterns the exact ML estimator may enumerate. Exact ML estimation of the Ising model sums over every possible response pattern when computing the partition function, expected values and (expected) Hessian, so the cost grows as \code{length(responses)^nNode}. The function stops with an error when \code{length(responses)^nNode} exceeds \code{maxStates}. The default \code{2^maxNodes} reproduces the historical binary node limit while accounting for more than two response options. Raise this only if the computation is feasible (note that the number of states---and hence the run time---grows very quickly with both the number of nodes and the number of response options).
 }
 \item{min_sum}{
- The minimum sum score that is artifically possible in the dataset. Defaults to -Inf. Set this only if you know a lower sum score is not possible in the data, for example due to selection bias.
+ The minimum sum score that is artificially possible in the dataset. Defaults to -Inf. Set this only if you know a lower sum score is not possible in the data, for example due to selection bias.
 }
 \item{bootstrap}{
 Should the data be bootstrapped? If \code{TRUE} the data are resampled and a bootstrap sample is created. These must be aggregated using \code{\link{aggregate_bootstraps}}! Can be \code{TRUE} or \code{FALSE}. Can also be \code{"nonparametric"} (which sets \code{boot_sub = 1} and \code{boot_resample = TRUE}) or \code{"case"} (which sets \code{boot_sub = 0.75} and \code{boot_resample = FALSE}).

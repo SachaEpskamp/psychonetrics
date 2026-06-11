@@ -2,7 +2,7 @@
 \alias{prune}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Stepdown model search by pruning non-significant parameters.
+Stepdown model search by pruning non-significant parameters
 }
 \description{
 This function will (recursively) remove parameters that are not significant and refit the model. 

@@ -185,7 +185,14 @@ varcov <- function(
  
   # Overwrite corinput:
   corinput <- sampleStats@corinput
-  
+
+  # Meanstructure is not supported in combination with correlation matrix input
+  # for maximum likelihood estimation (corinput = TRUE implies standardized data,
+  # so a meanstructure is not meaningful):
+  if (corinput && meanstructure && estimator %in% c("ML","PML")){
+    stop("meanstructure = TRUE is not supported in combination with corinput = TRUE for (penalized) maximum likelihood estimation. Use meanstructure = FALSE, as correlation matrix input implies standardized data.")
+  }
+
   # Check some things:
   nNode <- nrow(sampleStats@variables)
   

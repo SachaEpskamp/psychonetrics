@@ -48,7 +48,7 @@ addSEs <-  function(x,
       if (any(is.na(Hinv))){
         # Even approximate inversion failed:
         if (verbose){
-          warning("Standard errors could not be obtained because the Fischer information matrix could not be inverted. This may be a symptom of a non-identified model or due to convergence issues.")
+          warning("Standard errors could not be obtained because the Fisher information matrix could not be inverted. This may be a symptom of a non-identified model or due to convergence issues.")
         }
         x@parameters$se <- NA
         x@parameters$p <- NA
@@ -56,13 +56,13 @@ addSEs <-  function(x,
       } else {
         # Approximate inversion succeeded:
         if (verbose){
-          warning("Exact standard errors could not be obtained because the Fischer information matrix could not be inverted. Falling back to approximate standard errors. This can occur with zero cells in crosstables (common in multi-group Ising models) or near-boundary estimates. Interpret with care.")
+          warning("Exact standard errors could not be obtained because the Fisher information matrix could not be inverted. Falling back to approximate standard errors. This can occur with zero cells in crosstables (common in multi-group Ising models) or near-boundary estimates. Interpret with care.")
         }
       }
     } else {
       # User explicitly requested approximate SEs and it still failed:
       if (verbose){
-        warning("Standard errors could not be obtained because the Fischer information matrix could not be inverted. This may be a symptom of a non-identified model or due to convergence issues.")
+        warning("Standard errors could not be obtained because the Fisher information matrix could not be inverted. This may be a symptom of a non-identified model or due to convergence issues.")
       }
       x@parameters$se <- NA
       x@parameters$p <- NA

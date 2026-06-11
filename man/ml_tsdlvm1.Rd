@@ -59,6 +59,9 @@ The type of between-person latent model to be used.
 Arguments sent to \code{\link{dlvm1}}
 }
 }
+\value{
+An object of the class psychonetrics (\link{psychonetrics-class}).
+}
 \author{
 Sacha Epskamp <mail@sachaepskamp.com>
 }

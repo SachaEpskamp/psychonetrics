@@ -16,7 +16,7 @@ getVCOV(model, approximate_SEs = FALSE)
 A \code{psychonetrics} model.
 }
 \item{approximate_SEs}{
-Logical, should standard errors be approximated? If true, an approximate matrix inverse of the Fischer information is used to obtain the standard errors.
+Logical, should standard errors be approximated? If true, an approximate matrix inverse of the Fisher information is used to obtain the standard errors.
 }
 }
 

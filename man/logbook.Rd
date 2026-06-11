@@ -19,7 +19,9 @@ logbook(x, log = TRUE)
 Logical, should the entry that the logbook is accessed be added?
 }
 }
-
+\value{
+A list of log entries (objects of class \code{psychonetrics_log}) stored in the model.
+}
 \author{
 Sacha Epskamp
 }
