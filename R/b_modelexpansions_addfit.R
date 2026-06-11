@@ -6,10 +6,26 @@ has_WLS_Gamma <- function(x) {
   .hasSlot(x@sample, "WLS.Gamma") && length(x@sample@WLS.Gamma) > 0
 }
 
-# Compute WLSMV (mean-and-variance adjusted) scaled test statistic.
-# Implements Satorra-Bentler-style correction for WLS/DWLS/ULS estimators.
-# References: Satorra & Bentler (1994), Muthen (1993)
-compute_wlsmv_correction <- function(x) {
+# Assemble the per-group model Jacobian (Delta), weight matrix (W) and
+# asymptotic covariance of the sample statistics (Gamma) for the least-squares
+# estimators (WLS / DWLS / ULS). Both the W and Gamma lists follow the lavaan
+# group-weighting convention: W is multiplied by f_g = n_g / n and Gamma is
+# divided by f_g. With this scaling, sum_g Delta_g' W_g Delta_g equals the
+# (unit-information) Fisher information used elsewhere, so the naive VCOV
+# (1/n)(Delta'WDelta)^-1 and the robust sandwich
+# (1/n)(Delta'WDelta)^-1 (Delta'W Gamma W Delta)(Delta'WDelta)^-1 are computed
+# in consistent units (and coincide when W = Gamma^-1).
+#
+# Returns NULL when Gamma is unavailable (e.g. a model fit to a covariance
+# matrix rather than raw data) or when the estimator is not least-squares.
+# Reused by compute_wlsmv_correction() (scaled test statistic) and by
+# getVCOV() (robust standard errors).
+wls_sandwich_components <- function(x) {
+
+  # Only defined for the least-squares estimators:
+  if (!x@estimator %in% c("WLS", "DWLS", "ULS")) {
+    return(NULL)
+  }
 
   # Check that Gamma is available:
   if (!has_WLS_Gamma(x)) {
@@ -77,9 +93,9 @@ compute_wlsmv_correction <- function(x) {
   nrows_per_group <- sapply(x@sample@WLS.W, nrow)
 
   # Build per-group W (scaled) and Gamma (scaled) lists, and extract Delta blocks:
-  W_list <- list()
-  Gamma_list <- list()
-  Delta_list <- list()
+  W_list <- vector("list", nGroups)
+  Gamma_list <- vector("list", nGroups)
+  Delta_list <- vector("list", nGroups)
 
   row_offset <- 0
   for (g in seq_len(nGroups)) {
@@ -107,13 +123,43 @@ compute_wlsmv_correction <- function(x) {
     Gamma_list[[g]] <- Gamma_g / fg
   }
 
-  # Accumulate DtWD across all groups FIRST (needed for multi-group):
+  # Bread: DtWD = sum_g Delta_g' W_g Delta_g (group-weighted). This equals the
+  # (unit-information) Fisher information stored in x@information.
   npar_free <- ncol(Delta_full)
   DtWD <- matrix(0, npar_free, npar_free)
   for (g in seq_len(nGroups)) {
     DtWD <- DtWD + t(Delta_list[[g]]) %*% W_list[[g]] %*% Delta_list[[g]]
   }
-  E_inv <- solve(DtWD)
+
+  list(
+    Delta = Delta_list,
+    W = W_list,
+    Gamma = Gamma_list,
+    DtWD = DtWD,
+    nGroups = nGroups,
+    npar = npar_free,
+    nTotal = nTotal
+  )
+}
+
+# Compute WLSMV (mean-and-variance adjusted) scaled test statistic.
+# Implements Satorra-Bentler-style correction for WLS/DWLS/ULS estimators.
+# References: Satorra & Bentler (1994), Muthen (1993)
+compute_wlsmv_correction <- function(x) {
+
+  # Assemble per-group Delta, W (scaled) and Gamma (scaled):
+  comp <- wls_sandwich_components(x)
+  if (is.null(comp)) {
+    return(NULL)
+  }
+  Delta_list <- comp$Delta
+  W_list <- comp$W
+  Gamma_list <- comp$Gamma
+  nGroups <- comp$nGroups
+  nTotal <- comp$nTotal
+
+  # Bread inverse E_inv = (sum_g Delta_g' W_g Delta_g)^-1:
+  E_inv <- solve(comp$DtWD)
 
   # Now compute per-group UGamma and accumulate traces:
   trace_UG <- 0

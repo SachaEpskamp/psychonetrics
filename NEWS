@@ -1,3 +1,22 @@
+Changes in Version 0.15.20
+  o Bugfix: standard errors for the ULS and DWLS estimators (used e.g. for
+    ordinal data via estimator = "DWLS"/"WLSMV") were computed with the naive
+    (Delta'WDelta)^-1 / n formula, which is only correct when the weight
+    matrix W equals the inverse of the asymptotic covariance Gamma of the
+    sample statistics. For ULS and (especially) DWLS this is not the case, so
+    the reported standard errors were biased (e.g. ordinal DWLS loading and
+    threshold SEs deviated by roughly 10-12% from lavaan's robust WLSMV
+    standard errors, while the point estimates matched). psychonetrics now
+    computes the robust sandwich covariance
+      (Delta'WDelta)^-1 (Delta'W Gamma W Delta) (Delta'WDelta)^-1 / n
+    for ULS and DWLS, matching lavaan's se = "robust" output. Full WLS
+    (W = Gamma^-1) and the ML/FIML estimators are unaffected, as the sandwich
+    reduces to the naive form there. When Gamma is unavailable (for instance
+    when a model is fit to a covariance matrix rather than raw data) the
+    non-robust standard errors are returned together with a warning. The
+    robust covariance also propagates to confidence intervals, prune() and all
+    other consumers of the parameter standard errors.
+
 Changes in Version 0.15.19
   o Bugfix: for multi-group models with ordinal data (e.g. ggm() and other
     models with ordered = ... , groups = ... and estimator = "WLS"/"DWLS"),

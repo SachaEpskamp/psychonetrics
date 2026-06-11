@@ -671,6 +671,14 @@ samplestats_norawts <- function(
           if (weightsmatrix == "identity"){
             nW <- meanstructure * nVars + nVars*(nVars+1)/2 - corinput * nVars
             object@WLS.W[[g]] <- diag(nW)
+            # Store full Gamma so robust (sandwich) SEs are available for the
+            # ULS estimator. Only possible when raw data is supplied; with a
+            # covariance matrix as input Gamma cannot be computed and the SEs
+            # fall back to the non-robust form (with a warning) in getVCOV().
+            if (!missing(data) && !is.null(data)){
+              subData <- data[data[[groups]] == g,c(vars)]
+              gammamatrix[[g]] <- LS_Gamma(subData, meanstructure=meanstructure, corinput=corinput)
+            }
           } else if (weightsmatrix == "full"){
             subData <- data[data[[groups]] == g,c(vars)]
             object@WLS.W[[g]] <- as.matrix(LS_weightsmat(subData,meanstructure=meanstructure,corinput=corinput))
