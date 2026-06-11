@@ -1,3 +1,17 @@
+Changes in Version 0.15.26
+  o Bugfix: changedata() unconditionally accessed colnames(data), so the
+    documented summary-statistics usage changedata(x, covs=, nobs=) crashed
+    with 'argument "data" is missing'. The data-dependent label check is now
+    guarded, and the covs/means/nobs input path is forwarded to samplestats()
+    and the baseline/saturated constructors, mirroring how the model
+    constructors accept either raw data or summary statistics.
+  o Bugfix: changedata() always recomputed @sample@nobs including the mean
+    block (nVar*(nVar+1)/2*nGroup + nVar*nGroup), which corrupted the degrees
+    of freedom for models built with meanstructure = FALSE (e.g. a saturated
+    model reported df = 4 instead of 0). The mean block is now counted only
+    when the model has a mean structure, matching bootstrap() and the model
+    constructors.
+
 Changes in Version 0.15.25
   o Bugfix: transmod() attached incorrect standard errors and p-values to the
     transformed model (e.g. transmod(type="ggm") on a covariance model, or the

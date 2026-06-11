@@ -10,49 +10,58 @@ changedata <- function(x, data, covs, nobs, means, groups, missing = "listwise")
  # Set computed to false:
   x@computed <- FALSE
   
-  # Check if labels are the same:
-  if (!all(x@sample@variables$label %in% colnames(data))){
-    stop("New dataset does not contain the same variables as used in model.")
+  # Check if labels are the same (only possible when raw data is supplied;
+  # the covs/means/nobs path is validated downstream by samplestats):
+  if (!missing(data)){
+    if (!all(x@sample@variables$label %in% colnames(data))){
+      stop("New dataset does not contain the same variables as used in model.")
+    }
   }
-  
+
   # Variables:
   vars <-  x@sample@variables$label
-  
+
   # Estimator:
   estimator <- x@estimator
-  
+
+  # Collect the data-source arguments: either raw `data`, or summary
+  # statistics (covs/means/nobs), mirroring how the model constructors accept
+  # either form of input. Only the supplied arguments are forwarded so the
+  # constructors' own missing() handling kicks in for the rest.
+  dataArgs <- list()
+  if (!missing(data))   dataArgs$data   <- data
+  if (!missing(groups)) dataArgs$groups <- groups
+  if (!missing(covs))   dataArgs$covs   <- covs
+  if (!missing(means))  dataArgs$means  <- means
+  if (!missing(nobs))   dataArgs$nobs   <- nobs
+
   # Data set:
-  x@sample <- samplestats(data = data, 
-              vars = vars, 
-              groups = groups,
-              covs = covs, 
-              means = means, 
-              nobs = nobs, 
+  x@sample <- do.call(samplestats, c(dataArgs, list(
+              vars = vars,
               missing  = ifelse(estimator == "FIML","pairwise",missing),
-              fimldata = estimator == "FIML")
-  
-  # Number of observations:
+              fimldata = estimator == "FIML")))
+
+  # Number of observations (degrees-of-freedom base). Mirror the model
+  # constructor: variances/covariances per group, plus the mean block only when
+  # the model has a mean structure (otherwise df would be corrupted for
+  # meanstructure = FALSE models):
   nVar <- nrow(x@sample@variables)
   nGroup <- nrow(x@sample@groups)
-  x@sample@nobs <-  
-    nVar * (nVar+1) / 2 * nGroup + # Covariances per group
-    nVar * nGroup
+  x@sample@nobs <-
+    nVar * (nVar+1) / 2 * nGroup +              # Variances/covariances per group
+    x@meanstructure * nVar * nGroup             # Means per group (if present)
   
   # Add baseline and saturated:
   
   # Form baseline model:
-  x@baseline_saturated$baseline <- varcov(data,
+  x@baseline_saturated$baseline <- do.call(varcov, c(dataArgs, list(
                                               type = "chol",
                                               lowertri = "diag",
                                               vars = vars,
-                                              groups = groups,
-                                              covs = covs,
-                                              means = means,
-                                              nobs = nobs,
                                               missing = missing,
                                               equal = x@equal,
                                               estimator = estimator,
-                                              baseline_saturated = FALSE)
+                                              baseline_saturated = FALSE)))
   
   # Add model:
   # model@baseline_saturated$baseline@fitfunctions$extramatrices$M <- Mmatrix(model@baseline_saturated$baseline@parameters)
@@ -61,17 +70,13 @@ changedata <- function(x, data, covs, nobs, means, groups, missing = "listwise")
   ### Saturated model ###
   # No `equal = x@equal`: the saturated reference is unconstrained per
   # group; cross-group equality belongs to the target/baseline only.
-  x@baseline_saturated$saturated <- varcov(data,
+  x@baseline_saturated$saturated <- do.call(varcov, c(dataArgs, list(
                                                type = "chol",
                                                lowertri = "full",
                                                vars = vars,
-                                               groups = groups,
-                                               covs = covs,
-                                               means = means,
-                                               nobs = nobs,
                                                missing = missing,
                                                estimator = estimator,
-                                               baseline_saturated = FALSE)
+                                               baseline_saturated = FALSE)))
   
   # if not FIML, Treat as computed:
   if (estimator != "FIML"){
