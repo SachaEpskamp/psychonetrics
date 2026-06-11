@@ -1,3 +1,17 @@
+Changes in Version 0.15.21
+  o Bugfix: the C++ derivative routine for variance-covariance models
+    (used by the gradient and Fisher information when cpp = TRUE) wrote the
+    precision-matrix (kappa) derivative block into the wrong Jacobian columns:
+    it reused the row offset of the variance block instead of the parameter-
+    column offset. When the mean structure was present this happened to
+    coincide with the correct columns, but for precision() models fitted
+    without a mean structure (e.g. precision(covs = S, nobs = n) or
+    precision(data, meanstructure = FALSE)) the column indices exceeded the
+    width of the Jacobian and Armadillo aborted with "Mat::submat(): indices
+    out of bounds" for every estimator. The column range now matches the
+    sigma/cholesky blocks (and the R implementation). precision() models
+    without a mean structure now run; mean-structure models are unaffected.
+
 Changes in Version 0.15.20
   o Bugfix: standard errors for the ULS and DWLS estimators (used e.g. for
     ordinal data via estimator = "DWLS"/"WLSMV") were computed with the naive

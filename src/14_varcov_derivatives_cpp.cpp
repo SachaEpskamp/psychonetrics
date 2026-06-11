@@ -330,9 +330,9 @@ arma::mat d_phi_theta_varcov_group_cpp(
     
     
   } else if (y == "prec"){
-    
-    
-    Jac.submat(varPart_start,varPart_start,varPart_end,varPart_end ) =  d_sigma_kappa_cpp( 
+
+
+    Jac.submat(varPart_start,varPartPars_start,varPart_end,varPartPars_end ) =  d_sigma_kappa_cpp(
       grouplist["L"], grouplist["D"], grouplist["sigma"]
     );
     
