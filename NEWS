@@ -1,3 +1,20 @@
+Changes in Version 0.15.23
+  o Bugfix: bootstrap() resampled rows from the pooled data, ignoring the
+    grouping structure of multi-group models. This had three consequences:
+    (1) resampling was not stratified, so group sizes drifted between
+    replications; (2) the rebuilt sample derived its group order from the
+    first resampled row, which - whenever that row belonged to a different
+    group than the original first group - permuted the group ids relative to
+    x@parameters, so a group's parameters were fit to another group's data
+    (e.g. a two-group model with very different group means produced nonsense
+    estimates and failed to converge); and (3) the recomputed @sample@nobs
+    always included a mean block, corrupting the degrees of freedom for
+    meanstructure = FALSE models. bootstrap() now resamples within each group
+    (preserving group sizes), rebuilds the data in the original group order so
+    group ids stay aligned with the parameter table, and computes nobs as
+    nVar*(nVar+1)/2*nGroup + meanstructure*nVar*nGroup (matching the model
+    constructor). Single-group models are unaffected.
+
 Changes in Version 0.15.22
   o Bugfix: for multi-group Ising() and BlumeCapel() models specified as
     Ising(data, groups = "group") without an explicit 'vars' argument, the
