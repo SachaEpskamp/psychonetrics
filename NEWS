@@ -1,3 +1,19 @@
+Changes in Version 0.15.29
+  o Bugfix: the "loadings" identification used by lvm(), ml_lvm(), dlvm1() and
+    tsdlvm1() could silently overwrite a user-fixed (or built-in) nonzero
+    factor loading. To identify a factor's scale the identifier fixed the first
+    "eligible" loading in each column to 1, where "eligible" included loadings
+    already FIXED at a nonzero value. When the first such loading was fixed at a
+    value other than 1, it was overwritten -- changing the model. This notably
+    affected latentgrowth() with non-default time scores: e.g.
+    latentgrowth(vars, data, time = c(0,2,4,6)) had its slope loadings altered
+    from 0,2,4,6 to 0,1,4,6, fitting a different growth model. The identifier
+    now skips a factor whose column already contains a fixed nonzero loading
+    (the scale is already identified) and otherwise fixes the first FREE loading
+    to 1. Standard CFA behaviour (first free loading fixed to 1) is unchanged,
+    and a user-supplied marker loading fixed at any nonzero value is now
+    preserved.
+
 Changes in Version 0.15.28
   o Bugfix: the multi-level latent variable model (ml_lvm) analytic Jacobian
     omitted the derivative of the implied means with respect to the
