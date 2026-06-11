@@ -38,7 +38,7 @@ identify_ml_lvm <- function(x){
   if (nrow(x@sample@groups) == 1){
     
     # Set all latent intercepts to zero:
-    means <- which(x@parameters$matrix %in% c("mu_eta"))
+    means <- which(x@parameters$matrix %in% c("nu_eta"))
     x@parameters$est[means] <- 0
     x@parameters$par[means] <- 0
     x@parameters$fixed[means] <- TRUE
@@ -136,10 +136,10 @@ identify_ml_lvm <- function(x){
     ### LATENT MEANS ###
     # at least n_eta intercepts nead to be equal
     if (consPerMat$n[consPerMat$matrix == "nu"] >= nLat){
-      means <- which(x@parameters$matrix %in% c("mu_eta") & x@parameters$group_id == 1)
-      free <-  which(x@parameters$matrix %in% c("mu_eta") & x@parameters$group_id > 1)
+      means <- which(x@parameters$matrix %in% c("nu_eta") & x@parameters$group_id == 1)
+      free <-  which(x@parameters$matrix %in% c("nu_eta") & x@parameters$group_id > 1)
     } else {
-      means <- which(x@parameters$matrix %in% c("mu_eta"))
+      means <- which(x@parameters$matrix %in% c("nu_eta"))
       free <- numeric(0)
     }
     

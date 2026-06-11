@@ -1,3 +1,15 @@
+Changes in Version 0.15.18
+  o Bugfix: the identification routine for the multi-level latent variable
+    models (ml_lvm() and the ml_lnm/ml_rnm/ml_lrnm wrappers) referred to the
+    latent-intercept matrix by the wrong name ("mu_eta" instead of
+    "nu_eta"), so the latent intercepts were never fixed for identification.
+    This left the mean structure rank-deficient: latent-intercept standard
+    errors were nonsensical (~1e6) and the model degrees of freedom were
+    inflated. The latent intercepts are now correctly fixed (in group 1 only
+    for multi-group models, as for lvm()), matching the corresponding
+    two-level SEM. Estimates and log-likelihood of previously fitted models
+    are unaffected; only the standard errors and degrees of freedom change.
+
 Changes in Version 0.15.17
   o BlumeCapel() now gives an error (instead of a warning) when fewer than
     three response options are supplied. With only two responses the
