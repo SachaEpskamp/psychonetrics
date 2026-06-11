@@ -1,3 +1,17 @@
+Changes in Version 0.15.28
+  o Bugfix: the multi-level latent variable model (ml_lvm) analytic Jacobian
+    omitted the derivative of the implied means with respect to the
+    between-subject regressions (beta_between). The implied mean is
+    mu = nu + lambda %*% (I - beta_between)^-1 %*% nu_eta, which depends on
+    beta_between whenever the latent intercepts nu_eta are nonzero, but the
+    d/d-beta_between block of the mean rows was never filled (in both the R and
+    C++ derivative paths). This produced an incorrect gradient/Jacobian column
+    for any ml_lvm with free between-subject regressions and free (nonzero)
+    latent means -- reachable since the 0.15.18 nu_eta identification fix. The
+    analogous block is now filled via d_mu_beta_lvm() / d_mu_beta_lvm_cpp(),
+    matching the single-level lvm. Within-cluster latents have mean zero, so
+    beta_within correctly contributes no mean term.
+
 Changes in Version 0.15.27
   o Bugfix: runmodel(addInformation = FALSE) crashed the whole call in the C++
     standard-error path with "Mat::operator(): index out of bounds". addSEs_cpp()

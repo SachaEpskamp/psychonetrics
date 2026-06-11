@@ -239,7 +239,15 @@ arma::mat d_phi_theta_ml_lvm_group_cpp(
   Jac.submat(meanInds(0),lambda_inds(0),meanInds(1),lambda_inds(1)) = d_mu_lambda_lvm_cpp(
     grouplist["nu_eta"], grouplist["BetaStar_between"], grouplist["I_y"]
   );
-  
+
+  // Fill mean to between-subject beta part:
+  // mu = nu + lambda * BetaStar_between * nu_eta depends on beta_between
+  // whenever nu_eta != 0 (analogous to the single-level lvm d_mu_beta_lvm block).
+  // Within-cluster latents have mean 0, so beta_within needs no mean term.
+  Jac.submat(meanInds(0),beta_between_inds(0),meanInds(1),beta_between_inds(1)) = d_mu_beta_lvm_cpp(
+    grouplist["nu_eta"], grouplist["lambda"], grouplist["tBetakronBeta_between"]
+  );
+
   // Fill s_in to lambda part:
   Jac.submat(sigInds_inPerson(0),lambda_inds(0),sigInds_inPerson(1),lambda_inds(1)) = 
     d_sigma_lambda_lvm_cpp(grouplist["L_y"],grouplist["Lambda_BetaStar_within"],grouplist["Betasta_sigmaZeta_within"],grouplist["I_y"], grouplist["C_y_eta"]) + 

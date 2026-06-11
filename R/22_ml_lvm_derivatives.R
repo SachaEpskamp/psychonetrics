@@ -128,8 +128,14 @@ d_phi_theta_ml_lvm_group <- function(within_latent,within_residual,between_laten
   Jac[meanInds,nu_eta_inds] <- d_mu_nu_eta_lvm(dots$Lambda_BetaStar_between)
   
   # Fill mean to factor loading part:
-  Jac[meanInds,lambda_inds] <- d_mu_lambda_lvm(dots$nu_eta,dots$BetaStar_between,dots$I_y) 
-  
+  Jac[meanInds,lambda_inds] <- d_mu_lambda_lvm(dots$nu_eta,dots$BetaStar_between,dots$I_y)
+
+  # Fill mean to between-subject beta part:
+  # mu = nu + lambda %*% BetaStar_between %*% nu_eta depends on beta_between
+  # whenever nu_eta != 0 (analogous to the single-level lvm d_mu_beta_lvm block).
+  # Within-cluster latents have mean 0, so beta_within needs no mean term.
+  Jac[meanInds,beta_between_inds] <- d_mu_beta_lvm(nu_eta = dots$nu_eta, lambda = dots$lambda, tBetakronBeta = dots$tBetakronBeta_between)
+
   # # Fill s0 to lambda part:
   # Jac[sigInds[[1]],lambda_inds] <- d_sigmak_lambda_ml_lvm(k=1,...)
   # 
