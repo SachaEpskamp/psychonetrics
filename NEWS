@@ -1,3 +1,17 @@
+Changes in Version 0.15.22
+  o Bugfix: for multi-group Ising() and BlumeCapel() models specified as
+    Ising(data, groups = "group") without an explicit 'vars' argument, the
+    grouping column was included when auto-detecting the response options (and
+    in the 'min_sum' sum-score check). With numeric group codes this silently
+    added the codes as extra response options - e.g. binary 0/1 data with a
+    numeric group column was fit as a 3-state {0,1,2} model, giving wrong
+    thresholds - and with character group labels it failed later with an
+    opaque type error. The grouping column is now excluded from the response
+    detection and the min_sum check (matching how samplestats() derives
+    'vars'), and a non-numeric response set is now rejected up front with a
+    clear error message. Single-group models, and models with explicit 'vars'
+    or 'responses' arguments, are unaffected.
+
 Changes in Version 0.15.21
   o Bugfix: the C++ derivative routine for variance-covariance models
     (used by the gradient and Fisher information when cpp = TRUE) wrote the

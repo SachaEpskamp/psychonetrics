@@ -45,7 +45,19 @@ spinModel <- function(
     stop("'responses' argument may not be missing if 'data' is missing.")
   }
 
-  
+  # When 'vars' is not supplied and 'groups' names a column of 'data', the
+  # grouping column must be excluded before auto-detecting the response options
+  # (and before the min_sum sum-score check below). Otherwise the grouping codes
+  # leak in as if they were response options: with numeric group codes binary
+  # 0/1 data would be mis-detected as a 3-state {0,1,2} model, and with character
+  # labels the data would be coerced to character and fail later with an opaque
+  # type error. This mirrors how samplestats() derives 'vars' internally.
+  if (missing(vars) && !missing(data) && !missing(groups) && !is.null(groups) &&
+      is.character(groups) && length(groups) == 1 && groups %in% names(data)){
+    vars <- setdiff(names(data), groups)
+  }
+
+
   # Determine responses:
   if (missing(responses)){
     if (missing(vars)){
@@ -55,6 +67,18 @@ spinModel <- function(
     }
   } else {
     responses <- sort(unique(responses))
+  }
+
+  # The Spin distribution requires numeric response codes (the node potentials
+  # involve x_i and x_i^2). Reject a non-numeric response set early with a clear
+  # message instead of failing later with an opaque type error (e.g. when a
+  # character grouping column leaked into the auto-detected responses):
+  if (!is.numeric(responses)){
+    stop("Detected non-numeric response options ('",
+         paste(responses, collapse = "', '"),
+         "'). The Ising and Blume-Capel models require numeric responses; ",
+         "check that 'vars' and 'groups' are specified correctly, or pass the ",
+         "'responses' argument explicitly.")
   }
 
   # The Spin distribution supports any number of ordered response options,
