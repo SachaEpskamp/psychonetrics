@@ -123,32 +123,53 @@ double fimlEstimator_Gauss_group_cpp(
 
 
 // Outer function PER GROUP:
-// [[Rcpp::export]] 
+// sigma, kappa and mu may each be supplied either as a per-row list (one
+// element per row of the data, e.g. for models with row-specific implied
+// structures such as meta-analytic models with per-study sampling variation)
+// or as a single matrix/vector that applies to every row (e.g. the varcov
+// family). Both cases are handled here without materializing per-row copies.
+// [[Rcpp::export]]
 double fimlEstimator_Gauss_group_cpp_fullFIML(
-    Rcpp::List sigma, 
-    Rcpp::List kappa,
-    Rcpp::List mu,
+    SEXP sigma,
+    SEXP kappa,
+    SEXP mu,
     Rcpp::List fimldata,
     double epsilon,
     double n) {
   // Rf_PrintValue(wrap("USED"));
-  
+
   double result = 0;
-  
-  // Loop over groups
+
+  // Detect per-row lists vs single matrices/vectors:
+  bool sigmaIsList = Rf_isVectorList(sigma);
+  bool kappaIsList = Rf_isVectorList(kappa);
+  bool muIsList = Rf_isVectorList(mu);
+
+  Rcpp::List sigmaList, kappaList, muList;
+  arma::mat curSigma, curKappa;
+  arma::vec curMu;
+
+  if (sigmaIsList) sigmaList = sigma; else curSigma = Rcpp::as<arma::mat>(sigma);
+  if (kappaIsList) kappaList = kappa; else curKappa = Rcpp::as<arma::mat>(kappa);
+  if (muIsList) muList = mu; else curMu = Rcpp::as<arma::vec>(mu);
+
+  // Loop over rows
   for (int i = 0; i < fimldata.size(); i++){
-    
-    
+
+    if (sigmaIsList) curSigma = Rcpp::as<arma::mat>(sigmaList[i]);
+    if (kappaIsList) curKappa = Rcpp::as<arma::mat>(kappaList[i]);
+    if (muIsList) curMu = Rcpp::as<arma::vec>(muList[i]);
+
     result += fimlEstimator_Gauss_group_cpp_inner(
-      sigma[i], 
-      kappa[i],
-      mu[i],
+      curSigma,
+      curKappa,
+      curMu,
       fimldata[i],
               epsilon,
               n);
   }
-  
-  
+
+
   // Return
   return (1/n) * result;
 }

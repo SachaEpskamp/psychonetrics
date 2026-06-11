@@ -547,14 +547,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML
-double logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML(Rcpp::List sigma, Rcpp::List kappa, Rcpp::List mu, Rcpp::List fimldata, double epsilon);
+double logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML(SEXP sigma, SEXP kappa, SEXP mu, Rcpp::List fimldata, double epsilon);
 RcppExport SEXP _psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML(SEXP sigmaSEXP, SEXP kappaSEXP, SEXP muSEXP, SEXP fimldataSEXP, SEXP epsilonSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::List >::type sigma(sigmaSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type kappa(kappaSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type kappa(kappaSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type mu(muSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type fimldata(fimldataSEXP);
     Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
     rcpp_result_gen = Rcpp::wrap(logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML(sigma, kappa, mu, fimldata, epsilon));
@@ -845,14 +845,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // expected_hessian_fiml_Gaussian_group_cpp_fullFIML
-arma::mat expected_hessian_fiml_Gaussian_group_cpp_fullFIML(Rcpp::List sigma, Rcpp::List kappa, Rcpp::List mu, Rcpp::List fimldata, double epsilon);
+arma::mat expected_hessian_fiml_Gaussian_group_cpp_fullFIML(SEXP sigma, SEXP kappa, SEXP mu, Rcpp::List fimldata, double epsilon);
 RcppExport SEXP _psychonetrics_expected_hessian_fiml_Gaussian_group_cpp_fullFIML(SEXP sigmaSEXP, SEXP kappaSEXP, SEXP muSEXP, SEXP fimldataSEXP, SEXP epsilonSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::List >::type sigma(sigmaSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type kappa(kappaSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type kappa(kappaSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type mu(muSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type fimldata(fimldataSEXP);
     Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
     rcpp_result_gen = Rcpp::wrap(expected_hessian_fiml_Gaussian_group_cpp_fullFIML(sigma, kappa, mu, fimldata, epsilon));
@@ -903,14 +903,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // fimlEstimator_Gauss_group_cpp_fullFIML
-double fimlEstimator_Gauss_group_cpp_fullFIML(Rcpp::List sigma, Rcpp::List kappa, Rcpp::List mu, Rcpp::List fimldata, double epsilon, double n);
+double fimlEstimator_Gauss_group_cpp_fullFIML(SEXP sigma, SEXP kappa, SEXP mu, Rcpp::List fimldata, double epsilon, double n);
 RcppExport SEXP _psychonetrics_fimlEstimator_Gauss_group_cpp_fullFIML(SEXP sigmaSEXP, SEXP kappaSEXP, SEXP muSEXP, SEXP fimldataSEXP, SEXP epsilonSEXP, SEXP nSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::List >::type sigma(sigmaSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type kappa(kappaSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type kappa(kappaSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type mu(muSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type fimldata(fimldataSEXP);
     Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
     Rcpp::traits::input_parameter< double >::type n(nSEXP);
@@ -960,14 +960,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // jacobian_fiml_gaussian_subgroup_sigma_cpp_fullFIML
-arma::mat jacobian_fiml_gaussian_subgroup_sigma_cpp_fullFIML(const Rcpp::List& sigma, const Rcpp::List& kappa, const Rcpp::List& mu, const Rcpp::List& fimldata, double epsilon);
+arma::mat jacobian_fiml_gaussian_subgroup_sigma_cpp_fullFIML(SEXP sigma, SEXP kappa, SEXP mu, const Rcpp::List& fimldata, double epsilon);
 RcppExport SEXP _psychonetrics_jacobian_fiml_gaussian_subgroup_sigma_cpp_fullFIML(SEXP sigmaSEXP, SEXP kappaSEXP, SEXP muSEXP, SEXP fimldataSEXP, SEXP epsilonSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::List& >::type sigma(sigmaSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::List& >::type kappa(kappaSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::List& >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type kappa(kappaSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type mu(muSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type fimldata(fimldataSEXP);
     Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
     rcpp_result_gen = Rcpp::wrap(jacobian_fiml_gaussian_subgroup_sigma_cpp_fullFIML(sigma, kappa, mu, fimldata, epsilon));

@@ -170,47 +170,60 @@ arma::mat expected_hessian_fiml_Gaussian_group_cppversion(
 }
 
 // Outer function:
+// sigma, kappa and mu may each be supplied either as a per-row list (one
+// element per row of the data) or as a single matrix/vector that applies to
+// every row (e.g. the varcov family). Both cases are handled here without
+// materializing per-row copies.
 // [[Rcpp::export]]
 arma::mat expected_hessian_fiml_Gaussian_group_cpp_fullFIML(
-    Rcpp::List sigma, 
-    Rcpp::List kappa,
-    Rcpp::List mu,
+    SEXP sigma,
+    SEXP kappa,
+    SEXP mu,
     Rcpp::List fimldata,
     double epsilon) {
-  
-  // double result = 0;
-  // double logdet = 0;
-  // double n_part;
-  // double log2pi = log(2*M_PI);
-  
+
+  // Detect per-row lists vs single matrices/vectors:
+  bool sigmaIsList = Rf_isVectorList(sigma);
+  bool kappaIsList = Rf_isVectorList(kappa);
+  bool muIsList = Rf_isVectorList(mu);
+
+  Rcpp::List sigmaList, kappaList, muList;
+  arma::mat curSigma, curKappa;
+  arma::vec curMu;
+
+  if (sigmaIsList) sigmaList = sigma; else curSigma = Rcpp::as<arma::mat>(sigma);
+  if (kappaIsList) kappaList = kappa; else curKappa = Rcpp::as<arma::mat>(kappa);
+  if (muIsList) muList = mu; else curMu = Rcpp::as<arma::vec>(mu);
+
   // Number of parameters
-  arma::vec firstmu = mu[0];
+  arma::vec firstmu = muIsList ? Rcpp::as<arma::vec>(muList[0]) : curMu;
   int nmeans = firstmu.size();
   int nvars = nmeans * (nmeans + 1) / 2;
-  
+
   // Empty Jacobian:
   arma::mat Hes = zeros(nvars + nmeans, nvars + nmeans);
-  
+
   // Integers
   int i;
-  // int j;
-  // int ii;
-  // int jj;
-  
-  // Loop over groups
+
+  // Loop over rows
   for ( i = 0; i < fimldata.size(); i++){
-    
+
+    if (sigmaIsList) curSigma = Rcpp::as<arma::mat>(sigmaList[i]);
+    if (kappaIsList) curKappa = Rcpp::as<arma::mat>(kappaList[i]);
+    if (muIsList) curMu = Rcpp::as<arma::vec>(muList[i]);
+
     // Join:
     Hes += expected_hessian_fiml_Gaussian_group_cpp_inner(
-      sigma[i], 
-      kappa[i],
-      mu[i],
+      curSigma,
+      curKappa,
+      curMu,
       fimldata[i],
               epsilon);
-    
+
   }
-  
-  
+
+
   // Return
   return Hes;
 }
