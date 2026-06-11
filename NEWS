@@ -1,3 +1,14 @@
+Changes in Version 0.15.25
+  o Bugfix: transmod() attached incorrect standard errors and p-values to the
+    transformed model (e.g. transmod(type="ggm") on a covariance model, or the
+    reverse). The transformed estimates were correct, but addSEs() reused the
+    Fisher information copied verbatim from the original model - which still
+    described the pre-transformation parameterization - because getVCOV()
+    reuses a model's stored @information whenever it is non-NULL. transmod()
+    now recomputes the Fisher information on the transformed model before
+    adding standard errors, so the SEs and p-values match those of an
+    equivalent model fit directly. Point estimates are unchanged.
+
 Changes in Version 0.15.24
   o Bugfix: in multi-group models, the type="free" and type="equal" modification
     index passes in addMIs() wrote their expected parameter changes to the

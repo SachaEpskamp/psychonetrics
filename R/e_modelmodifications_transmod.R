@@ -251,14 +251,25 @@ transmod <- function(x,...,verbose,keep_computed = FALSE, log=TRUE, identify = T
   
   # If the model was run, re-compute SEs:
   if (x@computed && x@identification != "variance"){
-  
+
+    # The Fisher information in newmod@information was copied verbatim from x and
+    # still belongs to the OLD parameterization. getVCOV() (used by addSEs) reuses
+    # @information whenever it is non-NULL, so without recomputing it the standard
+    # errors and p-values would be those of the pre-transformation model (wrong).
+    # Recompute it on the transformed model so addSEs sees the correct information.
+    if (newmod@cpp){
+      newmod@information <- psychonetrics_FisherInformation_cpp(newmod, TRUE)
+    } else {
+      newmod@information <- psychonetrics_FisherInformation(newmod, TRUE)
+    }
+
     # Add SEs:
     if (!all(is.na(x@parameters$se))){
       if (x@cpp){
         if (verbose){
           message("Adding standard errors...")
         }
-        newmod <- addSEs_cpp(newmod,verbose=verbose)  
+        newmod <- addSEs_cpp(newmod,verbose=verbose)
       } else {
         newmod <- addSEs(newmod, verbose=verbose)
       }
