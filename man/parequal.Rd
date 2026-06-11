@@ -17,7 +17,7 @@ parequal(x, ..., inds = integer(0), verbose, log = TRUE,
 A \code{psychonetrics} model.
 }
  \item{\dots}{
-Arguments sent to \code{runmodel}
+Vectors of parameter numbers to constrain equal (combined with \code{inds})
 }
   \item{inds}{
 Parameter indices of parameters to be constrained equal

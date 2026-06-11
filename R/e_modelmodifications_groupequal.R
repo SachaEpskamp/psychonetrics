@@ -111,7 +111,9 @@ groupequal <- function(
   x@parameters <- clearpars(x@parameters,whichCons)
   
   # For every parameter, take mean as starting value:
-  x@parameters  <- x@parameters %>% group_by(.data[["par"]]) %>% mutate(est=ifelse(.data[['par']]==0,.data[['est']],mean(.data[['est']],na.rm=TRUE))) %>% ungroup
+  # (as.data.frame keeps @parameters a plain data.frame; the dplyr pipeline
+  # would otherwise silently return a tibble)
+  x@parameters  <- as.data.frame(x@parameters %>% group_by(.data[["par"]]) %>% mutate(est=ifelse(.data[['par']]==0,.data[['est']],mean(.data[['est']],na.rm=TRUE))) %>% ungroup)
 
   # Identify:
   if (identify){

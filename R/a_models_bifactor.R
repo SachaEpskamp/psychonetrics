@@ -29,16 +29,18 @@ bifactor <- function(data, lambda, latents,  bifactor = "g", ...){
       lowertri_zeta = "diag", # Cholesky
       delta_zeta = "diag")
   
-  # FIXME: Bad starting values
+  # Deterministic starting values (previously non-reproducible rnorm draws).
+  # Small non-zero starts break the symmetry between the general and group
+  # factors without depending on the RNG state.
   # Adjust factor loading start values:
   ind <- mod@parameters$matrix == "lambda" & !mod@parameters$fixed
-  mod@parameters$est[ind] <- rnorm(sum(ind),0,0.01) # 0.05 * sign(mod@parameters$est[ind])
-  
+  mod@parameters$est[ind] <- 0.01
+
   # Adjust other start values:
   ind <- mod@parameters$matrix != "lambda" &mod@parameters$matrix != "nu" & !mod@parameters$fixed & mod@parameters$row != mod@parameters$col
-  mod@parameters$est[ind] <-  rnorm(sum(ind),0,0.01) #0.05 * sign(mod@parameters$est[ind])
+  mod@parameters$est[ind] <-  0.01
   ind <- mod@parameters$matrix != "lambda" &mod@parameters$matrix != "nu" & !mod@parameters$fixed & mod@parameters$row == mod@parameters$col
-  mod@parameters$est[ind] <- 0.5 #* sign(mod@parameters$est[ind])
+  mod@parameters$est[ind] <- 0.5
   
   
   # Return:

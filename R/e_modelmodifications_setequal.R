@@ -11,7 +11,21 @@ parequal <- function(
     verbose <- x@verbose
   }
 
-  inds <- c(unlist(list(...)),inds)
+  # Capture parameter indices from ...: only unnamed elements are treated as
+  # indices to constrain equal. Named elements (e.g. runmodel arguments such
+  # as addMIs) are ignored here so they do not leak into the constraint set.
+  dots <- list(...)
+  if (length(dots) > 0){
+    nms <- names(dots)
+    if (is.null(nms)){
+      dotInds <- unlist(dots)
+    } else {
+      dotInds <- unlist(dots[nms == ""])
+    }
+  } else {
+    dotInds <- NULL
+  }
+  inds <- c(dotInds, inds)
   # current max par:
   curMax <- max(x@parameters$par)
   
@@ -48,7 +62,9 @@ parequal <- function(
 
   # Rerun if needed:
   if (runmodel){
-    x <- x %>% runmodel(verbose=verbose,...)
+    # Do NOT forward ... to runmodel: ... is reserved for parameter indices,
+    # and numeric indices would otherwise leak into runmodel positionally.
+    x <- x %>% runmodel(verbose=verbose)
   }
   
 

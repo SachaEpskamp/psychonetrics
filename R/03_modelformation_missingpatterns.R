@@ -22,7 +22,6 @@ missingpatterns <- function(dat, verbose = TRUE){
   nvar <- ncol(dat)
   dumSig <- matrix(0,nvar,nvar)
   dumSig[lower.tri(dumSig,diag=TRUE)] <- nvar + seq_len(sum(lower.tri(dumSig,diag=TRUE)))
-  browser
   patterns <- vector("list",nrow(unMis))
   
   if (verbose){

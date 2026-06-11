@@ -37,7 +37,7 @@ expected_hessian_fiml_Gaussian_group <- function(fimldata,fulln,sigma,kappa,mu,m
 # C++ version
 expected_hessian_fiml_Gaussian_group_cpp_outer <- function(fimldata,fulln,sigma,kappa,mu,means, meanstructure = TRUE, corinput = FALSE,...){
   # Subgroup models:
-  Hes <- 1/fulln * expected_hessian_fiml_Gaussian_group_cppversion(fimldata=fimldata,sigma=as.matrix(sigma),kappa=as.matrix(kappa),mu=as.matrix(mu), epsilon = .Machine$double.eps)
+  Hes <- 1/fulln * expected_hessian_fiml_Gaussian_group_cppversion(fimldata=fimldata,sigma=as.matrix(sigma),kappa=as.matrix(kappa),mu=as.matrix(mu), epsilon = 1.490116e-08)
   
   # Cut out the rows and columns not needed
   # FIXME: Nicer to not have to compute these in the first place...
@@ -84,7 +84,7 @@ expected_hessian_fiml_Gaussian_group_cpp_outer_fullFIML <- function(fimldata,ful
   }
   
   # Subgroup models:
-  Hes <- 1/fulln * expected_hessian_fiml_Gaussian_group_cpp_fullFIML(fimldata=fimldata,sigma=sigma,kappa=kappa,mu=mu, epsilon = .Machine$double.eps)
+  Hes <- 1/fulln * expected_hessian_fiml_Gaussian_group_cpp_fullFIML(fimldata=fimldata,sigma=sigma,kappa=kappa,mu=mu, epsilon = 1.490116e-08)
   
   # Cut out the rows and columns not needed
   # FIXME: Nicer to not have to compute these in the first place...

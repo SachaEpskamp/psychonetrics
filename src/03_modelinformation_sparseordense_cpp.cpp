@@ -34,7 +34,7 @@ bool is_sparse_cpp(
   
   // Look over all values:
   for (i=0; i<nrow && sparse; i++){
-    for (j=0; i<ncol && sparse; i++){
+    for (j=0; j<ncol && sparse; j++){
       if (X(i,j) != 0){
         nNotZero++;
       } else {

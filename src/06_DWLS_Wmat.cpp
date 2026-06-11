@@ -41,6 +41,13 @@ arma::sp_mat DWLS_wmat(
         if (p==0){
           sec(g, h) = 0;
         }
+
+        // Check for NA (missing data is not supported for (D)WLS on continuous
+        // data; mirror the guard in WLS_wmat):
+        if (!(std::isfinite(data(p,g)) && std::isfinite(data(p,h)))){
+          Rcpp::stop("Missing data is not yet supported for WLS without ordered categorical variables");
+        }
+
         sec(g, h) += std::pow((double)ncase,-1.0) * (data(p,g) - means(g)) * (data(p,h) - means(h));
         for (i = 0; i < nvar; i++){
           // if (p==0){
@@ -50,6 +57,9 @@ arma::sp_mat DWLS_wmat(
           for (j = i; j < nvar; j ++){
             if (p==0){
               four(i,j,g,h) = 0;
+            }
+            if (!(std::isfinite(data(p,i)) && std::isfinite(data(p,j)))){
+              Rcpp::stop("Missing data is not yet supported for WLS without ordered categorical variables");
             }
             four(i,j,g,h) +=  std::pow((double)ncase,-1.0) *(data(p,i) - means(i)) * (data(p,j) - means(j)) * (data(p,g) - means(g)) * (data(p,h) - means(h));
           }

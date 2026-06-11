@@ -44,14 +44,23 @@ compare <- function(...){
   # Arrange table by Df:
   Tab <- Tab %>% arrange(.data[['DF']])
   
-  # Compute chis difference:
-  Tab$Chisq_diff <- c(NA,abs(diff(Tab$Chisq)))
-  
+  # Compute chi-square difference (signed: should be >= 0 for nested models,
+  # a negative value flags a non-nested or improperly ordered comparison):
+  Tab$Chisq_diff <- c(NA,diff(Tab$Chisq))
+
   # Compute DF diff:
-  Tab$DF_diff <- c(NA,abs(diff(Tab$DF)))
-  
-  # Compute p:
+  Tab$DF_diff <- c(NA,diff(Tab$DF))
+
+  # Compute p (only meaningful for nested models with a non-zero df difference):
   Tab$p_value <- pchisq(Tab$Chisq_diff,Tab$DF_diff,lower.tail=FALSE)
+
+  # Models with equal df cannot be compared with a chi-square difference test:
+  Tab$p_value[!is.na(Tab$DF_diff) & Tab$DF_diff == 0] <- NA
+
+  # Warn for negative chi-square differences (non-nested or mis-ordered models):
+  if (any(!is.na(Tab$Chisq_diff) & Tab$Chisq_diff < 0)){
+    warning("Negative chi-square difference encountered; models may not be nested. Chi-square difference test is not valid.")
+  }
   
   # Set saturated chisquare to NA:
   if (any(Tab$model == "saturated"))

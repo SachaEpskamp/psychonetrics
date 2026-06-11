@@ -27,7 +27,7 @@ fimlEstimator_Gauss_group <- function(fimldata,fulln,sigma,kappa,mu,...){
 # C++ version:
 fimlEstimator_Gauss_group_cpp_outer<- function(fimldata,fulln,sigma,kappa,mu,...){
   
-  fimlEstimator_Gauss_group_cpp(sigma=as.matrix(sigma),mu=as.matrix(mu),kappa = as.matrix(kappa),fimldata = fimldata,epsilon = .Machine$double.eps, n = fulln)   
+  fimlEstimator_Gauss_group_cpp(sigma=as.matrix(sigma),mu=as.matrix(mu),kappa = as.matrix(kappa),fimldata = fimldata,epsilon = 1.490116e-08, n = fulln)   
   
 }
 
@@ -61,7 +61,7 @@ fimlEstimator_Gauss_group_cpp_outer_fullFIML <- function(fimldata,fulln,sigma,ka
     }  
   }
   
-  fimlEstimator_Gauss_group_cpp_fullFIML(sigma=sigma,mu=mu,kappa = kappa,fimldata = fimldata,epsilon = .Machine$double.eps, n = fulln) 
+  fimlEstimator_Gauss_group_cpp_fullFIML(sigma=sigma,mu=mu,kappa = kappa,fimldata = fimldata,epsilon = 1.490116e-08, n = fulln) 
   
 }
 

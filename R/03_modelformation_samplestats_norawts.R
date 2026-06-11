@@ -205,7 +205,20 @@ samplestats_norawts <- function(
       ordinal_wtype <- "none"
     }
 
-    
+    # Early, informative checks for the continuous (cov()) path. Variables that
+    # are not declared 'ordered' must be numeric, otherwise cov() fails with a
+    # cryptic "x must be numeric" error (e.g. when factor/character Ising data is
+    # accidentally passed to a continuous model):
+    contVars <- vars[!(vars %in% ordered)]
+    if (length(contVars) > 0){
+      nonNumeric <- contVars[!vapply(contVars, function(v) is.numeric(data[[v]]), logical(1))]
+      if (length(nonNumeric) > 0){
+        stop(paste0("The following variable(s) are not numeric: ", paste0(nonNumeric, collapse = ", "),
+                    ". Non-numeric (e.g. factor or character) variables must be declared in 'ordered', or converted to numeric (for example for Ising models, recode responses to integers)."))
+      }
+    }
+
+
     # Create covs and means arguments:
     if (nGroup == 1){
       if (length(ordered)  > 0){
@@ -254,10 +267,13 @@ samplestats_norawts <- function(
         
         
       } else {
-        cov <- (nrow(data[,c(vars)])-1)/(nrow(data[,c(vars)])) * cov(data[,c(vars)], use = switch(
+        # drop = FALSE keeps a single-variable selection a matrix so nrow()/cov()
+        # behave (otherwise a 1-node model fails with a cryptic NULL nrow error):
+        datmat <- data[,c(vars), drop = FALSE]
+        cov <- (nrow(datmat)-1)/(nrow(datmat)) * cov(datmat, use = switch(
           missing, "listwise" = "complete.obs", "pairwise" = "pairwise.complete.obs"
         ))
-        
+
         # For n=1, make the covariances 0:
         if (nrow(data)==1){
           cov[is.na(cov)] <- 0
@@ -350,8 +366,9 @@ samplestats_norawts <- function(
           
           
           
-          subData <- data[data[[groups]] == g,c(vars)]
-          cov <-  (nrow(subData)-1)/(nrow(subData)) * 
+          # drop = FALSE keeps a single-variable selection a matrix (see above):
+          subData <- data[data[[groups]] == g,c(vars), drop = FALSE]
+          cov <-  (nrow(subData)-1)/(nrow(subData)) *
             cov(subData, use = switch(
               missing, "listwise" = "complete.obs", "pairwise" = "pairwise.complete.obs"
             ))
@@ -530,7 +547,15 @@ samplestats_norawts <- function(
     if (covtype == "choose"){
       MLrest <- mean(round(unlist(lapply(MLsquares,as.matrix)),10) %% 1)
       UBrest <- mean(round(unlist(lapply(UBsquares,as.matrix)),10) %% 1)
-      
+
+      # The "choose" heuristic relies on the sufficient statistics (squares)
+      # being integer-valued (as they are for e.g. Ising count data). If neither
+      # the ML nor the UB scaling yields near-integer squares, the input
+      # responses are likely non-integer and the guess is unreliable:
+      if (min(MLrest, UBrest) > sqrt(.Machine$double.eps)){
+        warning("Could not reliably determine the covariance denominator (covtype) from the input: the implied sufficient statistics are not integer-valued. Please set 'covtype' explicitly ('ML' or 'UB').")
+      }
+
       if (MLrest < UBrest){
         # if (verbose){
           message("Assuming denominator n was used in covariance computation (covtype = 'ML').")

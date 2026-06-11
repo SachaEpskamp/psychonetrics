@@ -30,7 +30,7 @@ matrixsetup_isingbeta <- function(
   }
 
   # Form the model matrix part:
-  list(beta,
+  retlist <- list(beta,
        mat =  name,
        op =  paste0(ifelse(log,"log ",""),"inverse temp"),
        symmetrical= FALSE,
@@ -38,4 +38,13 @@ matrixsetup_isingbeta <- function(
        rownames = ifelse(log,"log_beta","beta"),
        colnames = "",
        start = betaStart)
+
+  # Inverse temperature beta must be non-negative (negative values yield NaNs in
+  # the Ising likelihood). The log-parameterisation is unbounded, so only bound
+  # the raw beta:
+  if (!log){
+    retlist$lower <- 0
+  }
+
+  retlist
 }

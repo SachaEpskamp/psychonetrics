@@ -15,11 +15,14 @@ identify_ml_lvm <- function(x){
   x@parameters <- clearpars(x@parameters, betaDiag)
   
   # Always set residual (co)variance of single indicator items to zero:
-  nIndicators <- x@parameters %>% filter(matrix == "lambda") %>% group_by(.data[['var2_id']]) %>% 
-    summarize(nLats = length(unique(.data[['var1_id']][!.data[['fixed']]])))
-  
+  # (aligned with identify_lvm: a fixed nonzero loading -- e.g. a marker loading
+  # -- also counts as identifying the latent, and only free loadings are looped
+  # over below):
+  nIndicators <- x@parameters %>% filter(matrix == "lambda") %>% group_by(.data[['var2_id']]) %>%
+    summarize(nLats = length(unique(.data[['var1_id']][!.data[['fixed']] | .data[['est']] != 0])))
+
   if (any(nIndicators$nLats == 1)){
-    for (inds in unique(x@parameters$var1_id[x@parameters$var2_id%in%nIndicators$var2_id[nIndicators$nLats == 1] & x@parameters$matrix == "lambda"])){
+    for (inds in unique(x@parameters$var1_id[x@parameters$var2_id%in%nIndicators$var2_id[nIndicators$nLats == 1] & x@parameters$matrix == "lambda" & !x@parameters$fixed])){
       # Which to constrain?
       cons <- x@parameters$var1_id == inds & 
         x@parameters$matrix %in% c("sigma_epsilon_within","omega_epsilon_within","delta_epsilon_within","lowertri_epsilon_within","kappa_epsilon_within",

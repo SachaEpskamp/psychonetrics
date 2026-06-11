@@ -39,6 +39,11 @@ identify_lvm <- function(x){
     nConsInTau <- sum(x@parameters$fixed[x@parameters$matrix == "nu"])
     
     # Set all latent intercepts to zero if there are not enough constrains in nu:
+    # NOTE: the boundary here uses "<=" while the multi-group/ml_lvm twins use a
+    # ">= nLat" rule on equality constraints. Whether this should be a strict "<"
+    # is ambiguous (the two code paths count different things) and changing it
+    # risks altering identification of existing models, so it is intentionally
+    # left as-is here.
     means <- which(x@parameters$matrix %in% c("nu_eta"))
     if (nConsInTau <= length(means)){
       

@@ -254,8 +254,8 @@ arma::vec psychonetrics_gradient_cpp(
   // Create empty gradient:
   arma::vec grad(x.n_elem);
   
-  // Run inner:
-  psychonetrics_gradient_cpp_inner(x, grad, model, sparsemodel, false);
+  // Run inner (forward the useM flag instead of hardcoding false):
+  psychonetrics_gradient_cpp_inner(x, grad, model, sparsemodel, useM);
   
   
   return(grad);

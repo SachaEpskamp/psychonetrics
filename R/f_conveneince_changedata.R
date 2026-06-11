@@ -54,6 +54,12 @@ changedata <- function(x, data, covs, nobs, means, groups, missing = "listwise")
   # Add baseline and saturated:
   
   # Form baseline model:
+  # NOTE: equal = x@equal forwards the legacy (deprecated) @equal slot (a
+  # character vector of matrix names). The baseline is always a varcov() model,
+  # so only equality constraints on matrices that exist in varcov (sigma, omega,
+  # kappa, lowertri, ...) carry over; constraints on framework-specific matrices
+  # (e.g. lambda in lvm) are silently dropped. Deriving equal= from the canonical
+  # parameters table would be more robust but non-trivial; documented limitation.
   x@baseline_saturated$baseline <- do.call(varcov, c(dataArgs, list(
                                               type = "chol",
                                               lowertri = "diag",

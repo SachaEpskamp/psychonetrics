@@ -1,7 +1,7 @@
 goodNum <- function(x){
   sapply(x,function(xx){
     if (is.na(xx) || !is.finite(xx))return("")
-    if (xx < 0.0001){
+    if (xx >= 0 && xx < 0.0001){
       return("< 0.0001")
     }
     digits <- max(0,floor(log10(abs(xx))) + 1)

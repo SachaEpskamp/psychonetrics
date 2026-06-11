@@ -39,7 +39,7 @@ logLikelihood_gaussian_group_fiml <- function(fimldata,fulln,sigma,kappa,mu,cpp,
 # CPP version
 logLikelihood_gaussian_subgroup_fiml_cpp_outer <- function(fimldata,sigma,kappa,mu,...){
  
-  logLikelihood_gaussian_subgroup_fiml_cpp(sigma=as.matrix(sigma),mu=as.matrix(mu),kappa = as.matrix(kappa),fimldata = fimldata,epsilon = .Machine$double.eps) 
+  logLikelihood_gaussian_subgroup_fiml_cpp(sigma=as.matrix(sigma),mu=as.matrix(mu),kappa = as.matrix(kappa),fimldata = fimldata,epsilon = 1.490116e-08) 
 }
 
 # CPP version fullFIML
@@ -73,7 +73,7 @@ logLikelihood_gaussian_subgroup_fiml_cpp_outer_fullFIML <- function(fimldata,sig
   }
   
   
-  logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML(sigma=sigma,mu=mu,kappa = kappa,fimldata = fimldata,epsilon = .Machine$double.eps) 
+  logLikelihood_gaussian_subgroup_fiml_cpp_fullFIML(sigma=sigma,mu=mu,kappa = kappa,fimldata = fimldata,epsilon = 1.490116e-08) 
 }
 
 

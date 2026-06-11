@@ -40,16 +40,18 @@ aggregate_bootstraps <- function(
     
   }
   
-  # Remove problematic bootstraps:
+  # Remove problematic bootstraps (only if requested):
   remove <- numeric(0)
-  for (i in seq_along(new_dots)){
-    grad <- psychonetrics_gradient(parVector(new_dots[[i]]),new_dots[[i]])
-    if (mean(abs(grad)) > 1){
-      remove <- c(remove,i)
+  if (remove_problematic){
+    for (i in seq_along(new_dots)){
+      grad <- psychonetrics_gradient(parVector(new_dots[[i]]),new_dots[[i]])
+      if (mean(abs(grad)) > 1){
+        remove <- c(remove,i)
+      }
     }
-  }
-  if (length(remove)>0){
-    new_dots <- new_dots[-remove]    
+    if (length(remove)>0){
+      new_dots <- new_dots[-remove]
+    }
   }
 
   

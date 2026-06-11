@@ -16,8 +16,12 @@ definition = function(object){
 # Logbook:
 print.psychonetrics_log <- function(x,...){
   
+  # Extract the POSIXct timestamps (using do.call(c,...) preserves the
+  # POSIXct class, unlike sapply which would strip it to a bare numeric):
+  times <- do.call(c, lapply(x, slot, "time"))
+
   df <- data.frame(
-    time =  format(as.POSIXct(sapply(x, 'slot', "time"), "%Y-%m-%d %H:%M")),
+    time =  format(times, "%Y-%m-%d %H:%M"),
    events =  sapply(x, 'slot', "event")
   )
   

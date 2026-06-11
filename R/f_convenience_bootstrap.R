@@ -67,6 +67,15 @@ bootstrap <- function(x, replacement = TRUE, proportion = 1, verbose = TRUE, sto
   
   # Form baseline model:
   if (baseline_saturated){
+    # NOTE: equal = x@equal forwards the legacy (deprecated) @equal slot, which
+    # is a character vector of matrix names maintained by groupequal()/groupfree().
+    # The baseline is always a varcov() model, so this only correctly carries over
+    # cross-group equality constraints whose matrix names exist in varcov (sigma,
+    # omega, kappa, lowertri, ...). Constraints on matrices specific to other
+    # frameworks (e.g. lambda in lvm) cannot be represented in the varcov baseline
+    # and are silently dropped here. Deriving equal= from the canonical parameters
+    # table (shared par indices) would be more robust but is non-trivial; left as
+    # a known limitation to avoid breaking the common varcov bootstrap path.
     x@baseline_saturated$baseline <- varcov(data,
                                             type = "chol",
                                             lowertri = "diag",

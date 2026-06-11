@@ -178,8 +178,8 @@ modelsearch <- function(x,
     if (length(allParsToConsider) == 0){
       if (verbose){
         message("No more models to search at given alpha levels.")
-        return(x)
       }
+      return(x)
     }
     
     # Set parameters to consider:
@@ -320,7 +320,7 @@ modelsearch <- function(x,
                 propMods[[i]] <- x %>% fixpar(matrix = x@parameters$matrix[curpar], row = x@parameters$row[curpar], col = x@parameters$col[curpar], 
                                               group = x@parameters$group_id[curpar], verbose = FALSE)
                 
-                ind <- propMods[[i]]@parameters$matrix %in% propMods[[i]]@parameters$matrices & !propMods[[i]]@parameters$fixed & !propMods[[i]]@parameters$identified &
+                ind <- propMods[[i]]@parameters$matrix %in% matrices & !propMods[[i]]@parameters$fixed & !propMods[[i]]@parameters$identified &
                   propMods[[i]]@parameters$row != propMods[[i]]@parameters$col
                 
                 propMods[[i]]@parameters$est[ind] <- 0.5 * propMods[[i]]@parameters$est[ind]

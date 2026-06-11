@@ -306,8 +306,16 @@ lvm <- function(
   
   # Number of latents:
   nLatent <- ncol(lambda)
-  
-  
+
+  # Warn (do not error: may be legitimate with additional constraints) if there
+  # are more latent than observed variables; in that case the automatic factor-
+  # analytic start values cannot be computed and the model silently falls back
+  # to "simple" starting values:
+  if (nLatent > nNode){
+    warning(paste0("Model has more latent variables (", nLatent, ") than observed variables (", nNode, "). This model may not be identified, and simple starting values will be used."))
+  }
+
+
   # If latents is not provided, make it:
   if (missing(latents)){
     latents <- paste0("Eta_",seq_len(nLatent))

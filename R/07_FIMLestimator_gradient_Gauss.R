@@ -37,7 +37,7 @@ jacobian_fiml_gaussian_group_sigma <- function(fimldata,fulln,sigma,kappa,mu,mea
 # Jacobian function per group, C++ version:
 jacobian_fiml_gaussian_group_sigma_cpp_outer <- function(fimldata,fulln,sigma,kappa,mu,means, meanstructure = TRUE, corinput = FALSE,...){
   # Subgroup models:
-  Jac <- 1/fulln * jacobian_fiml_gaussian_subgroup_sigma_cpp(fimldata=fimldata,sigma=as.matrix(sigma),kappa=as.matrix(kappa),mu=as.matrix(mu), epsilon = .Machine$double.eps)
+  Jac <- 1/fulln * jacobian_fiml_gaussian_subgroup_sigma_cpp(fimldata=fimldata,sigma=as.matrix(sigma),kappa=as.matrix(kappa),mu=as.matrix(mu), epsilon = 1.490116e-08)
 
   # Cut out the rows not needed
   # FIXME: Nicer to not have to compute these in the first place...
@@ -84,7 +84,7 @@ jacobian_fiml_gaussian_group_sigma_cpp_outer_fullFIML <- function(fimldata,fulln
   }
   
   # Subgroup models:
-  Jac <- 1/fulln * jacobian_fiml_gaussian_subgroup_sigma_cpp_fullFIML(fimldata=fimldata,sigma=sigma,kappa=kappa,mu=mu, epsilon = .Machine$double.eps)
+  Jac <- 1/fulln * jacobian_fiml_gaussian_subgroup_sigma_cpp_fullFIML(fimldata=fimldata,sigma=sigma,kappa=kappa,mu=mu, epsilon = 1.490116e-08)
   
   # Cut out the rows not needed
   # FIXME: Nicer to not have to compute these in the first place...

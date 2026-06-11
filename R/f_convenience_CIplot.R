@@ -193,7 +193,7 @@ CIplot <- function(
         if (length(labels2) != nrow){
           stop("'labels2' is not of the correct length")
         }
-        node2 <- labels[pars$var1_id[pars$matrix == mat]]
+        node2 <- labels2[pars$var1_id[pars$matrix == mat]]
       } else {
         if (length(labels2) != ncol){
           stop("'labels2' is not of the correct length")

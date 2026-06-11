@@ -563,8 +563,12 @@ addfit <- function(
       lambda.l <- NA
     } else {
       lambda.l <- try(uniroot(f=lower.lambda, lower=0, upper=Tm)$root,
-                      silent=TRUE)      
+                      silent=TRUE)
     }
+
+    # Guard against a failed uniroot (mirror the upper-bound branch):
+    if(inherits(lambda.l, "try-error")) {lambda.l <- NA }
+
     fitMeasures$rmsea.ci.lower <- sqrt( lambda.l/(sampleSize*dfm) ) * sqrt(nGroups)
   }
   
