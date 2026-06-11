@@ -1,5 +1,9 @@
 getVCOV <- function(model,approximate_SEs = FALSE){
-  if (!is.null(model@information)){
+  # The @information slot is a "matrix" slot, so when a model is run with
+  # addInformation = FALSE it holds the default empty 0x0 matrix rather than
+  # NULL. Treat a zero-size matrix as absent and recompute the Fisher
+  # information on demand (mirrors addSEs_cpp()).
+  if (!is.null(model@information) && length(model@information) > 0){
     Info <- model@information
   } else {
     if (model@cpp){

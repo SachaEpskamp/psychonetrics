@@ -1,3 +1,14 @@
+Changes in Version 0.15.27
+  o Bugfix: runmodel(addInformation = FALSE) crashed the whole call in the C++
+    standard-error path with "Mat::operator(): index out of bounds". addSEs_cpp()
+    read the @information slot unconditionally, but with addInformation = FALSE
+    that slot is empty (a 0x0 matrix), so indexing into the inverted matrix went
+    out of bounds. It now recomputes the Fisher information on demand when the
+    slot is absent, mirroring getVCOV(). The R getVCOV() path had the same latent
+    bug -- its is.null() check never fired for the default empty "matrix" slot,
+    silently returning all-NA standard errors -- and now also treats a zero-size
+    information matrix as absent. Both paths produce identical, correct SEs.
+
 Changes in Version 0.15.26
   o Bugfix: changedata() unconditionally accessed colnames(data), so the
     documented summary-statistics usage changedata(x, covs=, nobs=) crashed

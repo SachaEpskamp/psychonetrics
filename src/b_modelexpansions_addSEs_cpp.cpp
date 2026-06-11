@@ -11,6 +11,11 @@
 using namespace Rcpp;
 using namespace arma;
 
+// Defined in 04_generalFit_FisherInformation_cpp.cpp. Used to recompute the
+// Fisher information on demand when a model was run with addInformation = FALSE
+// (so the @information slot is empty), mirroring the R getVCOV() path.
+arma::mat psychonetrics_FisherInformation_cpp(const S4& model, bool useM, bool sparsemodel);
+
 
 // [[Rcpp::export]]
 S4 addSEs_cpp(
@@ -118,8 +123,22 @@ S4 addSEs_cpp(
 
     } else {
 
-    // Assuming information has been computed ....
-    arma::mat Fisher = x.slot("information");
+    // Information matrix. When the model was run with addInformation = FALSE
+    // (a documented runmodel() argument), the @information slot is empty: it is
+    // either NULL or the default 0x0 matrix. Reading it unconditionally and
+    // then indexing (Hinv(0,0)) aborts with "Mat::operator(): index out of
+    // bounds". Mirror the R getVCOV() path: recompute the Fisher information on
+    // demand when the stored matrix is absent.
+    SEXP infoSlot = x.slot("information");
+    arma::mat Fisher;
+    if (Rf_isNull(infoSlot)){
+      Fisher = psychonetrics_FisherInformation_cpp(x, false, false);
+    } else {
+      Fisher = Rcpp::as<arma::mat>(infoSlot);
+      if (Fisher.n_elem == 0){
+        Fisher = psychonetrics_FisherInformation_cpp(x, false, false);
+      }
+    }
 
     if (approximate_SEs){
       Hinv = 1.0/n * solve_symmetric_cpp_matrixonly(Fisher, 1.490116e-08, true);
