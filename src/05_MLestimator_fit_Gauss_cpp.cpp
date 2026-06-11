@@ -24,7 +24,12 @@ double maxLikEstimator_Gauss_group_cpp(
 
   double logdet;
   if (sympd_cpp(kappa) == false){
-    logdet = log(1.490116e-08);
+    // kappa is not positive definite (e.g. a pseudo-inverse of an indefinite
+    // implied covariance matrix). The trace and Mahalanobis terms are then
+    // unbounded from below, so clamping the log determinant alone (as was
+    // done previously) still lets optimizers diverge to -Inf. Return a large
+    // penalty instead so the optimizer backs away from the improper region:
+    return(1e20);
   } else {
     logdet = log(det(kappa));
     // Plugin for any non-finite log determinant: det(kappa) may be a tiny
@@ -34,9 +39,9 @@ double maxLikEstimator_Gauss_group_cpp(
       logdet = log(1.490116e-08);
     }
   }
-  
-  
-  
+
+
+
   arma::mat resvec = trace(S * kappa) + (means - mu).t() * kappa * (means - mu) - logdet;
   double res = resvec(0,0);
 

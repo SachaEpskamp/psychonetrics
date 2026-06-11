@@ -155,7 +155,7 @@ Rcpp::List implied_dlvm1_cpp_core(
       grouplist["IkronBeta"] = kronecker_I_X(beta, n_lat);
       grouplist["lamWkronlamW"] = kron(lambda, lambda);
     } else {
-      arma::mat sigma_within = lambda * stationary_sigma_within_latent * lambda.t() + sigma_epsilon_between;
+      arma::mat sigma_within = lambda * stationary_sigma_within_latent * lambda.t() + sigma_epsilon_within;
       
       
       

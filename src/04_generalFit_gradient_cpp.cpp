@@ -71,7 +71,23 @@ void psychonetrics_gradient_cpp_inner(
 ){
   // Prepare model:
   Rcpp::List prep = prepareModel_cpp(x, model);
-  
+
+  // If any group's implied matrices are improper (not positive definite),
+  // the fit function returns a constant penalty (1e20) at this point, so the
+  // matching gradient is zero. Computing the analytic gradient with an
+  // indefinite pseudo-inverse would yield misleading directions:
+  Rcpp::List groupmodels_check = prep["groupModels"];
+  for (int g_check = 0; g_check < groupmodels_check.length(); g_check++){
+    Rcpp::List grouplist_check = groupmodels_check[g_check];
+    if (grouplist_check.containsElementNamed("proper")){
+      bool proper_check = grouplist_check["proper"];
+      if (!proper_check){
+        grad.zeros();
+        return;
+      }
+    }
+  }
+
   // Manual part (cached in workspace):
   const OptimWorkspace& ws = getOrBuildWorkspace(model);
   const arma::sp_mat& manualPart = ws.Mmatrix;

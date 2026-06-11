@@ -110,9 +110,10 @@ ri_clpm <- function(
     designLong <- matrix(NA, length(rowVars), length(colVars))
     for (i in seq_along(rowVars)){
       for (j in seq_along(colVars)){
-        varName <- paste0("^", rowVars[i], "_", colVars[j], "$")
-        if (length(which(grepl(varName, names(datawide)))) == 1){
-          designLong[i, j] <- paste0(rowVars[i], "_", colVars[j])
+        # Exact matching (variable names may contain regex metacharacters):
+        varName <- paste0(rowVars[i], "_", colVars[j])
+        if (sum(names(datawide) == varName) == 1){
+          designLong[i, j] <- varName
         }
       }
     }

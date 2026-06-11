@@ -58,48 +58,57 @@ ri_clpm_stationary <- function(
       x <- parequal(x, parNums[i,])
     }
     
-  } else if (stationary == "contemporaneous") {
+  } else if (stationary %in% c("contemporaneous", "innovation")) {
 
-    # Beta parameter numbers:
-    parNums <- which(grepl("_zeta", x@parameters$matrix) & !x@parameters$fixed & (x@parameters$row != x@parameters$col))
-    
-    # check if not pruned:
-    if (length(parNums) < (nTime-1) * nVar*(nVar-1)/2){
-      stop("Stationary temporal effects for pruned models are not yet supported")
+    # Free latent-(co)variance parameter numbers ("_zeta" matrices):
+    if (stationary == "contemporaneous"){
+      parNums <- which(grepl("_zeta", x@parameters$matrix) & !x@parameters$fixed & (x@parameters$row != x@parameters$col))
+    } else {
+      parNums <- which(grepl("_zeta", x@parameters$matrix) & !x@parameters$fixed & (x@parameters$row == x@parameters$col))
     }
-    
-    # collect in matrix:
-    parNums <- matrix(parNums,ncol=nTime+1)
-    
-    # cut out time = 1 and RI:
-    parNums <- parNums[,-c(1,ncol(parNums)),drop=FALSE]
-    
-    # Constrain equal:
-    for (i in seq_len(nrow(parNums))){
-      x <- parequal(x, parNums[i,])
+
+    # The latents are ordered wave-1, ..., wave-nTime (nVar latents each),
+    # followed by the nVar random intercepts. Derive each parameter's
+    # wave-block and within-block coordinates structurally, instead of the
+    # earlier positional reshape (matrix(parNums, ncol = nTime + 1)), which
+    # silently recycled and corrupted the constraints when parameters had
+    # been pruned or fixed. Wave 1 is deliberately left free (its block is
+    # an exogenous T1 covariance, not an innovation covariance), and the
+    # random-intercept block is left free as well; only the wave-2+
+    # innovation blocks are equated (identical to the old behavior for
+    # unpruned models):
+    parRow <- x@parameters$row[parNums]
+    parCol <- x@parameters$col[parNums]
+    parMat <- x@parameters$matrix[parNums]
+    block_row <- ifelse(parRow > nVar * nTime, nTime + 1, ceiling(parRow / nVar))
+    block_col <- ifelse(parCol > nVar * nTime, nTime + 1, ceiling(parCol / nVar))
+
+    # Keep within-block parameters of the wave-2+ innovation blocks:
+    keep <- block_row == block_col & block_row >= 2 & block_row <= nTime
+    parNums <- parNums[keep]
+    within_row <- parRow[keep] - (block_row[keep] - 1) * nVar
+    within_col <- parCol[keep] - (block_row[keep] - 1) * nVar
+    elementid <- paste0(parMat[keep], "[", within_row, ",", within_col, "]")
+
+    # Group the same within-block element across waves:
+    groups <- split(seq_along(parNums), elementid)
+
+    # Order groups as the parameters appear in the parameter table:
+    groups <- groups[order(vapply(groups, function(i) min(parNums[i]), numeric(1)))]
+
+    # Constrain equal, requiring each element to be free in all waves:
+    for (grp in seq_along(groups)){
+      ind <- groups[[grp]]
+      if (length(ind) != nTime - 1){
+        stop("Cannot impose stationary ",
+             ifelse(stationary == "innovation", "innovation variances", "contemporaneous covariances"),
+             ": element ", names(groups)[grp], " (within-block indices) is free in only ",
+             length(ind), " of the ", nTime - 1, " innovation blocks (waves 2-", nTime,
+             "). This can happen after prune() or fixpar(); free or fix this parameter in all waves first.")
+      }
+      x <- parequal(x, parNums[ind])
     }
-    
-  }  else if (stationary == "innovation") {
-    
-    # Beta parameter numbers:
-    parNums <- which(grepl("_zeta", x@parameters$matrix) & !x@parameters$fixed & (x@parameters$row == x@parameters$col))
-    
-    # check if not pruned:
-    if (length(parNums) < (nTime-1) * nVar){
-      stop("Stationary temporal effects for pruned models are not yet supported")
-    }
-    
-    # collect in matrix:
-    parNums <- matrix(parNums,ncol=nTime+1)
-    
-    # cut out time = 1 and RI:
-    parNums <- parNums[,-c(1,ncol(parNums)),drop=FALSE]
-    
-    # Constrain equal:
-    for (i in seq_len(nrow(parNums))){
-      x <- parequal(x, parNums[i,])
-    }
-    
+
   } else stop(paste0("stationary = '",stationary,"' not implemented!"))
 
 

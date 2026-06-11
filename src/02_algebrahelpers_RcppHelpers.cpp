@@ -338,9 +338,23 @@ arma::mat solve_symmetric_cpp_matrixonly_withcheck(
     
   }
   
-  // proper:
-  proper = !success;
-  
+  // proper: the previous code here read 'proper = !success;', which (a) was
+  // inverted and (b) overwrote a 'proper = false' set by the non-finite
+  // branch above or accumulated over earlier calls by the caller. Note that
+  // success alone is not sufficient: inv_sympd() with inv_opts::allow_approx
+  // silently falls back to a pseudo-inverse for indefinite input and still
+  // reports success, so properness (positive definiteness) is checked
+  // explicitly with a Cholesky attempt. Only ever set proper to false here,
+  // never back to true:
+  if (!success){
+    proper = false;
+  } else {
+    arma::mat cholcheck;
+    if (!arma::chol(cholcheck, X)){
+      proper = false;
+    }
+  }
+
   return(invMat);
   
   

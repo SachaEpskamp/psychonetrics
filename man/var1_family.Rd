@@ -15,6 +15,7 @@ var1(data, contemporaneous = c("cov", "chol", "prec",
                    lowertri_zeta = "full", mu, beepvar, dayvar, idvar,
                    vars, groups, groupvar, covs, cors, means,
                    nobs, corinput, missing = "auto",
+                   centerWithin = FALSE,
                    equal = "none", baseline_saturated = TRUE, estimator =
                    "ML", optimizer, storedata = FALSE, covtype =
                    c("choose", "ML", "UB"), standardize = c("none", "z",
@@ -89,6 +90,9 @@ Logical. Not supported in \code{var1()} and will produce an error if set to \cod
 }
   \item{missing}{
 How should missingness be handled in computing the sample covariances and number of observations when \code{data} is used. Can be \code{"auto"} (default) for automatic detection, \code{"listwise"} for listwise deletion, or \code{"pairwise"} for pairwise deletion. When \code{"auto"}, the function checks for missing data and switches ML to FIML, PML to PFIML, or defaults to listwise for LS estimators.
+}
+  \item{centerWithin}{
+Logical, should the data be centered within persons (per \code{idvar}) before estimation? Defaults to \code{FALSE} (the historical behavior). Only used when raw \code{data} is supplied.
 }
   \item{equal}{
 A character vector indicating which matrices should be constrained equal across groups.

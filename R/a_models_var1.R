@@ -29,6 +29,7 @@ var1 <- function(
   nobs, # Alternative if data is missing (length ngroup)
   corinput, # not supported in var1 (errors if TRUE)
   missing = "auto",
+  centerWithin = FALSE, # Center variables within persons (passed to tsData)
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   # fitfunctions,
@@ -83,7 +84,7 @@ var1 <- function(
   }
   
   # If data is not missing, make augmented data:
-  data <- tsData(data, vars = vars2, beepvar = beepvar, dayvar = dayvar, idvar = idvar, groupvar = groups)
+  data <- tsData(data, vars = vars2, beepvar = beepvar, dayvar = dayvar, idvar = idvar, groupvar = groups, centerWithin = centerWithin)
   
   # Bootstrap:
   # if (bootstrap){
@@ -277,7 +278,8 @@ var1 <- function(
     L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
     Dstar = psychonetrics::duplicationMatrix(nNode,diag = FALSE), # Strict duplicaton matrix
     In = as(diag(nNode),"dMatrix"), # Identity of dim n
-    In2 = as(diag(nNode),"dMatrix"), # Identity of dim n^2
+    # In2 dropped (0.15.30): it was a mislabeled duplicate of In ("Identity of
+    # dim n^2" but actually diag(nNode)) and is not consumed anywhere in R or C++.
     A = psychonetrics::diagonalizationMatrix(nNode),
     C = as(lavaan::lav_matrix_commutation(nNode,nNode),"dMatrix")
     # P=P # Permutation matrix

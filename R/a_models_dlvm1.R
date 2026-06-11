@@ -270,10 +270,11 @@ dlvm1 <- function(
     design <- matrix(NA, length(rowVars), length(colVars))
     for (i in seq_along(rowVars)){
       for (j in seq_along(colVars)){
-        varName <- paste0("^", rowVars[i], "_", colVars[j], "$")
-        whichVar <- which(grepl(varName, names(datawide)))
+        # Exact matching (variable names may contain regex metacharacters):
+        varName <- paste0(rowVars[i], "_", colVars[j])
+        whichVar <- which(names(datawide) == varName)
         if (length(whichVar) == 1){
-          design[i, j] <- paste0(rowVars[i], "_", colVars[j])
+          design[i, j] <- varName
         }
       }
     }
@@ -428,7 +429,14 @@ dlvm1 <- function(
   
   # Number of measurements:
   nTime <- ncol(vars)
-  
+
+  # The dlvm1 model requires at least two measurements per person (the
+  # derivatives and implied structures use lag-1 blocks, which degenerate
+  # at a single wave):
+  if (nTime < 2){
+    stop("At least two waves/measurements per person are required: the 'vars' design matrix has only one column.")
+  }
+
   # Number of latents:
   nLat <- ncol(lambda)
   
@@ -869,11 +877,11 @@ dlvm1 <- function(
                                          sampleStats= sampleStats,
                                          equal = equal,
                                          nNode = nVar,
-                                         expCov = lapply(prior_estimates,"[[","within_resid_cov_estimate"),
+                                         expCov = lapply(prior_estimates,"[[","between_resid_cov_estimate"),
                                          nGroup = nGroup,
                                          labels = varnames
                      ))
-  
+
   } else if (start == "version1"){
     # Starting values as implemented up to version 0.11
     

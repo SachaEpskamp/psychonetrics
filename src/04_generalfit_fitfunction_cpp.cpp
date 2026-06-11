@@ -47,11 +47,12 @@ double psychonetrics_fitfunction_cpp(
     if (grouplist.containsElementNamed("proper")){
       bool proper = grouplist["proper"];
       if (!proper){
-        // Rf_PrintValue(wrap("a matrix was not positive definite in optimization... fit function may not be accurate."));
-        // FIXME:
-        // Rf_warning("A matrix was not positive definite... fit function may not be accurate. Check your results for consistency using other optimizers with setoptimizer.");
-        // return(1e20);
-        // return(NA_REAL);
+        // Implied matrices are improper (not positive definite): the
+        // estimators below are not guaranteed to be bounded from below in
+        // that case (e.g. the ML trace/Mahalanobis terms with an indefinite
+        // pseudo-inverse), which lets optimizers diverge. Return a large
+        // penalty so the optimizer backs away from the improper region:
+        return(1e20);
       }
     }
     

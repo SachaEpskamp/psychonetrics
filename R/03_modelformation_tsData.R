@@ -22,8 +22,12 @@ tsData <- function(data,
   if (!is.null(groupvar)){
     groups <- unique(data[[groupvar]])
     res <- lapply(seq_along(groups),function(g){
-      dat <- data[data[[groupvar]] == groups[g],names(data)!=groupvar] 
-      dat <- tsData(dat, vars, beepvar, dayvar, idvar)
+      dat <- data[data[[groupvar]] == groups[g],names(data)!=groupvar]
+      # Pass all arguments through (the previous positional call dropped
+      # lags, scale, center and centerWithin for grouped data):
+      dat <- tsData(dat, vars = vars, beepvar = beepvar, dayvar = dayvar,
+                    idvar = idvar, lags = lags, scale = scale,
+                    center = center, centerWithin = centerWithin)
       dat[[groupvar]] <- groups[g]
       dat
     })
@@ -128,7 +132,10 @@ tsData <- function(data,
   
   # Lagged datasets:
   data_l <- do.call(cbind,lapply(lags, function(l){
-    data_lagged <- augData %>% dplyr::group_by(.data[[idvar]],.data[[dayvar]]) %>% dplyr::mutate(across(all_of(vars), shift)) %>% ungroup %>% dplyr::select(all_of(vars))
+    # Capture the loop variable and pass it to shift (previously shift was
+    # called without the lag argument, so every lag-l column was lag-1):
+    force(l)
+    data_lagged <- augData %>% dplyr::group_by(.data[[idvar]],.data[[dayvar]]) %>% dplyr::mutate(across(all_of(vars), ~shift(.x, l))) %>% ungroup %>% dplyr::select(all_of(vars))
     names(data_lagged) <- paste0(vars,"_lag",l)
     data_lagged
   }))
