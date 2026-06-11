@@ -222,7 +222,7 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
   } else if (type == "free"){
     x@parameters$mi_free[fillInds[!is.na(fillInds)]] <- round(mi[!is.na(fillInds)],10) # round(mi, 3)
     x@parameters$pmi_free[fillInds[!is.na(fillInds)]] <- round(p[!is.na(fillInds)],10)
-    x@parameters$epc[fillInds[!is.na(fillInds)]] <- round(epc[!is.na(fillInds)],10)
+    x@parameters$epc_free[fillInds[!is.na(fillInds)]] <- round(epc[!is.na(fillInds)],10)
 
     # --- Joint score test (Lagrange Multiplier) for releasing each equality constraint ---
     # We delegate to .equalityScoreTestInner (in f_convenience_equalityScoreTest.R) which
@@ -253,7 +253,7 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
   } else {
     x@parameters$mi_equal[fillInds[!is.na(fillInds)]] <- round(mi[!is.na(fillInds)],10) # round(mi,3)
     x@parameters$pmi_equal[fillInds[!is.na(fillInds)]] <- round(p[!is.na(fillInds)], 10)
-    x@parameters$epc[fillInds[!is.na(fillInds)]] <- round(epc[!is.na(fillInds)],10)
+    x@parameters$epc_equal[fillInds[!is.na(fillInds)]] <- round(epc[!is.na(fillInds)],10)
   }
   
   return(x)

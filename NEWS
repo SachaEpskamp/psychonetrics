@@ -1,3 +1,12 @@
+Changes in Version 0.15.24
+  o Bugfix: in multi-group models, the type="free" and type="equal" modification
+    index passes in addMIs() wrote their expected parameter changes to the
+    "normal" epc column instead of epc_free and epc_equal. As a result, in any
+    multi-group runmodel() (which runs normal -> free -> equal passes) the normal
+    EPC column was overwritten twice while epc_free and epc_equal remained NA.
+    MIs(type="free") and MIs(type="equal") now report their correct EPC columns,
+    and the normal EPC is no longer clobbered. Single-group results are unchanged.
+
 Changes in Version 0.15.23
   o Bugfix: bootstrap() resampled rows from the pooled data, ignoring the
     grouping structure of multi-group models. This had three consequences:
