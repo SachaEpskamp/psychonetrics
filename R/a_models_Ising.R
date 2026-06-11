@@ -89,6 +89,25 @@ spinModel <- function(
     stop("At least two distinct response options are required.")
   }
 
+  # When raw data are supplied together with an explicit 'responses' set, every
+  # observed value must be one of the supplied response options. A stray value
+  # (e.g. a stray 2 in 0/1 data with responses = c(0,1)) would otherwise fit
+  # silently with biased sufficient statistics (squares). This still permits
+  # genuine multi-state models (e.g. responses = c(0,1,2)):
+  if (!missing(data)){
+    if (missing(vars)){
+      data_vals <- unique(stats::na.omit(unlist(c(as.matrix(data)))))
+    } else {
+      data_vals <- unique(stats::na.omit(unlist(c(as.matrix(data[,vars])))))
+    }
+    if (is.numeric(data_vals) && !all(data_vals %in% responses)){
+      stray <- sort(unique(data_vals[!data_vals %in% responses]))
+      stop("Data contain values not in 'responses' (", paste(responses, collapse = ", "),
+           "): ", paste(stray, collapse = ", "),
+           ". Check the data coding or supply the full set of response options via 'responses'.")
+    }
+  }
+
   # Warn when the response coding departs from the conventional one for the
   # requested model. The classical Ising model is defined for binary -1/1 or
   # 0/1 codings; the Blume-Capel model for the ternary -1/0/1 coding.
@@ -142,6 +161,14 @@ spinModel <- function(
   # Fail if estimator is not ML or PML (nothing else supported yet):
   if (!estimator %in% c("ML", "PML")){
     stop("Only ML and PML estimation are currently supported for Ising model.")
+  }
+
+  # Only listwise missing-data handling is currently supported. Pairwise (and
+  # other) handling produces NA cross-products (t(data) %*% data), which crash
+  # the optimizer deep down with an opaque "NA/NaN gradient evaluation". Stop
+  # early at construction with a clear message instead:
+  if (!missing(data) && !identical(missing, "listwise")){
+    stop("Only missing = 'listwise' is currently supported for Ising/BlumeCapel models.")
   }
   
   # Obtain sample stats:

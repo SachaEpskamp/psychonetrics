@@ -47,23 +47,17 @@ addSEs <-  function(x,
       Hinv <- getVCOV(x, approximate_SEs = TRUE)
       if (any(is.na(Hinv))){
         # Even approximate inversion failed:
-        if (verbose){
-          warning("Standard errors could not be obtained because the Fisher information matrix could not be inverted. This may be a symptom of a non-identified model or due to convergence issues.")
-        }
+        warning("Standard errors could not be obtained because the Fisher information matrix could not be inverted. This may be a symptom of a non-identified model or due to convergence issues.")
         x@parameters$se <- NA
         x@parameters$p <- NA
         return(x)
       } else {
         # Approximate inversion succeeded:
-        if (verbose){
-          warning("Exact standard errors could not be obtained because the Fisher information matrix could not be inverted. Falling back to approximate standard errors. This can occur with zero cells in crosstables (common in multi-group Ising models) or near-boundary estimates. Interpret with care.")
-        }
+        warning("Exact standard errors could not be obtained because the Fisher information matrix could not be inverted. Falling back to approximate standard errors. This can occur with zero cells in crosstables (common in multi-group Ising models) or near-boundary estimates. Interpret with care.")
       }
     } else {
       # User explicitly requested approximate SEs and it still failed:
-      if (verbose){
-        warning("Standard errors could not be obtained because the Fisher information matrix could not be inverted. This may be a symptom of a non-identified model or due to convergence issues.")
-      }
+      warning("Standard errors could not be obtained because the Fisher information matrix could not be inverted. This may be a symptom of a non-identified model or due to convergence issues.")
       x@parameters$se <- NA
       x@parameters$p <- NA
       return(x)
@@ -94,7 +88,15 @@ addSEs <-  function(x,
   # Obtain SEs
   # SEs <-  sqrt(abs(diag(solve_symmetric(-n/2*H))))
   # Hinv <- solve_symmetric(x@fitfunctions$information(x))
-  SEs <-  sqrt(abs(diag(Hinv)))
+  # Negative variance diagonals (Heywood-type / non-identification symptoms)
+  # would otherwise be turned into plausible-looking SEs via abs(); flag them
+  # as NA and warn instead:
+  diagHinv <- diag(Hinv)
+  if (any(diagHinv < 0, na.rm = TRUE)){
+    warning("Some variances in the inverse Fisher information matrix are negative; their standard errors are set to NA. This is typically a symptom of a non-identified model or convergence issues.")
+  }
+  SEs <-  sqrt(diagHinv)
+  SEs[diagHinv < 0] <- NA
   
   # 
   # 

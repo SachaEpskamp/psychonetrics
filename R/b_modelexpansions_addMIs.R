@@ -155,10 +155,14 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
   nTotal <- sum(x@sample@groups$nobs)
   
   # FIXME: 4 * n could be nicer here probably
-  if (modCopy@cpp){
+  if (!analyticFisher){
+    # The C++ analytic path does not honour analyticFisher (its 2nd argument is
+    # useM, not analytic), so route to the numeric R implementation here:
+    H <- 4 * nTotal * as(numeric_FisherInformation(modCopy), "matrix")
+  } else if (modCopy@cpp){
     H <- 4 * nTotal * as(psychonetrics_FisherInformation_cpp(modCopy, analyticFisher), "matrix")
   } else {
-    H <- 4 * nTotal * as(psychonetrics_FisherInformation(modCopy, analyticFisher), "matrix")    
+    H <- 4 * nTotal * as(psychonetrics_FisherInformation(modCopy, analyticFisher), "matrix")
   }
   
   

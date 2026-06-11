@@ -60,7 +60,7 @@ The number of observations used in \code{covs} and \code{means}, or a vector of 
 A vector of the response options used, encoded identically across all variables. Defaults to (and is conventionally) \code{c(-1, 0, 1)}; a warning is raised for any other set. Automatically detected from the data when not supplied; required when \code{covs} is used. Any number of distinct response options is allowed, and the values need not be integers.
 }
   \item{missing}{
-How should missingness be handled in computing the sample covariances and number of observations when \code{data} is used. Can be \code{"listwise"} for listwise deletion, or \code{"pairwise"} for pairwise deletion. NOT RECOMMENDED TO BE USED YET IN THIS MODEL.
+How should missingness be handled when \code{data} is used. Only \code{"listwise"} (listwise deletion) is currently supported for the Blume-Capel model; other options (e.g. \code{"pairwise"}) are rejected at construction because they produce undefined sufficient statistics.
 }
   \item{equal}{
 A character vector indicating which matrices should be constrained equal across groups.

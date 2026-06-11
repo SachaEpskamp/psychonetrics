@@ -294,7 +294,27 @@ addfit <- function(
   
   # Fitmeasures list:
   fitMeasures <- list()
-  
+
+  # Helper to add likelihood-based information criteria (independent of the
+  # chisq/baseline machinery). Used both in the normal path and before the
+  # early-exit returns below, so that logl/npar/df/AIC/BIC/ebic* are retained
+  # even when chisq or the baseline model are not usable.
+  add_ll_ic <- function(fm){
+    LL <- fm$logl
+    npar <- fm$npar
+    nV <- fm$nvar
+    fm$aic.ll  <- -2*LL + 2*npar
+    fm$aic.ll2 <- -2*LL + 2*npar + (2*npar^2 + 2*npar)/(sampleSize - npar - 1)
+    fm$bic  <- -2*LL + npar * log(sampleSize)
+    N.star  <- (sampleSize + 2) / 24
+    fm$bic2 <- -2*LL + npar * log(N.star)
+    fm$ebic.25 <- -2*LL + npar * log(sampleSize) + 4 * npar * 0.25 * log(nV)
+    fm$ebic.5  <- -2*LL + npar * log(sampleSize) + 4 * npar * 0.5  * log(nV)
+    fm$ebic.75 <- -2*LL + npar * log(sampleSize) + 4 * npar * 0.75 * log(nV)
+    fm$ebic1   <- -2*LL + npar * log(sampleSize) + 4 * npar * 1    * log(nV)
+    fm
+  }
+
   
   # log likelihoods:
   # Saturated:
@@ -441,6 +461,8 @@ addfit <- function(
 
     # Stop here if baseline is not good:
     if (is.null(dfb) || !is.finite(dfb) || !is.finite(Tb)){
+      fitMeasures <- add_ll_ic(fitMeasures)
+      x@fitmeasures <- fitMeasures
       return(x)
     }
     
@@ -508,6 +530,8 @@ addfit <- function(
   # If LLs are not good, break here:
 
   if (!is.finite(Tm) ){
+    fitMeasures <- add_ll_ic(fitMeasures)
+    x@fitmeasures <- fitMeasures
     return(x)
   }
   
@@ -637,31 +661,14 @@ addfit <- function(
   # information criteria:
 
 
-  # Deviance based AIC (traditional definition)
-  fitMeasures$aic.ll <-  -2*LL + 2* fitMeasures$npar
-  # Deviance based AIC with sample size adjustment
-  fitMeasures$aic.ll2 <-  -2*LL + 2* fitMeasures$npar +
-    (2*fitMeasures$npar^2 + 2*fitMeasures$npar)/(sampleSize - fitMeasures$npar - 1)
+  # Deviance based AIC / BIC / ebic (likelihood-based):
+  fitMeasures <- add_ll_ic(fitMeasures)
 
   # Chi-square based AIC with df penalty (Kaplan, 2000): AIC(null) - AIC(saturated)
   fitMeasures$aic.x <- Tm - 2*fitMeasures$df
 
   # Chi-square based AIC with parameter penalty (Kline, 2016) - couldn't find the proper derivation
   fitMeasures$aic.x2 <- Tm + 2*fitMeasures$npar
-
-  BIC <- -2*LL + fitMeasures$npar * log(sampleSize)
-  fitMeasures$bic <- BIC
-
-  # add sample-size adjusted bic
-  N.star <- (sampleSize + 2) / 24
-  BIC2 <- -2*LL + fitMeasures$npar * log(N.star)
-  fitMeasures$bic2 <- BIC2
-
-  # Add extended bic:
-  fitMeasures$ebic.25 <-  -2*LL + fitMeasures$npar * log(sampleSize) + 4 *  fitMeasures$npar * 0.25 * log(nVar)
-  fitMeasures$ebic.5 <-  -2*LL + fitMeasures$npar * log(sampleSize) + 4 *  fitMeasures$npar * 0.5 * log(nVar)
-  fitMeasures$ebic.75 <-  -2*LL + fitMeasures$npar * log(sampleSize) + 4 *  fitMeasures$npar * 0.7 * log(nVar)
-  fitMeasures$ebic1 <-  -2*LL + fitMeasures$npar * log(sampleSize) + 4 *  fitMeasures$npar * 1 * log(nVar)
   # fitMeasures$ebicTuning <- ebicTuning
 
   # Put in objet:

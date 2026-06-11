@@ -18,7 +18,12 @@ identify_Ising <- function(x){
     consPerMat <- cons %>% group_by(.data[["matrix"]]) %>% summarize(n = sum(.data[['eq']]))
     
     # at least 1 intercepts need to be equal
-    if (sum(consPerMat$n[consPerMat$matrix %in% c("omega","tau")]) >= 1){
+    # Include the Blume-Capel quadratic 'delta' matrix alongside omega/tau: a
+    # cross-group equality constraint there also pins down the relative scaling
+    # of the group inverse temperatures (beta), so beta must be freed. The
+    # not-all-fixed condition in 'cons' already excludes the zero-fixed Ising
+    # delta, so plain Ising models are unaffected.
+    if (sum(consPerMat$n[consPerMat$matrix %in% c("omega","tau","delta")]) >= 1){
       fix <- which(x@parameters$matrix %in% c("beta","log_beta") & x@parameters$group_id == 1)
       free <-  which(x@parameters$matrix %in% c("beta","log_beta") & x@parameters$group_id > 1 & !(x@parameters$fixed & !x@parameters$identified))
     } else {

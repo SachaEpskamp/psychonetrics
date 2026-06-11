@@ -377,9 +377,12 @@ stepup <- function(
           newx <- x %>% runmodel(...,log=FALSE) # %>% prune(alpha = alpha, adjust = greedyadjust)
           
           if (checkinformation){
-            
+
             # if (any(eigen(x@information)$values < -sqrt(.Machine$double.eps))){
-            if (!sympd_cpp(x@information)){
+            # Inspect the information of the augmented model (newx), not the
+            # previous model (x), so the identification check actually applies
+            # to the model we are about to accept:
+            if (!sympd_cpp(newx@information)){
               if (curtry < maxtry){
                 if (verbose){
                   message(paste("Model may not be identified, adjusting start values and trying again."))

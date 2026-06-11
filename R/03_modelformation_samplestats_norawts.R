@@ -536,11 +536,13 @@ samplestats_norawts <- function(
           message("Assuming denominator n was used in covariance computation (covtype = 'ML').")
         # }
         squares <- MLsquares
+        covtype <- "ML"
       } else {
         # if (verbose){
           message("Assuming denominator n-1 was used in covariance computation (covtype = 'UB').")
         # }
         squares <- UBsquares
+        covtype <- "UB"
       }
     } else if (covtype == "ML"){
       squares <- MLsquares

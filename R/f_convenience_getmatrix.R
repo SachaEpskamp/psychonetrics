@@ -136,7 +136,7 @@ getmatrix <- function(x,matrix,group,threshold=FALSE,
   if (!diag){
     for (g in seq_along(mats)){
       if (ncol(mats[[g]]) == nrow(mats[[g]]))
-      mats[[g]][diag(mats[[g]])] <- 0
+      diag(mats[[g]]) <- 0
     }
   }
   

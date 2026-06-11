@@ -46,14 +46,29 @@ adjust_p_values <- function(x,
     return(rep(NA, nrow(x@parameters)))
   }
   
-  # old method:
+  # Parameter indices (equality-constrained parameters share a par number > 0
+  # across rows/groups and must be counted only once in the multiple-comparison
+  # correction; fixed parameters have par == 0 and are not tested here):
+  par <- x@parameters$par
+
   if (mode == "all"){
-    pValues <- p.adjust(x@parameters[[pcol]],method = adjust) 
+    pValues <- rep(NA, nrow(x@parameters))
+    # Adjust over unique (free) parameters, then map back to all rows:
+    rows <- which(par > 0)
+    if (length(rows) > 0){
+      u <- !duplicated(par[rows])
+      padj_u <- p.adjust(x@parameters[[pcol]][rows][u], method = adjust)
+      # Map each row to its parameter's adjusted p-value:
+      pValues[rows] <- padj_u[match(par[rows], par[rows][u])]
+    }
   } else {
-    pValues <- rep(NA,nrow(x@parameters))
-    pValues[whichTest] <- p.adjust(x@parameters[[pcol]][whichTest],method = adjust) 
+    pValues <- rep(NA, nrow(x@parameters))
+    # Adjust over unique tested parameters, then map back to all tested rows:
+    u <- !duplicated(par[whichTest])
+    padj_u <- p.adjust(x@parameters[[pcol]][whichTest][u], method = adjust)
+    pValues[whichTest] <- padj_u[match(par[whichTest], par[whichTest][u])]
   }
-  
+
   # Return:
   pValues
 }

@@ -300,7 +300,7 @@ prune <- function(
   # Recurse if needed:
   if (recursive){
     x <- x %>% prune(
-      alpha = 0.01, # Significance
+      alpha = alpha, # Significance
       adjust = adjust,
       matrices = matrices, # Automatically chosen
       runmodel = TRUE,
@@ -308,6 +308,9 @@ prune <- function(
       verbose = verbose,
       log = log,
       identify = identify,
+      startreduce = startreduce,
+      limit = limit,
+      mode = mode,
       # bootstrap = bootstrap,
       ...
     )

@@ -16,6 +16,21 @@ using namespace arma;
 // (so the @information slot is empty), mirroring the R getVCOV() path.
 arma::mat psychonetrics_FisherInformation_cpp(const S4& model, bool useM, bool sparsemodel);
 
+// Warn (unconditionally) when any variance diagonal of the inverse Fisher
+// information is negative. Returns whether any negative was found. Callers set
+// the corresponding SE to NA so that negative variances are not turned into
+// plausible-looking standard errors via abs().
+static bool warn_negvar(const arma::vec& diagHinv){
+  bool anyNeg = false;
+  for (arma::uword j=0; j<diagHinv.n_elem; j++){
+    if (diagHinv(j) < 0){ anyNeg = true; break; }
+  }
+  if (anyNeg){
+    Rf_warning("Some variances in the inverse Fisher information matrix are negative; their standard errors are set to NA. This is typically a symptom of a non-identified model or convergence issues.");
+  }
+  return anyNeg;
+}
+
 
 // [[Rcpp::export]]
 S4 addSEs_cpp(
@@ -110,8 +125,14 @@ S4 addSEs_cpp(
           }
         }
       } else {
-        // Obtain SEs
-        arma::vec SEs = sqrt(abs(Hinv.diag()));
+        // Obtain SEs (negative variance diagonals -> NA, see warn_negvar below):
+        arma::vec diagHinv = Hinv.diag();
+        bool anyNeg = warn_negvar(diagHinv);
+        arma::vec SEs = arma::sqrt(arma::abs(diagHinv));
+        for (arma::uword j=0; j<SEs.n_elem; j++){
+          if (diagHinv(j) < 0) SEs(j) = NA_REAL;
+        }
+        (void) anyNeg;
 
         for (i=0; i<nparTotal;i++){
           if (par[i] > 0){
@@ -158,7 +179,7 @@ S4 addSEs_cpp(
 
         if (R_IsNA(first_element)){
           // Even approximate inversion failed:
-          Rf_warning("Standard errors could not be obtained because the Fischer information matrix could not be inverted. This may be a symptom of a non-identified model or due to convergence issues.");
+          Rf_warning("Standard errors could not be obtained because the Fisher information matrix could not be inverted. This may be a symptom of a non-identified model or due to convergence issues.");
 
           // Write NAs:
           for (i=0; i<nparTotal;i++){
@@ -169,10 +190,15 @@ S4 addSEs_cpp(
           }
         } else {
           // Approximate inversion succeeded:
-          Rf_warning("Exact standard errors could not be obtained because the Fischer information matrix could not be inverted. Falling back to approximate standard errors. This can occur with zero cells in crosstables (common in multi-group Ising models) or near-boundary estimates. Interpret with care.");
+          Rf_warning("Exact standard errors could not be obtained because the Fisher information matrix could not be inverted. Falling back to approximate standard errors. This can occur with zero cells in crosstables (common in multi-group Ising models) or near-boundary estimates. Interpret with care.");
 
-          // Obtain SEs
-          arma::vec SEs = sqrt(abs(Hinv.diag()));
+          // Obtain SEs (negative variance diagonals -> NA):
+          arma::vec diagHinv = Hinv.diag();
+          warn_negvar(diagHinv);
+          arma::vec SEs = arma::sqrt(arma::abs(diagHinv));
+          for (arma::uword j=0; j<SEs.n_elem; j++){
+            if (diagHinv(j) < 0) SEs(j) = NA_REAL;
+          }
 
           // Add standard errors:
           for (i=0; i<nparTotal;i++){
@@ -185,7 +211,7 @@ S4 addSEs_cpp(
 
       } else {
         // User explicitly requested approximate SEs and it still failed:
-        Rf_warning("Standard errors could not be obtained because the Fischer information matrix could not be inverted. This may be a symptom of a non-identified model or due to convergence issues.");
+        Rf_warning("Standard errors could not be obtained because the Fisher information matrix could not be inverted. This may be a symptom of a non-identified model or due to convergence issues.");
 
         // Write NAs:
         for (i=0; i<nparTotal;i++){
@@ -198,8 +224,13 @@ S4 addSEs_cpp(
 
     } else {
 
-      // Obtain SEs
-      arma::vec SEs = sqrt(abs(Hinv.diag()));
+      // Obtain SEs (negative variance diagonals -> NA):
+      arma::vec diagHinv = Hinv.diag();
+      warn_negvar(diagHinv);
+      arma::vec SEs = arma::sqrt(arma::abs(diagHinv));
+      for (arma::uword j=0; j<SEs.n_elem; j++){
+        if (diagHinv(j) < 0) SEs(j) = NA_REAL;
+      }
 
       // Add standard errors:
       for (i=0; i<nparTotal;i++){

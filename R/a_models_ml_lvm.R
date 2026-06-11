@@ -105,7 +105,16 @@ ml_lvm <- function(
       stop("Dataset contains no column names.")
     }
     vars <- names(data)
-    vars <- vars[vars!=clusters]
+    # Exclude both the clusters column and the grouping column (when 'groups'
+    # names a column of 'data'); the grouping default is resolved further below,
+    # but if 'groups' is supplied it must not be treated as a manifest variable
+    # (the dplyr across(all_of(vars)) aggregation would otherwise error):
+    drop_cols <- clusters
+    if (!missing(groups) && !is.null(groups) && is.character(groups) &&
+        length(groups) == 1 && groups %in% names(data)){
+      drop_cols <- c(drop_cols, groups)
+    }
+    vars <- vars[!vars %in% drop_cols]
   } else {
     if (is.null(names(data))){
       stop("Dataset contains no column names.")

@@ -866,13 +866,18 @@ runmodel <- function(
       message("Computing Fisher information...")
     }
     
-    if (x@cpp){
+    if (!analyticFisher){
+      # Numeric (numDeriv-based) information. The C++ analytic path does not
+      # honour analyticFisher (its 2nd argument is useM, not analytic), so we
+      # explicitly route to the numeric R implementation here regardless of cpp:
+      x@information <- numeric_FisherInformation(x)
+    } else if (x@cpp){
       x@information <- psychonetrics_FisherInformation_cpp(x, analyticFisher)
     } else {
       x@information <- psychonetrics_FisherInformation(x, analyticFisher)
     }
-    
-    
+
+
     # if (verbose){
     #   message("Transpose...")
     # }
