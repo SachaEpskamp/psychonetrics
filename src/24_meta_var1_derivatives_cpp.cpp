@@ -41,8 +41,6 @@ arma::mat d_phi_theta_meta_var1_group_cpp(
     nmod * (nmod + 1) / 2;           // variance part (vech of random effects covariance)
 
   // Mean part and variance part row indices:
-  int meanPart_start = 0;
-  int meanPart_end = nmod - 1;
   int varPart_start = nmod;
   int varPart_end = nobs - 1;
 

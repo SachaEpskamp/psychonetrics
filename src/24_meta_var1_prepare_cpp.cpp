@@ -29,7 +29,6 @@ Rcpp::List prepare_meta_var1_cpp(
   Rcpp::List imp = implied_meta_var1_cpp_core(mats, model, false);
 
   // Read constant data from cached workspace (no S4 slot reads):
-  bool corinput = ws.corinput;
   bool meanstructure = ws.meanstructure;
   int nGroup = ws.nGroup;
   arma::vec nPerGroup = ws.nPerGroup;
