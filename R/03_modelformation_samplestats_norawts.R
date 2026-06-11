@@ -300,18 +300,24 @@ samplestats_norawts <- function(
       for (g in 1:nGroup){
         
         if (length(ordered)  > 0){
-          
+
+          # Subset the rows belonging to this group (data[[groups]] has been
+          # recoded to integer group ids 1:nGroup above), so that each group
+          # gets its own polychorics/thresholds/weights instead of the pooled
+          # sample:
+          subData <- data[data[[groups]] == g, vars]
+
           # Run the Cpp function:
           prepRes <- covPrepare_cpp(
-            as.matrix(data[,vars]),
+            as.matrix(subData),
             vars %in% ordered,
             WLSweights = needWLSV
           )
-          
+
           if (any(eigen(prepRes$covmat)$values < 0)){
             stop("Correlation matrix is not positive semi-definite.")
           }
-          
+
           # Obtain results:
           covs[[g]] <- as(prepRes$covmat, "matrix")
           cors[[g]] <- as(cov2cor(prepRes$covmat), "matrix")
@@ -321,9 +327,13 @@ samplestats_norawts <- function(
             if (!vars[i] %in% ordered){
               means[[g]][i] <- prepRes$means_thresholds[[i]]
               thresholds[[g]][[i]] <- numeric(0)
-            } 
+            }
           }
-          
+
+          # Squares are not used for ordinal data; assign an NA matrix for
+          # symmetry with the single-group branch:
+          squares[[g]] <- as(matrix(NA,nrow(prepRes$covmat),ncol(prepRes$covmat)), "matrix")
+
           if (needWLSV){
             Gamma_full_g <- solve(as.matrix(prepRes$WLS_V))
             gammamatrix[[g]] <- Gamma_full_g

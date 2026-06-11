@@ -1,3 +1,14 @@
+Changes in Version 0.15.19
+  o Bugfix: for multi-group models with ordinal data (e.g. ggm() and other
+    models with ordered = ... , groups = ... and estimator = "WLS"/"DWLS"),
+    the per-group polychoric correlations, thresholds and WLS weight
+    matrices were computed on the full pooled sample instead of each group's
+    own rows. Every group therefore received identical (pooled) sample
+    statistics, so multi-group ordinal models were silently fit to pooled
+    data. Each group is now correctly computed from its own observations.
+    Single-group ordinal models and continuous (non-ordinal) multi-group
+    models were unaffected.
+
 Changes in Version 0.15.18
   o Bugfix: the identification routine for the multi-level latent variable
     models (ml_lvm() and the ml_lnm/ml_rnm/ml_lrnm wrappers) referred to the
