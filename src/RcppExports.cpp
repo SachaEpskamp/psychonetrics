@@ -2113,6 +2113,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// computeLogZ_cpp
+double computeLogZ_cpp(arma::mat graph, arma::vec tau, arma::vec delta, double beta, arma::vec responses, double min_sum);
+RcppExport SEXP _psychonetrics_computeLogZ_cpp(SEXP graphSEXP, SEXP tauSEXP, SEXP deltaSEXP, SEXP betaSEXP, SEXP responsesSEXP, SEXP min_sumSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type graph(graphSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type delta(deltaSEXP);
+    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type responses(responsesSEXP);
+    Rcpp::traits::input_parameter< double >::type min_sum(min_sumSEXP);
+    rcpp_result_gen = Rcpp::wrap(computeLogZ_cpp(graph, tau, delta, beta, responses, min_sum));
+    return rcpp_result_gen;
+END_RCPP
+}
 // computeZ_cpp
 double computeZ_cpp(arma::mat graph, arma::vec tau, arma::vec delta, double beta, arma::vec responses, double min_sum);
 RcppExport SEXP _psychonetrics_computeZ_cpp(SEXP graphSEXP, SEXP tauSEXP, SEXP deltaSEXP, SEXP betaSEXP, SEXP responsesSEXP, SEXP min_sumSEXP) {
@@ -2483,6 +2499,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_H", (DL_FUNC) &_psychonetrics_H, 4},
     {"_psychonetrics_Pot", (DL_FUNC) &_psychonetrics_Pot, 5},
     {"_psychonetrics_isingExpectation", (DL_FUNC) &_psychonetrics_isingExpectation, 6},
+    {"_psychonetrics_computeLogZ_cpp", (DL_FUNC) &_psychonetrics_computeLogZ_cpp, 6},
     {"_psychonetrics_computeZ_cpp", (DL_FUNC) &_psychonetrics_computeZ_cpp, 6},
     {"_psychonetrics_implied_Ising_cpp", (DL_FUNC) &_psychonetrics_implied_Ising_cpp, 2},
     {"_psychonetrics_prepare_Ising_cpp", (DL_FUNC) &_psychonetrics_prepare_Ising_cpp, 2},

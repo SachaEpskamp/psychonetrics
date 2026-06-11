@@ -51,6 +51,7 @@ prepare_Ising <- function(x, model){
       groupModels[[g]]$min_sum
     )
     groupModels[[g]]$Z <- exp$Z
+    groupModels[[g]]$logZ <- exp$logZ
     groupModels[[g]]$exp_v1 <- exp$exp_v1
     groupModels[[g]]$exp_v2 <- exp$exp_v2
     groupModels[[g]]$exp_H <- exp$exp_H

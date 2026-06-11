@@ -657,6 +657,10 @@ isingExpectation <- function(graph, tau, delta, beta, responses, min_sum) {
     .Call(`_psychonetrics_isingExpectation`, graph, tau, delta, beta, responses, min_sum)
 }
 
+computeLogZ_cpp <- function(graph, tau, delta, beta, responses, min_sum) {
+    .Call(`_psychonetrics_computeLogZ_cpp`, graph, tau, delta, beta, responses, min_sum)
+}
+
 computeZ_cpp <- function(graph, tau, delta, beta, responses, min_sum) {
     .Call(`_psychonetrics_computeZ_cpp`, graph, tau, delta, beta, responses, min_sum)
 }

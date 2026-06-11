@@ -17,6 +17,7 @@
 #include <math.h>
 #include <vector>
 #include "02_algebrahelpers_RcppHelpers.h"
+#include "21_Ising_helperfunctions.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -70,6 +71,14 @@ arma::mat expected_hessian_Ising_group_full_cpp(
     // Quick lookup for edge index from (i,j) pair (only for i>j):
     // not needed at runtime — moments are indexed by edge_idx directly.
 
+    // ---- Log-sum-exp shift: maximum log-potential over all included states.
+    // Weights below are pot = exp(-beta*H - M), so the accumulators stay
+    // finite even when raw exp(-beta*H) would overflow/underflow. All
+    // moments are ratios (divided by Z = sum of weights), so the shift
+    // cancels exactly. Cheap first pass (Hamiltonian evaluations only):
+    double M = maxLogPot_Ising(omega, tau, delta, beta, responses, min_sum);
+    if (M == R_NegInf) M = 0.0;  // degenerate: no included states
+
     // ---- Accumulators (un-normalized: weight = pot, divide by Z at end) ----
     double Z = 0.0;
     double expH_u  = 0.0;   // sum pot * H
@@ -119,7 +128,7 @@ arma::mat expected_hessian_Ising_group_full_cpp(
                 }
             }
 
-            const double pot = std::exp(-1.0 * beta * H);
+            const double pot = std::exp(-1.0 * beta * H - M);
             const double potH  = pot * H;
             const double potH2 = pot * H * H;
 

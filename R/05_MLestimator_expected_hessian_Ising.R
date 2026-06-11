@@ -21,10 +21,13 @@ expected_hessian_Ising_group <- function(omega,tau,beta,delta,responses,nobs,min
     states <- states[rowSums(states) >= min_sum, , drop = FALSE]
   }
 
-  # Potentials and probabilities:
-  potentials <- apply(states, 1, function(s) Pot(s, graph, thresholds, delta, beta))
-  Z <- sum(potentials)
-  probabilities <- potentials / Z
+  # Potentials and probabilities, accumulated in the log domain (log-sum-exp)
+  # so the probabilities stay finite even when raw exp(-beta*H) would
+  # overflow/underflow (e.g. extreme tau):
+  logpotentials <- apply(states, 1, function(s) -beta * H(s, graph, thresholds, delta))
+  M <- max(logpotentials)
+  w <- exp(logpotentials - M)
+  probabilities <- w / sum(w)
 
   # Run C++:
   Hes <- expHessianCpp(

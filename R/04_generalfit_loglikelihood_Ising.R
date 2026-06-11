@@ -48,8 +48,8 @@ logLikelihood_Ising_group_sumstat <- function(omega,tau,beta,delta,squares,means
   beta <- as.numeric(beta)
   delta <- as.vector(delta)
 
-  # Compute Z:
-  Z <- computeZ(graph, thresholds, as.numeric(beta), responses, delta = delta)
+  # Compute log(Z) (log-sum-exp; finite even when raw Z would overflow/underflow):
+  logZ <- computeLogZ(graph, thresholds, as.numeric(beta), responses, delta = delta)
 
   # Compute summary statistics:
   # FIXME: Not nice, will make things double
@@ -64,8 +64,8 @@ logLikelihood_Ising_group_sumstat <- function(omega,tau,beta,delta,squares,means
   )
   
   # Fml
-  Fml <- 2 * log(Z) + 2 * beta * H / nobs
-  
+  Fml <- 2 * logZ + 2 * beta * H / nobs
+
   # LL:
   LL <- -(1/2)*nobs*Fml
   

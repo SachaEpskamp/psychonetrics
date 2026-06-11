@@ -27,8 +27,16 @@ double maxLikEstimator_Ising_group_cpp(
 
 
 
-  // Compute Z:
-  double Z = grouplist["Z"]; // computeZ_cpp(graph, thresholds, delta, beta, responses);
+  // Log partition function (computed with log-sum-exp in isingExpectation,
+  // so it stays finite even when raw Z would overflow/underflow). Fall back
+  // to log(Z) if logZ is not present (e.g. an old prepared list):
+  double logZ;
+  if (grouplist.containsElementNamed("logZ")){
+    logZ = grouplist["logZ"];
+  } else {
+    double Z = grouplist["Z"];
+    logZ = log(Z);
+  }
 
   // Compute summary statistics:
   // FIXME: Not nice, will make things double
@@ -47,7 +55,7 @@ double maxLikEstimator_Ising_group_cpp(
   );
   
   // Fml
-  double Fml = 2 * log(Z) + 2 * beta * H / nobs;
+  double Fml = 2 * logZ + 2 * beta * H / nobs;
   
   
   // Return:

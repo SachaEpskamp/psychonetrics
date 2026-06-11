@@ -1,13 +1,17 @@
 # Fit function per group:
-maxLikEstimator_Ising_group <- function(omega,tau,beta,delta,squares,means,responses,nobs,Z,...){
+maxLikEstimator_Ising_group <- function(omega,tau,beta,delta,squares,means,responses,nobs,Z,logZ,...){
   # Graph and thresholds:
   thresholds <- as.vector(tau)
   graph <- as.matrix(omega)
   beta <- as.numeric(beta)
   delta <- as.vector(delta)
 
-  # Compute Z:
-  # Z <- computeZ(graph, thresholds, as.numeric(beta), responses, delta = delta)
+  # Log partition function (computed with log-sum-exp in isingExpectation,
+  # so it stays finite even when raw Z would overflow/underflow). Fall back
+  # to log(Z) if logZ is not present (e.g. an old prepared list):
+  if (missing(logZ) || is.null(logZ)){
+    logZ <- log(Z)
+  }
   #
   # Compute summary statistics:
   # FIXME: Not nice, will make things double
@@ -22,9 +26,9 @@ maxLikEstimator_Ising_group <- function(omega,tau,beta,delta,squares,means,respo
   )
   
   # Fml
-  Fml <- 2 * log(Z) + 2 * beta * H / nobs
-  
-  
+  Fml <- 2 * logZ + 2 * beta * H / nobs
+
+
   # Return:
   return(Fml)
 }

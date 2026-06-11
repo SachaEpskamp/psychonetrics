@@ -69,8 +69,12 @@ impliedcovstructures <- function(
     } else if (type == "ggm"){
       # First check if the delta Matrix is present (it is ignored when corinput = TRUE only, so don't need to know that that argument was used):
       if (is.null(x[[g]][[delta]])){
-        # FIXME: non positive definite matrices are even worse here... So I am trying to solve this with a spectral shift for now:
-        IminO_dummy <-  as.matrix(solve_symmetric(spectralshift(Diagonal(ncol(x[[g]][[omega]])) - x[[g]][[omega]])))
+        # No spectral shift here: the C++ twin (03_modelformation_impliedcovstructures.cpp)
+        # does not shift at this runtime site either, and both paths must give
+        # the same outcomes. Non-positive-definite I - omega is handled by the
+        # approximate inverse + logdet plugin in solve_symmetric, exactly as in
+        # the C++ path. (spectralshift remains in use for start values only.)
+        IminO_dummy <-  as.matrix(solve_symmetric(Diagonal(ncol(x[[g]][[omega]])) - x[[g]][[omega]]))
         x[[g]][[delta]] <- Diagonal(x = diag(IminO_dummy)^(-0.5))
       } else {
         IminO_dummy <-  as.matrix(solve_symmetric(Diagonal(ncol(x[[g]][[omega]])) - x[[g]][[omega]]))

@@ -221,8 +221,11 @@ ml_lvm <- function(
   design <- matrix(NA, length(rowVars), length(colVars))
   for (i in seq_along(rowVars)){
     for (j in seq_along(colVars)){
-      varName <- paste0("^",rowVars[i],"_",colVars[j],"$")
-      whichVar <- which(grepl(varName, names(datawide)))
+      # Exact matching (not regex): variable names may contain regex
+      # metacharacters (e.g. "y.1"), which would otherwise match multiple
+      # columns and silently drop the variable from the model:
+      varName <- paste0(rowVars[i],"_",colVars[j])
+      whichVar <- which(names(datawide) == varName)
       if (length(whichVar) == 1){
         design[i,j] <- paste0(rowVars[i],"_",colVars[j])
       }

@@ -84,22 +84,48 @@ OptimWorkspace buildOptimWorkspace(const S4& model) {
     return ws;
 }
 
-// Static cache: single workspace + its SEXP key
+// Static cache: single workspace + its SEXP key.
+//
+// The key SEXP is protected with R_PreserveObject while it is the cache key.
+// This makes the address-based keying sound:
+//  - the garbage collector cannot free the keyed model, so no *different*
+//    object can ever be allocated at the cached address while it is cached
+//    (previously, after rm() + gc(), a new model at the same address would
+//    silently receive the stale workspace);
+//  - preservation also bumps the object's reference count, so any R-level
+//    slot modification of the keyed model duplicates it (copy-on-write),
+//    yielding a new address and therefore a cache miss + rebuild.
 static std::unique_ptr<OptimWorkspace> s_cachedWorkspace;
 static SEXP s_cachedModelSEXP = R_NilValue;
+
+// Replace the cached key, releasing the previously preserved one:
+static void setCachedModelKey(SEXP key) {
+    if (s_cachedModelSEXP != R_NilValue) {
+        R_ReleaseObject(s_cachedModelSEXP);
+    }
+    s_cachedModelSEXP = key;
+    if (key != R_NilValue) {
+        R_PreserveObject(key);
+    }
+}
 
 // Get or build workspace using static cache
 const OptimWorkspace& getOrBuildWorkspace(const S4& model) {
     SEXP currentSEXP = (SEXP)model;
 
-    // Cache hit: same model object, return cached workspace
+    // Cache hit: same (live, preserved) model object, return cached workspace
     if (s_cachedWorkspace && s_cachedModelSEXP == currentSEXP) {
         return *s_cachedWorkspace;
     }
 
     // Cache miss: build new workspace and cache it
     s_cachedWorkspace = std::make_unique<OptimWorkspace>(buildOptimWorkspace(model));
-    s_cachedModelSEXP = currentSEXP;
+    setCachedModelKey(currentSEXP);
+
+    // The prepareModel_cpp result cache is keyed on the same model SEXP; it
+    // is only sound while its key equals the preserved workspace key, so
+    // clear it whenever the workspace key changes:
+    invalidatePrepCache();
 
     return *s_cachedWorkspace;
 }
@@ -108,7 +134,7 @@ const OptimWorkspace& getOrBuildWorkspace(const S4& model) {
 // [[Rcpp::export]]
 void invalidateWorkspaceCache() {
     s_cachedWorkspace.reset();
-    s_cachedModelSEXP = R_NilValue;
+    setCachedModelKey(R_NilValue);
     // Also clear the prepareModel_cpp result cache (Optimization 4):
     invalidatePrepCache();
 }
@@ -121,7 +147,7 @@ void updateWorkspacePenaltyLambda(const arma::vec& new_lambda_vec, SEXP modelSEX
     if (s_cachedWorkspace && (int)new_lambda_vec.n_elem == s_cachedWorkspace->nFreePar) {
         s_cachedWorkspace->penalty_lambda_vec = new_lambda_vec;
         s_cachedWorkspace->modelSEXP = modelSEXP;
-        s_cachedModelSEXP = modelSEXP;
+        setCachedModelKey(modelSEXP);
     }
     // Invalidate prep cache since model parameters changed
     invalidatePrepCache();

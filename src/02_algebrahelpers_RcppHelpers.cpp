@@ -160,9 +160,12 @@ Rcpp::List solve_symmetric_cpp(
         logdetval = logepsilon;
       } else {
         logdetval = log(det(invMat));
-        if (logdetval == R_NegInf){
+        // Plugin for any non-finite log determinant: det(invMat) may be a
+        // tiny *negative* number for an approximate inverse, in which case
+        // log() returns NaN (which the old == -Inf check let through):
+        if (!std::isfinite(logdetval)){
           logdetval = logepsilon;
-        } 
+        }
       }
       
       

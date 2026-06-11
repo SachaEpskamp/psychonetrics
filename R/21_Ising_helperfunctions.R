@@ -16,3 +16,19 @@ computeZ <- function(graph, thresholds, beta, responses = c(-1, 1), min_sum = -I
   computeZ_cpp(graph, as.vector(thresholds), as.vector(delta), as.numeric(beta),
                as.numeric(responses), min_sum)
 }
+
+# Compute log(Z) with log-sum-exp accumulation, so the result stays finite
+# even when raw Z would overflow to Inf or underflow to 0 (e.g. extreme tau):
+computeLogZ <- function(graph, thresholds, beta, responses = c(-1, 1), min_sum = -Inf, delta){
+  graph <- as.matrix(graph)
+  stopifnot(isSymmetric(unname(graph)))
+  if (any(diag(graph) != 0)) {
+    diag(graph) <- 0
+    warning("Diagonal set to 0")
+  }
+  if (missing(delta)){
+    delta <- rep(0, nrow(graph))
+  }
+  computeLogZ_cpp(graph, as.vector(thresholds), as.vector(delta), as.numeric(beta),
+                  as.numeric(responses), min_sum)
+}

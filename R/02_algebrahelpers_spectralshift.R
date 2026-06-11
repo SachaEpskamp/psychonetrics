@@ -20,7 +20,11 @@ spectralshift <- function(x){
     return(as.matrix(x))
   }
   
-  # Spectral shift and return:
-  x <- x - (Diagonal(n=nrow(x)) * (min(Re(eigen(x)$values)))-0.001)
+  # Spectral shift and return. Subtract (min eigenvalue - 0.001) from the
+  # diagonal only, so the smallest eigenvalue of the result is 0.001 and the
+  # off-diagonal elements are untouched. (A previous version had the
+  # parentheses misplaced, subtracting min(ev) from the diagonal but adding
+  # 0.001 to *every* element, which could leave the matrix exactly singular.)
+  x <- x - Diagonal(n=nrow(x)) * (min(Re(eigen(x)$values)) - 0.001)
   return(as.matrix(x))
 }

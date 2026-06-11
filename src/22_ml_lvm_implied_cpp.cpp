@@ -45,10 +45,26 @@ Rcpp::List implied_ml_lvm_cpp_core(
   
   int nVar = design.n_rows;
   int nMaxInCluster = design.n_cols;
-  
-  
-  
-  
+
+  // Indices (column-major over the design matrix, i.e. measurement t outer,
+  // variable i inner) of the observed variables. With an incomplete design
+  // (some variables missing at some measurements) the implied mu/sigma must
+  // be subset to the observed positions, exactly as in the R twin
+  // implied_ml_lvm (R/22_ml_lvm_implied.R):
+  arma::uvec obsInds(nVar * nMaxInCluster);
+  int nObs = 0;
+  for (int tt2 = 0; tt2 < nMaxInCluster; tt2++){
+    for (int i2 = 0; i2 < nVar; i2++){
+      if (design(i2, tt2) == 1){
+        obsInds(nObs) = tt2 * nVar + i2;
+        nObs++;
+      }
+    }
+  }
+  obsInds = obsInds.head(nObs);
+  bool completeDesign = (nObs == nVar * nMaxInCluster);
+
+
   for (g=0; g<nGroup; g++){
     bool proper = true;
     
@@ -117,13 +133,24 @@ Rcpp::List implied_ml_lvm_cpp_core(
     
     // Full implied covmat:
     arma::mat fullSigma = fullSigma_within + fullSigma_between;
-    
-    // Add to list:
-    grouplist["mu"] = fullMu;    
-    grouplist["sigma"] = fullSigma;
-    
 
-    
+    // Subset to the observed positions when the design is incomplete
+    // (matches the R twin, which subsets by as.vector(design) == 1):
+    if (!completeDesign){
+      arma::vec subMu = fullMu(obsInds);
+      arma::mat subSigma = fullSigma.submat(obsInds, obsInds);
+      // Force symmetry as in the R twin:
+      subSigma = 0.5 * (subSigma + subSigma.t());
+      fullMu = subMu;
+      fullSigma = subSigma;
+    }
+
+    // Add to list:
+    grouplist["mu"] = fullMu;
+    grouplist["sigma"] = fullSigma;
+
+
+
     // Precision:
     grouplist["kappa"] =  solve_symmetric_cpp_matrixonly_withcheck(fullSigma, proper);
     

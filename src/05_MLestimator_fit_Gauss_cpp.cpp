@@ -27,7 +27,10 @@ double maxLikEstimator_Gauss_group_cpp(
     logdet = log(1.490116e-08);
   } else {
     logdet = log(det(kappa));
-    if (logdet == R_NegInf){
+    // Plugin for any non-finite log determinant: det(kappa) may be a tiny
+    // *negative* number for a near-singular matrix, in which case log()
+    // returns NaN (which the old == -Inf check let through):
+    if (!std::isfinite(logdet)){
       logdet = log(1.490116e-08);
     }
   }

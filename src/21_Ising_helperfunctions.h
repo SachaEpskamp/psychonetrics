@@ -20,6 +20,24 @@ double computeZ_cpp(
                 double min_sum
 );
 
+double computeLogZ_cpp(
+                arma::mat graph,
+                arma::vec tau,
+                arma::vec delta,
+                double beta,
+                arma::vec responses,
+                double min_sum
+);
+
+double maxLogPot_Ising(
+    const arma::mat& graph,
+    const arma::vec& tau,
+    const arma::vec& delta,
+    double beta,
+    const arma::vec& responses,
+    double min_sum
+);
+
 
 Rcpp::List isingExpectation(
     arma::mat graph,
