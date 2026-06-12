@@ -721,7 +721,7 @@ meta_varcov <- function(
     Dstar = psychonetrics::duplicationMatrix(nNode,diag = FALSE), # Strict duplicaton matrix
     In = as(diag(nNode),"dMatrix"), # Identity of dim n
     A = psychonetrics::diagonalizationMatrix(nNode),
-    C = as(lavaan::lav_matrix_commutation(nNode,nNode),"dMatrix"),
+    C = commutationMatrix(nNode,nNode),
     
     # Random effects:
     D_c = psychonetrics::duplicationMatrix(nCor), # non-strict duplciation matrix
@@ -730,7 +730,7 @@ meta_varcov <- function(
     Dstar_c = psychonetrics::duplicationMatrix(nCor,diag = FALSE), # Strict duplicaton matrix
     In_c = as(diag(nCor),"dMatrix"), # Identity of dim n
     A_c = psychonetrics::diagonalizationMatrix(nCor),
-    C_c = as(lavaan::lav_matrix_commutation(nCor,nCor),"dMatrix"),
+    C_c = commutationMatrix(nCor,nCor),
     
     # Add the vmat:
     V = avgVmat,

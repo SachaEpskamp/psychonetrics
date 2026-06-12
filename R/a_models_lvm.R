@@ -645,9 +645,9 @@ lvm <- function(
     Dstar_eta = psychonetrics::duplicationMatrix(nLatent,diag = FALSE), # Strict duplicaton matrix
     In = as(diag(nNode),"dMatrix"), # Identity of dim n
     Inlatent = as(diag(nLatent),"dMatrix"),
-    C = as(lavaan::lav_matrix_commutation(nNode, nLatent),"dMatrix"),
-    Cbeta = as(lavaan::lav_matrix_commutation(nLatent, nLatent),"dMatrix"),
-    C_chol = as(lavaan::lav_matrix_commutation(nNode, nNode),"dMatrix"),
+    C = commutationMatrix(nNode, nLatent),
+    Cbeta = commutationMatrix(nLatent, nLatent),
+    C_chol = commutationMatrix(nNode, nNode),
     A = psychonetrics::diagonalizationMatrix(nNode),
     Aeta = psychonetrics::diagonalizationMatrix(nLatent)
   )

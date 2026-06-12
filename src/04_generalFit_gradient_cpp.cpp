@@ -33,12 +33,14 @@ arma::mat gradient_inner_cpp_DSS(
     const arma::sp_mat& model,
     const arma::sp_mat& manual
 ) {
-  // Sparse part first:
-  arma::sp_mat sparse = model * manual;
-  
+  // The estimator part is a single row vector, so multiplying left-to-right
+  // (dense row times sparse, twice) is much cheaper than first forming the
+  // sparse-sparse product model * manual:
+  arma::mat part1 = estimator * model;
+
   // Now second part:
-  arma::vec grad = vectorise(estimator * sparse);
-  
+  arma::vec grad = vectorise(part1 * manual);
+
   // Return
   return grad;
 }

@@ -281,7 +281,7 @@ var1 <- function(
     # In2 dropped (0.15.30): it was a mislabeled duplicate of In ("Identity of
     # dim n^2" but actually diag(nNode)) and is not consumed anywhere in R or C++.
     A = psychonetrics::diagonalizationMatrix(nNode),
-    C = as(lavaan::lav_matrix_commutation(nNode,nNode),"dMatrix")
+    C = commutationMatrix(nNode,nNode)
     # P=P # Permutation matrix
   )
   

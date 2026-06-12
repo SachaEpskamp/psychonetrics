@@ -360,9 +360,9 @@ tsdlvm1 <- function(
     # A_between = psychonetrics::diagonalizationMatrix(nLat),
     
     # Commutation matrices:
-    C_y_y = as(lavaan::lav_matrix_commutation(nNode, nNode),"dMatrix"),
-    C_y_eta = as(lavaan::lav_matrix_commutation(nNode, nLat),"dMatrix"),
-    C_eta_eta = as(lavaan::lav_matrix_commutation(nLat, nLat),"dMatrix"),
+    C_y_y = commutationMatrix(nNode, nNode),
+    C_y_eta = commutationMatrix(nNode, nLat),
+    C_eta_eta = commutationMatrix(nLat, nLat),
     
     # 
     # C_y_within = as(lavaan::lav_matrix_commutation(nVar, nLat),"sparseMatrix"),

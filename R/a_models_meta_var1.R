@@ -485,7 +485,7 @@ meta_var1 <- function(
     Dstar = psychonetrics::duplicationMatrix(nNode, diag = FALSE),
     In = as(diag(nNode), "dMatrix"),
     A = psychonetrics::diagonalizationMatrix(nNode),
-    C = as(lavaan::lav_matrix_commutation(nNode, nNode), "dMatrix"),
+    C = commutationMatrix(nNode, nNode),
 
     # Random effects matrices (nCov dimension):
     D_c = psychonetrics::duplicationMatrix(nCov),
@@ -494,7 +494,7 @@ meta_var1 <- function(
     Dstar_c = psychonetrics::duplicationMatrix(nCov, diag = FALSE),
     In_c = as(diag(nCov), "dMatrix"),
     A_c = psychonetrics::diagonalizationMatrix(nCov),
-    C_c = as(lavaan::lav_matrix_commutation(nCov, nCov), "dMatrix"),
+    C_c = commutationMatrix(nCov, nCov),
 
     # V matrices:
     V = avgVmat,

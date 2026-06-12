@@ -440,9 +440,9 @@ ml_lvm <- function(
     # A_between = psychonetrics::diagonalizationMatrix(nLat),
     
     # Commutation matrices:
-    C_y_y = as(lavaan::lav_matrix_commutation(nVar, nVar),"dMatrix"),
-    C_y_eta = as(lavaan::lav_matrix_commutation(nVar, nLat),"dMatrix"),
-    C_eta_eta = as(lavaan::lav_matrix_commutation(nLat, nLat),"dMatrix"),
+    C_y_y = commutationMatrix(nVar, nVar),
+    C_y_eta = commutationMatrix(nVar, nLat),
+    C_eta_eta = commutationMatrix(nLat, nLat),
     
     # 
     # C_y_within = as(lavaan::lav_matrix_commutation(nVar, nLat),"sparseMatrix"),

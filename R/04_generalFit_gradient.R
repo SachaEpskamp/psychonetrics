@@ -119,7 +119,18 @@ psychonetrics_gradient <- function(x, model){
 
 
   # message("Model part...")
-  modelPart <- sparseordense(modelJacobian(prep))
+  # Model part. For the gradient the estimator part is a single row vector,
+  # so the dense matrix products below are already fast; converting a merely
+  # sparse (but not diagonal) model Jacobian to a sparse Matrix costs more
+  # than the sparse products save. Hence, only exactly diagonal Jacobians
+  # (cheap to store and multiply) take the sparse path here. The Fisher
+  # information (04_generalfit_FisherInformation.R) does use the full
+  # sparse-or-dense classification, where the sparse path is a large win:
+  modelPart <- modelJacobian(prep)
+  if (!is.matrix(modelPart)) modelPart <- as.matrix(modelPart)
+  if (diag_sparse_dense_cpp(modelPart) == 0L){
+    modelPart <- as(modelPart, "dMatrix")
+  }
   
   
 

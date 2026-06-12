@@ -29,12 +29,14 @@ bool is_sparse_cpp(
   int thresh_nonZero = 0.25 * nrow * ncol;
   int thresh_Zero = 0.75 * nrow * ncol;
   
-  // Result value:
+  // Result value (decided flag is separate from the verdict, as crossing the
+  // zero-count threshold decides the matrix IS sparse):
   bool sparse = true;
-  
+  bool decided = false;
+
   // Look over all values:
-  for (i=0; i<nrow && sparse; i++){
-    for (j=0; j<ncol && sparse; j++){
+  for (i=0; i<nrow && !decided; i++){
+    for (j=0; j<ncol && !decided; j++){
       if (X(i,j) != 0){
         nNotZero++;
       } else {
@@ -42,8 +44,10 @@ bool is_sparse_cpp(
       }
       if (nNotZero >= thresh_nonZero){
         sparse = false;
+        decided = true;
       } else if (nZero >= thresh_Zero){
-        sparse = false;
+        sparse = true;
+        decided = true;
       }
     }
   }
@@ -68,36 +72,43 @@ int diag_sparse_dense_cpp(
   int thresh_nonZero = 0.25 * nrow * ncol;
   int thresh_Zero = 0.75 * nrow * ncol;
 
-  // Result value:
+  // Result value (sparse_decided flag is separate from the verdict, as
+  // crossing the zero-count threshold decides the matrix IS sparse):
   bool sparse = true;
+  bool sparse_decided = false;
   bool diag = nrow == ncol;
-  
+
   // Look over all values:
-  // Run while we think the matrix might be sparse or diagonal
-  for (i=0; i<nrow && (sparse||diag); i++){
-    for (j=0; j<ncol && (sparse||diag); j++){
-      
+  // Run while the sparse/dense verdict is undecided or the matrix might
+  // still be diagonal:
+  for (i=0; i<nrow && (!sparse_decided||diag); i++){
+    for (j=0; j<ncol && (!sparse_decided||diag); j++){
+
       // Is the element nonzero?
       if (X(i,j) != 0){
-        
+
         // Add to counter:
         nNotZero++;
-        
+
         // If this is an offdiagonal element then we know matrix is not diagonal:
         if (i != j){
           diag = false;
         }
       } else {
-        
+
         // Add to zeroes counter:
         nZero++;
       }
-      
-      // if we can determine matrix is not sparse we can stop:
-      if (nNotZero >= thresh_nonZero){
-        sparse = false;
-      } else if (nZero >= thresh_Zero){
-        sparse = false;
+
+      // if we can determine sparse or dense we can stop counting:
+      if (!sparse_decided){
+        if (nNotZero >= thresh_nonZero){
+          sparse = false;
+          sparse_decided = true;
+        } else if (nZero >= thresh_Zero){
+          sparse = true;
+          sparse_decided = true;
+        }
       }
     }
   }

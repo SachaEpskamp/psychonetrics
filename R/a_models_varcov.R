@@ -363,7 +363,7 @@ varcov <- function(
       D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
       L = psychonetrics::eliminationMatrix(nNode), # Elinimation matrix
       In = as(diag(nNode),"dMatrix"), # Identity of dim n
-      C = as(lavaan::lav_matrix_commutation(nNode,nNode),"dMatrix"),
+      C = commutationMatrix(nNode,nNode),
       Dstar = psychonetrics::duplicationMatrix(nNode,diag = FALSE), # Strict duplicaton matrix
       A = psychonetrics::diagonalizationMatrix(nNode)
     )

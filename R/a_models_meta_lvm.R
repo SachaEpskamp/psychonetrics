@@ -525,15 +525,15 @@ meta_lvm <- function(
     Dstar = psychonetrics::duplicationMatrix(nNode,diag = FALSE),
     In = as(diag(nNode),"dMatrix"),
     A = psychonetrics::diagonalizationMatrix(nNode),
-    C = as(lavaan::lav_matrix_commutation(nNode, nLatent),"dMatrix"),
-    C_chol = as(lavaan::lav_matrix_commutation(nNode, nNode),"dMatrix"),
+    C = commutationMatrix(nNode, nLatent),
+    C_chol = commutationMatrix(nNode, nNode),
 
     # LVM matrices (nLatent dimension):
     Deta = psychonetrics::duplicationMatrix(nLatent),
     L_eta = psychonetrics::eliminationMatrix(nLatent),
     Dstar_eta = psychonetrics::duplicationMatrix(nLatent,diag = FALSE),
     Inlatent = as(diag(nLatent),"dMatrix"),
-    Cbeta = as(lavaan::lav_matrix_commutation(nLatent, nLatent),"dMatrix"),
+    Cbeta = commutationMatrix(nLatent, nLatent),
     Aeta = psychonetrics::diagonalizationMatrix(nLatent),
 
     # Random effects matrices (nCov dimension):
@@ -543,7 +543,7 @@ meta_lvm <- function(
     Dstar_c = psychonetrics::duplicationMatrix(nCov,diag = FALSE),
     In_c = as(diag(nCov),"dMatrix"),
     A_c = psychonetrics::diagonalizationMatrix(nCov),
-    C_c = as(lavaan::lav_matrix_commutation(nCov,nCov),"dMatrix"),
+    C_c = commutationMatrix(nCov,nCov),
 
     # V matrices:
     V = avgVmat,
