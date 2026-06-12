@@ -19,7 +19,8 @@ Rcpp::List implied_ml_lvm_cpp(
 Rcpp::List implied_ml_lvm_cpp_core(
     Rcpp::List x,
     const S4& model,
-    bool all = false
+    bool all = false,
+    bool twolevel_only = false
 );
 
 #endif

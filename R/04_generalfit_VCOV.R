@@ -1,6 +1,4 @@
 getVCOV <- function(model,approximate_SEs = FALSE){
-  # The two-level ML estimator only has an R implementation:
-  model <- force_R_path_if_needed(model)
 
   # The @information slot is a "matrix" slot, so when a model is run with
   # addInformation = FALSE it holds the default empty 0x0 matrix rather than

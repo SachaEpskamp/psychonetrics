@@ -5,6 +5,7 @@
 #include <math.h>
 #include "04_generalFit_implied_and_prepare.h"
 #include "05_MLestimator_fit_Gauss_cpp.h"
+#include "05_MLestimator_fit_Gauss2L_cpp.h"
 #include "05_MLestimator_fit_Ising.h"
 #include "06_ULS_fitfunction_cpp.h"
 #include "07_FIMLestimator_fitfunction_cppversion.h"
@@ -66,6 +67,8 @@ double psychonetrics_fitfunction_cpp(
       fit = maxLikEstimator_Gauss_cpp(prep);
     } else if (distribution == "Spin"){
       fit = maxLikEstimator_Ising_cpp(prep);
+    } else if (distribution == "TwoLevelGaussian"){
+      fit = maxLikEstimator_Gauss2L_cpp(prep);
     } else {
       Rcpp::stop("Distribution not supported for ML estimator.");
     }

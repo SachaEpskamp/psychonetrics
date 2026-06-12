@@ -66,6 +66,12 @@ OptimWorkspace buildOptimWorkspace(const S4& model) {
         ws.sampleSquares = Rcpp::as<Rcpp::List>(sample.slot("squares"));
     }
     ws.fimldata = Rcpp::as<Rcpp::List>(sample.slot("fimldata"));
+    // Two-level sufficient statistics (ml_lvm estimator = "ML"). Objects saved
+    // before 0.15.31 lack the slot, so guard with hasSlot (twin of
+    // get_twolevel_stats in R):
+    if (sample.hasSlot("twolevel")) {
+        ws.sampleTwolevel = Rcpp::as<Rcpp::List>(sample.slot("twolevel"));
+    }
     ws.WLS_W = Rcpp::as<Rcpp::List>(sample.slot("WLS.W"));
 
     // Pre-computed from groups/variables:

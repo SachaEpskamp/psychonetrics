@@ -24,18 +24,16 @@
 # Helper to emit a one-time experimental feature warning (only when version < 0.16):
 .experimental_warned <- new.env(parent = emptyenv())
 
-# The two-level sufficient-statistics ML estimator (ml_lvm with
-# estimator = "ML", distribution "TwoLevelGaussian") currently only has an R
-# implementation. This helper transparently downgrades a model to the R code
-# path so that all `if (model@cpp)` switches take the R branch, even when the
-# user requested C++ (e.g. via usecpp()). Called defensively at the central
-# dispatch points (prepareModel, fit, gradient, Fisher information, runmodel):
+# Historic helper (0.15.31 development): the two-level sufficient-statistics
+# ML estimator (ml_lvm with estimator = "ML", distribution "TwoLevelGaussian")
+# initially only had an R implementation, and this helper downgraded such
+# models to the R code path. Since the C++ twins were added (fit, gradient,
+# expected Hessian, model Jacobian and prepare), the C++ path is fully
+# supported and DEFAULT for these models, exactly as for the other model
+# families, so this is now the identity. It is kept (and still called at the
+# central dispatch points) so that the R/C++ switch remains easy to force
+# centrally if ever needed again:
 force_R_path_if_needed <- function(model){
-  if (length(model@distribution) == 1 &&
-      model@distribution == "TwoLevelGaussian" &&
-      isTRUE(model@cpp)){
-    model@cpp <- FALSE
-  }
   model
 }
 

@@ -201,12 +201,28 @@ psychonetrics_lbfgsb_optimizer <- function(model, lower, upper, bounded = FALSE)
     .Call(`_psychonetrics_psychonetrics_lbfgsb_optimizer`, model, lower, upper, bounded)
 }
 
+expected_hessian_Gauss2L_group_cpp <- function(grouplist) {
+    .Call(`_psychonetrics_expected_hessian_Gauss2L_group_cpp`, grouplist)
+}
+
+expected_hessian_Gauss2L_cpp <- function(prep) {
+    .Call(`_psychonetrics_expected_hessian_Gauss2L_cpp`, prep)
+}
+
 expected_hessian_Gaussian_group_cpp <- function(grouplist) {
     .Call(`_psychonetrics_expected_hessian_Gaussian_group_cpp`, grouplist)
 }
 
 expected_hessian_Gaussian_cpp <- function(prep) {
     .Call(`_psychonetrics_expected_hessian_Gaussian_cpp`, prep)
+}
+
+maxLikEstimator_Gauss2L_group_cpp <- function(grouplist) {
+    .Call(`_psychonetrics_maxLikEstimator_Gauss2L_group_cpp`, grouplist)
+}
+
+maxLikEstimator_Gauss2L_cpp <- function(prep) {
+    .Call(`_psychonetrics_maxLikEstimator_Gauss2L_cpp`, prep)
 }
 
 maxLikEstimator_Gauss_group_cpp <- function(grouplist) {
@@ -223,6 +239,14 @@ maxLikEstimator_Ising_group_cpp <- function(grouplist) {
 
 maxLikEstimator_Ising_cpp <- function(prep) {
     .Call(`_psychonetrics_maxLikEstimator_Ising_cpp`, prep)
+}
+
+jacobian_gaussian2L_sigma_group_cpp <- function(grouplist) {
+    .Call(`_psychonetrics_jacobian_gaussian2L_sigma_group_cpp`, grouplist)
+}
+
+jacobian_gaussian2L_sigma_cpp <- function(prep) {
+    .Call(`_psychonetrics_jacobian_gaussian2L_sigma_cpp`, prep)
 }
 
 jacobian_gaussian_sigma_group_cpp <- function(grouplist) {
@@ -679,6 +703,10 @@ prepare_Ising_cpp <- function(x, model) {
 
 d_phi_theta_ml_lvm_group_cpp <- function(grouplist) {
     .Call(`_psychonetrics_d_phi_theta_ml_lvm_group_cpp`, grouplist)
+}
+
+d_phi_theta_ml_lvm2L_group_cpp <- function(grouplist) {
+    .Call(`_psychonetrics_d_phi_theta_ml_lvm2L_group_cpp`, grouplist)
 }
 
 d_phi_theta_ml_lvm_cpp <- function(prep) {

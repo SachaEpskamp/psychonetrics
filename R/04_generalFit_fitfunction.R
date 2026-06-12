@@ -1,9 +1,6 @@
 # General fit function!
 psychonetrics_fitfunction <- function(x, model){
 
-  # The two-level ML estimator only has an R implementation:
-  model <- force_R_path_if_needed(model)
-
   # Prepare model:
   if (model@cpp){
     prep <- prepareModel_cpp(x, model) # <- upated!
@@ -25,7 +22,7 @@ psychonetrics_fitfunction <- function(x, model){
       "ML" = switch(distribution,
                     "Gaussian" = maxLikEstimator_Gauss_cpp, # <- updated!
                     "Spin" = maxLikEstimator_Ising_cpp, # <- updated!
-                    "TwoLevelGaussian" = maxLikEstimator_Gauss2L # R implementation only
+                    "TwoLevelGaussian" = maxLikEstimator_Gauss2L_cpp # <- updated!
                     ),
       "ULS" =  switch(distribution,"Gaussian" = ULS_Gauss_cpp), # <- updated
       "DWLS" = switch(distribution,"Gaussian" = ULS_Gauss_cpp), # <- updated

@@ -1,5 +1,8 @@
 # Tests for the sufficient-statistics two-level ML estimator of ml_lvm()
 # (estimator = "ML", distribution "TwoLevelGaussian"), added in 0.15.31.
+# Phase 2 added the analytic expected Fisher information and full C++ twins
+# (fit, gradient, expected Hessian, model Jacobian, prepare); the C++ path is
+# now the default, and R-vs-C++ twin agreement is tested here as well.
 #
 # Fast deterministic checks run always (CRAN); the full lavaan comparisons
 # (converged solutions, two-group, equality constraints, dyadic default) run
@@ -69,7 +72,9 @@ dat <- simdat_2l(123, J = 50, sizes = 4:8)
 modML <- ml_lvm(dat, lambda = lambda, clusters = "cl", estimator = "ML")
 expect_equal(modML@estimator, "ML")
 expect_equal(modML@distribution, "TwoLevelGaussian")
-expect_false(modML@cpp)
+# Since Phase 2 (analytic information + C++ twins) the C++ path is the
+# default, exactly as for the other model families:
+expect_true(modML@cpp)
 # nobs are clusters:
 expect_equal(modML@sample@groups$nobs, 50L)
 
@@ -118,9 +123,76 @@ expect_true(max(abs(gA - gN)) < 1e-6)
 expect_error(setestimator(modML, "FIML"), pattern = "cannot be switched")
 expect_error(setestimator(modF, "ML"), pattern = "cannot be switched")
 
-## ---- usecpp is refused for two-level ML models ----
-expect_message(modML2 <- usecpp(modML, TRUE))
-expect_false(modML2@cpp)
+## ---- usecpp toggles the code path for two-level ML models ----
+modML_R <- usecpp(modML, FALSE)
+expect_false(modML_R@cpp)
+expect_true(usecpp(modML_R, TRUE)@cpp)
+
+## ---- Phase 2: R vs C++ twins (fit, gradient, expected Hessian, Jacobian) ----
+# At the start values and at 5 random parameter vectors, on an unbalanced
+# one-group model. Further configurations (balanced, two groups, at the
+# optimum) are tested under at_home() below.
+check_twins_2L <- function(mod, points){
+  modR <- usecpp(mod, FALSE)
+  modC <- usecpp(mod, TRUE)
+  for (x in points){
+    # Fit function:
+    fR <- psychonetrics:::psychonetrics_fitfunction(x, modR)
+    fC <- psychonetrics:::psychonetrics_fitfunction_cpp(x, modC)
+    expect_true(abs(fR - fC) <= 1e-12 * max(1, abs(fR)))
+    # Gradient:
+    gR <- psychonetrics:::psychonetrics_gradient(x, modR)
+    gC <- psychonetrics:::psychonetrics_gradient_cpp(x, modC)
+    expect_true(max(abs(gR - gC)) <= 1e-12 * max(1, max(abs(gR))))
+    # Estimator-level expected Hessian and model Jacobian on identical preps:
+    prepR <- psychonetrics:::prepareModel(x, modR)
+    prepC <- psychonetrics:::prepareModel(x, modC)
+    hR <- as.matrix(psychonetrics:::expected_hessian_Gauss2L(prepR))
+    hC <- as.matrix(psychonetrics:::expected_hessian_Gauss2L_cpp(prepC))
+    expect_true(max(abs(hR - hC)) <= 1e-12 * max(1, max(abs(hR))))
+    jR <- as.matrix(psychonetrics:::d_phi_theta_ml_lvm(prepR))
+    jC <- as.matrix(psychonetrics:::d_phi_theta_ml_lvm_cpp(prepC))
+    expect_true(max(abs(jR - jC)) <= 1e-12 * max(1, max(abs(jR))))
+  }
+}
+xs2 <- psychonetrics:::parVector(modML)
+set.seed(99)
+pts <- c(list(xs2), lapply(1:5, function(i) xs2 + runif(length(xs2), -0.05, 0.05)))
+check_twins_2L(modML, pts)
+
+## ---- Phase 2: twins for non-default matrix types (augmentation paths) ----
+modML_ggm <- ml_lvm(dat, lambda = lambda, clusters = "cl", estimator = "ML",
+                    within_latent = "ggm", between_latent = "prec",
+                    within_residual = "chol", between_residual = "ggm")
+xs_g <- psychonetrics:::parVector(modML_ggm)
+check_twins_2L(modML_ggm, list(xs_g))
+
+## ---- Phase 2: analytic expected information ----
+# vs the numeric (numDeriv) information of Phase 1:
+Ia <- as.matrix(psychonetrics:::psychonetrics_FisherInformation(usecpp(modML, FALSE)))
+In <- as.matrix(psychonetrics:::numeric_FisherInformation(usecpp(modML, FALSE)))
+expect_true(max(abs(Ia - In)) / max(abs(In)) <= 1e-6)
+# R vs C++ assembly of the full information matrix:
+Ic <- as.matrix(psychonetrics:::psychonetrics_FisherInformation_cpp(usecpp(modML, TRUE)))
+expect_true(max(abs(Ia - Ic)) <= 1e-10 * max(1, max(abs(Ia))))
+
+## ---- Phase 2: phi-level information vs the lavaan kernel ----
+# I(phi) with phi = (mu, vech Sigma_W, vech Sigma_B): psychonetrics' expected
+# Hessian is twice the per-cluster unit information. lavaan's kernel orders
+# blocks as (Mu.W, vech Sigma.W, Mu.B, vech Sigma.B); for ml_lvm all
+# variables are both-level so the mu-gradient lives in lavaan's Mu.B block:
+gm2 <- psychonetrics:::prepareModel(xs2, modML)$groupModels[[1]]
+fit0 <- sem(lmod, data = dat, cluster = "cl", do.fit = FALSE,
+            se = "none", test = "none", baseline = FALSE)
+Lp0 <- fit0@Data@Lp[[1]]
+I_lav <- lavaan:::lav_mvnorm_cluster_information_expected(
+  Lp = Lp0, Mu.W = rep(0, p), Sigma.W = as.matrix(gm2$sigma_within),
+  Mu.B = as.vector(gm2$mu), Sigma.B = as.matrix(gm2$sigma_between))
+k2 <- p * (p + 1) / 2
+perm <- c(p + k2 + 1:p, p + 1:k2, p + k2 + p + 1:k2)
+I_pn <- 0.5 * as.matrix(psychonetrics:::expected_hessian_Gauss2L(
+  psychonetrics:::prepareModel(xs2, usecpp(modML, FALSE))))
+expect_true(max(abs(I_pn - I_lav[perm, perm])) <= 1e-10 * max(1, max(abs(I_lav))))
 
 ## ---- full lavaan comparisons (slow) ----
 if (at_home()){
@@ -146,19 +218,51 @@ if (at_home()){
   gNo <- numDeriv::grad(function(par) psychonetrics:::psychonetrics_fitfunction(par, modu), xo)
   expect_true(max(abs(gAo - gNo)) < 1e-6)
 
+  ## R vs C++ twins at the (unbalanced) optimum and on a balanced model:
+  modu_opt <- psychonetrics:::updateModel(xo, modu)
+  set.seed(77)
+  pts_opt <- c(list(xo), lapply(1:5, function(i) xo + runif(length(xo), -0.05, 0.05)))
+  check_twins_2L(modu_opt, pts_opt)
+
   ## (b) balanced, including df/chisq and SEs:
   datb <- simdat_2l(42, J = 100, sizes = 10)
   modb <- ml_lvm(datb, lambda = lambda, clusters = "cl", estimator = "ML")
   modb@optim.args <- list(control = list(rel.tol = 1e-14, x.tol = 1e-12,
                                          iter.max = 1000, eval.max = 2000))
+  xb <- psychonetrics:::parVector(modb)
+  set.seed(78)
+  check_twins_2L(modb, c(list(xb), lapply(1:5, function(i) xb + runif(length(xb), -0.05, 0.05))))
   modb <- runmodel(modb, addMIs = FALSE)
   fitb <- sem(lmod, data = datb, cluster = "cl")
   expect_true(abs(modb@fitmeasures$logl - as.numeric(logLik(fitb))) < 1e-5)
   expect_equal(as.numeric(modb@fitmeasures$df), as.numeric(fitMeasures(fitb, "df")))
   expect_true(abs(modb@fitmeasures$chisq - fitMeasures(fitb, "chisq")) < 1e-2)
-  # SEs (numeric expected Fisher information) close to lavaan expected-information SEs:
+  # SEs (analytic expected Fisher information):
   prm <- modb@parameters
   expect_false(any(is.na(prm$se[!prm$fixed])))
+
+  # SEs match lavaan with information = "expected" (lavaan's multilevel
+  # DEFAULT is the observed information, which differs by a few percent):
+  fitb_exp <- sem(lmod, data = datb, cluster = "cl", information = "expected")
+  pe <- parameterEstimates(fitb_exp)
+  freeb <- prm[!prm$fixed & !duplicated(prm$par), ]
+  match_se <- sapply(seq_len(nrow(freeb)), function(i){
+    d <- abs(pe$est - freeb$est[i])
+    j <- which.min(d)
+    if (d[j] < 1e-3) pe$se[j] else NA
+  })
+  okb <- !is.na(match_se) & match_se > 0
+  expect_true(sum(okb) >= nrow(freeb) - 2) # nearly all matched
+  expect_true(max(abs(freeb$se[okb] - match_se[okb]) / match_se[okb]) < 1e-4)
+
+  ## full runmodel: C++ path identical to the R path:
+  modbR <- usecpp(ml_lvm(datb, lambda = lambda, clusters = "cl", estimator = "ML"), FALSE)
+  modbR@optim.args <- list(control = list(rel.tol = 1e-14, x.tol = 1e-12,
+                                          iter.max = 1000, eval.max = 2000))
+  modbR <- runmodel(modbR, addMIs = FALSE)
+  expect_true(abs(modb@fitmeasures$logl - modbR@fitmeasures$logl) < 1e-8)
+  expect_true(max(abs(modb@parameters$est - modbR@parameters$est)) < 1e-8)
+  expect_true(max(abs(modb@parameters$se - modbR@parameters$se), na.rm = TRUE) < 1e-8)
 
   ## (e) two-group model. lavaan 0.6-21 cannot fit cluster= and group=
   ## together, but the unconstrained multigroup model equals separate fits:
@@ -168,6 +272,10 @@ if (at_home()){
   modg <- ml_lvm(datg, lambda = lambda, clusters = "cl", groups = "gr", estimator = "ML")
   modg@optim.args <- list(control = list(rel.tol = 1e-14, x.tol = 1e-12,
                                          iter.max = 1000, eval.max = 2000))
+  # R vs C++ twins on the two-group model:
+  xg <- psychonetrics:::parVector(modg)
+  set.seed(79)
+  check_twins_2L(modg, c(list(xg), lapply(1:5, function(i) xg + runif(length(xg), -0.05, 0.05))))
   modg <- runmodel(modg, addMIs = FALSE, addSEs = FALSE, addInformation = FALSE)
   fit1 <- sem(lmod, data = d1, cluster = "cl", se = "none", test = "none", baseline = FALSE)
   fit2 <- sem(lmod, data = d2, cluster = "cl", se = "none", test = "none", baseline = FALSE)

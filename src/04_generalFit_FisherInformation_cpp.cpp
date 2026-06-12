@@ -5,6 +5,7 @@
 #include <math.h>
 #include "04_generalFit_implied_and_prepare.h"
 #include "05_MLestimator_expected_Hessian_Gauss_cpp.h"
+#include "05_MLestimator_expected_Hessian_Gauss2L_cpp.h"
 #include "06_ULS_expectedHessian_cpp.h"
 #include "07_FIMLestimator_expected_hessian_gauss_cppversion.h"
 #include "14_varcov_derivatives_cpp.h"
@@ -98,6 +99,10 @@ void psychonetrics_FisherInformation_cpp_inner(
       // the 2^N state space four times: IsingSampler::IsingLikelihood +
       // expHcpp + expH2cpp + the main moment-accumulation loop).
       estimatorPart = expected_hessian_Ising_full_cpp(prep);
+
+    } else if (distribution == "TwoLevelGaussian"){
+
+      estimatorPart = expected_hessian_Gauss2L_cpp(prep);
 
     } else {
       Rcpp::stop("Distribution not supported for ML estimator.");

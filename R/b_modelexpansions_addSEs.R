@@ -10,8 +10,6 @@ addSEs <-  function(x,
     verbose <- x@verbose
   }
 
-  # The two-level ML estimator only has an R implementation:
-  x <- force_R_path_if_needed(x)
 
   if (verbose){
     message("Adding standard errors...")

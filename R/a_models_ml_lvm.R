@@ -375,12 +375,6 @@ ml_lvm <- function(
                                   distribution = ifelse(estimator == "ML", "TwoLevelGaussian", "Gaussian"),
                                   identification=identification, verbose=verbose)
 
-  # The two-level ML estimator only has an R implementation (the C++ switches
-  # additionally guard on the distribution via force_R_path_if_needed):
-  if (estimator == "ML"){
-    model@cpp <- FALSE
-  }
-
   # Number of groups:
   nGroup <- nrow(model@sample@groups)
   

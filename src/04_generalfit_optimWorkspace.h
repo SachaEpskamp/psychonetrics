@@ -44,6 +44,7 @@ struct OptimWorkspace {
     Rcpp::List sampleThresholds;  // sample.slot("thresholds")
     Rcpp::List sampleSquares;     // sample.slot("squares") - Ising only
     Rcpp::List fimldata;          // sample.slot("fimldata")
+    Rcpp::List sampleTwolevel;    // sample.slot("twolevel") - two-level ML only (guarded with hasSlot)
     Rcpp::List WLS_W;             // sample.slot("WLS.W")
 
     // Pre-computed from groups/variables:

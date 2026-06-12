@@ -13,11 +13,17 @@
 using namespace Rcpp;
 using namespace arma;
 
-// Core implementation that takes pre-formed model matrices
+// Core implementation that takes pre-formed model matrices.
+// twolevel_only: used by the sufficient-statistics two-level ML estimator
+// (estimator = "ML"); skips forming the (potentially large) wide-format mean
+// vector, covariance matrix and its inverse, and instead stores the p-variate
+// mu, sigma_within and sigma_between next to the derivative helper matrices
+// (twin of the twolevel_only branch in R/22_ml_lvm_implied.R):
 Rcpp::List implied_ml_lvm_cpp_core(
     Rcpp::List x,
     const S4& model,
-    bool all = false
+    bool all,
+    bool twolevel_only
 ){
   int i, t, tt;
 
@@ -111,40 +117,50 @@ Rcpp::List implied_ml_lvm_cpp_core(
     
     // Implied mean vector:
     arma::vec impMu = nu + lambda * BetaStar_between * nu_eta;
-    
+
+    // Implied within covariance:
+    arma::mat sigma_eta_within = Betasta_sigmaZeta_within * BetaStar_within.t();
+    arma::mat sigma_eta_between = Betasta_sigmaZeta_between * BetaStar_between.t();
+
+    // Implied structures:
+    arma::mat sigma_within = lambda * sigma_eta_within * lambda.t() + sigma_epsilon_within;
+    arma::mat sigma_between = lambda * sigma_eta_between * lambda.t() + sigma_epsilon_between;
+
+    if (twolevel_only && !all){
+      // Sufficient-statistics two-level ML estimator: only the p-variate mean
+      // and the per-level covariance matrices are needed (no wide-format
+      // matrices, no inverse of the wide covariance matrix). The fit function
+      // itself checks positive definiteness (mirroring the R code path, which
+      // never forms a 'proper' flag for this estimator):
+      grouplist["mu"] = impMu;
+
+      // Force symmetric (as in the R twin):
+      grouplist["sigma_within"] = 0.5 * (sigma_within + sigma_within.t());
+      grouplist["sigma_between"] = 0.5 * (sigma_between + sigma_between.t());
+
+    } else {
+
     arma::vec fullMu(nMaxInCluster * nVar);
     for (i=0;i<nMaxInCluster;i++){
       fullMu.submat(i*nVar,0,(i+1)*nVar-1,0) = impMu;
     }
-    
-    
-    // Implied within covariance:
-    arma::mat sigma_eta_within = Betasta_sigmaZeta_within * BetaStar_within.t();
-    arma::mat sigma_eta_between = Betasta_sigmaZeta_between * BetaStar_between.t();
-    
-    // Implied structures:
-    arma::mat sigma_within = lambda * sigma_eta_within * lambda.t() + sigma_epsilon_within;
-    arma::mat sigma_between = lambda * sigma_eta_between * lambda.t() + sigma_epsilon_between;
-    
-    
 
-    
     // FIXME: fiew things here I do sparse. Smart or not?
     // Create the block Toeplitz:
     arma::mat fullSigma_within  = (arma::mat)kronecker_I_X(sigma_within, nMaxInCluster);
-    
+
     // Full between-subject cov matrix:
     arma::mat fullSigma_between(nMaxInCluster * nVar, nMaxInCluster * nVar);
 
     for (t=0;t<nMaxInCluster;t++){
       for (tt=0;tt<nMaxInCluster;tt++){
-        
+
         fullSigma_between.submat(t*nVar,tt*nVar,(t+1)*nVar-1,(tt+1)*nVar-1) = sigma_between;
       }
     }
-    
 
-    
+
+
     // Full implied covmat:
     arma::mat fullSigma = fullSigma_within + fullSigma_between;
 
@@ -167,13 +183,15 @@ Rcpp::List implied_ml_lvm_cpp_core(
 
     // Precision:
     grouplist["kappa"] =  solve_symmetric_cpp_matrixonly_withcheck(fullSigma, proper);
-    
+
     // FIXME: forcing symmetric, but not sure why this is needed...
     // grouplist["kappa = 0.5*(grouplist["kappa + t(grouplist["kappa))
-    
+
     // Let's round to make sparse if possible:
     // grouplist["kappa = as(round(grouplist["kappa,14),"Matrix")
-    
+
+    } // end if (!twolevel_only)
+
     
     // Extra matrices needed in optimization:
     if (!all){
@@ -239,6 +257,6 @@ Rcpp::List implied_ml_lvm_cpp(
   // Form basic model matrices:
   Rcpp::List x = formModelMatrices_cpp(model);
 
-  return implied_ml_lvm_cpp_core(x, model, all);
+  return implied_ml_lvm_cpp_core(x, model, all, false);
 }
 

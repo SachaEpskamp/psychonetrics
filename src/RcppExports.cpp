@@ -619,6 +619,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// expected_hessian_Gauss2L_group_cpp
+arma::mat expected_hessian_Gauss2L_group_cpp(const Rcpp::List& grouplist);
+RcppExport SEXP _psychonetrics_expected_hessian_Gauss2L_group_cpp(SEXP grouplistSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type grouplist(grouplistSEXP);
+    rcpp_result_gen = Rcpp::wrap(expected_hessian_Gauss2L_group_cpp(grouplist));
+    return rcpp_result_gen;
+END_RCPP
+}
+// expected_hessian_Gauss2L_cpp
+arma::mat expected_hessian_Gauss2L_cpp(const Rcpp::List& prep);
+RcppExport SEXP _psychonetrics_expected_hessian_Gauss2L_cpp(SEXP prepSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prep(prepSEXP);
+    rcpp_result_gen = Rcpp::wrap(expected_hessian_Gauss2L_cpp(prep));
+    return rcpp_result_gen;
+END_RCPP
+}
 // expected_hessian_Gaussian_group_cpp
 arma::mat expected_hessian_Gaussian_group_cpp(const Rcpp::List& grouplist);
 RcppExport SEXP _psychonetrics_expected_hessian_Gaussian_group_cpp(SEXP grouplistSEXP) {
@@ -638,6 +660,28 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::List& >::type prep(prepSEXP);
     rcpp_result_gen = Rcpp::wrap(expected_hessian_Gaussian_cpp(prep));
+    return rcpp_result_gen;
+END_RCPP
+}
+// maxLikEstimator_Gauss2L_group_cpp
+double maxLikEstimator_Gauss2L_group_cpp(const Rcpp::List& grouplist);
+RcppExport SEXP _psychonetrics_maxLikEstimator_Gauss2L_group_cpp(SEXP grouplistSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type grouplist(grouplistSEXP);
+    rcpp_result_gen = Rcpp::wrap(maxLikEstimator_Gauss2L_group_cpp(grouplist));
+    return rcpp_result_gen;
+END_RCPP
+}
+// maxLikEstimator_Gauss2L_cpp
+double maxLikEstimator_Gauss2L_cpp(const Rcpp::List& prep);
+RcppExport SEXP _psychonetrics_maxLikEstimator_Gauss2L_cpp(SEXP prepSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prep(prepSEXP);
+    rcpp_result_gen = Rcpp::wrap(maxLikEstimator_Gauss2L_cpp(prep));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -682,6 +726,28 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::List& >::type prep(prepSEXP);
     rcpp_result_gen = Rcpp::wrap(maxLikEstimator_Ising_cpp(prep));
+    return rcpp_result_gen;
+END_RCPP
+}
+// jacobian_gaussian2L_sigma_group_cpp
+arma::mat jacobian_gaussian2L_sigma_group_cpp(const Rcpp::List& grouplist);
+RcppExport SEXP _psychonetrics_jacobian_gaussian2L_sigma_group_cpp(SEXP grouplistSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type grouplist(grouplistSEXP);
+    rcpp_result_gen = Rcpp::wrap(jacobian_gaussian2L_sigma_group_cpp(grouplist));
+    return rcpp_result_gen;
+END_RCPP
+}
+// jacobian_gaussian2L_sigma_cpp
+arma::mat jacobian_gaussian2L_sigma_cpp(const Rcpp::List& prep);
+RcppExport SEXP _psychonetrics_jacobian_gaussian2L_sigma_cpp(SEXP prepSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prep(prepSEXP);
+    rcpp_result_gen = Rcpp::wrap(jacobian_gaussian2L_sigma_cpp(prep));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -2189,6 +2255,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// d_phi_theta_ml_lvm2L_group_cpp
+arma::mat d_phi_theta_ml_lvm2L_group_cpp(const Rcpp::List& grouplist);
+RcppExport SEXP _psychonetrics_d_phi_theta_ml_lvm2L_group_cpp(SEXP grouplistSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type grouplist(grouplistSEXP);
+    rcpp_result_gen = Rcpp::wrap(d_phi_theta_ml_lvm2L_group_cpp(grouplist));
+    return rcpp_result_gen;
+END_RCPP
+}
 // d_phi_theta_ml_lvm_cpp
 arma::mat d_phi_theta_ml_lvm_cpp(const Rcpp::List& prep);
 RcppExport SEXP _psychonetrics_d_phi_theta_ml_lvm_cpp(SEXP prepSEXP) {
@@ -2394,12 +2471,18 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_updateWorkspacePenaltyLambda", (DL_FUNC) &_psychonetrics_updateWorkspacePenaltyLambda, 2},
     {"_psychonetrics_psychonetrics_optimizer", (DL_FUNC) &_psychonetrics_psychonetrics_optimizer, 5},
     {"_psychonetrics_psychonetrics_lbfgsb_optimizer", (DL_FUNC) &_psychonetrics_psychonetrics_lbfgsb_optimizer, 4},
+    {"_psychonetrics_expected_hessian_Gauss2L_group_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_Gauss2L_group_cpp, 1},
+    {"_psychonetrics_expected_hessian_Gauss2L_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_Gauss2L_cpp, 1},
     {"_psychonetrics_expected_hessian_Gaussian_group_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_Gaussian_group_cpp, 1},
     {"_psychonetrics_expected_hessian_Gaussian_cpp", (DL_FUNC) &_psychonetrics_expected_hessian_Gaussian_cpp, 1},
+    {"_psychonetrics_maxLikEstimator_Gauss2L_group_cpp", (DL_FUNC) &_psychonetrics_maxLikEstimator_Gauss2L_group_cpp, 1},
+    {"_psychonetrics_maxLikEstimator_Gauss2L_cpp", (DL_FUNC) &_psychonetrics_maxLikEstimator_Gauss2L_cpp, 1},
     {"_psychonetrics_maxLikEstimator_Gauss_group_cpp", (DL_FUNC) &_psychonetrics_maxLikEstimator_Gauss_group_cpp, 1},
     {"_psychonetrics_maxLikEstimator_Gauss_cpp", (DL_FUNC) &_psychonetrics_maxLikEstimator_Gauss_cpp, 1},
     {"_psychonetrics_maxLikEstimator_Ising_group_cpp", (DL_FUNC) &_psychonetrics_maxLikEstimator_Ising_group_cpp, 1},
     {"_psychonetrics_maxLikEstimator_Ising_cpp", (DL_FUNC) &_psychonetrics_maxLikEstimator_Ising_cpp, 1},
+    {"_psychonetrics_jacobian_gaussian2L_sigma_group_cpp", (DL_FUNC) &_psychonetrics_jacobian_gaussian2L_sigma_group_cpp, 1},
+    {"_psychonetrics_jacobian_gaussian2L_sigma_cpp", (DL_FUNC) &_psychonetrics_jacobian_gaussian2L_sigma_cpp, 1},
     {"_psychonetrics_jacobian_gaussian_sigma_group_cpp", (DL_FUNC) &_psychonetrics_jacobian_gaussian_sigma_group_cpp, 1},
     {"_psychonetrics_jacobian_gaussian_sigma_cpp", (DL_FUNC) &_psychonetrics_jacobian_gaussian_sigma_cpp, 1},
     {"_psychonetrics_jacobian_Ising_group_cpp", (DL_FUNC) &_psychonetrics_jacobian_Ising_group_cpp, 1},
@@ -2514,6 +2597,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_implied_Ising_cpp", (DL_FUNC) &_psychonetrics_implied_Ising_cpp, 2},
     {"_psychonetrics_prepare_Ising_cpp", (DL_FUNC) &_psychonetrics_prepare_Ising_cpp, 2},
     {"_psychonetrics_d_phi_theta_ml_lvm_group_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_ml_lvm_group_cpp, 1},
+    {"_psychonetrics_d_phi_theta_ml_lvm2L_group_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_ml_lvm2L_group_cpp, 1},
     {"_psychonetrics_d_phi_theta_ml_lvm_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_ml_lvm_cpp, 1},
     {"_psychonetrics_implied_ml_lvm_cpp", (DL_FUNC) &_psychonetrics_implied_ml_lvm_cpp, 2},
     {"_psychonetrics_prepare_ml_lvm_cpp", (DL_FUNC) &_psychonetrics_prepare_ml_lvm_cpp, 2},

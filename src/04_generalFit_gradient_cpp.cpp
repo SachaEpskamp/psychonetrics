@@ -5,6 +5,7 @@
 #include <math.h>
 #include "04_generalFit_implied_and_prepare.h"
 #include "05_MLestimator_gradient_Gauss_cpp.h"
+#include "05_MLestimator_gradient_Gauss2L_cpp.h"
 #include "05_MLestimator_gradient_Ising_cpp.h"
 #include "06_ULS_gradient_cpp.h"
 #include "07_FIMLestimator_jacobian_gauss.h"
@@ -116,6 +117,10 @@ void psychonetrics_gradient_cpp_inner(
     } else if (distribution == "Spin"){
 
       estimatorPart = jacobian_Ising_cpp(prep);
+
+    } else if (distribution == "TwoLevelGaussian"){
+
+      estimatorPart = jacobian_gaussian2L_sigma_cpp(prep);
 
     } else {
       Rcpp::stop("Distribution not supported for ML estimator.");
