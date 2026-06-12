@@ -145,9 +145,11 @@ arma::mat d_phi_theta_meta_lvm_group_cpp(
       );
 
   } else if (residual == "prec"){
+    // Use D_lvm (the observed-variable-level duplication matrix): the prepare
+    // step overrides "D" with the meta-level D_c for the ML estimator gradient.
     Jac.submat(meanPart_start, sigmaepsilonInds_start, meanPart_end, sigmaepsilonInds_end) =
       d_sigma_epsilon_kappa_lvm_cpp(
-        grouplist["L"], grouplist["D"], grouplist["sigma_epsilon"]
+        grouplist["L"], grouplist["D_lvm"], grouplist["sigma_epsilon"]
       );
 
   } else if (residual == "ggm"){

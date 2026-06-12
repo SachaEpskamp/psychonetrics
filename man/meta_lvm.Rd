@@ -65,7 +65,7 @@ Logical. Defaults to \code{FALSE}. Controls whether the input is treated as corr
 Optional list with 'V' matrices (sampling error variance approximations).
 }
   \item{Vmethod}{
-Which method should be used to approximate the sampling error variance?
+Which method should be used to approximate the sampling error variance? The \code{"metaSEM_individual"} and \code{"metaSEM_weighted"} options compute the sampling-error covariances via \code{metaSEM::asyCov} and therefore require the Suggests package \code{metaSEM} to be installed.
 }
 \item{Vestimation}{
 How should the sampling error estimates be evaluated?

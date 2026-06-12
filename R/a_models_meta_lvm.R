@@ -275,6 +275,9 @@ meta_lvm <- function(
       Vmats <- lapply(nobs,function(n) mean(nobs)/n * avgVmat)
 
     } else if (Vmethod == "metaSEM_individual"){
+      if (!requireNamespace("metaSEM", quietly = TRUE)){
+        stop("Vmethod = 'metaSEM_individual' requires the 'metaSEM' package, which is not installed. Please install it with install.packages('metaSEM'), or use Vmethod = 'individual' instead.")
+      }
       acovs <- metaSEM::asyCov(covs, cor.analysis = corinput, sampleSizes, acov = "individual")
       acovs[is.na(acovs)] <- 0
       Vmats <- list()
@@ -286,6 +289,9 @@ meta_lvm <- function(
       avgVmat <- Reduce("+", Vmats) / Reduce("+",lapply(Vmats,function(x)x!=0))
 
     } else if (Vmethod == "metaSEM_weighted"){
+      if (!requireNamespace("metaSEM", quietly = TRUE)){
+        stop("Vmethod = 'metaSEM_weighted' requires the 'metaSEM' package, which is not installed. Please install it with install.packages('metaSEM'), or use Vmethod = 'individual' instead.")
+      }
       acovs <- metaSEM::asyCov(covs, cor.analysis = corinput, sampleSizes, acov = "weighted")
       acovs[is.na(acovs)] <- 0
       Vmats <- list()
@@ -296,6 +302,25 @@ meta_lvm <- function(
       }
       avgVmat <- Reduce("+", Vmats) / Reduce("+",lapply(Vmats,function(x)x!=0))
     }
+  }
+
+  # Check that the averaged sampling-error matrix is finite. Non-finite values
+  # (e.g. 0/0 = NaN in the averaging step) occur in particular when two
+  # variables are never observed together in any study, in which case their
+  # covariance/correlation cannot be meta-analyzed:
+  if (any(!is.finite(as.matrix(avgVmat)))){
+    badInds <- which(!is.finite(as.matrix(avgVmat)), arr.ind = TRUE)
+    # Prefer naming elements with a non-finite sampling variance (diagonal);
+    # if the diagonal is fine, fall back to all elements involved:
+    badDiag <- which(!is.finite(diag(as.matrix(avgVmat))))
+    if (length(badDiag) > 0){
+      badVars <- corvars[badDiag]
+    } else {
+      badVars <- unique(corvars[unique(as.vector(badInds))])
+    }
+    stop(paste0("The (averaged) sampling-error covariance matrix 'V' contains non-finite values, involving the following element(s): ",
+                paste0(badVars, collapse = ", "),
+                ". This typically means that two variables are never observed together in any study, so their covariance cannot be estimated. Please check the input matrices (e.g., remove one of the variables involved), or supply 'Vmats' manually."))
   }
 
   #### LVM Model matrices ####

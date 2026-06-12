@@ -66,6 +66,13 @@ d_phi_theta_meta_lvm_group <- function(lambda, latent, residual, randomEffects, 
   lvmDots$mu <- NULL  # meta-analytic mu would conflict with LVM mu
   lvmDots$kappa <- NULL  # meta-analytic kappa would conflict
   lvmDots$tau <- NULL  # no thresholds in meta_lvm
+  # The prepare step overrides D with the meta-level D_c (needed by the ML
+  # estimator gradient); the LVM derivatives (residual = "prec") need the
+  # observed-variable-level duplication matrix, stored separately as D_lvm:
+  if (!is.null(lvmDots$D_lvm)){
+    lvmDots$D <- lvmDots$D_lvm
+    lvmDots$D_lvm <- NULL
+  }
   lvmJac <- do.call(d_phi_theta_lvm_group, c(list(lambda = lambda, latent = latent, residual = residual,
                                                     corinput = FALSE, meanstructure = FALSE), lvmDots))
 

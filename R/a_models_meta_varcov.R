@@ -1,3 +1,48 @@
+# Olkin & Siotani (1976) asymptotic covariance matrix of *sample* correlations,
+# evaluated at correlation matrix R with sample size n. Element ordering is the
+# strict lower triangle in column-major order, matching the meta-level data
+# columns of meta_varcov. Note that this differs from the inverse of the
+# unit-diagonal-constrained Fisher information (Vmethod = "individual"/"pooled"),
+# which is the asymptotic covariance of the ML estimates of a saturated
+# correlation model rather than that of the raw sample correlations:
+OlkinSiotani_acov_cors <- function(R, n){
+  R <- as.matrix(R)
+  lt <- which(lower.tri(R), arr.ind = TRUE)
+  m <- nrow(lt)
+  V <- matrix(0, m, m)
+  for (a in seq_len(m)){
+    i <- lt[a,1]; j <- lt[a,2]
+    for (b in a:m){
+      k <- lt[b,1]; l <- lt[b,2]
+      V[a,b] <- V[b,a] <- (
+        0.5 * R[i,j]*R[k,l] * (R[i,k]^2 + R[i,l]^2 + R[j,k]^2 + R[j,l]^2) +
+          R[i,k]*R[j,l] + R[i,l]*R[j,k] -
+          R[i,j]*(R[j,k]*R[j,l] + R[i,k]*R[i,l]) -
+          R[k,l]*(R[j,k]*R[i,k] + R[j,l]*R[i,l])
+      ) / n
+    }
+  }
+  V
+}
+
+# Asymptotic (Wishart) covariance matrix of sample covariances, evaluated at
+# covariance matrix S with sample size n. Element ordering is the full lower
+# triangle (including diagonal) in column-major order (vech):
+wishart_acov_covs <- function(S, n){
+  S <- as.matrix(S)
+  lt <- which(lower.tri(S, diag = TRUE), arr.ind = TRUE)
+  m <- nrow(lt)
+  V <- matrix(0, m, m)
+  for (a in seq_len(m)){
+    i <- lt[a,1]; j <- lt[a,2]
+    for (b in a:m){
+      k <- lt[b,1]; l <- lt[b,2]
+      V[a,b] <- V[b,a] <- (S[i,k]*S[j,l] + S[i,l]*S[j,k]) / n
+    }
+  }
+  V
+}
+
 # Latent network model creator
 meta_varcov <- function(
   cors, # List of correlation matrices as input. Must contain NAs
@@ -9,11 +54,11 @@ meta_varcov <- function(
   studyvar, # Column name in data indicating study membership
   groups, # deprecated, use groupvar instead
   groupvar, # grouping variable (errors: multi-group not yet supported)
-  corinput, # defaults to TRUE when cors is used
+  corinput, # defaults to TRUE when cors is used, FALSE when covs is used
 
   Vmats, # Optional list of V matrices for each group. Will be averaged.
 
-  Vmethod = c("individual","pooled","metaSEM_individual","metaSEM_weighted"), # How to obtain V matrices if Vmats is not supplied?
+  Vmethod = c("individual","pooled","OS_individual","OS_pooled","metaSEM_individual","metaSEM_weighted"), # How to obtain V matrices if Vmats is not supplied?
   Vestimation = c("averaged","per_study"),
 
   # Model setup:
@@ -71,21 +116,23 @@ meta_varcov <- function(
   # Apply resolved values (map covs back to cors for minimal disruption to body):
   cors <- si$covs
   nobs <- si$nobs
-  corinput <- if(!is.null(si$corinput)) si$corinput else TRUE
+  # corinput resolution: standardize_input sets corinput = TRUE when 'cors' is
+  # used and resolves it for raw 'data' input. It is only left NULL when 'covs'
+  # is supplied without an explicit corinput, in which case the input is
+  # treated as covariance matrices (corinput = FALSE), as documented:
+  corinput <- if(!is.null(si$corinput)) si$corinput else FALSE
 
   sampleSizes <- nobs # FIXME
   estimator <- match.arg(estimator)
   
   randomEffects <- match.arg(randomEffects)
   type <- match.arg(type)
-  Vmethod <- match.arg(Vmethod)
-  if (Vmethod == "default"){
-    Vmethod <- "individual"
-    # Vmethod <- 'psychonetrics_individual'
-    if (!missing(Vmats)){
-      stop("'Vmats' must be missing if 'Vmethod' is not 'default'")
-    }
+  # If both Vmats and Vmethod are explicitly supplied, Vmethod would silently be
+  # ignored (the supplied Vmats are used as-is). Stop with a clear message:
+  if (!missing(Vmats) && !missing(Vmethod)){
+    stop("Only one of 'Vmats' and 'Vmethod' may be supplied: when 'Vmats' is used, the sampling-error matrices are taken as-is and 'Vmethod' is ignored.")
   }
+  Vmethod <- match.arg(Vmethod)
   Vestimation <- match.arg(Vestimation)
   
   # set the labels:
@@ -122,10 +169,11 @@ meta_varcov <- function(
     cors[[i]][matched,matched] <- as.matrix(corsOld[[i]])
   }
   
-  # Form the dataset from the lower triangles of cor matrices:
+  # Form the dataset from the lower triangles of the cor/cov matrices
+  # (including the diagonal when covariance matrices are modeled):
   data <- dplyr::bind_rows(lapply(cors,function(x){
-    df <- as.data.frame(t(x[lower.tri(x)]))
-    names(df) <- paste0(rownames(x)[row(x)[lower.tri(x)]], " -- ",colnames(x)[col(x)[lower.tri(x)]])
+    df <- as.data.frame(t(x[lower.tri(x,diag=!corinput)]))
+    names(df) <- paste0(rownames(x)[row(x)[lower.tri(x,diag=!corinput)]], " -- ",colnames(x)[col(x)[lower.tri(x,diag=!corinput)]])
     df
   }))
   
@@ -190,44 +238,122 @@ meta_varcov <- function(
     
     # For the elimination matrix, I need this dummy matrix with indices:
     dumSig <- matrix(0,nNode,nNode)
-    dumSig[lower.tri(dumSig,diag=FALSE)] <- seq_len(sum(lower.tri(dumSig,diag=FALSE)))
-    
+    dumSig[lower.tri(dumSig,diag=!corinput)] <- seq_len(sum(lower.tri(dumSig,diag=!corinput)))
+
     # Every method should give Vmats and avgVmat...
-    
-    if (Vmethod == "individual"){ 
+
+    if (Vmethod == "individual"){
       # For each group, make a model and obtain VCOV:
       Vmats <- lapply(seq_along(cors),function(i){
 
         # Find the missing nodes:
         obs <- !apply(cors[[i]],2,function(x)all(is.na(x)))
-        
+
         # Indices:
         inds <- c(dumSig[obs,obs,drop=FALSE])
         inds <- inds[inds!=0]
-        
+
         # Elimintation matrix:
-        L <- sparseMatrix(i=seq_along(inds),j=inds,dims=c(length(inds),nNode*(nNode-1)/2))
+        L <- sparseMatrix(i=seq_along(inds),j=inds,dims=c(length(inds),nNode*(nNode + ifelse(corinput,-1,1))/2))
         L <- as(L, "dMatrix")
-        
+
         # Now obtain only the full subset correlation matrix:
         cmat <- as(cors[[i]][obs,obs], "matrix")
-        
+
         k <- solve_symmetric_cpp_matrixonly(cmat)
-        D2 <- duplicationMatrix(ncol(cmat), FALSE)
+        D2 <- duplicationMatrix(ncol(cmat), !corinput)
         v <- 0.5 * nobs[i] * t(D2) %*% (k %x% k) %*% D2
         vcov <- solve_symmetric_cpp_matrixonly(as.matrix(v))
-        
-        
-        
+
+
+
         # Now expand using the elmination matrix:
         res <- as.matrix(t(L) %*% vcov %*% L)
         return(0.5 * (res + t(res)))
       })
-      
+
       avgVmat <- Reduce("+", Vmats) / Reduce("+",lapply(Vmats,function(x)x!=0))
-      
+
+    } else if (Vmethod %in% c("OS_individual","OS_pooled")){
+
+      # Olkin & Siotani (1976) asymptotic covariance of the *sample*
+      # correlations (or, for covariance input, the Wishart asymptotic
+      # covariance of the sample covariances). Unlike "individual"/"pooled",
+      # which invert the unit-diagonal-constrained Fisher information, this is
+      # the sampling covariance of the raw correlations that enter the
+      # meta-level data, and matches metaSEM::asyCov:
+      OS_acov <- function(mat, n){
+        if (corinput){
+          OlkinSiotani_acov_cors(mat, n)
+        } else {
+          wishart_acov_covs(mat, n)
+        }
+      }
+
+      if (Vmethod == "OS_individual"){
+        # Evaluate per study at the study's own correlation/covariance matrix:
+        Vmats <- lapply(seq_along(cors),function(i){
+
+          # Find the missing nodes:
+          obs <- !apply(cors[[i]],2,function(x)all(is.na(x)))
+
+          # Indices:
+          inds <- c(dumSig[obs,obs,drop=FALSE])
+          inds <- inds[inds!=0]
+
+          # Elimination matrix:
+          L <- sparseMatrix(i=seq_along(inds),j=inds,dims=c(length(inds),nNode*(nNode + ifelse(corinput,-1,1))/2))
+          L <- as(L, "dMatrix")
+
+          # Asymptotic covariance on the observed subset:
+          vcov <- OS_acov(cors[[i]][obs,obs], nobs[i])
+
+          # Now expand using the elimination matrix:
+          res <- as.matrix(t(L) %*% vcov %*% L)
+          return(0.5 * (res + t(res)))
+        })
+
+        avgVmat <- Reduce("+", Vmats) / Reduce("+",lapply(Vmats,function(x)x!=0))
+
+      } else {
+        # OS_pooled: evaluate at the sample-size weighted pooled matrix:
+        avgCormat <- matrix(NA_real_, nNode, nNode)
+        for (i in seq_len(nNode)){
+          for (j in seq_len(nNode)){
+            avgCormat[i,j] <- weighted.mean(sapply(cors,'[',i,j), nobs, na.rm = TRUE)
+          }
+        }
+        if (corinput){
+          diag(avgCormat) <- 1
+        }
+
+        avgVmat <- OS_acov(avgCormat, mean(nobs))
+
+        # Compute Vmat per dataset:
+        Vmats <- lapply(nobs,function(n) mean(nobs)/n * avgVmat)
+      }
+
+    } else if (Vmethod %in% c("metaSEM_individual","metaSEM_weighted")){
+
+      if (!requireNamespace("metaSEM", quietly = TRUE)){
+        stop("Vmethod = '", Vmethod, "' requires the 'metaSEM' package, which is not installed. Please install it with install.packages('metaSEM'), or use one of the built-in methods (e.g. Vmethod = 'individual' or 'OS_individual').")
+      }
+
+      acovs <- metaSEM::asyCov(cors, sampleSizes, cor.analysis = corinput,
+                               acov = ifelse(Vmethod == "metaSEM_individual","individual","weighted"))
+      acovs[is.na(acovs)] <- 0
+      Vmats <- list()
+      for (i in seq_len(nrow(acovs))){
+        Vmats[[i]] <- matrix(0, nCor, nCor)
+        Vmats[[i]][lower.tri(Vmats[[i]],diag=TRUE)] <- acovs[i,]
+        Vmats[[i]][upper.tri(Vmats[[i]],diag=TRUE)] <- t(Vmats[[i]])[upper.tri(Vmats[[i]],diag=TRUE)]
+      }
+      avgVmat <- Reduce("+", Vmats) / Reduce("+",lapply(Vmats,function(x)x!=0))
+
     } else {
-      
+      # Vmethod == "pooled":
+
+      if (corinput){
         # If there are any NAs, use covariance input to compute model using FIML:
         if(any(is.na(unlist(lapply(cors,as.vector))))){
           # browser()
@@ -247,10 +373,24 @@ meta_varcov <- function(
           avgVmat <- acov * length(cors)
         }
 
+      } else {
+        # Covariance input: equality-constrained saturated covariance model:
+        if(any(is.na(unlist(lapply(cors,as.vector))))){
+          mod <- varcov(covs=cors,nobs=sampleSizes, corinput = FALSE, type = "cov", equal = c("sigma","mu"), baseline_saturated = FALSE, verbose = FALSE,
+                        estimator = "FIML", covtype = "ML", meanstructure = TRUE)
+        } else {
+          mod <- varcov(covs=cors,nobs=sampleSizes, corinput = FALSE, type = "cov", equal = "sigma", baseline_saturated = FALSE, verbose = FALSE, covtype = "ML")
+        }
+        mod <- runmodel(mod, addfit = FALSE, addMIs = FALSE, addSEs = FALSE, verbose = FALSE)
+        acov <- getVCOV(mod)
+        ind <- which(mod@parameters$matrix[match(seq_len(max(mod@parameters$par)),mod@parameters$par)] == "sigma")
+        avgVmat <- acov[ind,ind] * length(cors)
+      }
+
         # Compute Vmat per dataset:
         Vmats <- lapply(nobs,function(n) mean(nobs)/n * avgVmat)
     }
-    
+
     # 
     # if (Vmethod %in% c("weighted","psychonetrics_weighted")){
     #   
@@ -355,46 +495,39 @@ meta_varcov <- function(
     #   # avgVmat <- acov * length(cors)
     # }
     # 
-    if (Vmethod == "metaSEM_individual"){
-
-      acovs <- metaSEM::asyCov(cors, sampleSizes, acov = "individual")
-      acovs[is.na(acovs)] <- 0
-      Vmats <- list()
-      for (i in seq_len(nrow(acovs))){
-        Vmats[[i]] <- matrix(0, nCor, nCor)
-        Vmats[[i]][lower.tri(Vmats[[i]],diag=TRUE)] <- acovs[i,]
-        Vmats[[i]][upper.tri(Vmats[[i]],diag=TRUE)] <- t(Vmats[[i]])[upper.tri(Vmats[[i]],diag=TRUE)]
-      }
-      avgVmat <- Reduce("+", Vmats) / Reduce("+",lapply(Vmats,function(x)x!=0))
-
-    }
-
-
-
-    if (Vmethod == "metaSEM_weighted"){
-      acovs <- metaSEM::asyCov(cors, sampleSizes, acov = "weighted")
-      acovs[is.na(acovs)] <- 0
-      Vmats <- list()
-      for (i in seq_len(nrow(acovs))){
-        Vmats[[i]] <- matrix(0, nCor, nCor)
-        Vmats[[i]][lower.tri(Vmats[[i]],diag=TRUE)] <- acovs[i,]
-        Vmats[[i]][upper.tri(Vmats[[i]],diag=TRUE)] <- t(Vmats[[i]])[upper.tri(Vmats[[i]],diag=TRUE)]
-      }
-      avgVmat <- Reduce("+", Vmats) / Reduce("+",lapply(Vmats,function(x)x!=0))
-    }
   }
-  
+
+  # Check that the averaged sampling-error matrix is finite. Non-finite values
+  # (e.g. 0/0 = NaN in the averaging step) occur in particular when two
+  # variables are never observed together in any study, in which case their
+  # correlation cannot be meta-analyzed:
+  if (any(!is.finite(as.matrix(avgVmat)))){
+    badInds <- which(!is.finite(as.matrix(avgVmat)), arr.ind = TRUE)
+    # Prefer naming elements with a non-finite sampling variance (diagonal);
+    # if the diagonal is fine, fall back to all elements involved:
+    badDiag <- which(!is.finite(diag(as.matrix(avgVmat))))
+    if (length(badDiag) > 0){
+      badVars <- corvars[badDiag]
+    } else {
+      badVars <- unique(corvars[unique(as.vector(badInds))])
+    }
+    stop(paste0("The (averaged) sampling-error covariance matrix 'V' contains non-finite values, involving the following element(s): ",
+                paste0(badVars, collapse = ", "),
+                ". This typically means that two variables are never observed together in any study, so their correlation cannot be estimated. Please check the input matrices (e.g., remove one of the variables involved), or supply 'Vmats' manually."))
+  }
+
   ####
-  
+
   
   # Model matrices:
   modMatrices <- list()
   
-  # Obtain the expected homogeneous cor structure from means:
+  # Obtain the expected homogeneous cor/cov structure from means (for
+  # covariance input the diagonal is included in the meta-level means):
   expCorsVec <- model@sample@means[[1]]
   expCors <- matrix(1,nNode,nNode)
-  expCors[lower.tri(expCors)] <- expCorsVec
-  expCors[upper.tri(expCors)] <- t(expCors)[upper.tri(expCors)]
+  expCors[lower.tri(expCors,diag=!corinput)] <- expCorsVec
+  expCors[upper.tri(expCors,diag=!corinput)] <- t(expCors)[upper.tri(expCors,diag=!corinput)]
   
   
   # Fix sigma
@@ -481,7 +614,7 @@ meta_varcov <- function(
                                          labels = vars,
                                          equal = FALSE,
                                          sampletable = sampleStats,
-                                         name = "rho_y")
+                                         name = "SD_y")
     }
   }
   

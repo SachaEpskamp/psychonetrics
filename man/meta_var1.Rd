@@ -155,6 +155,10 @@ The VAR(1) structural model implies:
 The meta-level mean is \eqn{\mu = [\textrm{vech}(\Sigma_0), \textrm{vec}(\Sigma_1)]} and heterogeneity is modeled as \eqn{\Sigma = \Sigma^{(\textrm{ran})} + V}.
 
 Note: the exogenous (lagged) covariance block from the full Toeplitz matrix is not modeled, as it is a nuisance parameter at the meta-analytic level.
+
+\bold{Sample size convention.} When raw \code{data} is supplied, the per-study sample size used in the sampling-error approximation (the 'V' matrices) is the number of rows of the lag-augmented data set, including rows in which the lagged block is missing (e.g., the first measurement of each day or subject). The covariances themselves are computed using pairwise-complete observations. For studies consisting of many short segments (e.g., few beeps per day), this convention slightly overstates the effective number of (current, lagged) pairs for the lagged-covariance elements, and hence slightly understates their sampling variance. When this is a concern, the 'V' matrices can be supplied manually via \code{Vmats}.
+
+\bold{Fit indices.} The saturated meta-analytic model (fully free \eqn{\Sigma_0}, \eqn{\Sigma_1} and random effects) has zero degrees of freedom, in which case chi-square based fit indices are not informative and are left blank.
 }
 \value{
 An object of the class psychonetrics (\link{psychonetrics-class})

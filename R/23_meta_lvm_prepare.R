@@ -39,7 +39,9 @@ prepare_meta_lvm <- function(x, model){
     groupModels[[g]]$cpp <- model@cpp
     groupModels[[g]]$meanstructure <- model@meanstructure
     # Override D with D_c: the ML gradient uses D for the meta-level sigma (nCor x nCor),
-    # not the LVM-level D (nNode x nNode):
+    # not the LVM-level D (nNode x nNode). The LVM-level D is kept under a separate
+    # name (D_lvm) for the LVM part of the model Jacobian (residual = "prec"):
+    groupModels[[g]]$D_lvm <- model@extramatrices$D
     groupModels[[g]]$D <- model@extramatrices$D_c
   }
 

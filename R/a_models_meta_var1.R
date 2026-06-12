@@ -274,6 +274,25 @@ meta_var1 <- function(
     }
   }
 
+  # Check that the averaged sampling-error matrix is finite. Non-finite values
+  # (e.g. 0/0 = NaN in the averaging step) occur in particular when two
+  # variables are never observed together in any study, in which case their
+  # covariance cannot be meta-analyzed:
+  if (any(!is.finite(as.matrix(avgVmat)))){
+    badInds <- which(!is.finite(as.matrix(avgVmat)), arr.ind = TRUE)
+    # Prefer naming elements with a non-finite sampling variance (diagonal);
+    # if the diagonal is fine, fall back to all elements involved:
+    badDiag <- which(!is.finite(diag(as.matrix(avgVmat))))
+    if (length(badDiag) > 0){
+      badVars <- covvars[badDiag]
+    } else {
+      badVars <- unique(covvars[unique(as.vector(badInds))])
+    }
+    stop(paste0("The (averaged) sampling-error covariance matrix 'V' contains non-finite values, involving the following element(s): ",
+                paste0(badVars, collapse = ", "),
+                ". This typically means that two variables are never observed together in any study, so their covariance cannot be estimated. Please check the input data/matrices, or supply 'Vmats' manually."))
+  }
+
   #### Obtain sample stats ####
   if (missing(sampleStats)){
     sampleStats <- samplestats(data = metaData,

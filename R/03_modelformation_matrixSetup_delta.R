@@ -36,8 +36,9 @@ matrixsetup_delta <- function(
       wi <- glas$wi
     }
     
-    # Network starting values:
-    startVals <- diag(1/sqrt(diag(wi)))
+    # Network starting values (explicit dimensions: for nNode == 1, diag() on a
+    # scalar would otherwise create a 0x0 or arbitrary-size identity matrix):
+    startVals <- diag(1/sqrt(diag(wi)), nrow = nNode, ncol = nNode)
     # Preserve zeros for diagonal elements fixed at zero:
     fixedZero <- diag(delta[,,g]) == 0
     startVals[cbind(which(fixedZero), which(fixedZero))] <- 0

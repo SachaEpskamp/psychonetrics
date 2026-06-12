@@ -55,7 +55,9 @@ Rcpp::List prepare_meta_lvm_cpp(
     grouplist["metacor"] = corinput;     // Original study-level corinput flag
 
     // Override D with D_c: the ML gradient uses D for the meta-level sigma (nCov x nCov),
-    // not the LVM-level D (nNode x nNode):
+    // not the LVM-level D (nNode x nNode). The LVM-level D is kept under a separate
+    // name (D_lvm) for the LVM part of the model Jacobian (residual = "prec"):
+    grouplist["D_lvm"] = extramatrices["D"];
     grouplist["D"] = extramatrices["D_c"];
 
     groupModels[g] = grouplist;

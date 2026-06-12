@@ -53,8 +53,11 @@ Rcpp::List prepare_meta_varcov_cpp(
     grouplist["corinput"] = false;
     grouplist["meanstructure"] = meanstructure;
     grouplist["metacor"] = corinput;
-    
-   
+
+    // Override D with D_c: the ML gradient uses D for the meta-level sigma
+    // (nCor x nCor), not the study-level D (nNode x nNode):
+    grouplist["D"] = extramatrices["D_c"];
+
     groupModels[g] = grouplist;
   }
   

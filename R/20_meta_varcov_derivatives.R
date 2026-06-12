@@ -66,8 +66,9 @@ d_phi_theta_meta_varcov_group <- function(y,randomEffects,metacor,cpp,...){
   # Number of correlations:
   ncor <- nvar * (nvar-1) / 2
   
-  # Number of modeled elements:
-  nmod <- ncor + !metacor * nvar
+  # Number of modeled elements (note the parentheses: !metacor * nvar would
+  # parse as !(metacor * nvar)):
+  nmod <- ncor + (!metacor) * nvar
   
   # Number of observations:
   nobs <- nmod + # correlations

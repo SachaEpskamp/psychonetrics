@@ -4,10 +4,11 @@ missingpatterns <- function(dat, verbose = TRUE){
     message("Computing missingness patterns...")
   }
   
-  # Remove rows with full missing:
-  dat <- dat[rowSums(is.na(dat)) < ncol(dat),]
-  
-  
+  # Remove rows with full missing (drop = FALSE keeps a single-variable
+  # dataset a data frame):
+  dat <- dat[rowSums(is.na(dat)) < ncol(dat), , drop = FALSE]
+
+
   # Create a dummy dataset with only missings:
   mis <- as(is.na(dat),"matrix")
   
@@ -86,10 +87,11 @@ fullfimldata <- function(dat, verbose = TRUE){
     message("Storing FIML observations...")
   }
   
-  # Remove rows with full missing:
-  dat <- dat[rowSums(is.na(dat)) < ncol(dat),]
-  
-  
+  # Remove rows with full missing (drop = FALSE keeps a single-variable
+  # dataset a data frame):
+  dat <- dat[rowSums(is.na(dat)) < ncol(dat), , drop = FALSE]
+
+
   # Create a dummy dataset with only missings:
   mis <- as(is.na(dat),"dMatrix")
   

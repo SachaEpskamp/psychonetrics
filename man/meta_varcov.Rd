@@ -11,6 +11,7 @@ Meta analysis of correlation matrices to fit a homogenous correlation matrix or 
 \usage{
 meta_varcov(cors, nobs, data, covs, studyvar, groups, groupvar,
                    corinput, Vmats, Vmethod = c("individual", "pooled",
+                   "OS_individual", "OS_pooled",
                    "metaSEM_individual", "metaSEM_weighted"), Vestimation
                    = c("averaged", "per_study"), type = c("cor", "ggm"),
                    sigma_y = "full", kappa_y = "full", omega_y = "full",
@@ -54,10 +55,10 @@ Not yet supported for meta-analytic models. Supplying this argument will produce
 Logical. Defaults to \code{TRUE} when \code{cors} is used, \code{FALSE} when \code{covs} is used. Controls whether the input is treated as correlation matrices.
 }
   \item{Vmats}{
-Optional list with 'V' matrices (sampling error variance approximations).
+Optional list with 'V' matrices (sampling error variance approximations). May not be combined with an explicitly supplied \code{Vmethod} (which would otherwise silently be ignored).
 }
   \item{Vmethod}{
-Which method should be used to approximate the sampling error variance? One of \code{"individual"} (the default; the sampling-error covariance matrix is approximated separately for each study), \code{"pooled"} (a single pooled approximation is used for all studies), \code{"metaSEM_individual"}, or \code{"metaSEM_weighted"}. The two \code{metaSEM_*} options compute the sampling-error covariances via \code{metaSEM::asyCov} and therefore require the Suggests package \code{metaSEM} to be installed (per study or using sample-size weighting, respectively).
+Which method should be used to approximate the sampling error variance? One of \code{"individual"} (the default; the sampling-error covariance matrix is approximated separately for each study), \code{"pooled"} (a single pooled approximation is used for all studies), \code{"OS_individual"} or \code{"OS_pooled"} (the asymptotic sampling covariance matrix of the sample correlations following Olkin and Siotani, 1976, evaluated per study or at the sample-size-weighted pooled correlation matrix; for covariance input the corresponding Wishart expression is used), \code{"metaSEM_individual"}, or \code{"metaSEM_weighted"}. The two \code{metaSEM_*} options compute the sampling-error covariances via \code{metaSEM::asyCov} and therefore require the Suggests package \code{metaSEM} to be installed (per study or using sample-size weighting, respectively). See Details for the difference between the default methods and the \code{OS_*} methods.
 }
 \item{Vestimation}{
 How should the sampling error estimates be evaluated? Either \code{"averaged"} (the default; a single sampling-error covariance matrix is averaged over the studies) or \code{"per_study"} (a separate sampling-error covariance matrix is retained for each study).
@@ -142,11 +143,18 @@ Arguments sent to \code{meta_varcov}
 }
 }
 
+\details{
+The default sampling-error approximations \code{Vmethod = "individual"} and \code{"pooled"} invert the Fisher information of a saturated correlation model (with unit diagonal constraint). This is the asymptotic covariance matrix of the maximum-likelihood estimates of a constrained correlation model, which is smaller than the sampling covariance of the raw sample correlations that enter the meta-level data (for a single correlation: (1 - rho^2)^2 / ((1 + rho^2) n) instead of (1 - rho^2)^2 / n). The alternative options \code{Vmethod = "OS_individual"} and \code{"OS_pooled"} instead use the asymptotic sampling covariance matrix of the sample correlations themselves (Olkin and Siotani, 1976), which matches \code{metaSEM::asyCov} and may be preferred when the absolute size of the random-effects (heterogeneity) variances is of interest: with the default methods part of the sampling variability can be absorbed into the random-effects variances, inflating them somewhat. The pooled correlation estimates themselves are typically nearly identical between these choices. The default is kept at \code{"individual"} for backward compatibility with published results.
+
+Note that the saturated meta-analytic model (a fully free pooled correlation structure with fully free random effects) has zero degrees of freedom, in which case chi-square based fit indices (e.g., RMSEA, CFI) are not informative and are left blank.
+}
 \value{
 An object of the class psychonetrics (\link{psychonetrics-class})
 }
 \references{
 Jak, S., and Cheung, M. W. L. (2019). Meta-analytic structural equation modeling with moderating effects on SEM parameters. Psychological methods.
+
+Olkin, I., and Siotani, M. (1976). Asymptotic distribution of functions of a correlation matrix. In S. Ikeda (Ed.), Essays in probability and statistics (pp. 235-251). Shinko Tsusho.
 }
 \author{
 Sacha Epskamp <mail@sachaepskamp.com>

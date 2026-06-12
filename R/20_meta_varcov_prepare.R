@@ -38,6 +38,9 @@ prepare_meta_varcov <- function(x, model){
     groupModels[[g]]$metacor <-  model@sample@corinput
     groupModels[[g]]$cpp <- model@cpp
     groupModels[[g]]$meanstructure <- model@meanstructure
+    # Override D with D_c: the ML gradient uses D for the meta-level sigma
+    # (nCor x nCor), not the study-level D (nNode x nNode):
+    groupModels[[g]]$D <- model@extramatrices$D_c
   }
 
   # Return

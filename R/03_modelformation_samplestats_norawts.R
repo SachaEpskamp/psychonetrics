@@ -150,8 +150,10 @@ samplestats_norawts <- function(
     nVars <- length(vars)
     
     
-    # Remove all rows with full missing:
-    data <- data[rowSums(is.na(data[,vars])) < nVars,]
+    # Remove all rows with full missing (drop = FALSE keeps a single-variable
+    # selection a data frame so rowSums() works; e.g. a bivariate meta_varcov
+    # has only one meta-level variable):
+    data <- data[rowSums(is.na(data[,vars,drop=FALSE])) < nVars,]
     
     ### Bootstrap the data ###
     
@@ -181,7 +183,7 @@ samplestats_norawts <- function(
     
     # If missing is listwise, just cut out all NA rows:
     if (missing == "listwise" && !fimldata){
-      data <- data[rowSums(is.na(data[,c(vars)])) == 0,]
+      data <- data[rowSums(is.na(data[,c(vars),drop=FALSE])) == 0,]
     }
     
     # If ordered is TRUE, set all to ordered:
@@ -293,12 +295,12 @@ samplestats_norawts <- function(
           cors <- list()
         }
         
-        dataMat <- as.matrix(data[,c(vars)])
+        dataMat <- as.matrix(data[,c(vars),drop=FALSE])
         squares <- list(as(t(dataMat) %*% dataMat,"matrix"))
         rm(dataMat)
-        
+
         # cors <- list(new("corMatrix", cov2cor(cov), sd = diag(cov)))
-        means <- list(colMeans(data[,c(vars)], na.rm = TRUE))
+        means <- list(colMeans(data[,c(vars),drop=FALSE], na.rm = TRUE))
         
         thresholds <- list(list())
       }
@@ -639,11 +641,11 @@ samplestats_norawts <- function(
     if (!missing(data)){
       object@fimldata <- lapply(seq_along(groupNames),function(x){
         if (fullFIML){
-          fullfimldata(data[data[[groups]] == x,vars],verbose=verbose)
+          fullfimldata(data[data[[groups]] == x,vars,drop=FALSE],verbose=verbose)
         } else {
-          missingpatterns(data[data[[groups]] == x,vars],verbose=verbose)  
+          missingpatterns(data[data[[groups]] == x,vars,drop=FALSE],verbose=verbose)
         }
-        
+
       })
     } else {
       object@fimldata <- lapply(seq_along(groupNames),function(x){
@@ -703,16 +705,16 @@ samplestats_norawts <- function(
             # covariance matrix as input Gamma cannot be computed and the SEs
             # fall back to the non-robust form (with a warning) in getVCOV().
             if (!missing(data) && !is.null(data)){
-              subData <- data[data[[groups]] == g,c(vars)]
+              subData <- data[data[[groups]] == g,c(vars),drop=FALSE]
               gammamatrix[[g]] <- LS_Gamma(subData, meanstructure=meanstructure, corinput=corinput)
             }
           } else if (weightsmatrix == "full"){
-            subData <- data[data[[groups]] == g,c(vars)]
+            subData <- data[data[[groups]] == g,c(vars),drop=FALSE]
             object@WLS.W[[g]] <- as.matrix(LS_weightsmat(subData,meanstructure=meanstructure,corinput=corinput))
             # Store full Gamma for WLSMV correction (can be obtained by inverting full W):
             gammamatrix[[g]] <- solve(object@WLS.W[[g]])
           } else if (weightsmatrix == "diag"){
-            subData <- data[data[[groups]] == g,c(vars)]
+            subData <- data[data[[groups]] == g,c(vars),drop=FALSE]
             object@WLS.W[[g]] <- as.matrix(LS_weightsmat(subData, type = "diagonal",meanstructure=meanstructure,corinput=corinput))
             # Store full Gamma for WLSMV correction (cannot recover from diagonal W, compute from scratch):
             gammamatrix[[g]] <- LS_Gamma(subData, meanstructure=meanstructure, corinput=corinput)
