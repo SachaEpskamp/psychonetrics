@@ -130,7 +130,7 @@ generateParameterTable <- function(x, mat, op, curMaxPar, symmetrical = FALSE, s
     }
   }
   if (!all(upper == Inf)){
-    if (length(dim(lower))!=3){
+    if (length(dim(upper))!=3){
       upper <- array(upper,dim = dim(x))
     }
   }

@@ -3,37 +3,45 @@ addMIs <- function(x, matrices = "all", type =  c("normal","free","equal"),verbo
   if (missing(verbose)){
     verbose <- x@verbose
   }
-  
+
+  # Check the matrices argument:
+  if (!identical(matrices, "all")){
+    if (!all(matrices %in% x@parameters$matrix)){
+      stop(paste0("The following matrices are not part of the model: ",
+                  paste0("'", setdiff(matrices, x@parameters$matrix), "'", collapse = ", ")))
+    }
+  }
+
   # full <- TRUE
   # if (full){
   if (verbose){
     message("Computing modification indices...")
   }
-  
+
   tryres <- try({
-    
+
     if ("normal" %in% type){
-      
-      x <-  x %>% addMIs_inner_full(type = "normal",analyticFisher=analyticFisher)     
+
+      x <-  x %>% addMIs_inner_full(matrices = matrices, type = "normal",analyticFisher=analyticFisher)
     }
-    
+
     if (nrow(x@sample@groups) > 1){
       if ("free" %in% type){
         # if (verbose){
         #   message("Computing constrain-free modification indices...")
         # }
-        x <- x %>% addMIs_inner_full(type = "free")         
+        x <- x %>% addMIs_inner_full(matrices = matrices, type = "free")
       }
       if ("equal" %in% type){
-        
+
         # if (verbose){
         #   message("Computing group-constrained indices...")
         # }
-        x <- x %>% addMIs_inner_full(type = "equal")       
+        x <- x %>% addMIs_inner_full(matrices = matrices, type = "equal")
       }
-      
+
     }
-    
+
   })
   
   if (is(tryres, "try-error")){
@@ -46,8 +54,11 @@ addMIs <- function(x, matrices = "all", type =  c("normal","free","equal"),verbo
 
 
 # Add the modification indices (FULL VERSION):
-addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFisher=TRUE){
+addMIs_inner_full <- function(x, matrices = "all", type =  c("normal","free","equal"),analyticFisher=TRUE){
   type <- match.arg(type)
+
+  # Which matrices to include in the MIs:
+  useMatrices <- if (identical(matrices, "all")) unique(x@parameters$matrix) else matrices
   
   # If no constrained parameters, nothing to do!
   if (!any(x@parameters$par == 0) & !any(duplicated(x@parameters$par))){
@@ -86,28 +97,36 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
   
   # Obtain the full set of parameters that are constrained across all groups:
   if (type == "equal"){
-    sum <- modCopy@parameters %>% group_by(.data[["matrix"]],.data[["row"]],.data[["col"]]) %>% summarize(anyConstrained = any(.data[['fixed']])) %>%
+    sum <- modCopy@parameters %>% filter(.data[['matrix']] %in% useMatrices) %>%
+      group_by(.data[["matrix"]],.data[["row"]],.data[["col"]]) %>% summarize(anyConstrained = any(.data[['fixed']])) %>%
       filter(drop(.data[['anyConstrained']]))
     # Add a unique number to each:
     sum$par2 <-  max(modCopy@parameters$par) + seq_len(nrow(sum))
-    
-    # Left join back:
-    modCopy@parameters <- modCopy@parameters %>% left_join(sum,by=c("matrix","row","col")) %>% 
-      mutate(par = ifelse(.data[['identified']],0,ifelse(.data[['par']]==0,.data[['par2']],.data[['par']])))
-    
+
+    # Left join back (rows of excluded matrices have NA par2 and keep their par):
+    modCopy@parameters <- modCopy@parameters %>% left_join(sum,by=c("matrix","row","col")) %>%
+      mutate(par = ifelse(.data[['identified']],0,ifelse(.data[['par']]==0 & !is.na(.data[['par2']]),.data[['par2']],.data[['par']])))
+
   } else {
-    # Add free parameter numbers:
-    modCopy@parameters$par[modCopy@parameters$par==0 & !modCopy@parameters$identified] <- max(modCopy@parameters$par) + seq_len(sum(modCopy@parameters$par==0 & !modCopy@parameters$identified))
-    
+    # Add free parameter numbers (only in the requested matrices):
+    toFree <- modCopy@parameters$par==0 & !modCopy@parameters$identified & modCopy@parameters$matrix %in% useMatrices
+    modCopy@parameters$par[toFree] <- max(modCopy@parameters$par) + seq_len(sum(toFree))
+
     # For each group, free all parameters from equality constraints:
     if (type == "free"){
       if (nrow(modCopy@sample@groups)>1){
         for (g in 2:nrow(modCopy@sample@groups)){
-          modCopy@parameters$par[modCopy@parameters$group_id == g & duplicated(modCopy@parameters$par) & !modCopy@parameters$identified] <- max(modCopy@parameters$par) + seq_len(sum(modCopy@parameters$group_id == g & duplicated(modCopy@parameters$par) & !modCopy@parameters$identified))
+          toFree <- modCopy@parameters$group_id == g & duplicated(modCopy@parameters$par) & !modCopy@parameters$identified & modCopy@parameters$matrix %in% useMatrices
+          modCopy@parameters$par[toFree] <- max(modCopy@parameters$par) + seq_len(sum(toFree))
         }
-      }      
+      }
     }
-    
+
+  }
+
+  # If the matrices filter left nothing to free, there is nothing to test:
+  if (max(modCopy@parameters$par) == max(x@parameters$par)){
+    return(x)
   }
   
   # Identify:
@@ -217,16 +236,17 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
   # Expected parameter change:
   epc <-   mi / d 
   
-  # Which to fill:
+  # Which to fill (restricted to the requested matrices; no-op for "all"):
   fillInds <- match(c(curInds,newInds),modCopy@parameters$par)
+  fillSel <- !is.na(fillInds) & modCopy@parameters$matrix[fillInds] %in% useMatrices
   if (type == "normal"){
-    x@parameters$mi[fillInds[!is.na(fillInds)]] <- round(mi[!is.na(fillInds)],10) # round(mi, 3)
-    x@parameters$pmi[fillInds[!is.na(fillInds)]] <- round(p[!is.na(fillInds)],10)
-    x@parameters$epc[fillInds[!is.na(fillInds)]] <- round(epc[!is.na(fillInds)],10)
+    x@parameters$mi[fillInds[fillSel]] <- round(mi[fillSel],10) # round(mi, 3)
+    x@parameters$pmi[fillInds[fillSel]] <- round(p[fillSel],10)
+    x@parameters$epc[fillInds[fillSel]] <- round(epc[fillSel],10)
   } else if (type == "free"){
-    x@parameters$mi_free[fillInds[!is.na(fillInds)]] <- round(mi[!is.na(fillInds)],10) # round(mi, 3)
-    x@parameters$pmi_free[fillInds[!is.na(fillInds)]] <- round(p[!is.na(fillInds)],10)
-    x@parameters$epc_free[fillInds[!is.na(fillInds)]] <- round(epc[!is.na(fillInds)],10)
+    x@parameters$mi_free[fillInds[fillSel]] <- round(mi[fillSel],10) # round(mi, 3)
+    x@parameters$pmi_free[fillInds[fillSel]] <- round(p[fillSel],10)
+    x@parameters$epc_free[fillInds[fillSel]] <- round(epc[fillSel],10)
 
     # --- Joint score test (Lagrange Multiplier) for releasing each equality constraint ---
     # We delegate to .equalityScoreTestInner (in f_convenience_equalityScoreTest.R) which
@@ -245,6 +265,8 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
                         error = function(e) NULL)
     if (!is.null(est_res) && !is.null(est_res$total) && nrow(est_res$total) > 0){
       tot <- est_res$total
+      # Respect the matrices filter:
+      tot <- tot[tot$matrix %in% useMatrices, , drop = FALSE]
       for (i in seq_len(nrow(tot))){
         write_rows <- which(x@parameters$matrix == tot$matrix[i] &
                               x@parameters$row == tot$row[i] &
@@ -255,9 +277,9 @@ addMIs_inner_full <- function(x, type =  c("normal","free","equal"),analyticFish
       }
     }
   } else {
-    x@parameters$mi_equal[fillInds[!is.na(fillInds)]] <- round(mi[!is.na(fillInds)],10) # round(mi,3)
-    x@parameters$pmi_equal[fillInds[!is.na(fillInds)]] <- round(p[!is.na(fillInds)], 10)
-    x@parameters$epc_equal[fillInds[!is.na(fillInds)]] <- round(epc[!is.na(fillInds)],10)
+    x@parameters$mi_equal[fillInds[fillSel]] <- round(mi[fillSel],10) # round(mi,3)
+    x@parameters$pmi_equal[fillInds[fillSel]] <- round(p[fillSel], 10)
+    x@parameters$epc_equal[fillInds[fillSel]] <- round(epc[fillSel],10)
   }
   
   return(x)

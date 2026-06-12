@@ -84,7 +84,12 @@ double maxLogPot_Ising(
   bool update = true;
   bool alwaysUpdate = min_sum == R_NegInf;
 
+  // Counter to allow user interrupts (Ctrl-C / ESC) every 2^16 states:
+  unsigned long long stateCounter = 0;
+
   do{
+    if ((++stateCounter & 0xFFFF) == 0) Rcpp::checkUserInterrupt();
+
     if (!alwaysUpdate){
       update = sum(curstate) >= min_sum;
     }
@@ -178,8 +183,12 @@ Rcpp::List isingExpectation(
   bool update = true;
   bool alwaysUpdate = min_sum == R_NegInf;
 
+  // Counter to allow user interrupts (Ctrl-C / ESC) every 2^16 states:
+  unsigned long long stateCounter = 0;
+
   // Repeat:
   do{
+    if ((++stateCounter & 0xFFFF) == 0) Rcpp::checkUserInterrupt();
 
     // First check if we need to update:
     if (!alwaysUpdate){
@@ -287,9 +296,13 @@ double computeLogZ_cpp(
   bool update = true;
   bool alwaysUpdate = min_sum == R_NegInf;
 
+  // Counter to allow user interrupts (Ctrl-C / ESC) every 2^16 states:
+  unsigned long long stateCounter = 0;
 
   // Repeat:
   do{
+    if ((++stateCounter & 0xFFFF) == 0) Rcpp::checkUserInterrupt();
+
     if (!alwaysUpdate){
       update = sum(curstate) >= min_sum;
     }

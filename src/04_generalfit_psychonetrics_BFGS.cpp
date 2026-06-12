@@ -101,7 +101,13 @@ S4 psychonetrics_optimizer(
   opt.control.reltol = 1.490116e-08; // Same as nlminb
   opt.control.ndeps = ones(nPar);
   opt.control.pgtol = 1.490116e-08; // Same as nlminb
-  opt.control.factr = 1.490116e-08; // Same as nlminb
+  // factr is expressed in multiples of the machine epsilon (the L-BFGS-B
+  // stopping rule is |f_k - f_{k+1}| <= factr * eps * max(|f_k|,|f_{k+1}|,1)).
+  // The old value 1.490116e-08 therefore amounted to an absolute tolerance of
+  // ~3e-24, effectively disabling the function-change stop. To match nlminb's
+  // rel.tol of 1.490116e-08 use factr = rel.tol / eps ~ 6.7e7 (cf. the
+  // standard optim() default of 1e7):
+  opt.control.factr = 6.7e7;
   
 
   

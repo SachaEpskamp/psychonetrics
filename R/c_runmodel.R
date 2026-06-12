@@ -91,15 +91,11 @@ runmodel <- function(
     }
   }
 
-  # Default:
+  # Default: use the same default optimizer as freshly specified models
+  # (model constructors and setoptimizer also use defaultoptimizer), so that
+  # e.g. refit()-ed models choose the same optimizer as fresh ones:
   if (optimizer == "default"){
-    # if (x@model %in% c("varcov","lvm") && any(grepl("omega",x@parameters$matrix))){
-    if (x@distribution == "Gaussian" && any(grepl("omega",x@parameters$matrix))){
-      optimizer <- "nlminb"
-    } else {
-      optimizer <- "ucminf"
-    }
-    # optimizer <- "psychonetrics_BFGS"
+    optimizer <- defaultoptimizer(x)
   }
   
   
@@ -517,7 +513,7 @@ runmodel <- function(
         }, silent = TRUE)
       })
 
-      if (is(tryres,"try-error") && !any(is.na(parVector(x)))){
+      if (is(tryres,"try-error") || any(is.na(parVector(x)))){
         suppressWarnings({
           tryres2 <- try({
             x <- updateModel(oldstart, x)
@@ -525,8 +521,9 @@ runmodel <- function(
           }, silent = TRUE)
         })
 
-        if (is(tryres2,"try-error") && !any(is.na(parVector(x)))){
-          stop(paste("Model estimation resulted in an error that could not be recovered. Try using a different optimizer with setoptimizer(...) or using different starting values. Error:\n\n",tryres2))
+        if (is(tryres2,"try-error") || any(is.na(parVector(x)))){
+          errormsg <- if (is(tryres2,"try-error")) tryres2 else "Optimizer returned NA parameter estimates."
+          stop(paste("Model estimation resulted in an error that could not be recovered. Try using a different optimizer with setoptimizer(...) or using different starting values. Error:\n\n",errormsg))
         }
       }
     } else {
@@ -537,19 +534,20 @@ runmodel <- function(
         }, silent = TRUE)
       })
 
-      if (is(tryres,"try-error") && !any(is.na(parVector(x)))){
+      if (is(tryres,"try-error") || any(is.na(parVector(x)))){
 
         suppressWarnings({
           tryres2 <- try({
             # browser()
             x <- updateModel(oldstart, x)
-            x <- psychonetrics_optimizer(emergencystart(x), lower, upper, gsub("cpp_","",optimizer))
+            x <- psychonetrics_optimizer(emergencystart(x), lower, upper, gsub("cpp_","",optimizer), bounded)
           }, silent = TRUE)
         })
 
         # If still an error, break:
-        if (is(tryres2,"try-error") && !any(is.na(parVector(x)))){
-          stop(paste("Model estimation resulted in an error that could not be recovered. Try using a different optimizer with setoptimizer(...) or using different starting values. Error:\n\n",tryres2))
+        if (is(tryres2,"try-error") || any(is.na(parVector(x)))){
+          errormsg <- if (is(tryres2,"try-error")) tryres2 else "Optimizer returned NA parameter estimates."
+          stop(paste("Model estimation resulted in an error that could not be recovered. Try using a different optimizer with setoptimizer(...) or using different starting values. Error:\n\n",errormsg))
         }
 
       }
@@ -687,9 +685,12 @@ runmodel <- function(
     
     # Add bounds:
     if (optimizer %in% c("nlminb","L-BFGS-B","lbfgs") && bounded){
-      
+
       optim.control$lower <- lower
       optim.control$upper <- upper
+    } else if (optimizer == "ucminf" && bounded && (any(is.finite(lower)) || any(is.finite(upper)))){
+      # ucminf is an unconstrained optimizer; warn that bounds are ignored:
+      warning("Optimizer 'ucminf' does not support bounds: 'bounded = TRUE' is ignored. Use a different optimizer with setoptimizer(...) for bounded estimation.")
     }
     # Run model:
     curtry <- 1

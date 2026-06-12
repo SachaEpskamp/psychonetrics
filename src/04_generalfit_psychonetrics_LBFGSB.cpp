@@ -48,9 +48,13 @@ public:
         double fx = psychonetrics_fitfunction_cpp(x_arma, model_);
         fncount_++;
 
-        // NaN / Inf protection: return a large but finite value so the
-        // line-search can back-track instead of crashing.
-        if (!std::isfinite(fx)) {
+        // NaN / Inf / penalty protection: return the (finite) penalty value so
+        // the line-search can back-track instead of crashing. The gradient is
+        // set to zero (an analytic gradient is meaningless/misleading here),
+        // which means LBFGS++'s projected-gradient convergence test can pass
+        // at such a point: the wrapper below therefore treats an endpoint with
+        // fx >= 1e20 as NON-convergence rather than relying on gradient norms.
+        if (!std::isfinite(fx) || fx >= 1e20) {
             grad_eigen.setZero();
             return 1e20;
         }
@@ -149,15 +153,37 @@ S4 psychonetrics_lbfgsb_optimizer(
     PsychonetricsFunctor fun(model);
 
     // ---- Run optimisation ----
-    double fx;
+    // Initialize fx so that an early throw inside minimize() (before fx is
+    // assigned) does not leave it uninitialized:
+    double fx = std::numeric_limits<double>::quiet_NaN();
     int convergence = 0;
+    int niter = 0;
     std::string message = "converged";
 
     try {
-        solver.minimize(fun, x, fx, lb, ub);
+        niter = solver.minimize(fun, x, fx, lb, ub);
     } catch (std::exception& e) {
         convergence = 1;
         message = std::string("LBFGS++ error: ") + e.what();
+    }
+
+    // ---- Post-hoc convergence checks ----
+    // The functor returns the penalty value 1e20 with a ZERO gradient at
+    // non-finite/improper points, which can satisfy LBFGS++'s projected
+    // gradient test instantly. Hence an endpoint at (or above) the penalty
+    // value, a non-finite objective/parameter vector, or hitting the
+    // iteration cap must all be flagged as NON-convergence:
+    if (convergence == 0) {
+        if (!std::isfinite(fx) || fx >= 1e20) {
+            convergence = 1;
+            message = "LBFGS++ did not converge: objective is non-finite or at the penalty bound (possibly infeasible start values)";
+        } else if (!x.allFinite()) {
+            convergence = 1;
+            message = "LBFGS++ did not converge: non-finite parameter values";
+        } else if (param.max_iterations != 0 && niter >= param.max_iterations) {
+            convergence = 1;
+            message = "LBFGS++ did not converge: iteration limit reached";
+        }
     }
 
     // ---- Copy optimal x back to Armadillo ----
@@ -172,6 +198,7 @@ S4 psychonetrics_lbfgsb_optimizer(
         Rcpp::Named("value")       = fx,
         Rcpp::Named("fncount")     = fun.fncount(),
         Rcpp::Named("grcount")     = fun.grcount(),
+        Rcpp::Named("iterations")  = niter,
         Rcpp::Named("optimizer")   = "LBFGS++"
     );
 

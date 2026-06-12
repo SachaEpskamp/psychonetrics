@@ -144,6 +144,10 @@ arma::mat expHessianCpp(
   // First compute all moments:
   // Loop over all states: FIXME: Currently filling all elements
   for (s=0; s < nstate; s++){
+    // Allow user interrupts (Ctrl-C / ESC). The per-state work here is
+    // O(nvar^4), so check more often (every 2^8 states) than in the cheap
+    // enumeration loops (every 2^16 states):
+    if ((s & 0xFF) == 0xFF) Rcpp::checkUserInterrupt();
     // first compute the Hamiltonian:
     allHs[s] = 0;
     for (ii=0;ii<nvar;ii++){

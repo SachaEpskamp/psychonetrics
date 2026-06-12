@@ -1,0 +1,55 @@
+COPYRIGHTS for the psychonetrics package
+========================================
+
+All files in this package are copyright (c) Sacha Epskamp and licensed
+under GPL-2 (see the License field in the DESCRIPTION file), with the
+following exception:
+
+Bundled LBFGS++ (LBFGSpp) headers
+---------------------------------
+
+The files
+
+    inst/include/LBFGS.h
+    inst/include/LBFGSB.h
+    inst/include/LBFGSpp/BFGSMat.h
+    inst/include/LBFGSpp/BKLDLT.h
+    inst/include/LBFGSpp/Cauchy.h
+    inst/include/LBFGSpp/LineSearchBacktracking.h
+    inst/include/LBFGSpp/LineSearchBracketing.h
+    inst/include/LBFGSpp/LineSearchMoreThuente.h
+    inst/include/LBFGSpp/LineSearchNocedalWright.h
+    inst/include/LBFGSpp/Param.h
+    inst/include/LBFGSpp/SubspaceMin.h
+
+are part of the LBFGS++ (LBFGSpp) library, a header-only C++ library for
+the L-BFGS and L-BFGS-B algorithms, by Yixuan Qiu
+(https://github.com/yixuan/LBFGSpp), bundled here under the MIT license.
+The copyright holders are:
+
+    Copyright (c) 1990      Jorge Nocedal
+    Copyright (c) 2007-2010 Naoaki Okazaki
+    Copyright (c) 2016-2023 Yixuan Qiu
+    Copyright (c) 2018-2023 Dirk Toewe
+
+The full text of the MIT license for these files is included in this
+package as inst/include/LBFGSpp-LICENSE.md and reproduced below:
+
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this software and associated documentation files (the
+    "Software"), to deal in the Software without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the Software, and to
+    permit persons to whom the Software is furnished to do so, subject to
+    the following conditions:
+
+    The above copyright notice and this permission notice shall be
+    included in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+    LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+    OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+    WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

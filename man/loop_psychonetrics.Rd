@@ -12,7 +12,8 @@ Variables referenced in the expression that exist in the calling environment are
 loop_psychonetrics(expr, reps = 1000, nCores = 1,
                    export = character(0),
                    packages = c("psychonetrics", "dplyr"),
-                   verbose = TRUE, envir = parent.frame())
+                   verbose = TRUE, envir = parent.frame(),
+                   seed = NULL)
 }
 \arguments{
   \item{expr}{An expression (code block) to evaluate on each iteration. Typically enclosed in curly braces \code{\{...\}}. The expression should return a single object (e.g., a psychonetrics model).}
@@ -22,12 +23,15 @@ loop_psychonetrics(expr, reps = 1000, nCores = 1,
   \item{packages}{Character vector of packages to load on parallel workers (default: \code{c("psychonetrics", "dplyr")}).}
   \item{verbose}{Logical; if \code{TRUE} (default), shows a progress bar via \code{pbapply}.}
   \item{envir}{The environment in which to look up variables for auto-export and to evaluate the expression in sequential mode. Defaults to the calling environment.}
+  \item{seed}{Optional integer seed for reproducible random number generation. In parallel mode this calls \code{clusterSetRNGStream} so that repeated runs with the same seed and number of cores give identical results; in sequential mode \code{set.seed} is used. The default \code{NULL} leaves the random number generator untouched (previous behavior).}
 }
 \value{
 A list of length \code{reps}, where each element is the result of evaluating \code{expr} once.
 }
 \details{
-When \code{nCores > 1}, a PSOCK cluster is created and automatically cleaned up when the function exits (even on error). The specified \code{packages} are loaded on each worker, and variables referenced in \code{expr} are automatically detected and exported.
+When \code{nCores > 1}, a PSOCK cluster is created and automatically cleaned up when the function exits (even on error). The specified \code{packages} are loaded on each worker, and variables (as well as functions defined in the calling environment) referenced in \code{expr} are automatically detected and exported.
+
+The replication index \code{i} (running from 1 to \code{reps}) is visible inside \code{expr}, in both sequential and parallel mode.
 
 For bootstrapping, use this function together with \code{bootstrap = "nonparametric"} in the model constructor and \code{\link{aggregate_bootstraps}} to summarize the results.
 }

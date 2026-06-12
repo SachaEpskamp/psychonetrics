@@ -4,9 +4,6 @@ emergencystart <- function(x){
   nGroups <- nrow(x@sample@groups)
   
   if (x@model == 'varcov' && x@types[['y']] == 'ggm' && !is.null(x@baseline_saturated$saturated) && nGroups == 1){
-    # Form matrices:
-    mats <- formModelMatrices(x)
-    
     # For each group, compute glasso and set starting values:
     nGroups <- nrow(x@sample@groups)
     # for (g in seq_len(nGroups)){
@@ -20,10 +17,16 @@ emergencystart <- function(x){
     }
       
       
-      # Model zeroes:
-      net <- mats[[g]]$omega != 0
-      zeroes <- which(net & diag(ncol(net)) != 1, arr.ind = TRUE)
-      
+      # Model zeroes: structural zeroes are the off-diagonal omega entries that
+      # are FIXED to zero in the parameter table (a free parameter whose current
+      # estimate happens to be zero is not a structural zero). These are the
+      # entries glasso should constrain to zero:
+      omegaPars <- x@parameters[x@parameters$matrix == "omega" & x@parameters$group_id == g, ]
+      fixedToZero <- omegaPars$fixed & omegaPars$est == 0 & omegaPars$row != omegaPars$col
+      zeroes <- cbind(omegaPars$row[fixedToZero], omegaPars$col[fixedToZero])
+      # Add symmetric counterparts (parameter table only stores one triangle):
+      zeroes <- rbind(zeroes, zeroes[, 2:1, drop = FALSE])
+
       # Glasso result:
       if (nrow(zeroes) > 0){
         suppressWarnings(glas <- glasso::glasso(as.matrix(satCovs), 0, zero = zeroes))     

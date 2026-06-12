@@ -23,7 +23,10 @@ replicator <- function(
   
   # Substitute expression:
   # FIXME: Ugly way...
-  expr <- parse(text=paste0("input %>% ",deparse(substitute(expression))))
+  # Note: collapse deparse output to a single string, as deparse splits
+  # expressions longer than ~60 characters over multiple lines (newline keeps
+  # multi-statement braced expressions valid):
+  expr <- parse(text=paste0("input %>% ",paste(deparse(substitute(expression)),collapse="\n")))
   
   
   # Ncores > 1:

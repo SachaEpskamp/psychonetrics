@@ -24,3 +24,4 @@ extra/
 ^psychonetrics_.*\.tar\.gz$
 ^psychonetrics_.*\.tgz$
 ^FETCH_HEAD$
+^R/00_steps_to_implement_.*\.R$
