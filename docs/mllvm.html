@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="psychonetrics multi-level latent variable models: ml_lvm, ml_lnm, ml_rnm for two-level (clustered) data">
+  <title>Multi-level Models | psychonetrics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container nav-container">
+    <a href="index.html" class="nav-brand">psychonetrics</a>
+    <button class="nav-toggle" aria-label="Toggle navigation">&#9776;</button>
+    <ul class="nav-menu">
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="whatsnew.html" class="nav-link">What&#39;s New</a></li>
+      <li><a href="tutorial.html" class="nav-link">Tutorial</a></li>
+      <li class="nav-dropdown">
+        <button class="nav-link dropdown-toggle" aria-expanded="false" aria-haspopup="true">
+          Models <svg class="dropdown-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="varcov.html" class="nav-link">Varcov (GGM)</a></li>
+          <li><a href="lvm.html" class="nav-link">LVM (CFA / SEM)</a></li>
+          <li><a href="var1.html" class="nav-link">Var1 (time series)</a></li>
+          <li><a href="dlvm1.html" class="nav-link">DLVM1 (panel / RI-CLPM)</a></li>
+          <li><a href="ising.html" class="nav-link">Ising &amp; Blume-Capel</a></li>
+          <li><a href="mllvm.html" class="nav-link">Multi-level (ml_lvm)</a></li>
+          <li><a href="meta.html" class="nav-link">Meta-analysis</a></li>
+        </ul>
+      </li>
+      <li><a href="examples.html" class="nav-link">Examples</a></li>
+      <li><a href="about.html" class="nav-link">About</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="page-header container container-narrow">
+  <h1>Multi-level Latent Variable Models</h1>
+  <p class="subtitle">Two-level random-intercept models for clustered data (ml_lvm)</p>
+</div>
+
+<main class="container container-narrow">
+
+  <div class="toc">
+    <h3>Contents</h3>
+    <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#model">The Two-Level Model</a></li>
+      <li><a href="#wrappers">Wrapper Functions</a></li>
+      <li><a href="#example">Example: Two-Level CFA on Simulated Data</a></li>
+      <li><a href="#networks">Network Variants</a></li>
+      <li><a href="#summary">Summary</a></li>
+    </ul>
+  </div>
+
+  <section id="overview">
+    <h2>Overview</h2>
+    <p>
+      The <strong>ml_lvm</strong> family implements two-level random-intercept latent variable models for <strong>clustered data</strong> &mdash; for example, students nested in schools, employees nested in teams, or repeated measures nested in persons (when temporal ordering is not of interest; for panel models with dynamics, see the <a href="dlvm1.html">DLVM1 family</a>).
+    </p>
+    <p>
+      The model decomposes each observation into a <strong>within-cluster</strong> component (how units deviate from their cluster average) and a <strong>between-cluster</strong> component (how cluster averages differ from each other), each with its own measurement model and latent structure. As everywhere in psychonetrics, every latent and residual covariance matrix on either level can independently be parameterized as a Gaussian Graphical Model.
+    </p>
+    <div class="note">
+      <strong>Recently fixed</strong> <span class="version-tag">0.15.18 &ndash; 0.15.30</span>: latent intercepts are now properly identified (standard errors and degrees of freedom of older fits were affected; estimates were not), the analytic gradient includes the previously omitted mean derivative for between-level regressions, and variable names containing special characters (e.g. <code>"y.1"</code>) are no longer silently dropped. See <a href="whatsnew.html#mllvm">What&#39;s New</a>.
+    </div>
+  </section>
+
+  <section id="model">
+    <h2>The Two-Level Model</h2>
+    <p>For unit $p$ in cluster $c$, the observed response vector is decomposed as:</p>
+    <p class="formula">$$\boldsymbol{y}_{pc} = \boldsymbol{\nu} + \boldsymbol{\Lambda}\left(\boldsymbol{\eta}^{(B)}_{c} + \boldsymbol{\eta}^{(W)}_{pc}\right) + \boldsymbol{\varepsilon}^{(B)}_{c} + \boldsymbol{\varepsilon}^{(W)}_{pc}$$</p>
+    <ul>
+      <li><strong>$\boldsymbol{\Lambda}$</strong> (<code>lambda</code>): factor loadings, shared across levels.</li>
+      <li><strong>$\boldsymbol{\eta}^{(W)}_{pc}$, $\boldsymbol{\eta}^{(B)}_{c}$</strong>: within- and between-cluster latent variables, with covariance structures controlled by <code>within_latent</code> and <code>between_latent</code> (<code>"cov"</code>, <code>"chol"</code>, <code>"prec"</code>, or <code>"ggm"</code>).</li>
+      <li><strong>$\boldsymbol{\varepsilon}^{(W)}$, $\boldsymbol{\varepsilon}^{(B)}$</strong>: residuals on each level, controlled by <code>within_residual</code> and <code>between_residual</code>.</li>
+      <li>Structural regressions are possible on both levels via <code>beta_within</code> and <code>beta_between</code>.</li>
+    </ul>
+    <p>
+      Key matrices include <code>sigma_zeta_within</code> / <code>sigma_zeta_between</code> (or <code>omega_zeta_within</code> / <code>omega_zeta_between</code> for GGM parameterizations) and <code>sigma_epsilon_within</code> / <code>sigma_epsilon_between</code>. Estimation uses full-information maximum likelihood, so unbalanced cluster sizes are handled naturally.
+    </p>
+  </section>
+
+  <section id="wrappers">
+    <h2>Wrapper Functions</h2>
+    <table>
+      <thead><tr><th>Function</th><th>What it sets</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>ml_lvm()</code></td><td>user chooses</td><td>Base function for two-level latent variable models</td></tr>
+        <tr><td><code>ml_lnm()</code></td><td><code>between_latent = "ggm"</code></td><td>Multi-level latent network model</td></tr>
+        <tr><td><code>ml_rnm()</code></td><td><code>between_residual = "ggm"</code></td><td>Multi-level residual network model</td></tr>
+        <tr><td><code>ml_lrnm()</code></td><td>both <code>"ggm"</code></td><td>Combined latent + residual network model</td></tr>
+      </tbody>
+    </table>
+    <p>
+      The cluster membership is supplied via the <code>clusters</code> argument (a column name in the data).
+    </p>
+  </section>
+
+  <section id="example">
+    <h2>Example: Two-Level CFA on Simulated Data</h2>
+    <p>
+      We simulate data for 60 clusters of 10 units each, with two latent factors measured by six indicators on both levels, and recover the structure with <code>ml_lvm()</code>. The example is fully reproducible and runs in a few seconds:
+    </p>
+    <pre><code class="language-r">library("psychonetrics")
+library("dplyr")
+
+# --- Simulate two-level data ---
+set.seed(2)
+nCluster <- 60; perCluster <- 10; nv <- 6
+cl <- rep(seq_len(nCluster), each = perCluster)
+
+# True loadings (2 factors, 3 indicators each):
+loadings <- matrix(0, nv, 2)
+loadings[1:3, 1] <- c(1, .8, .6)
+loadings[4:6, 2] <- c(1, .8, .6)
+
+# Between-cluster latents, within latents, and residuals on both levels:
+eta_b <- matrix(rnorm(nCluster * 2, 0, sqrt(0.5)), nCluster, 2)
+eta_w <- matrix(rnorm(nCluster * perCluster * 2), nCluster * perCluster, 2)
+u_b   <- matrix(rnorm(nCluster * nv, 0, sqrt(0.3)), nCluster, nv)
+Y <- (eta_b[cl, ] + eta_w) %*% t(loadings) + u_b[cl, ] +
+     matrix(rnorm(nCluster * perCluster * nv, 0, sqrt(0.5)), ncol = nv)
+
+Data <- as.data.frame(Y)
+colnames(Data) <- paste0("y", 1:nv)
+Data$cluster <- cl
+
+# --- Fit the two-level CFA ---
+Lambda <- matrix(0, nv, 2)
+Lambda[1:3, 1] <- 1
+Lambda[4:6, 2] <- 1
+
+mod_ml <- ml_lvm(Data, lambda = Lambda, clusters = "cluster",
+                 vars = paste0("y", 1:nv)) %>% runmodel
+
+mod_ml %>% fit
+
+# Latent covariances on both levels:
+round(getmatrix(mod_ml, "sigma_zeta_between"), 2)
+round(getmatrix(mod_ml, "sigma_zeta_within"), 2)</code></pre>
+    <span class="output-label">Output (abbreviated)</span>
+    <div class="output-block">&gt; mod_ml %>% fit   # (selected rows)
+   chisq    15.92
+      df       20
+  pvalue     0.72
+   rmsea      ~ 0
+     cfi      1.0
+
+&gt; round(getmatrix(mod_ml, "sigma_zeta_between"), 2)
+      [,1]  [,2]
+[1,]  0.89 -0.14
+[2,] -0.14  0.76
+
+&gt; round(getmatrix(mod_ml, "sigma_zeta_within"), 2)
+     [,1] [,2]
+[1,] 0.95 0.03
+[2,] 0.03 1.00</div>
+    <p>
+      The model fits well (&chi;&sup2;(20) = 15.92, p = 0.72) and recovers the simulated latent variances on both levels (between &asymp; 0.5 scaled by the marker loading, within &asymp; 1).
+    </p>
+  </section>
+
+  <section id="networks">
+    <h2>Network Variants</h2>
+    <p>
+      Replacing a covariance structure with a GGM turns the corresponding level into a network model. For example, <code>ml_lnm()</code> models the <em>between-cluster</em> latent structure as a partial-correlation network:
+    </p>
+    <pre><code class="language-r"># Multi-level latent network model:
+mod_mlnm <- ml_lnm(Data, lambda = Lambda, clusters = "cluster",
+                   vars = paste0("y", 1:nv)) %>% runmodel
+
+# Within-level latent network (partial correlations):
+round(getmatrix(mod_mlnm, "omega_zeta_within"), 2)
+
+# Prune non-significant network edges as usual:
+mod_mlnm %>% prune(alpha = 0.05)</code></pre>
+    <p>
+      The same <code>prune()</code> / <code>stepup()</code> / <code>compare()</code> workflow applies as in all other psychonetrics families.
+    </p>
+  </section>
+
+  <section id="summary">
+    <h2>Summary</h2>
+    <ul>
+      <li><code>ml_lvm()</code> fits two-level random-intercept latent variable models for clustered data via FIML</li>
+      <li>Within-cluster and between-cluster structures each get their own latent and residual covariance matrices</li>
+      <li>Any of these matrices can be parameterized as a network (GGM): <code>ml_lnm()</code>, <code>ml_rnm()</code>, <code>ml_lrnm()</code></li>
+      <li>Cluster membership is a single column passed via <code>clusters</code></li>
+      <li>For clustered <em>longitudinal</em> data with temporal dynamics, use the <a href="dlvm1.html">DLVM1 / panel family</a> instead</li>
+    </ul>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container footer-grid">
+    <div>
+      <h4>psychonetrics</h4>
+      <p>An R package for Structural Equation Modeling and Confirmatory Network Analysis.</p>
+      <p>Developed by <a href="about.html">Sacha Epskamp</a>.</p>
+    </div>
+    <div>
+      <h4>Links</h4>
+      <ul>
+        <li><a href="https://github.com/SachaEpskamp/psychonetrics">GitHub Repository</a></li>
+        <li><a href="https://cran.r-project.org/package=psychonetrics">CRAN</a></li>
+        <li><a href="https://github.com/SachaEpskamp/psychonetrics/issues">Report a Bug</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Affiliation</h4>
+      <img src="img/nus-logo-blue.png" alt="National University of Singapore" class="nus-logo-footer">
+      <p>National University of Singapore<br>Methods, Data Science, and AI Lab</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 Sacha Epskamp. Built with plain HTML &amp; CSS.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="js/main.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: "$$", right: "$$", display: true},
+        {left: "$", right: "$", display: false}
+      ],
+      throwOnError: false
+    });
+  });
+</script>
+</body>
+</html>

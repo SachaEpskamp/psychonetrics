@@ -23,17 +23,20 @@
     <button class="nav-toggle" aria-label="Toggle navigation">&#9776;</button>
     <ul class="nav-menu">
       <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="whatsnew.html" class="nav-link">What&#39;s New</a></li>
       <li><a href="tutorial.html" class="nav-link">Tutorial</a></li>
       <li class="nav-dropdown">
         <button class="nav-link dropdown-toggle" aria-expanded="false" aria-haspopup="true">
           Models <svg class="dropdown-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <ul class="dropdown-menu">
-          <li><a href="varcov.html" class="nav-link">Varcov</a></li>
-          <li><a href="lvm.html" class="nav-link">LVM</a></li>
-          <li><a href="ising.html" class="nav-link">Ising</a></li>
-          <li><a href="var1.html" class="nav-link">Var1</a></li>
-          <li><a href="dlvm1.html" class="nav-link">DLVM1</a></li>
+          <li><a href="varcov.html" class="nav-link">Varcov (GGM)</a></li>
+          <li><a href="lvm.html" class="nav-link">LVM (CFA / SEM)</a></li>
+          <li><a href="var1.html" class="nav-link">Var1 (time series)</a></li>
+          <li><a href="dlvm1.html" class="nav-link">DLVM1 (panel / RI-CLPM)</a></li>
+          <li><a href="ising.html" class="nav-link">Ising &amp; Blume-Capel</a></li>
+          <li><a href="mllvm.html" class="nav-link">Multi-level (ml_lvm)</a></li>
+          <li><a href="meta.html" class="nav-link">Meta-analysis</a></li>
         </ul>
       </li>
       <li><a href="examples.html" class="nav-link">Examples</a></li>
@@ -55,6 +58,7 @@
 <div class="toc">
   <h3>Table of Contents</h3>
   <ol>
+    <li><a href="#first-network">From Zero to Your First Network</a></li>
     <li><a href="#workflow">The Pipe-Based Workflow</a></li>
     <li><a href="#matrices">Matrix Specification</a></li>
     <li><a href="#estimators">Estimators</a></li>
@@ -67,6 +71,49 @@
     <li><a href="#export">Exporting Results</a></li>
   </ol>
 </div>
+
+<!-- Section 0: First network -->
+<section id="first-network">
+  <h2>From Zero to Your First Network</h2>
+  <p>
+    The complete path from a fresh R session to a publication-style network figure takes about a dozen lines. We use ten personality items (Agreeableness and Conscientiousness) from the <code>bfi</code> dataset:
+  </p>
+  <pre><code class="language-r"># 0. Install (once):
+install.packages(c("psychonetrics", "qgraph", "psych", "dplyr"))
+
+# 1. Load packages and data:
+library("psychonetrics")
+library("dplyr")
+library("qgraph")
+data(bfi, package = "psych")
+vars <- c(paste0("A", 1:5), paste0("C", 1:5))
+
+# 2. Fit a saturated GGM (all partial correlations estimated):
+model <- ggm(bfi, vars = vars) %>% runmodel
+
+# 3. Search for a sparse, well-fitting network:
+model_sparse <- model %>%
+  prune(alpha = 0.01) %>%   # remove non-significant edges
+  stepup                    # add edges back by modification indices
+
+# 4. Inspect:
+model_sparse %>% fit          # fit indices (chi-square, CFI, RMSEA, BIC)
+model_sparse %>% parameters   # estimates, SEs, p-values
+compare(saturated = model, sparse = model_sparse)
+
+# 5. Plot the network:
+qgraph(getmatrix(model_sparse, "omega"),
+       labels = vars, layout = "spring",
+       theme = "colorblind", cut = 0)</code></pre>
+  <span class="output-label">Output (abbreviated)</span>
+  <div class="output-block">&gt; compare(saturated = model, sparse = model_sparse)
+     model DF      AIC      BIC RMSEA Chisq Chisq_diff DF_diff p_value
+ saturated  0 89722.68 90108.61
+    sparse 17 89712.27 89997.26 0.012 23.59      23.59      17    0.13</div>
+  <p>
+    The sparse network removes 17 of the 45 possible edges without significant loss of fit (p = 0.13) and is preferred by both AIC and BIC. The rest of this tutorial unpacks each step and covers the tools that work across <em>all</em> psychonetrics model families.
+  </p>
+</section>
 
 <!-- Section 1: The Pipe-Based Workflow -->
 <section id="workflow">
@@ -167,9 +214,10 @@ model <- lnm(data, lambda = lambda, vars = paste0("item", 1:9))</code></pre>
   <p>
     For multi-group models, use a <strong>list</strong> or <strong>array</strong> to specify different matrices for each group:
   </p>
-  <pre><code class="language-r"># Different omega matrices for two groups:
-omega_group1 <- matrix(1, 5, 5)  # All edges free in group 1
-omega_group2 <- "diag"            # Only variances in group 2
+  <pre><code class="language-r"># Different omega matrices for two groups
+# (a list of one specification matrix per group):
+omega_group1 <- matrix(1, 5, 5)   # All edges free in group 1
+omega_group2 <- matrix(0, 5, 5)   # Empty network in group 2
 
 model <- ggm(data, vars = vars, groups = "gender",
              omega = list(omega_group1, omega_group2))</code></pre>
@@ -179,7 +227,7 @@ model <- ggm(data, vars = vars, groups = "gender",
 <section id="estimators">
   <h2>Estimators</h2>
   <p>
-    psychonetrics supports multiple estimation methods for different data types and research goals. The estimator is set during model specification or changed later using <code>setEstimator()</code>.
+    psychonetrics supports multiple estimation methods for different data types and research goals. The estimator is set during model specification or changed later using <code>setestimator()</code>.
   </p>
 
   <h3>Maximum Likelihood (ML)</h3>
@@ -221,7 +269,7 @@ model <- ggm(data, vars = vars, groups = "gender",
   <p>
     You can change the estimator after model specification:
   </p>
-  <pre><code class="language-r">model <- model %>% setEstimator("FIML") %>% runmodel</code></pre>
+  <pre><code class="language-r">model <- model %>% setestimator("FIML") %>% runmodel</code></pre>
 </section>
 
 <!-- Section 4: Inspecting Results -->

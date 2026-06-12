@@ -22,17 +22,20 @@
     <button class="nav-toggle" aria-label="Toggle navigation">&#9776;</button>
     <ul class="nav-menu">
       <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="whatsnew.html" class="nav-link">What&#39;s New</a></li>
       <li><a href="tutorial.html" class="nav-link">Tutorial</a></li>
       <li class="nav-dropdown">
         <button class="nav-link dropdown-toggle" aria-expanded="false" aria-haspopup="true">
           Models <svg class="dropdown-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <ul class="dropdown-menu">
-          <li><a href="varcov.html" class="nav-link">Varcov</a></li>
-          <li><a href="lvm.html" class="nav-link">LVM</a></li>
-          <li><a href="ising.html" class="nav-link">Ising</a></li>
-          <li><a href="var1.html" class="nav-link">Var1</a></li>
-          <li><a href="dlvm1.html" class="nav-link">DLVM1</a></li>
+          <li><a href="varcov.html" class="nav-link">Varcov (GGM)</a></li>
+          <li><a href="lvm.html" class="nav-link">LVM (CFA / SEM)</a></li>
+          <li><a href="var1.html" class="nav-link">Var1 (time series)</a></li>
+          <li><a href="dlvm1.html" class="nav-link">DLVM1 (panel / RI-CLPM)</a></li>
+          <li><a href="ising.html" class="nav-link">Ising &amp; Blume-Capel</a></li>
+          <li><a href="mllvm.html" class="nav-link">Multi-level (ml_lvm)</a></li>
+          <li><a href="meta.html" class="nav-link">Meta-analysis</a></li>
         </ul>
       </li>
       <li><a href="examples.html" class="nav-link">Examples</a></li>
@@ -40,6 +43,33 @@
     </ul>
   </div>
 </nav>
+
+<!-- What's-new ticker -->
+<div class="ticker" role="region" aria-label="What's new in psychonetrics">
+  <a class="ticker-label" href="whatsnew.html">What&#39;s&nbsp;New</a>
+  <div class="ticker-viewport">
+    <ul class="ticker-track">
+      <li><a href="whatsnew.html#audit"><span class="ticker-version">0.15.30</span> Major stability &amp; performance release: ~3&times; faster model construction</a></li>
+      <li><a href="whatsnew.html#meta"><span class="ticker-version">0.15.30</span> Meta-analysis: covariance input &amp; Olkin&ndash;Siotani V methods</a></li>
+      <li><a href="whatsnew.html#audit"><span class="ticker-version">0.15.30</span> New automated test suite cross-checked against lavaan</a></li>
+      <li><a href="whatsnew.html#blumecapel"><span class="ticker-version">0.15.15</span> New Blume-Capel model for ordered categorical data</a></li>
+      <li><a href="whatsnew.html#blumecapel"><span class="ticker-version">0.15.13</span> Ising models now support more than two response options</a></li>
+      <li><a href="whatsnew.html#riclpm"><span class="ticker-version">0.15.12</span> RI-CLPM: random-intercept cross-lagged panel models + stationarity search</a></li>
+      <li><a href="whatsnew.html#penalized"><span class="ticker-version">0.15</span> Penalized (LASSO / elastic-net) estimation with automatic EBIC selection</a></li>
+      <li><a href="whatsnew.html#mllvm"><span class="ticker-version">0.15</span> Multi-level latent variable models &amp; meta-analytic SEM matured</a></li>
+    </ul>
+    <ul class="ticker-track" aria-hidden="true">
+      <li><a href="whatsnew.html#audit" tabindex="-1"><span class="ticker-version">0.15.30</span> Major stability &amp; performance release: ~3&times; faster model construction</a></li>
+      <li><a href="whatsnew.html#meta" tabindex="-1"><span class="ticker-version">0.15.30</span> Meta-analysis: covariance input &amp; Olkin&ndash;Siotani V methods</a></li>
+      <li><a href="whatsnew.html#audit" tabindex="-1"><span class="ticker-version">0.15.30</span> New automated test suite cross-checked against lavaan</a></li>
+      <li><a href="whatsnew.html#blumecapel" tabindex="-1"><span class="ticker-version">0.15.15</span> New Blume-Capel model for ordered categorical data</a></li>
+      <li><a href="whatsnew.html#blumecapel" tabindex="-1"><span class="ticker-version">0.15.13</span> Ising models now support more than two response options</a></li>
+      <li><a href="whatsnew.html#riclpm" tabindex="-1"><span class="ticker-version">0.15.12</span> RI-CLPM: random-intercept cross-lagged panel models + stationarity search</a></li>
+      <li><a href="whatsnew.html#penalized" tabindex="-1"><span class="ticker-version">0.15</span> Penalized (LASSO / elastic-net) estimation with automatic EBIC selection</a></li>
+      <li><a href="whatsnew.html#mllvm" tabindex="-1"><span class="ticker-version">0.15</span> Multi-level latent variable models &amp; meta-analytic SEM matured</a></li>
+    </ul>
+  </div>
+</div>
 
 <!-- Hero -->
 <section class="hero">
@@ -49,9 +79,12 @@
       <div class="hero-buttons">
         <a href="#installation" class="btn btn-primary">Install</a>
         <a href="tutorial.html" class="btn btn-secondary">Get Started</a>
+        <a href="examples.html" class="btn btn-secondary">Examples</a>
         <a href="https://github.com/SachaEpskamp/psychonetrics" class="btn btn-secondary">GitHub</a>
       </div>
     </div>
+    <p class="hero-tagline">Structural equation modeling and confirmatory network analysis in one framework: estimate, test, and compare network models with the full statistical toolbox of SEM.</p>
+    <code class="hero-install"><span class="prompt">R&gt;</span> install.packages("psychonetrics")</code>
   </div>
 </section>
 
@@ -144,9 +177,9 @@
         <a href="lvm.html" class="card-link">Learn more &rarr;</a>
       </div>
       <div class="card">
-        <h3>Ising Model</h3>
-        <p>Network model for binary/dichotomous data based on the Ising model from statistical physics. Models pairwise interactions between binary nodes.</p>
-        <p><strong>Function:</strong> <code>Ising()</code></p>
+        <h3>Ising &amp; Blume-Capel <span class="badge-new">Updated</span></h3>
+        <p>Network models for binary and ordered categorical data from statistical physics. Now supports any number of ordered response options, plus the Blume-Capel model with per-node quadratic potentials.</p>
+        <p><strong>Functions:</strong> <code>Ising()</code>, <code>BlumeCapel()</code></p>
         <a href="ising.html" class="card-link">Learn more &rarr;</a>
       </div>
       <div class="card">
@@ -156,10 +189,22 @@
         <a href="var1.html" class="card-link">Learn more &rarr;</a>
       </div>
       <div class="card">
-        <h3>DLVM1 Family</h3>
-        <p>Dynamic latent variable models for panel data. Decomposes temporal dynamics, within-person contemporaneous relations, and between-person individual differences into separate network structures.</p>
-        <p><strong>Wrappers:</strong> <code>panelgvar()</code>, <code>panelvar()</code>, <code>panellvgvar()</code></p>
+        <h3>DLVM1 &amp; Panel Models <span class="badge-new">RI-CLPM</span></h3>
+        <p>Dynamic latent variable models for panel data. Decomposes temporal dynamics, within-person contemporaneous relations, and between-person individual differences into separate network structures. Now includes random-intercept cross-lagged panel models.</p>
+        <p><strong>Wrappers:</strong> <code>panelgvar()</code>, <code>panelvar()</code>, <code>ri_clpm()</code>, <code>panellvgvar()</code></p>
         <a href="dlvm1.html" class="card-link">Learn more &rarr;</a>
+      </div>
+      <div class="card">
+        <h3>Multi-level LVM</h3>
+        <p>Two-level random-intercept latent variable models for clustered data (e.g., students in schools). Within-cluster and between-cluster structures can each be modeled as networks.</p>
+        <p><strong>Wrappers:</strong> <code>ml_lvm()</code>, <code>ml_lnm()</code>, <code>ml_rnm()</code></p>
+        <a href="mllvm.html" class="card-link">Learn more &rarr;</a>
+      </div>
+      <div class="card">
+        <h3>Meta-analysis <span class="badge-new">Updated</span></h3>
+        <p>Meta-analytic Gaussian network aggregation (MAGNA): pool correlation or covariance matrices across studies into a single network or SEM, with random-effects heterogeneity.</p>
+        <p><strong>Wrappers:</strong> <code>meta_ggm()</code>, <code>meta_varcov()</code>, <code>meta_lvm()</code>, <code>meta_gvar()</code></p>
+        <a href="meta.html" class="card-link">Learn more &rarr;</a>
       </div>
     </div>
   </div>

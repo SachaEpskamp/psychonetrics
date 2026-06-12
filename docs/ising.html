@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="psychonetrics Ising model: Network models for binary and dichotomous data">
-  <title>Ising Model | psychonetrics</title>
+  <title>Ising &amp; Blume-Capel Models | psychonetrics</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -20,17 +20,20 @@
     <button class="nav-toggle" aria-label="Toggle navigation">&#9776;</button>
     <ul class="nav-menu">
       <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="whatsnew.html" class="nav-link">What&#39;s New</a></li>
       <li><a href="tutorial.html" class="nav-link">Tutorial</a></li>
       <li class="nav-dropdown">
         <button class="nav-link dropdown-toggle" aria-expanded="false" aria-haspopup="true">
           Models <svg class="dropdown-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <ul class="dropdown-menu">
-          <li><a href="varcov.html" class="nav-link">Varcov</a></li>
-          <li><a href="lvm.html" class="nav-link">LVM</a></li>
-          <li><a href="ising.html" class="nav-link">Ising</a></li>
-          <li><a href="var1.html" class="nav-link">Var1</a></li>
-          <li><a href="dlvm1.html" class="nav-link">DLVM1</a></li>
+          <li><a href="varcov.html" class="nav-link">Varcov (GGM)</a></li>
+          <li><a href="lvm.html" class="nav-link">LVM (CFA / SEM)</a></li>
+          <li><a href="var1.html" class="nav-link">Var1 (time series)</a></li>
+          <li><a href="dlvm1.html" class="nav-link">DLVM1 (panel / RI-CLPM)</a></li>
+          <li><a href="ising.html" class="nav-link">Ising &amp; Blume-Capel</a></li>
+          <li><a href="mllvm.html" class="nav-link">Multi-level (ml_lvm)</a></li>
+          <li><a href="meta.html" class="nav-link">Meta-analysis</a></li>
         </ul>
       </li>
       <li><a href="examples.html" class="nav-link">Examples</a></li>
@@ -40,8 +43,8 @@
 </nav>
 
 <div class="page-header container container-narrow">
-  <h1>Ising Model</h1>
-  <p class="subtitle">Network models for binary and dichotomous data</p>
+  <h1>Ising &amp; Blume-Capel Models</h1>
+  <p class="subtitle">Network models for binary and ordered categorical data</p>
 </div>
 
 <main class="container container-narrow">
@@ -54,6 +57,7 @@
       <li><a href="#math">Mathematical Model</a></li>
       <li><a href="#matrices">Model Matrices</a></li>
       <li><a href="#notes">Important Notes</a></li>
+      <li><a href="#blumecapel">Multi-state Ising &amp; the Blume-Capel Model <span class="badge-new">New</span></a></li>
       <li><a href="#example-single">Example: Single-Group Ising Model</a></li>
       <li><a href="#example-multigroup">Example: Multi-Group Ising Analysis</a></li>
       <li><a href="#interpretation">Interpretation Guide</a></li>
@@ -69,6 +73,7 @@
     <p>Originating from statistical physics, where it was developed to model ferromagnetic materials, the Ising model has found widespread application in psychology and social sciences for analyzing binary questionnaire data, such as yes/no responses, present/absent symptoms, or agree/disagree items.</p>
 
     <p>The Ising model represents the joint probability distribution of binary variables through pairwise interactions, making it a natural choice for network analysis of binary data. Each edge in the network represents the association between two binary variables after controlling for all other variables in the system.</p>
+    <p><span class="badge-new">New</span> Since version 0.15.13, <code>Ising()</code> is no longer restricted to binary data: any number of <strong>ordered response options</strong> is supported. And since 0.15.15, the new <code>BlumeCapel()</code> model extends the Ising distribution with a per-node quadratic potential. See <a href="#blumecapel">below</a>.</p>
   </section>
 
   <!-- Mathematical Model -->
@@ -177,11 +182,43 @@
         <li>30 variables: $2^{30} \approx 1$ billion states</li>
       </ul>
       <p>For networks larger than 20 nodes, computation time increases exponentially. Consider using approximation methods or sampling-based approaches for very large networks.</p>
+      <p>With more than two response options the cost grows as <code>length(responses)^nNode</code>; the <code>maxStates</code> argument (default <code>2^maxNodes</code>) caps the number of patterns the exact ML estimator may enumerate.</p>
     </div>
 
     <div class="warning">
       <h4>Estimator Support</h4>
       <p>Only Maximum Likelihood (ML) and Penalized Maximum Likelihood (PML) estimators are supported for Ising models. Other estimators available in psychonetrics (FIML, WLS, DWLS, ULS) are not applicable to binary data models.</p>
+    </div>
+  </section>
+
+  <!-- Multi-state Ising & Blume-Capel -->
+  <section id="blumecapel">
+    <h2>Multi-state Ising &amp; the Blume-Capel Model <span class="version-tag">0.15.13 &ndash; 0.15.17</span></h2>
+    <p>
+      The Ising distribution has been generalized to the <strong>Spin distribution</strong>, which adds a per-node quadratic potential $\delta_i$:
+    </p>
+    <p class="formula">$$P(\boldsymbol{X} = \boldsymbol{x}) \propto \exp\left( \sum_i \tau_i x_i \;-\; \sum_i \delta_i x_i^2 \;+\; \sum_{i &lt; j} \omega_{ij} x_i x_j \right)$$</p>
+    <p>Two models are built on this distribution:</p>
+    <ul>
+      <li><strong><code>Ising()</code></strong>: $\delta$ fixed to zero. Now accepts any set of two or more distinct ordered response options via the <code>responses</code> argument (e.g., <code>c(-1, 0, 1)</code> or a full Likert range), detected automatically from the data when not supplied. With two response options the results are identical to the classical Ising model; a warning is raised when the coding departs from the conventional $-1/1$ or $0/1$.</li>
+      <li><strong><code>BlumeCapel()</code></strong>: $\delta$ freely estimated per node. For the ternary $-1/0/1$ coding this is the usual Blume-Capel model from statistical physics; any ordered response set is allowed. A positive $\delta_i$ pulls node $i$ toward the neutral (zero) state; a negative $\delta_i$ favours extreme responses. At least three response options are required (with two, $x^2$ is constant and $\delta$ is not identified &mdash; use <code>Ising()</code>).</li>
+    </ul>
+    <pre><code class="language-r"># Multi-state Ising model on ternary data:
+mod_ising <- Ising(Data, responses = c(-1L, 0L, 1L)) %>% runmodel
+
+# Blume-Capel model (adds the quadratic potential delta):
+mod_bc <- BlumeCapel(Data, responses = c(-1L, 0L, 1L)) %>% runmodel
+
+# Compare (the models are nested: Ising = Blume-Capel with delta = 0):
+compare(ising = mod_ising, blume_capel = mod_bc)
+
+# Per-node quadratic potentials:
+getmatrix(mod_bc, "delta")</code></pre>
+    <p>
+      <code>BlumeCapel()</code> shares the <code>Ising()</code> engine &mdash; fit measures, modification indices, <code>prune()</code> / <code>stepup()</code> search, multi-group analysis, and <code>groupequal()</code> constraints (including <code>"delta"</code>) all work as usual. A fully reproducible simulated example is on the <a href="examples.html#ex-blumecapel">examples page</a>.
+    </p>
+    <div class="note">
+      <strong>Numerical robustness</strong> <span class="version-tag">0.15.30</span>: the partition function and moment computations now use log-sum-exp accumulation, so extreme parameter values no longer produce <code>Inf</code>/<code>NaN</code> fits, and long state-space enumerations can be interrupted.
     </div>
   </section>
 
@@ -290,9 +327,12 @@ mod1b <- mod1 %>%
   stepup(alpha = 0.05)</code></pre>
 
     <h4>Model 2: Equal Networks</h4>
-    <pre><code class="language-r"># Constrain omega (network) to be equal across groups
+    <pre><code class="language-r"># Constrain omega (network) to be equal across groups.
+# emergencystart() computes fresh starting values; on these data the
+# default start values lead to a local optimum for this model:
 mod2 <- mod1 %>%
   groupequal("omega") %>%
+  emergencystart() %>%
   runmodel
 
 # Sparse version with equality constraints

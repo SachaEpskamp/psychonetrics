@@ -19,17 +19,20 @@
     <button class="nav-toggle" aria-label="Toggle navigation">&#9776;</button>
     <ul class="nav-menu">
       <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="whatsnew.html" class="nav-link">What&#39;s New</a></li>
       <li><a href="tutorial.html" class="nav-link">Tutorial</a></li>
       <li class="nav-dropdown">
         <button class="nav-link dropdown-toggle" aria-expanded="false" aria-haspopup="true">
           Models <svg class="dropdown-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <ul class="dropdown-menu">
-          <li><a href="varcov.html" class="nav-link">Varcov</a></li>
-          <li><a href="lvm.html" class="nav-link">LVM</a></li>
-          <li><a href="ising.html" class="nav-link">Ising</a></li>
-          <li><a href="var1.html" class="nav-link">Var1</a></li>
-          <li><a href="dlvm1.html" class="nav-link">DLVM1</a></li>
+          <li><a href="varcov.html" class="nav-link">Varcov (GGM)</a></li>
+          <li><a href="lvm.html" class="nav-link">LVM (CFA / SEM)</a></li>
+          <li><a href="var1.html" class="nav-link">Var1 (time series)</a></li>
+          <li><a href="dlvm1.html" class="nav-link">DLVM1 (panel / RI-CLPM)</a></li>
+          <li><a href="ising.html" class="nav-link">Ising &amp; Blume-Capel</a></li>
+          <li><a href="mllvm.html" class="nav-link">Multi-level (ml_lvm)</a></li>
+          <li><a href="meta.html" class="nav-link">Meta-analysis</a></li>
         </ul>
       </li>
       <li><a href="examples.html" class="nav-link">Examples</a></li>
@@ -56,12 +59,42 @@
       <li><code>Thurstone</code> (psych) &mdash; Correlation matrix for 9 mental ability tests. Load with <code>data(Thurstone)</code>.</li>
       <li><code>HolzingerSwineford1939</code> (lavaan) &mdash; Classic CFA dataset with 9 tests measuring 3 latent factors. Load with <code>data(HolzingerSwineford1939)</code>.</li>
       <li><code>PoliticalDemocracy</code> (lavaan) &mdash; Panel data on industrialization and democracy. Load with <code>data(PoliticalDemocracy)</code>.</li>
+      <li><em>Simulated data</em> &mdash; the RI-CLPM, meta-analysis, and Blume-Capel examples simulate their own data with <code>set.seed()</code>, so they are fully reproducible without downloads.</li>
       <li><code>Supplementary2_data.csv</code> (OSF) &mdash; Clinical ESM time-series data (7 variables, single patient). Download from <a href="https://osf.io/c8wjz/">https://osf.io/c8wjz/</a> (Epskamp, van Borkulo, van der Veen, Servaas, Isvoranu, Riese, &amp; Cramer, 2018).</li>
     </ul>
   </div>
 
+
+  <div class="toc">
+    <h4>All examples</h4>
+    <ol>
+      <li><a href="#ex-ggm-saturated">Saturated GGM on Personality Data</a></li>
+      <li><a href="#ex-ggm-search">GGM with Model Search (Prune &amp; Stepup)</a></li>
+      <li><a href="#ex-ggm-traintest">Confirmatory GGM: Train/Test Validation</a></li>
+      <li><a href="#ex-ggm-multigroup">Multi-Group Network Comparison</a></li>
+      <li><a href="#ex-ggm-pml">Penalized GGM (PML)</a></li>
+      <li><a href="#ex-ggm-fiml">GGM with Missing Data (FIML)</a></li>
+      <li><a href="#ex-ggm-cors">GGM from Correlation Matrix</a></li>
+      <li><a href="#ex-cfa">Confirmatory Factor Analysis</a></li>
+      <li><a href="#ex-lnm">Latent Network Model</a></li>
+      <li><a href="#ex-rnm">Residual Network Model</a></li>
+      <li><a href="#ex-sem">SEM with Structural Paths</a></li>
+      <li><a href="#ex-invariance">Measurement Invariance Testing</a></li>
+      <li><a href="#ex-bootstrap">Bootstrap Confidence Intervals</a></li>
+      <li><a href="#ex-ising">Ising Model on Binary Data</a></li>
+      <li><a href="#ex-ising-multigroup">Multi-Group Ising Analysis</a></li>
+      <li><a href="#ex-na2020">Sleep &amp; Wellbeing Network with FIML</a></li>
+      <li><a href="#ex-starwars-cfa">CFA &amp; Latent Network Model (Star Wars)</a></li>
+      <li><a href="#ex-starwars-invariance">Measurement Invariance (Star Wars)</a></li>
+      <li><a href="#ex-gvar-esm">Graphical VAR on Clinical ESM Data</a></li>
+      <li><a href="#ex-riclpm">RI-CLPM on Simulated Panel Data <span class="badge-new">New</span></a></li>
+      <li><a href="#ex-meta">Meta-analytic GGM <span class="badge-new">New</span></a></li>
+      <li><a href="#ex-blumecapel">Blume-Capel &amp; Multi-state Ising <span class="badge-new">New</span></a></li>
+    </ol>
+  </div>
+
   <!-- EXAMPLE 1a: Saturated GGM -->
-  <div class="example-card">
+  <div class="example-card" id="ex-ggm-saturated">
     <div class="example-header">
       <div>
         <h3>Saturated GGM on Personality Data <span class="example-tag tag-varcov">varcov</span></h3>
@@ -105,7 +138,7 @@ qgraph(omega,
   </div>
 
   <!-- EXAMPLE 1b: GGM with Model Search -->
-  <div class="example-card">
+  <div class="example-card" id="ex-ggm-search">
     <div class="example-header">
       <div>
         <h3>GGM with Model Search (Prune &amp; Stepup) <span class="example-tag tag-varcov">varcov</span></h3>
@@ -158,7 +191,7 @@ mod_stepup %>% fit</code></pre>
   </div>
 
   <!-- EXAMPLE 2: Train/Test Validation -->
-  <div class="example-card">
+  <div class="example-card" id="ex-ggm-traintest">
     <div class="example-header">
       <div>
         <h3>Confirmatory GGM: Train/Test Validation <span class="example-tag tag-varcov">varcov</span></h3>
@@ -211,18 +244,19 @@ fit(mod_test_confirmatory)</code></pre>
   </div>
 
   <!-- EXAMPLE 3: Multi-Group Network -->
-  <div class="example-card">
+  <div class="example-card" id="ex-ggm-multigroup">
     <div class="example-header">
       <div>
         <h3>Multi-Group Network Comparison <span class="example-tag tag-varcov">varcov</span></h3>
-        <p class="example-meta">Dataset: psych::bfi | Demonstrates: groups, groupequal(), compare()</p>
+        <p class="example-meta">Dataset: psych::bfi | Demonstrates: groups, prune(), unionmodel(), groupequal(), compare()</p>
       </div>
       <span class="example-chevron">&#9660;</span>
     </div>
     <div class="example-body">
-      <p>This example demonstrates multi-group network analysis, comparing personality networks between males and females. We test whether the network structure differs across groups.</p>
+      <p>This example demonstrates multi-group network analysis, comparing personality networks between males and females. After pruning each group separately, the group structures generally differ, so we first take the <strong>union</strong> of the two structures with <code>unionmodel()</code> &mdash; this gives both groups the same set of edges (a prerequisite for meaningfully constraining them equal) &mdash; and then test whether the edge <em>weights</em> are equal across groups with <code>groupequal()</code>.</p>
       <pre><code class="language-r"># Load required packages
 library(psychonetrics)
+library(dplyr)
 library(psych)
 
 # Load data and prepare
@@ -237,35 +271,47 @@ mod_configural <- ggm(bfi_clean,
   runmodel()
 
 # Prune each group separately
-mod_configural_pruned <- mod_configural %>%
-  prune(alpha = 0.01) %>%
-  stepup()
+mod_pruned <- mod_configural %>%
+  prune(alpha = 0.01)
 
-# Constrain networks to be equal across groups
-mod_equal <- mod_configural_pruned %>%
+# Take the union of the two structures, so both groups
+# have the same edges (required before equality constraints):
+mod_union <- mod_pruned %>%
+  unionmodel() %>%
+  runmodel()
+
+# Constrain edge weights to be equal across groups
+mod_equal <- mod_union %>%
   groupequal("omega") %>%
   runmodel()
 
 # Compare models
-compare(configural = mod_configural_pruned,
+compare(configural = mod_union,
         equal_networks = mod_equal)
 
-# View both models
-mod_configural_pruned
-mod_equal
-
-# Extract networks for each group from configural model
-omega_male <- getmatrix(mod_configural_pruned, "omega", group = 1)
-omega_female <- getmatrix(mod_configural_pruned, "omega", group = 2)
+# Extract networks for each group from the pruned model
+omega_male   <- getmatrix(mod_pruned, "omega", group = 1)
+omega_female <- getmatrix(mod_pruned, "omega", group = 2)
 
 # Compare network densities
 mean(omega_male[upper.tri(omega_male)] != 0)
 mean(omega_female[upper.tri(omega_female)] != 0)</code></pre>
+      <span class="output-label">Output (abbreviated)</span>
+      <div class="output-block">&gt; compare(configural = mod_union, equal_networks = mod_equal)
+          model  DF       AIC       BIC RMSEA  Chisq Chisq_diff DF_diff  p_value
+     configural 364 196036.74 197984.90 0.030 756.27
+ equal_networks 482 196026.13 197290.12 0.029 981.66     225.39     118 &lt; 0.0001
+
+&gt; mean(omega_male[upper.tri(omega_male)] != 0)
+[1] 0.2366667
+&gt; mean(omega_female[upper.tri(omega_female)] != 0)
+[1] 0.36</div>
+      <p>The chi-square difference test rejects exact equality of the edge weights (p &lt; 0.0001), although BIC slightly favors the more parsimonious equal model. Use <code>partialprune()</code> to identify <em>which</em> edges differ between groups.</p>
     </div>
   </div>
 
   <!-- EXAMPLE 4: Penalized GGM -->
-  <div class="example-card">
+  <div class="example-card" id="ex-ggm-pml">
     <div class="example-header">
       <div>
         <h3>Penalized GGM (PML) <span class="example-tag tag-varcov">varcov</span> <span style="font-size:.75em;color:var(--nus-orange);">[experimental]</span></h3>
@@ -323,7 +369,7 @@ cat("PML edges:", sum(omega_sparse[upper.tri(omega_sparse)] != 0), "\n")</code><
   </div>
 
   <!-- EXAMPLE 5: FIML with Missing Data -->
-  <div class="example-card">
+  <div class="example-card" id="ex-ggm-fiml">
     <div class="example-header">
       <div>
         <h3>GGM with Missing Data (FIML) <span class="example-tag tag-varcov">varcov</span></h3>
@@ -380,7 +426,7 @@ mod_fiml_pruned</code></pre>
   </div>
 
   <!-- EXAMPLE 6: GGM from Correlation Matrix -->
-  <div class="example-card">
+  <div class="example-card" id="ex-ggm-cors">
     <div class="example-header">
       <div>
         <h3>GGM from Correlation Matrix <span class="example-tag tag-varcov">varcov</span></h3>
@@ -442,7 +488,7 @@ qgraph(omega,
   </div>
 
   <!-- EXAMPLE 7: Confirmatory Factor Analysis -->
-  <div class="example-card">
+  <div class="example-card" id="ex-cfa">
     <div class="example-header">
       <div>
         <h3>Confirmatory Factor Analysis <span class="example-tag tag-lvm">lvm</span></h3>
@@ -504,268 +550,256 @@ print(r_squared)</code></pre>
   </div>
 
   <!-- EXAMPLE 8: Latent Network Model -->
-  <div class="example-card">
+  <div class="example-card" id="ex-lnm">
     <div class="example-header">
       <div>
         <h3>Latent Network Model <span class="example-tag tag-lvm">lvm</span></h3>
-        <p class="example-meta">Dataset: psychonetrics::StarWars | Demonstrates: lnm(), latent="ggm"</p>
+        <p class="example-meta">Dataset: psychonetrics::StarWars | Demonstrates: lnm(), prune(), latent network</p>
       </div>
       <span class="example-chevron">&#9660;</span>
     </div>
     <div class="example-body">
-      <p>This example demonstrates a Latent Network Model where the relationships between latent factors are modeled as a network rather than a simple correlation structure. This allows for testing which latent factors are conditionally independent.</p>
+      <p>This example demonstrates a Latent Network Model where the relationships between latent factors are modeled as a network (GGM) rather than a covariance matrix. This allows testing which latent factors are <em>conditionally independent</em>. Note that <code>lnm()</code> already sets <code>latent = "ggm"</code>, so this argument should not be passed again.</p>
       <pre><code class="language-r"># Load required packages
 library(psychonetrics)
+library(dplyr)
 library(qgraph)
 
-# Load Star Wars dataset
+# Load Star Wars dataset (10 items, 3 trilogy factors)
 data(StarWars)
 
-# Use items about movie preferences (7 movies)
-items <- StarWars[, 1:7]
+lambda <- matrix(0, 10, 3)
+lambda[1:4, 1]       <- 1  # Prequels:  Q1-Q4
+lambda[c(1, 5:7), 2] <- 1  # Original:  Q1, Q5-Q7
+lambda[c(1, 8:10), 3] <- 1 # Sequels:   Q1, Q8-Q10
 
-# Define 3 factors based on trilogy
-# Original trilogy: SW1, SW2, SW3
-# Prequel trilogy: SW4, SW5, SW6
-# Sequel: SW7
-lambda <- matrix(0, 7, 3)
-lambda[1:3, 1] <- 1  # Original
-lambda[4:6, 2] <- 1  # Prequel
-lambda[7, 3] <- 1    # Sequel
+obsvars <- paste0("Q", 1:10)
+latents <- c("Prequels", "Original", "Sequels")
 
-colnames(lambda) <- c("Original", "Prequel", "Sequel")
-
-# Fit Latent Network Model
-# Model latent correlations as a GGM
-mod_lnm <- lnm(items,
+# Fit Latent Network Model (lnm() sets latent = "ggm" internally)
+mod_lnm <- lnm(StarWars,
                lambda = lambda,
-               latent = "ggm",
+               vars = obsvars,
+               latents = latents,
                identification = "variance") %>%
   runmodel()
 
-# Prune non-significant edges in latent network
+# Prune non-significant edges in the latent network
 mod_lnm_pruned <- mod_lnm %>%
-  prune(alpha = 0.01, adjust = "fdr", matrices = "omega_zeta") %>%
-  stepup(matrices = "omega_zeta")
+  prune(alpha = 0.05, matrices = "omega_zeta")
 
 # Compare models
 compare(saturated = mod_lnm,
         pruned = mod_lnm_pruned)
 
-# Extract latent network
+# Extract and visualize the latent network
 omega_latent <- getmatrix(mod_lnm_pruned, "omega_zeta")
-
-# Visualize latent network
 qgraph(omega_latent,
        layout = "spring",
-       labels = colnames(lambda),
+       labels = latents,
        theme = "colorblind",
-       cut = 0,
-       title = "Star Wars Latent Factor Network",
-       nodeNames = colnames(lambda))
+       cut = 0, vsize = 14,
+       title = "Star Wars Latent Factor Network")</code></pre>
+      <span class="output-label">Output (abbreviated)</span>
+      <div class="output-block">&gt; compare(saturated = mod_lnm, pruned = mod_lnm_pruned)
+     model DF     AIC     BIC RMSEA Chisq Chisq_diff DF_diff p_value
+ saturated 30 8322.70 8448.78 0.024
+    pruned 31 8321.02 8443.49 0.022 34.89       0.31       1    0.58
 
-# View model
-mod_lnm_pruned
-
-# Extract factor loadings
-parameters(mod_lnm_pruned) %>%
-  subset(matrix == "lambda")</code></pre>
+&gt; round(getmatrix(mod_lnm_pruned, "omega_zeta"), 2)
+     [,1] [,2] [,3]
+[1,] 0.00 0.00 0.34
+[2,] 0.00 0.00 0.67
+[3,] 0.34 0.67 0.00</div>
+      <p>The edge between Prequels and Original ratings can be removed without significant loss of fit (p = 0.58): liking the prequels and liking the original trilogy are conditionally independent given liking of the sequels.</p>
     </div>
   </div>
 
   <!-- EXAMPLE 9: Residual Network Model -->
-  <div class="example-card">
+  <div class="example-card" id="ex-rnm">
     <div class="example-header">
       <div>
         <h3>Residual Network Model <span class="example-tag tag-lvm">lvm</span></h3>
-        <p class="example-meta">Dataset: psychonetrics::StarWars | Demonstrates: rnm(), residual="ggm", stepup()</p>
+        <p class="example-meta">Dataset: psychonetrics::StarWars | Demonstrates: rnm(), omega_epsilon, stepup()</p>
       </div>
       <span class="example-chevron">&#9660;</span>
     </div>
     <div class="example-body">
-      <p>This example demonstrates a Residual Network Model where the residual correlations between indicators are modeled as a network. This helps identify direct associations between items beyond what is explained by the latent factors.</p>
+      <p>This example demonstrates a Residual Network Model where residual associations between indicators are modeled as a network of partial correlations. This identifies direct associations between items beyond the latent factors. Note that <code>rnm()</code> already sets <code>residual = "ggm"</code>; with ML estimation a <em>saturated</em> residual network is not identified, so the standard workflow starts from an empty residual network (<code>omega_epsilon = "zero"</code>, the default) and adds edges with <code>stepup()</code>.</p>
       <pre><code class="language-r"># Load required packages
 library(psychonetrics)
+library(dplyr)
 library(qgraph)
 
-# Load Star Wars dataset
 data(StarWars)
-items <- StarWars[, 1:7]
 
-# Same factor structure as before
-lambda <- matrix(0, 7, 3)
-lambda[1:3, 1] <- 1  # Original trilogy
-lambda[4:6, 2] <- 1  # Prequel trilogy
-lambda[7, 3] <- 1    # Sequel
+# Same factor structure as the LNM example
+lambda <- matrix(0, 10, 3)
+lambda[1:4, 1]       <- 1
+lambda[c(1, 5:7), 2] <- 1
+lambda[c(1, 8:10), 3] <- 1
 
-colnames(lambda) <- c("Original", "Prequel", "Sequel")
+obsvars <- paste0("Q", 1:10)
+latents <- c("Prequels", "Original", "Sequels")
 
-# Fit Residual Network Model
-# Model residual partial correlations as GGM
-mod_rnm <- rnm(items,
-               lambda = lambda,
-               residual = "ggm",
-               identification = "variance") %>%
+# Reference CFA (no residual network):
+mod_cfa <- lvm(StarWars, lambda = lambda, vars = obsvars,
+               latents = latents, identification = "variance") %>%
   runmodel()
 
-# Start with empty residual network and use stepup
-mod_rnm_empty <- rnm(items,
-                     lambda = lambda,
-                     residual = "ggm",
-                     omega_epsilon = "empty",  # Start with no edges
-                     identification = "variance") %>%
+# RNM: start with an empty residual network (default)
+mod_rnm <- rnm(StarWars, lambda = lambda, vars = obsvars,
+               latents = latents, identification = "variance",
+               omega_epsilon = "zero") %>%
   runmodel()
 
-# Add significant residual edges
-mod_rnm_stepup <- mod_rnm_empty %>%
+# Add significant residual edges via stepup
+mod_rnm_stepup <- mod_rnm %>%
   stepup(matrices = "omega_epsilon", alpha = 0.01)
 
-# Compare models
-compare(saturated_residual = mod_rnm,
-        empty_residual = mod_rnm_empty,
-        stepup_residual = mod_rnm_stepup)
+# Compare with the standard CFA
+compare(cfa = mod_cfa,
+        rnm_stepup = mod_rnm_stepup)
 
-# Extract residual network
+# Extract and visualize the residual network
 omega_residual <- getmatrix(mod_rnm_stepup, "omega_epsilon")
-
-# Visualize residual network
 qgraph(omega_residual,
        layout = "spring",
-       labels = colnames(items),
+       labels = obsvars,
        theme = "colorblind",
        cut = 0,
-       title = "Star Wars Residual Network")
+       title = "Star Wars Residual Network")</code></pre>
+      <span class="output-label">Output (abbreviated)</span>
+      <div class="output-block">&gt; compare(cfa = mod_cfa, rnm_stepup = mod_rnm_stepup)
+      model DF     AIC     BIC RMSEA Chisq Chisq_diff DF_diff p_value
+ rnm_stepup 29 8315.19 8444.87   ~ 0 25.07
+        cfa 30 8322.70 8448.78 0.024 34.58       9.51       1  0.0020
 
-# View model
-mod_rnm_stepup
-
-# Compare fit with standard CFA (no residual network)
-mod_cfa <- lvm(items,
-               lambda = lambda,
-               identification = "variance") %>%
-  runmodel()
-
-compare(standard_CFA = mod_cfa,
-        residual_network = mod_rnm_stepup)</code></pre>
+# stepup() adds one residual partial correlation: Q4 -- Q10 = -0.22
+# (both items concern the quality of special effects)</div>
     </div>
   </div>
 
   <!-- EXAMPLE 10: SEM with Structural Paths -->
-  <div class="example-card">
+  <div class="example-card" id="ex-sem">
     <div class="example-header">
       <div>
         <h3>SEM with Structural Paths <span class="example-tag tag-lvm">lvm</span></h3>
-        <p class="example-meta">Dataset: lavaan::PoliticalDemocracy | Demonstrates: beta matrix, structural model</p>
+        <p class="example-meta">Dataset: lavaan::PoliticalDemocracy | Demonstrates: beta matrix, correlated residuals | Verified against lavaan</p>
       </div>
       <span class="example-chevron">&#9660;</span>
     </div>
     <div class="example-body">
-      <p>This example demonstrates a full structural equation model with latent factors predicting other latent factors. We model democratic indicators across two time points with structural regression paths.</p>
+      <p>This example reproduces the classic Bollen (1989) industrialization-and-democracy structural equation model: industrialization in 1960 (<code>ind60</code>) predicts democracy in 1960 (<code>dem60</code>) and 1965 (<code>dem65</code>). The textbook model includes six correlated residuals between democracy indicators measured with the same method or at adjacent time points. Remember that in psychonetrics specification matrices <strong>0 means fixed to zero</strong> and <strong>1 means free</strong> &mdash; so the diagonal of <code>sigma_epsilon</code> must be 1 (free residual variances).</p>
       <pre><code class="language-r"># Load required packages
 library(psychonetrics)
+library(dplyr)
 library(lavaan)
 
 # Load political democracy dataset
 data(PoliticalDemocracy)
 
-# Select variables for model
-# y1-y4: democracy indicators at time 1
-# y5-y8: democracy indicators at time 2
-# x1-x3: industrialization indicators (1960)
+# y1-y4: democracy indicators 1960; y5-y8: democracy indicators 1965
+# x1-x3: industrialization indicators 1960
 vars <- c(paste0("y", 1:8), paste0("x", 1:3))
 data_sem <- PoliticalDemocracy[, vars]
 
-# Define measurement model (lambda)
-# 3 latent factors: ind60, dem60, dem65
+# Measurement model (lambda): 3 latent factors
 lambda <- matrix(0, 11, 3)
-lambda[1:4, 2] <- 1      # dem60 measured by y1-y4
-lambda[5:8, 3] <- 2      # dem65 measured by y5-y8 (equality constraint with dem60)
+lambda[1:4, 2]  <- 1     # dem60 measured by y1-y4
+lambda[5:8, 3]  <- 1     # dem65 measured by y5-y8
 lambda[9:11, 1] <- 1     # ind60 measured by x1-x3
-
 colnames(lambda) <- c("ind60", "dem60", "dem65")
 rownames(lambda) <- vars
 
-# Define structural model (beta)
-# ind60 -> dem60
-# ind60 -> dem65
-# dem60 -> dem65
+# Structural model (beta): rows = outcomes, columns = predictors
 beta <- matrix(0, 3, 3)
 beta[2, 1] <- 1  # dem60 ~ ind60
 beta[3, 1] <- 1  # dem65 ~ ind60
 beta[3, 2] <- 1  # dem65 ~ dem60
-
 rownames(beta) <- colnames(beta) <- c("ind60", "dem60", "dem65")
 
-# Add residual covariances for time 1 indicators
-# 0 = fixed to zero, 1 = free parameter
-sigma_epsilon <- matrix(0, 11, 11)
-sigma_epsilon[1:4, 1:4] <- 1  # Free residual covs for y1-y4
-diag(sigma_epsilon) <- 0      # Diagonal estimated by default
+# Residual covariance structure:
+# free residual variances (diag = 1) plus the six classic
+# correlated residuals: y1~~y5, y2~~y4, y2~~y6, y3~~y7, y4~~y8, y6~~y8
+sigma_epsilon <- diag(11)
+resid_pairs <- rbind(c(1,5), c(2,4), c(2,6), c(3,7), c(4,8), c(6,8))
+for (i in seq_len(nrow(resid_pairs))) {
+  sigma_epsilon[resid_pairs[i,1], resid_pairs[i,2]] <- 1
+  sigma_epsilon[resid_pairs[i,2], resid_pairs[i,1]] <- 1
+}
 
-# Fit SEM
+# Fit SEM (default identification: first loading fixed to 1)
 mod_sem <- lvm(data_sem,
                lambda = lambda,
                beta = beta,
                sigma_epsilon = sigma_epsilon,
-               identification = "variance",
                vars = vars) %>%
-  runmodel()
+  runmodel
 
 # View results
 mod_sem
-
-# Check fit
 fit(mod_sem)
 
-# Extract structural coefficients
+# Structural coefficients
 params <- parameters(mod_sem)
-structural <- params[params$matrix == "beta", ]
-print(structural)
+params[params$matrix == "beta" & !params$fixed,
+       c("var1", "var2", "est", "se", "p")]</code></pre>
+      <span class="output-label">Output (abbreviated; matches lavaan to numerical precision)</span>
+      <div class="output-block">&gt; fit(mod_sem)   # (selected rows)
+            Measure    Value
+               logl -1547.79
+              chisq    38.13
+                 df       35
+             pvalue     0.33
+              rmsea    0.035
+                cfi      1.0
 
-# Extract factor loadings
-loadings <- params[params$matrix == "lambda", ]
-print(loadings)
+&gt; params[params$matrix == "beta" & !params$fixed, ]
+  var1    var2   est    se        p
+ dem60 &lt;- ind60 1.483 0.399  0.00020
+ dem65 &lt;- ind60 0.572 0.221  0.00969
+ dem65 &lt;- dem60 0.837 0.098 &lt; 0.0001
 
-# Extract latent covariance matrix
-sigma_zeta <- getmatrix(mod_sem, "sigma_zeta")
-print(sigma_zeta)</code></pre>
+# lavaan reference for the same model:
+#   logl = -1547.791, chisq = 38.125, df = 35</div>
+      <p>Industrialization predicts democracy at both time points, and democracy is highly stable over time. The model fits well: &chi;&sup2;(35) = 38.13, p = 0.33.</p>
     </div>
   </div>
 
   <!-- EXAMPLE 11: Measurement Invariance -->
-  <div class="example-card">
+  <div class="example-card" id="ex-invariance">
     <div class="example-header">
       <div>
         <h3>Measurement Invariance Testing <span class="example-tag tag-lvm">lvm</span></h3>
-        <p class="example-meta">Dataset: psychonetrics::StarWars | Demonstrates: groupequal(), compare(), invariance</p>
+        <p class="example-meta">Dataset: lavaan::HolzingerSwineford1939 | Demonstrates: groups, groupequal(), compare(), invariance</p>
       </div>
       <span class="example-chevron">&#9660;</span>
     </div>
     <div class="example-body">
-      <p>This example demonstrates testing measurement invariance across groups. We progressively constrain parameters to test configural, weak, strong, and strict invariance across age groups.</p>
+      <p>This example tests measurement invariance of the classic three-factor Holzinger&ndash;Swineford model across the two schools in the data. Note that with raw-data input, <code>groups</code> must be the <strong>name of a column in the data</strong> (not a separate vector). We progressively constrain parameters to test configural, weak, strong, and strict invariance.</p>
       <pre><code class="language-r"># Load required packages
 library(psychonetrics)
+library(dplyr)
+library(lavaan)
 
-# Load Star Wars dataset
-data(StarWars)
+data(HolzingerSwineford1939)
 
-# Create age groups: young (< 30) vs older (>= 30)
-StarWars$age_group <- ifelse(StarWars$Q12 < 30, "young", "older")
-
-# Select movie rating items
-items <- StarWars[, 1:7]
+# Keep the grouping column IN the data frame:
+hs_data <- HolzingerSwineford1939[, c("school", paste0("x", 1:9))]
 
 # Define factor structure
-lambda <- matrix(0, 7, 3)
-lambda[1:3, 1] <- 1
-lambda[4:6, 2] <- 1
-lambda[7, 3] <- 1
-colnames(lambda) <- c("Original", "Prequel", "Sequel")
+lambda <- matrix(0, 9, 3)
+lambda[1:3, 1] <- 1   # visual
+lambda[4:6, 2] <- 1   # textual
+lambda[7:9, 3] <- 1   # speed
+colnames(lambda) <- c("visual", "textual", "speed")
 
 # CONFIGURAL INVARIANCE (same structure, all parameters free)
-mod_configural <- lvm(items,
+mod_configural <- lvm(hs_data,
                       lambda = lambda,
-                      groups = StarWars$age_group,
+                      vars = paste0("x", 1:9),
+                      groups = "school",     # column name in hs_data
                       identification = "variance") %>%
   runmodel()
 
@@ -779,7 +813,7 @@ mod_strong <- mod_weak %>%
   groupequal("nu") %>%
   runmodel()
 
-# STRICT INVARIANCE (equal loadings + intercepts + residual variances)
+# STRICT INVARIANCE (+ equal residual variances)
 mod_strict <- mod_strong %>%
   groupequal("sigma_epsilon") %>%
   runmodel()
@@ -790,26 +824,32 @@ compare(configural = mod_configural,
         strong = mod_strong,
         strict = mod_strict)
 
-# Compare all levels of invariance
-compare(configural = mod_configural,
-        weak = mod_weak,
-        strong = mod_strong,
-        strict = mod_strict)
-
-# View accepted level of invariance
-# If all tests non-significant, strict invariance holds
-# If strong but not strict, strong invariance holds, etc.
-
-# Extract factor means by group (requires at least strong invariance)
-# In strong/strict models, latent means are identified
+# Latent means in group 2 (group 1 is fixed to zero for identification;
+# meaningful under at least strong invariance). The latent mean
+# matrix in lvm models is called "nu_eta":
 params <- parameters(mod_strong)
-latent_means <- params[params$matrix == "mu_eta", ]
-print(latent_means)</code></pre>
+params[params$matrix == "nu_eta" & params$group_id == 2,
+       c("var1", "est", "se", "p")]</code></pre>
+      <span class="output-label">Output (abbreviated)</span>
+      <div class="output-block">&gt; compare(configural = mod_configural, weak = mod_weak,
++         strong = mod_strong, strict = mod_strict)
+      model DF     AIC     BIC RMSEA  Chisq Chisq_diff DF_diff  p_value
+ configural 48 7484.40 7706.82 0.097 115.85
+       weak 54 7480.59 7680.77 0.093 124.04       8.19       6     0.22
+     strong 60 7508.65 7686.59  0.11 164.10      40.06       6 &lt; 0.0001
+     strict 69 7508.06 7652.63  0.10 181.51      17.41       9    0.043
+
+&gt; params[params$matrix == "nu_eta" &amp; params$group_id == 2, ]
+  var1   est   se        p
+ Eta_1 -0.17 0.14     0.23
+ Eta_2  0.61 0.13 &lt; 0.0001
+ Eta_3 -0.31 0.16    0.050</div>
+      <p>Weak (metric) invariance holds (p = 0.22), but strong (scalar) invariance is clearly rejected (p &lt; 0.0001) &mdash; some intercepts differ between the schools. Use <code>MIs(matrices = "nu", type = "free")</code> to locate the non-invariant intercepts and free them with <code>groupfree()</code> for partial invariance (see the <a href="#ex-starwars-invariance">Star Wars invariance example</a>).</p>
     </div>
   </div>
 
   <!-- EXAMPLE 12: Bootstrap Confidence Intervals -->
-  <div class="example-card">
+  <div class="example-card" id="ex-bootstrap">
     <div class="example-header">
       <div>
         <h3>Bootstrap Confidence Intervals <span class="example-tag tag-lvm">lvm</span></h3>
@@ -847,7 +887,7 @@ bootstraps <- loop_psychonetrics({
       identification = "variance",
       bootstrap = "nonparametric") %>%
     runmodel()
-}, reps = 100, nCores = 8)
+}, reps = 100, nCores = 4)
 
 # Aggregate bootstrap results:
 boot_agg <- aggregate_bootstraps(
@@ -864,7 +904,7 @@ CIplot(boot_agg)</code></pre>
   </div>
 
   <!-- EXAMPLE 13: Ising Model -->
-  <div class="example-card">
+  <div class="example-card" id="ex-ising">
     <div class="example-header">
       <div>
         <h3>Ising Model on Binary Data <span class="example-tag tag-ising">ising</span></h3>
@@ -939,114 +979,95 @@ print(cent$node.centrality)
   </div>
 
   <!-- EXAMPLE 14: Multi-Group Ising -->
-  <div class="example-card">
+  <div class="example-card" id="ex-ising-multigroup">
     <div class="example-header">
       <div>
         <h3>Multi-Group Ising Analysis <span class="example-tag tag-ising">ising</span></h3>
-        <p class="example-meta">Dataset: psychonetrics::Jonas | Demonstrates: progressive constraints, BIC comparison</p>
+        <p class="example-meta">Dataset: psychonetrics::Jonas | Demonstrates: progressive constraints, emergencystart(), unionmodel(), BIC comparison</p>
       </div>
       <span class="example-chevron">&#9660;</span>
     </div>
     <div class="example-body">
-      <p>This example demonstrates multi-group Ising model analysis with progressive equality constraints. We test whether network structure, thresholds, and connectivity differ across groups using both dense and sparse models.</p>
+      <p>This example demonstrates multi-group Ising analysis with progressive equality constraints, comparing attitude networks between people who know researcher Jonas personally and those who do not. With raw-data input, <code>groups</code> must be a <strong>column name in the data</strong>. The equal-network model converges to a local optimum from the default start values, so we use <code>emergencystart()</code> to compute fresh starting values for that step.</p>
       <pre><code class="language-r"># Load required packages
 library(psychonetrics)
+library(dplyr)
 
-# Load Jonas dataset
+# Load Jonas dataset (10 binary items + a "group" column)
 data(Jonas)
-
-# Select binary items and group variable
-binary_items <- Jonas[, 1:10]
-group_var <- Jonas$group
+ising_vars <- colnames(Jonas)[1:10]
 
 # DENSE MODELS (start with saturated)
 
 # 1. Configural: different networks per group
-mod_dense_configural <- Ising(binary_items,
-                               groups = group_var) %>%
+mod_configural <- Ising(Jonas,
+                        vars = ising_vars,
+                        groups = "group") %>%   # column name in Jonas
   runmodel()
 
-# 2. Equal networks (omega)
-mod_dense_equal_omega <- mod_dense_configural %>%
+# 2. Equal networks (omega). The default start values lead to a
+#    local optimum here; emergencystart() computes new start values.
+mod_equal_omega <- mod_configural %>%
   groupequal("omega") %>%
+  emergencystart() %>%
   runmodel()
 
 # 3. Equal networks + equal thresholds
-mod_dense_equal_omega_tau <- mod_dense_equal_omega %>%
+mod_equal_omega_tau <- mod_equal_omega %>%
   groupequal("tau") %>%
   runmodel()
 
-# 4. Fully equal (everything constrained)
-mod_dense_fully_equal <- mod_dense_equal_omega_tau %>%
-  groupequal() %>%
+# 4. Fully equal (also the inverse temperature beta)
+mod_fully_equal <- mod_equal_omega_tau %>%
+  groupequal("beta") %>%
   runmodel()
 
+# Compare the dense models:
+compare(configural = mod_configural,
+        equal_omega = mod_equal_omega,
+        equal_omega_tau = mod_equal_omega_tau,
+        fully_equal = mod_fully_equal)
+
 # SPARSE MODELS (prune first, then constrain)
+mod_sparse <- mod_configural %>%
+  prune(alpha = 0.01)
 
-# 1. Configural sparse
-mod_sparse_configural <- mod_dense_configural %>%
-  prune(alpha = 0.01, adjust = "fdr") %>%
-  stepup()
-
-# 2. Equal sparse networks
-mod_sparse_equal_omega <- mod_sparse_configural %>%
+# Union of group structures, then equality:
+mod_sparse_equal <- mod_sparse %>%
+  unionmodel() %>%
   groupequal("omega") %>%
   runmodel()
 
-# 3. Equal networks + thresholds (sparse)
-mod_sparse_equal_omega_tau <- mod_sparse_equal_omega %>%
-  groupequal("tau") %>%
-  runmodel()
+compare(sparse_configural = mod_sparse,
+        sparse_equal = mod_sparse_equal)
 
-# 4. Fully equal (sparse)
-mod_sparse_fully_equal <- mod_sparse_equal_omega_tau %>%
-  groupequal() %>%
-  runmodel()
+# Compare thresholds across groups (from the configural model):
+tau_group1 <- getmatrix(mod_configural, "tau", group = 1)
+tau_group2 <- getmatrix(mod_configural, "tau", group = 2)
+data.frame(item = ising_vars,
+           group1 = round(tau_group1, 2),
+           group2 = round(tau_group2, 2))</code></pre>
+      <span class="output-label">Output (abbreviated)</span>
+      <div class="output-block">&gt; compare(configural = ..., equal_omega = ..., equal_omega_tau = ..., fully_equal = ...)
+           model DF     AIC     BIC  RMSEA Chisq Chisq_diff DF_diff  p_value
+      configural  0 2072.44 2443.21          ~ 0
+     equal_omega 44 2028.87 2251.33 0.0095 44.43      44.43      44     0.45
+ equal_omega_tau 54 2035.61 2224.37  0.054 71.17      26.74      10   0.0029
+     fully_equal 55 2060.06 2245.44  0.085 97.62      26.44       1 &lt; 0.0001
 
-# COMPARE ALL MODELS
-compare(
-  # Dense models
-  dense_configural = mod_dense_configural,
-  dense_equal_omega = mod_dense_equal_omega,
-  dense_equal_omega_tau = mod_dense_equal_omega_tau,
-  dense_fully_equal = mod_dense_fully_equal,
-
-  # Sparse models
-  sparse_configural = mod_sparse_configural,
-  sparse_equal_omega = mod_sparse_equal_omega,
-  sparse_equal_omega_tau = mod_sparse_equal_omega_tau,
-  sparse_fully_equal = mod_sparse_fully_equal
-)
-
-# Select best model by BIC
-# Lower BIC is better
-
-# View best fitting model
-mod_sparse_configural
-
-# Extract networks for each group (from configural model)
-omega_group1 <- getmatrix(mod_sparse_configural, "omega", group = 1)
-omega_group2 <- getmatrix(mod_sparse_configural, "omega", group = 2)
-
-# Compare network connectivity
-mean(omega_group1[upper.tri(omega_group1)] != 0)
-mean(omega_group2[upper.tri(omega_group2)] != 0)
-
-# Compare thresholds across groups
-tau_group1 <- getmatrix(mod_sparse_configural, "tau", group = 1)
-tau_group2 <- getmatrix(mod_sparse_configural, "tau", group = 2)
-
-data.frame(
-  item = colnames(binary_items),
-  group1_threshold = tau_group1,
-  group2_threshold = tau_group2,
-  difference = tau_group1 - tau_group2
-)</code></pre>
+&gt; compare(sparse_configural = mod_sparse, sparse_equal = mod_sparse_equal)
+             model DF     AIC     BIC RMSEA  Chisq Chisq_diff DF_diff p_value
+      sparse_equal 83 2149.39 2240.40  0.13 242.95
+ sparse_configural 84 2161.28 2248.92  0.14 256.84      13.89       1 0.00019</div>
+      <p>The network structure (omega) can be constrained equal across groups without significant loss of fit (p = 0.45), but the thresholds clearly differ (p = 0.0029): people who know Jonas endorse the items at different base rates, while the conditional association structure is the same.</p>
+      <div class="note">
+        <strong>Note:</strong> Multi-group Ising models often produce a warning that exact standard errors could not be obtained (zero cells in crosstables); psychonetrics then falls back to approximate standard errors automatically.
+      </div>
     </div>
   </div>
 
   <!-- EXAMPLE: Sleep & Wellbeing Network (Textbook) -->
-  <div class="example-card">
+  <div class="example-card" id="ex-na2020">
     <div class="example-header">
       <div>
         <h3>Sleep &amp; Wellbeing Network with FIML <span class="example-tag tag-varcov">varcov</span></h3>
@@ -1130,19 +1151,21 @@ f <- function(x) {
     getmatrix("omega")
 }
 
-# Estimate and bootstrap:
+# Estimate and bootstrap
+# (100 bootstraps for illustration; use 1000+ in real analyses):
 net <- estimateNetwork(NA2020, f = f)
-boots <- bootnet(net, nCores = 8, type = "nonparametric")
+boots <- bootnet(net, nBoots = 100, nCores = 4, type = "nonparametric")
 plot(boots, split0 = TRUE, order = "sample", plot = "interval")
 
 # --- Native psychonetrics bootstrapping ---
 # loop_psychonetrics() handles cluster setup and variable export automatically:
+# (100 replicates for illustration; use 1000+ in real analyses)
 bootstraps <- loop_psychonetrics({
   ggm(NA2020, estimator = "FIML",
       bootstrap = "nonparametric") %>%
     runmodel %>%
     prune(matrices = "omega", alpha = 0.05)
-}, reps = 1000, nCores = 8)
+}, reps = 100, nCores = 4)
 
 # Aggregate and inspect:
 mod_agg <- aggregate_bootstraps(sample = mod_prune, bootstraps = bootstraps)
@@ -1153,7 +1176,7 @@ CIplot(mod_agg, prop0_cex = 2)</code></pre>
   </div>
 
   <!-- EXAMPLE: Star Wars CFA + Latent Network Model -->
-  <div class="example-card">
+  <div class="example-card" id="ex-starwars-cfa">
     <div class="example-header">
       <div>
         <h3>CFA &amp; Latent Network Model (Star Wars) <span class="example-tag tag-lvm">lvm</span></h3>
@@ -1243,7 +1266,7 @@ rnm_mod <- rnm_mod %>% stepup
 # --- GGM on observed variables ---
 # For comparison, fit an exploratory GGM directly:
 S <- (nrow(Data) - 1) / nrow(Data) * cov(Data[, 1:10])
-ggm_mod <- ggm(covs = S, nobs = nrow(Data), omega = "empty")
+ggm_mod <- ggm(covs = S, nobs = nrow(Data), omega = "zero")
 ggm_mod <- ggm_mod %>% stepup %>% prune
 
 # Compare all approaches:
@@ -1257,7 +1280,7 @@ compare(
   </div>
 
   <!-- EXAMPLE: Star Wars Measurement Invariance -->
-  <div class="example-card">
+  <div class="example-card" id="ex-starwars-invariance">
     <div class="example-header">
       <div>
         <h3>Measurement Invariance (Star Wars) <span class="example-tag tag-lvm">lvm</span></h3>
@@ -1348,7 +1371,7 @@ mod_eqvar %>% getmatrix("nu_eta")
   </div>
 
   <!-- EXAMPLE: Graphical VAR on ESM Data -->
-  <div class="example-card">
+  <div class="example-card" id="ex-gvar-esm">
     <div class="example-header">
       <div>
         <h3>Graphical VAR on Clinical ESM Data <span class="example-tag tag-var1">var1</span></h3>
@@ -1415,6 +1438,220 @@ qgraph(temporal, layout = L, theme = "colorblind", cut = 0,
 qgraph(contemporaneous, layout = L, theme = "colorblind", cut = 0,
        title = "Contemporaneous (PCC)", vsize = 12, mar = rep(6, 4),
        asize = 5, labels = labs)</code></pre>
+    </div>
+  </div>
+
+
+  <!-- NEW EXAMPLE: RI-CLPM -->
+  <div class="example-card" id="ex-riclpm">
+    <div class="example-header">
+      <div>
+        <h3>RI-CLPM on Simulated Panel Data <span class="example-tag tag-dlvm1">panel</span> <span class="badge-new">New</span></h3>
+        <p class="example-meta">Dataset: simulated | Demonstrates: ri_clpm(), ri_clpm_search(), design matrix</p>
+      </div>
+      <span class="example-chevron">&#9660;</span>
+    </div>
+    <div class="example-body">
+      <p>This example fits a <strong>random-intercept cross-lagged panel model</strong> (RI-CLPM) to simulated 4-wave panel data on three variables. The data-generating process combines correlated stable trait levels (random intercepts) with a stationary within-person VAR(1) process. We then use <code>ri_clpm_search()</code> to test which stationarity constraints the data support. See the <a href="dlvm1.html#riclpm">panel-data page</a> for background.</p>
+      <pre><code class="language-r">library(psychonetrics)
+library(dplyr)
+
+# --- Simulate 4-wave panel data (n = 500, 3 variables) ---
+set.seed(42)
+n <- 500; nVar <- 3; nWave <- 4
+
+# Correlated random intercepts (stable trait levels):
+Sigma_RI <- matrix(0.4, nVar, nVar); diag(Sigma_RI) <- 1
+RI <- matrix(rnorm(n * nVar), n, nVar) %*% chol(Sigma_RI)
+
+# Within-person VAR(1): autoregression 0.4, cross-lag 0.15
+Beta <- matrix(c(0.4, 0.15, 0,
+                 0,   0.4,  0.15,
+                 0,   0,    0.4), nVar, nVar, byrow = TRUE)
+Psi <- matrix(0.3, nVar, nVar); diag(Psi) <- 1
+
+within <- matrix(rnorm(n * nVar), n, nVar) %*% chol(Psi)
+Data <- matrix(NA, n, nVar * nWave)
+for (w in seq_len(nWave)) {
+  Data[, (w - 1) * nVar + seq_len(nVar)] <- RI + within
+  if (w < nWave)
+    within <- within %*% t(Beta) +
+              matrix(rnorm(n * nVar), n, nVar) %*% chol(Psi)
+}
+colnames(Data) <- paste0("V", rep(1:nVar, nWave),
+                         "_W", rep(1:nWave, each = nVar))
+Data <- as.data.frame(Data)
+
+# --- Fit the RI-CLPM ---
+# Design matrix: rows = variables, columns = waves
+design <- matrix(colnames(Data), nVar, nWave)
+
+mod_riclpm <- ri_clpm(Data, vars = design) %>% runmodel
+
+mod_riclpm %>% fit
+
+# Wave-2-on-wave-1 temporal effects (recovers the true Beta):
+round(getmatrix(mod_riclpm, "beta")[4:6, 1:3], 2)
+
+# Random-intercept covariances (last 3 latents):
+round(getmatrix(mod_riclpm, "sigma_zeta")[13:15, 13:15], 2)
+
+# --- Stationarity search ---
+search <- ri_clpm_search(mod_riclpm, criterion = "BIC")
+search</code></pre>
+      <span class="output-label">Output (abbreviated)</span>
+      <div class="output-block">&gt; mod_riclpm %&gt;% fit   # (selected rows)
+   chisq    24.78
+      df       21
+  pvalue     0.26
+   rmsea    0.019
+     cfi      1.0
+
+&gt; round(getmatrix(mod_riclpm, "beta")[4:6, 1:3], 2)   # true: 0.4 / 0.15
+     [,1] [,2]  [,3]
+[1,] 0.36 0.16 -0.02
+[2,] 0.06 0.42  0.12
+[3,] 0.03 0.07  0.38
+
+&gt; search
+RI-CLPM stationarity search
+Criterion: BIC
+
+           model       constraint DF      AIC      BIC Chisq p_diff decision
+            base           (none) 21 18346.63 18637.43 24.78           start
+      intercepts       intercepts 30 18332.83 18585.71 28.99  0.897   accept
+        temporal         temporal 48 18315.12 18492.14 47.28  0.437   accept
+ contemporaneous  contemporaneous 54 18307.42 18459.15 51.58  0.636   accept
+      innovation       innovation 60 18300.87 18427.31 57.03  0.487   accept
+        panelVAR wave1_endogenous 66 18305.19 18406.34 73.34  0.012   accept
+
+Selected model: panelVAR</div>
+      <p>The model recovers the simulated temporal effects and random-intercept correlations. Because the data were simulated as fully stationary, the search accepts every stationarity constraint and ends at the panel-VAR model (wave 1 endogenous). The selected fitted model is available as <code>search@selected</code>.</p>
+    </div>
+  </div>
+
+  <!-- NEW EXAMPLE: Meta-analytic GGM -->
+  <div class="example-card" id="ex-meta">
+    <div class="example-header">
+      <div>
+        <h3>Meta-analytic GGM <span class="example-tag tag-meta">meta</span> <span class="badge-new">New</span></h3>
+        <p class="example-meta">Dataset: simulated | Demonstrates: meta_ggm(), Vmethod = "OS_pooled", random effects, prune()</p>
+      </div>
+      <span class="example-chevron">&#9660;</span>
+    </div>
+    <div class="example-body">
+      <p>This example pools the correlation matrices of 12 simulated studies into a single <strong>meta-analytic Gaussian Graphical Model</strong> (MAGNA; Epskamp, Isvoranu &amp; Cheung, 2022). The studies share a chain network (V1&ndash;V2&ndash;V3&ndash;V4, partial correlations 0.3) with mild between-study heterogeneity. We use the Olkin&ndash;Siotani sampling-covariance method added in 0.15.30. See the <a href="meta.html">meta-analysis page</a> for details.</p>
+      <pre><code class="language-r">library(psychonetrics)
+library(dplyr)
+
+# --- Simulate per-study correlation matrices ---
+set.seed(123)
+nStudy <- 12; nv <- 4
+
+# True partial-correlation network (chain):
+Omega <- matrix(0, nv, nv)
+Omega[1, 2] <- Omega[2, 3] <- Omega[3, 4] <- 0.3
+Omega <- Omega + t(Omega)
+Delta <- diag(1 / sqrt(diag(solve(diag(nv) - Omega))))
+trueSigma <- Delta %*% solve(diag(nv) - Omega) %*% Delta
+
+cors <- list(); nobs <- numeric(nStudy)
+for (s in seq_len(nStudy)) {
+  nobs[s] <- round(runif(1, 200, 600))
+  # study-specific population correlations (heterogeneity):
+  P <- cov2cor(trueSigma +
+               crossprod(matrix(rnorm(nv * nv, 0, 0.08), nv, nv)))
+  X <- matrix(rnorm(nobs[s] * nv), nobs[s], nv) %*% chol(P)
+  cors[[s]] <- cor(X)
+  colnames(cors[[s]]) <- rownames(cors[[s]]) <- paste0("V", 1:nv)
+}
+
+# --- Fit and prune the meta-analytic GGM ---
+mod_meta <- meta_ggm(cors = cors, nobs = nobs,
+                     Vmethod = "OS_pooled") %>% runmodel
+
+# Pooled network:
+round(getmatrix(mod_meta, "omega_y"), 2)
+
+# Between-study heterogeneity (SD per correlation):
+round(sqrt(diag(getmatrix(mod_meta, "sigma_randomEffects"))), 3)
+
+# Prune null edges:
+mod_meta_pruned <- mod_meta %>% prune(alpha = 0.05, matrices = "omega_y")
+compare(saturated = mod_meta, pruned = mod_meta_pruned)</code></pre>
+      <span class="output-label">Output (abbreviated)</span>
+      <div class="output-block">&gt; round(getmatrix(mod_meta, "omega_y"), 2)   # true: chain of 0.30
+     [,1] [,2] [,3] [,4]
+[1,] 0.00 0.30 0.00 0.01
+[2,] 0.30 0.00 0.29 0.02
+[3,] 0.00 0.29 0.00 0.29
+[4,] 0.01 0.02 0.29 0.00
+
+&gt; compare(saturated = mod_meta, pruned = mod_meta_pruned)
+     model DF     AIC     BIC RMSEA Chisq Chisq_diff DF_diff p_value
+ saturated  0 -175.28 -162.19
+    pruned  3 -180.21 -168.57   ~ 0  1.08       1.08       3    0.78</div>
+      <p>The pooled network recovers the data-generating chain, and the three null edges are pruned without loss of fit (p = 0.78).</p>
+    </div>
+  </div>
+
+  <!-- NEW EXAMPLE: Blume-Capel / multi-state Ising -->
+  <div class="example-card" id="ex-blumecapel">
+    <div class="example-header">
+      <div>
+        <h3>Blume-Capel &amp; Multi-state Ising <span class="example-tag tag-ising">ising</span> <span class="badge-new">New</span></h3>
+        <p class="example-meta">Dataset: simulated | Demonstrates: Ising() with 3 responses, BlumeCapel(), compare()</p>
+      </div>
+      <span class="example-chevron">&#9660;</span>
+    </div>
+    <div class="example-body">
+      <p>Since 0.15.13, <code>Ising()</code> accepts <strong>more than two response options</strong>, and since 0.15.15 the <strong>Blume-Capel model</strong> adds a per-node quadratic potential &delta; controlling the preference for neutral versus extreme responses. Here we simulate 5 ternary (&minus;1/0/+1) variables from a true Blume-Capel chain network by enumerating all 3&#8309; = 243 response patterns exactly, then compare the Ising and Blume-Capel fits. See the <a href="ising.html#blumecapel">Ising &amp; Blume-Capel page</a>.</p>
+      <pre><code class="language-r">library(psychonetrics)
+library(dplyr)
+
+# --- Simulate from a true Blume-Capel model ---
+set.seed(1)
+nNode <- 5
+resp  <- c(-1L, 0L, 1L)
+
+tau   <- rep(0.1, nNode)    # thresholds
+delta <- rep(0.5, nNode)    # quadratic potential (favours x = 0)
+Omega <- matrix(0, nNode, nNode)               # chain network
+Omega[1,2] <- Omega[2,3] <- Omega[3,4] <- Omega[4,5] <- 0.4
+Omega <- Omega + t(Omega)
+
+# Exact distribution over all 3^5 = 243 patterns:
+states <- as.matrix(expand.grid(rep(list(resp), nNode)))
+H <- states %*% tau - (states^2) %*% delta +
+     rowSums((states %*% Omega) * states) / 2
+P <- exp(H - max(H)); P <- P / sum(P)
+
+Data <- as.data.frame(states[sample(nrow(states), 800,
+                                    replace = TRUE, prob = P), ])
+colnames(Data) <- paste0("X", 1:nNode)
+
+# --- Fit multi-state Ising (delta fixed to 0) and Blume-Capel ---
+mod_ising <- Ising(Data, responses = resp) %>% runmodel
+mod_bc    <- BlumeCapel(Data, responses = resp) %>% runmodel
+
+# The Blume-Capel model fits much better:
+compare(ising = mod_ising, blume_capel = mod_bc)
+
+# Recovered parameters (true: delta = 0.5, chain edges = 0.4):
+round(as.vector(getmatrix(mod_bc, "delta")), 2)
+round(getmatrix(mod_bc, "omega")[1, ], 2)</code></pre>
+      <span class="output-label">Output (abbreviated)</span>
+      <div class="output-block">&gt; compare(ising = mod_ising, blume_capel = mod_bc)
+       model      AIC      BIC
+       ising  8656.65  8726.92
+ blume_capel  8407.63  8501.32
+
+&gt; round(as.vector(getmatrix(mod_bc, "delta")), 2)
+[1] 0.51 0.59 0.54 0.63 0.45
+
+&gt; round(getmatrix(mod_bc, "omega")[1, ], 2)
+[1]  0.00  0.48 -0.06 -0.07  0.01</div>
+      <p>The Blume-Capel model clearly outperforms the plain multi-state Ising model on these data (&Delta;BIC &asymp; 225) and recovers the simulated &delta; &asymp; 0.5 and edge weights. Note that the exact ML estimator enumerates <code>length(responses)^nNode</code> patterns, so multi-state models are limited to small networks (see the <code>maxStates</code> argument).</p>
     </div>
   </div>
 

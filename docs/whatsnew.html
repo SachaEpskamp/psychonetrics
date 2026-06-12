@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="What's new in psychonetrics: RI-CLPM models, Blume-Capel models, multi-state Ising, penalized estimation, meta-analytic models, and the 0.15.30 stability release">
+  <title>What's New | psychonetrics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container nav-container">
+    <a href="index.html" class="nav-brand">psychonetrics</a>
+    <button class="nav-toggle" aria-label="Toggle navigation">&#9776;</button>
+    <ul class="nav-menu">
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="whatsnew.html" class="nav-link">What&#39;s New</a></li>
+      <li><a href="tutorial.html" class="nav-link">Tutorial</a></li>
+      <li class="nav-dropdown">
+        <button class="nav-link dropdown-toggle" aria-expanded="false" aria-haspopup="true">
+          Models <svg class="dropdown-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="varcov.html" class="nav-link">Varcov (GGM)</a></li>
+          <li><a href="lvm.html" class="nav-link">LVM (CFA / SEM)</a></li>
+          <li><a href="var1.html" class="nav-link">Var1 (time series)</a></li>
+          <li><a href="dlvm1.html" class="nav-link">DLVM1 (panel / RI-CLPM)</a></li>
+          <li><a href="ising.html" class="nav-link">Ising &amp; Blume-Capel</a></li>
+          <li><a href="mllvm.html" class="nav-link">Multi-level (ml_lvm)</a></li>
+          <li><a href="meta.html" class="nav-link">Meta-analysis</a></li>
+        </ul>
+      </li>
+      <li><a href="examples.html" class="nav-link">Examples</a></li>
+      <li><a href="about.html" class="nav-link">About</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="page-header container container-narrow">
+  <h1>What&#39;s New</h1>
+  <p class="subtitle">Highlights from the recent 0.15.x release series</p>
+</div>
+
+<main class="container container-narrow">
+
+  <p>
+    The 0.15.x series brought several major new modeling frameworks to psychonetrics &mdash; random-intercept cross-lagged panel models, the Blume-Capel model, multi-state Ising models, and genuinely covariance-based meta-analysis &mdash; capped by a large stability and performance release (0.15.30). This page summarizes the highlights; the full changelog is in the package <a href="https://github.com/SachaEpskamp/psychonetrics/blob/master/NEWS">NEWS</a> file. All code snippets below were run with psychonetrics 0.15.30.
+  </p>
+
+  <div class="toc">
+    <h4>On this page</h4>
+    <ol>
+      <li><a href="#audit">0.15.30 &mdash; Stability &amp; performance release</a></li>
+      <li><a href="#meta">0.15.30 &mdash; Meta-analysis: covariance input &amp; Olkin&ndash;Siotani V methods</a></li>
+      <li><a href="#blumecapel">0.15.13&ndash;0.15.17 &mdash; Blume-Capel &amp; multi-state Ising models</a></li>
+      <li><a href="#riclpm">0.15.12 &mdash; RI-CLPM: random-intercept cross-lagged panel models</a></li>
+      <li><a href="#multigroup">0.15.4&ndash;0.15.16 &mdash; Multi-group tooling</a></li>
+      <li><a href="#penalized">0.15 &mdash; Penalized (regularized) estimation</a></li>
+      <li><a href="#mllvm">0.15 series &mdash; Multi-level &amp; meta-analytic frameworks matured</a></li>
+    </ol>
+  </div>
+
+  <!-- ===================== 0.15.30 audit ===================== -->
+  <div class="whatsnew-item" id="audit">
+    <h2>Stability &amp; performance release <span class="version-tag">0.15.30</span></h2>
+    <p class="whatsnew-meta">June 2026</p>
+    <p>
+      Version 0.15.30 implements the findings of a large internal code audit: bug fixes across all model families, robustness improvements, substantial speedups, and a new automated test suite. No user action is needed &mdash; existing scripts keep working, but many run faster and more reliably.
+    </p>
+    <h4>Robustness</h4>
+    <ul>
+      <li><strong>Panel-model divergence fixed.</strong> The optimizer penalty for improper (non-positive-definite) implied covariance matrices was re-enabled; previously the default optimizer could diverge to absurd estimates on <code>panelvar()</code> / <code>panelgvar()</code> and SEM models.</li>
+      <li><strong>Row-wise FIML</strong> (<code>fullFIML = TRUE</code>) works again for all standard model families.</li>
+      <li><strong>Standard errors</strong>: inversion problems are no longer silently suppressed, and negative variances now yield <code>NA</code> standard errors with a clear warning.</li>
+      <li>Many further fixes: <code>factorscores()</code> with structural regressions, multiple-comparison adjustment in <code>prune()</code>, <code>getmatrix(diag = FALSE)</code>, <code>equal = "omega_zeta"</code> in latent network models, multi-group EPC columns, group-stratified <code>bootstrap()</code>, and more.</li>
+    </ul>
+    <h4>Performance</h4>
+    <ul>
+      <li>About <strong>3&times; faster model construction</strong> (e.g., a 30-node GGM) through sparse, cached algebra helper matrices.</li>
+      <li>Up to <strong>several hundred times faster</strong> equality-constrained modification indices on large multi-group models (used by <code>runmodel()</code> and <code>addMIs()</code>), with identical results.</li>
+      <li>About 1.3&ndash;1.6&times; faster Ising estimation through a reworked state-enumeration loop.</li>
+    </ul>
+    <h4>Quality assurance</h4>
+    <ul>
+      <li>A new automated test suite (<code>tinytest</code>) covers the examples on this website plus targeted regression tests, with reference values cross-checked against <strong>lavaan</strong>.</li>
+      <li>Large documentation cleanup and removal of unused dependencies.</li>
+    </ul>
+  </div>
+
+  <!-- ===================== meta ===================== -->
+  <div class="whatsnew-item" id="meta">
+    <h2>Meta-analysis: covariance input &amp; Olkin&ndash;Siotani V methods <span class="version-tag">0.15.30</span></h2>
+    <p class="whatsnew-meta">June 2026 &mdash; see the new <a href="meta.html">meta-analysis page</a></p>
+    <p>
+      <code>meta_varcov()</code> now genuinely supports <strong>covariance matrices</strong> as input (previously covariances were silently modeled as correlations), and two new <code>Vmethod</code> options &mdash; <code>"OS_individual"</code> and <code>"OS_pooled"</code> &mdash; implement the Olkin&ndash;Siotani (1976) sampling covariance of sample correlations, validated against <code>metaSEM::asyCov</code>. These are recommended when the between-study heterogeneity (random-effects) variances are of substantive interest. The default <code>Vmethod</code> is unchanged, so published analyses reproduce exactly.
+    </p>
+    <pre><code class="language-r">library("psychonetrics")
+library("dplyr")
+
+# cors: a list of per-study correlation matrices; nobs: their sample sizes
+# (see the meta-analysis page for a full simulated example)
+mod_meta <- meta_ggm(cors = cors, nobs = nobs,
+                     Vmethod = "OS_pooled") %>% runmodel
+
+# Pooled partial-correlation network:
+getmatrix(mod_meta, "omega_y")
+
+# Prune to a sparse pooled network:
+mod_meta %>% prune(alpha = 0.05, matrices = "omega_y")</code></pre>
+    <p>
+      Also in 0.15.30: <code>meta_varcov()</code> / <code>meta_ggm()</code> with <code>estimator = "ML"</code> and bivariate (single-correlation) meta-analyses no longer crash, and meta models give an informative error when two variables are never observed together in any study.
+    </p>
+  </div>
+
+  <!-- ===================== Blume-Capel ===================== -->
+  <div class="whatsnew-item" id="blumecapel">
+    <h2>Blume-Capel &amp; multi-state Ising models <span class="version-tag">0.15.13 &ndash; 0.15.17</span></h2>
+    <p class="whatsnew-meta">See the updated <a href="ising.html#blumecapel">Ising &amp; Blume-Capel page</a></p>
+    <p>
+      The Ising model has been generalized in two directions. First, <code>Ising()</code> now accepts <strong>any number of ordered response options</strong> (e.g., <code>c(-1, 0, 1)</code> or a Likert scale), not just binary responses &mdash; the parameterization is unchanged, and binary results are identical to before. Second, the new <code>BlumeCapel()</code> model adds a per-node <strong>quadratic potential</strong> &delta; that controls the tendency toward extreme versus neutral responses:
+    </p>
+    <pre><code class="language-r"># Data with three ordered responses (-1, 0, 1):
+mod_ising <- Ising(Data, responses = c(-1L, 0L, 1L)) %>% runmodel
+
+# Blume-Capel: adds a quadratic potential (delta) per node:
+mod_bc <- BlumeCapel(Data, responses = c(-1L, 0L, 1L)) %>% runmodel
+
+# The Blume-Capel model fits these data much better:
+compare(ising = mod_ising, blume_capel = mod_bc)
+#        model      AIC      BIC
+#        ising  8656.65  8726.92
+#  blume_capel  8407.63  8501.32</code></pre>
+    <p>
+      Because the exact maximum likelihood enumerates all <code>length(responses)^nNode</code> response patterns, multi-state models are limited to small networks; the new <code>maxStates</code> argument controls this limit. In 0.15.30 the partition function additionally uses log-sum-exp accumulation, so extreme parameter values no longer produce <code>Inf</code>/<code>NaN</code> fits.
+    </p>
+  </div>
+
+  <!-- ===================== RI-CLPM ===================== -->
+  <div class="whatsnew-item" id="riclpm">
+    <h2>RI-CLPM: random-intercept cross-lagged panel models <span class="version-tag">0.15.12</span></h2>
+    <p class="whatsnew-meta">See the <a href="dlvm1.html#riclpm">panel-data page</a> for a full walkthrough</p>
+    <p>
+      The random intercept cross-lagged panel model framework has been finalized. <code>ri_clpm()</code> accepts the same flexible data input as the dlvm1 family (wide format with a design matrix, or long format via <code>idvar</code>), builds an independence baseline so CFI/TLI are available, and supports standardization options. The new <code>ri_clpm_search()</code> runs a sequential <strong>stationarity search</strong>: it adds stationarity of intercepts, temporal effects, contemporaneous relations, and innovation variances one at a time &mdash; and finally the panel-VAR model &mdash; keeping each constraint only if it does not worsen fit:
+    </p>
+    <pre><code class="language-r"># Data: wide-format panel data; design: variables x waves matrix of column names
+mod <- ri_clpm(Data, vars = design) %>% runmodel
+
+# Sequential stationarity search:
+search <- ri_clpm_search(mod, criterion = "BIC")
+#            model       constraint DF      AIC      BIC Chisq p_diff decision
+#             base           (none) 21 18346.63 18637.43 24.78           start
+#       intercepts       intercepts 30 18332.83 18585.71 28.99  0.897   accept
+#         temporal         temporal 48 18315.12 18492.14 47.28  0.437   accept
+#  contemporaneous  contemporaneous 54 18307.42 18459.15 51.58  0.636   accept
+#       innovation       innovation 60 18300.87 18427.31 57.03  0.487   accept
+#         panelVAR wave1_endogenous 66 18305.19 18406.34 73.34  0.012   accept
+#
+# Selected model: panelVAR</code></pre>
+    <p>
+      In 0.15.30 the stationarity constraints were further hardened: they now select parameters structurally per wave, so pruned or partially fixed models constrain correctly instead of silently corrupting the constraint set.
+    </p>
+  </div>
+
+  <!-- ===================== multigroup tooling ===================== -->
+  <div class="whatsnew-item" id="multigroup">
+    <h2>Multi-group tooling <span class="version-tag">0.15.4 &ndash; 0.15.16</span></h2>
+    <p>
+      Several smaller releases improved multi-group workflows:
+    </p>
+    <ul>
+      <li><strong><code>equalityScoreTest()</code></strong> <span class="version-tag">0.15.4</span>: a score (Lagrange multiplier) test for cross-group equality constraints that reproduces <code>lavaan::lavTestScore</code> to numerical precision. <code>MIs(type = "free")</code> now also reports joint multivariate score statistics.</li>
+      <li><strong><code>partialprune()</code></strong> <span class="version-tag">0.15.5&ndash;0.15.9</span>: better specificity at low sample sizes (<code>release_model = "pruned"</code>), joint score tests for ranking candidate releases, and large speedups &mdash; an N = 15, two-group Ising <code>partialprune()</code> dropped from ~700s to ~43s.</li>
+      <li><strong><code>allequal()</code></strong> <span class="version-tag">0.15.16</span>: constrain all free elements of a matrix to a single shared parameter within each group &mdash; e.g., all thresholds equal, or an equal-edge-weight network.</li>
+      <li><strong>Saturated-model fix</strong> <span class="version-tag">0.15.10</span>: the internal saturated reference model no longer inherits cross-group equality from <code>equal = ...</code>, fixing inflated chi-square p-values and negative degrees of freedom.</li>
+      <li><strong>Multi-group ordinal data fix</strong> <span class="version-tag">0.15.19</span>: per-group polychoric correlations are now computed from each group&#39;s own rows (previously all groups silently received pooled statistics). Robust sandwich standard errors for ULS/DWLS estimators followed in 0.15.20, matching lavaan&#39;s <code>se = "robust"</code>.</li>
+    </ul>
+  </div>
+
+  <!-- ===================== penalized ===================== -->
+  <div class="whatsnew-item" id="penalized">
+    <h2>Penalized (regularized) estimation <span class="version-tag">0.15</span></h2>
+    <p class="whatsnew-meta">Experimental &mdash; see the <a href="tutorial.html#penalized">tutorial</a> for details</p>
+    <p>
+      The 0.15 release introduced penalized maximum likelihood (<code>estimator = "PML"</code>) and penalized FIML (<code>"PFIML"</code>) with LASSO, ridge, and elastic-net penalties. The penalty parameter is selected automatically via an EBIC-based grid search with warm starts (<code>find_penalized_lambda()</code>), and <code>refit()</code> re-estimates the selected sparse structure without the penalty for valid inference:
+    </p>
+    <pre><code class="language-r">library("psychonetrics")
+library("dplyr")
+library("psych")
+data(bfi)
+
+# LASSO-penalized GGM with automatic EBIC lambda selection:
+mod_pml <- ggm(na.omit(bfi[, 1:10]), estimator = "PML") %>% runmodel
+mod_pml@optim$penalty$lambda     # selected penalty: 0.088 (15 of 45 edges set to zero)
+
+# Refit the selected structure without penalty for valid inference:
+mod_refit <- mod_pml %>% refit</code></pre>
+    <p>
+      Recent fixes: the elastic-net penalty (0 &lt; <code>penalty_alpha</code> &lt; 1) no longer applies the ridge component twice (0.15.30; LASSO results were unaffected), and the default <code>beta_min</code> thresholding now matches the documentation.
+    </p>
+  </div>
+
+  <!-- ===================== ml_lvm + meta frameworks ===================== -->
+  <div class="whatsnew-item" id="mllvm">
+    <h2>Multi-level &amp; meta-analytic frameworks matured <span class="version-tag">0.15 series</span></h2>
+    <p class="whatsnew-meta">See the new <a href="mllvm.html">multi-level</a> and <a href="meta.html">meta-analysis</a> pages</p>
+    <p>
+      The multi-level latent variable model <code>ml_lvm()</code> &mdash; a two-level random-intercept model decomposing within-cluster and between-cluster structures &mdash; received important correctness fixes in this series: the latent intercepts are now properly identified (0.15.18; standard errors and degrees of freedom were affected, estimates were not), the analytic Jacobian includes the previously omitted mean derivative with respect to the between-level regressions (0.15.28), and variable-name matching and incomplete-design handling were hardened (0.15.30).
+    </p>
+    <pre><code class="language-r"># Two-level CFA: 60 clusters, 2 factors, 6 indicators
+mod_ml <- ml_lvm(Data, lambda = Lambda, clusters = "cluster") %>% runmodel
+mod_ml %>% fit    # verified: X2(20) = 15.92, p = 0.72, CFI = 1.00
+
+# Network variants: ml_lnm() (between-cluster latent network),
+# ml_rnm(), ml_lrnm()</code></pre>
+    <p>
+      On the meta-analysis side, the 0.14.20&ndash;0.14.27 releases introduced <code>meta_lvm()</code> (single-stage meta-analytic CFA/SEM extending the MAGNA framework) and <code>meta_var1()</code> / <code>meta_gvar()</code> (meta-analytic temporal and contemporaneous networks pooled across studies), both with fast C++ pipelines.
+    </p>
+  </div>
+
+  <p style="margin-top:2.5rem;">
+    <a href="https://github.com/SachaEpskamp/psychonetrics/blob/master/NEWS" class="btn btn-secondary">Full changelog (NEWS)</a>
+    <a href="examples.html" class="btn btn-primary" style="margin-left:.5rem;">See the examples</a>
+  </p>
+
+</main>
+
+<footer>
+  <div class="container footer-grid">
+    <div>
+      <h4>psychonetrics</h4>
+      <p>An R package for Structural Equation Modeling and Confirmatory Network Analysis.</p>
+      <p>Developed by <a href="about.html">Sacha Epskamp</a>.</p>
+    </div>
+    <div>
+      <h4>Links</h4>
+      <ul>
+        <li><a href="https://github.com/SachaEpskamp/psychonetrics">GitHub Repository</a></li>
+        <li><a href="https://cran.r-project.org/package=psychonetrics">CRAN</a></li>
+        <li><a href="https://github.com/SachaEpskamp/psychonetrics/issues">Report a Bug</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Affiliation</h4>
+      <img src="img/nus-logo-blue.png" alt="National University of Singapore" class="nus-logo-footer">
+      <p>National University of Singapore<br>Methods, Data Science, and AI Lab</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 Sacha Epskamp. Built with plain HTML &amp; CSS.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

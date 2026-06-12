@@ -20,17 +20,20 @@
     <button class="nav-toggle" aria-label="Toggle navigation">&#9776;</button>
     <ul class="nav-menu">
       <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="whatsnew.html" class="nav-link">What&#39;s New</a></li>
       <li><a href="tutorial.html" class="nav-link">Tutorial</a></li>
       <li class="nav-dropdown">
         <button class="nav-link dropdown-toggle" aria-expanded="false" aria-haspopup="true">
           Models <svg class="dropdown-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <ul class="dropdown-menu">
-          <li><a href="varcov.html" class="nav-link">Varcov</a></li>
-          <li><a href="lvm.html" class="nav-link">LVM</a></li>
-          <li><a href="ising.html" class="nav-link">Ising</a></li>
-          <li><a href="var1.html" class="nav-link">Var1</a></li>
-          <li><a href="dlvm1.html" class="nav-link">DLVM1</a></li>
+          <li><a href="varcov.html" class="nav-link">Varcov (GGM)</a></li>
+          <li><a href="lvm.html" class="nav-link">LVM (CFA / SEM)</a></li>
+          <li><a href="var1.html" class="nav-link">Var1 (time series)</a></li>
+          <li><a href="dlvm1.html" class="nav-link">DLVM1 (panel / RI-CLPM)</a></li>
+          <li><a href="ising.html" class="nav-link">Ising &amp; Blume-Capel</a></li>
+          <li><a href="mllvm.html" class="nav-link">Multi-level (ml_lvm)</a></li>
+          <li><a href="meta.html" class="nav-link">Meta-analysis</a></li>
         </ul>
       </li>
       <li><a href="examples.html" class="nav-link">Examples</a></li>
@@ -41,7 +44,7 @@
 
 <div class="page-header container container-narrow">
   <h1>DLVM1 Family</h1>
-  <p class="subtitle">Dynamic latent variable models for panel data</p>
+  <p class="subtitle">Dynamic latent variable models for panel data, including RI-CLPM</p>
 </div>
 
 <main class="container container-narrow">
@@ -58,6 +61,7 @@
       <li><a href="#data-format">Data Format</a></li>
       <li><a href="#example-wide">Example: Panel GVAR (Wide Format)</a></li>
       <li><a href="#example-smoke">Example: Panel VAR on Smoking Data</a></li>
+      <li><a href="#riclpm">RI-CLPM: Random-Intercept Cross-Lagged Panel Models <span class="badge-new">New</span></a></li>
       <li><a href="#comparison">Relationship to Other Approaches</a></li>
       <li><a href="#summary">Summary</a></li>
     </ul>
@@ -398,6 +402,59 @@ mod %>% fit
 mod %>% parameters</code></pre>
   </section>
 
+  <!-- RI-CLPM -->
+  <section id="riclpm">
+    <h2>RI-CLPM: Random-Intercept Cross-Lagged Panel Models <span class="version-tag">0.15.12</span></h2>
+    <p>
+      The <strong>random-intercept cross-lagged panel model</strong> (RI-CLPM; Hamaker, Kuiper &amp; Grasman, 2015) is a widely used panel model that, like the panel-GVAR, separates stable between-person differences (random intercepts) from within-person dynamics. Compared to the panel-VAR, the classic RI-CLPM treats wave 1 as <em>exogenous</em> (a free starting point rather than part of a stationary process) and leaves parameters free to vary per wave.
+    </p>
+    <p>
+      <code>ri_clpm()</code> fits this model using the same data input as the rest of the dlvm1 family: wide-format data with a design matrix, or long-format data via <code>idvar</code> (auto-detected). A <code>standardize</code> argument (<code>"z"</code>, <code>"z_per_wave"</code>, <code>"quantile"</code>) is available, and an independence baseline is built so CFI/TLI are available.
+    </p>
+    <pre><code class="language-r">library("psychonetrics")
+library("dplyr")
+
+# Design matrix: rows = variables, columns = waves
+# (entries are column names of the wide data)
+design <- matrix(colnames(Data), nVar, nWave)
+
+# Fit the RI-CLPM:
+mod <- ri_clpm(Data, vars = design) %>% runmodel
+mod %>% fit
+
+# Temporal (cross-lagged) effects, wave 2 regressed on wave 1:
+getmatrix(mod, "beta")[4:6, 1:3]
+
+# Random-intercept covariance block (the last nVar latents):
+getmatrix(mod, "sigma_zeta")[13:15, 13:15]</code></pre>
+
+    <h3>Stationarity search with ri_clpm_search()</h3>
+    <p>
+      Because the unconstrained RI-CLPM is generously parameterized, a natural question is which parameters can be constrained equal over waves (stationarity). <code>ri_clpm_search()</code> tests this sequentially: it adds stationarity of <em>intercepts</em>, <em>temporal effects</em>, <em>contemporaneous relations</em>, and <em>innovation variances</em> one at a time, and finally the panel-VAR model (wave 1 endogenous), retaining each constraint only if it does not worsen fit according to <code>criterion</code> (BIC, AIC, or a chi-square difference test):
+    </p>
+    <pre><code class="language-r">search <- ri_clpm_search(mod, criterion = "BIC")
+search</code></pre>
+    <span class="output-label">Output (4-wave simulated stationary data; see the <a href="examples.html#ex-riclpm">full example</a>)</span>
+    <div class="output-block">RI-CLPM stationarity search
+Criterion: BIC
+
+           model       constraint DF      AIC      BIC Chisq p_diff decision
+            base           (none) 21 18346.63 18637.43 24.78           start
+      intercepts       intercepts 30 18332.83 18585.71 28.99  0.897   accept
+        temporal         temporal 48 18315.12 18492.14 47.28  0.437   accept
+ contemporaneous  contemporaneous 54 18307.42 18459.15 51.58  0.636   accept
+      innovation       innovation 60 18300.87 18427.31 57.03  0.487   accept
+        panelVAR wave1_endogenous 66 18305.19 18406.34 73.34  0.012   accept
+
+Selected model: panelVAR</div>
+    <p>
+      The selected fitted model is available as <code>search@selected</code>. A fully reproducible simulated example is on the <a href="examples.html#ex-riclpm">examples page</a>.
+    </p>
+    <div class="note">
+      <strong>Performance tip:</strong> RI-CLPM models are fit as structural equation models over all waves simultaneously, so fitting slows down considerably with five or more waves. With many waves, consider the more parsimonious <code>panelgvar()</code>.
+    </div>
+  </section>
+
   <!-- Relationship to Other Approaches -->
   <section id="comparison">
     <h2>Relationship to Other Approaches</h2>
@@ -419,7 +476,7 @@ mod %>% parameters</code></pre>
 
     <h3>vs RI-CLPM (Random-Intercept Cross-Lagged Panel Model)</h3>
     <p>
-      The panel-GVAR is closely related to the random-intercept cross-lagged panel model (RI-CLPM). Key differences: the panel-GVAR treats the first wave as endogenous (part of the stationary process, not as an exogenous starting point), constrains parameters to be equal over time (stationarity), and models the within-person contemporaneous and between-person structures as GGM networks (which is generally more parsimonious).
+      The panel-GVAR is closely related to the random-intercept cross-lagged panel model (RI-CLPM), which is <a href="#riclpm">directly available</a> in psychonetrics via <code>ri_clpm()</code>. Key differences: the panel-GVAR treats the first wave as endogenous (part of the stationary process, not as an exogenous starting point), constrains parameters to be equal over time (stationarity), and models the within-person contemporaneous and between-person structures as GGM networks (which is generally more parsimonious). <code>ri_clpm_search()</code> bridges the two by testing these constraints one at a time.
     </p>
   </section>
 

@@ -410,3 +410,118 @@ footer li { margin-bottom: .4rem; }
 @media (max-width: 480px) {
   .hero-buttons { flex-direction: column; align-items: center; }
 }
+
+/* ==============================================
+   What's-new ticker (landing page)
+   ============================================== */
+.ticker {
+  display: flex; align-items: stretch;
+  background: var(--nus-blue-dark);
+  border-bottom: 3px solid var(--nus-orange);
+  overflow: hidden;
+}
+.ticker-label {
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: .4rem;
+  background: var(--nus-orange);
+  color: var(--white);
+  font-weight: 700; font-size: .8rem; letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: .55rem 1rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.ticker-label:hover { background: var(--nus-orange-light); color: var(--white); text-decoration: none; }
+.ticker-viewport {
+  display: flex; overflow: hidden; flex-grow: 1; min-width: 0;
+}
+.ticker-track {
+  display: flex; align-items: center;
+  flex-shrink: 0; min-width: 100%;
+  list-style: none; margin: 0; padding: 0;
+  animation: ticker-scroll 55s linear infinite;
+}
+.ticker:hover .ticker-track,
+.ticker:focus-within .ticker-track { animation-play-state: paused; }
+.ticker-track li { margin: 0; padding: 0; white-space: nowrap; }
+.ticker-track a {
+  display: inline-flex; align-items: center; gap: .5rem;
+  color: rgba(255,255,255,.92);
+  font-size: .88rem; font-weight: 500;
+  padding: .55rem 1.4rem;
+  text-decoration: none;
+}
+.ticker-track a:hover { color: var(--white); text-decoration: underline; }
+.ticker-version {
+  display: inline-block;
+  background: rgba(255,255,255,.14);
+  border: 1px solid rgba(255,255,255,.25);
+  color: var(--white);
+  font-family: var(--font-mono);
+  font-size: .7rem; font-weight: 500;
+  padding: .05rem .45rem; border-radius: 10px;
+}
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
+}
+/* Accessible fallback: static wrapped list when reduced motion is requested */
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track { animation: none; flex-wrap: wrap; }
+  .ticker-track[aria-hidden="true"] { display: none; }
+  .ticker-viewport { overflow: visible; }
+}
+
+/* ==============================================
+   Misc additions (badges, hero tagline, anchors)
+   ============================================== */
+.badge-new {
+  display: inline-block;
+  background: var(--nus-orange); color: var(--white);
+  font-size: .68rem; font-weight: 700; letter-spacing: .05em;
+  text-transform: uppercase;
+  padding: .12rem .5rem; border-radius: 10px;
+  vertical-align: middle; margin-left: .4rem;
+}
+.version-tag {
+  display: inline-block;
+  background: var(--nus-blue-light); color: var(--nus-blue);
+  font-family: var(--font-mono);
+  font-size: .75rem; font-weight: 500;
+  padding: .1rem .55rem; border-radius: 10px;
+  vertical-align: middle; margin-left: .5rem;
+}
+.hero-tagline {
+  text-align: center;
+  font-size: 1.18rem; color: var(--gray-600);
+  max-width: 720px; margin: 1.25rem auto 0;
+}
+.hero-install {
+  display: block; width: fit-content;
+  margin: 1rem auto 0;
+  font-family: var(--font-mono); font-size: .92rem;
+  background: var(--gray-900); color: #E5E7EB;
+  padding: .55rem 1.2rem; border-radius: 8px;
+}
+.hero-install .prompt { color: var(--nus-orange); }
+.output-block {
+  background: #FBFBFC; border: 1px dashed var(--gray-300);
+  border-radius: 8px; padding: 1rem 1.25rem;
+  font-family: var(--font-mono); font-size: .8rem; line-height: 1.55;
+  overflow-x: auto; white-space: pre; color: var(--gray-600);
+  margin: -0.75rem 0 1.5rem;
+}
+.output-label {
+  font-size: .72rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--gray-500);
+  display: block; margin-bottom: .35rem;
+}
+.whatsnew-item {
+  background: var(--white); border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  padding: 2rem; margin-bottom: 2rem;
+}
+.whatsnew-item h2 { margin-top: 0; border-bottom: none; }
+.whatsnew-meta { font-size: .85rem; color: var(--gray-500); margin-bottom: 1rem; }
+.tag-meta { background: #FCE7F3; color: #9D174D; }
+.tag-mllvm { background: #CFFAFE; color: #155E75; }

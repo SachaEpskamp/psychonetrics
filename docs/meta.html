@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="psychonetrics meta-analytic models: meta_varcov, meta_ggm, meta_lvm and meta_gvar for pooling correlation matrices and networks across studies">
+  <title>Meta-analysis | psychonetrics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container nav-container">
+    <a href="index.html" class="nav-brand">psychonetrics</a>
+    <button class="nav-toggle" aria-label="Toggle navigation">&#9776;</button>
+    <ul class="nav-menu">
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="whatsnew.html" class="nav-link">What&#39;s New</a></li>
+      <li><a href="tutorial.html" class="nav-link">Tutorial</a></li>
+      <li class="nav-dropdown">
+        <button class="nav-link dropdown-toggle" aria-expanded="false" aria-haspopup="true">
+          Models <svg class="dropdown-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="varcov.html" class="nav-link">Varcov (GGM)</a></li>
+          <li><a href="lvm.html" class="nav-link">LVM (CFA / SEM)</a></li>
+          <li><a href="var1.html" class="nav-link">Var1 (time series)</a></li>
+          <li><a href="dlvm1.html" class="nav-link">DLVM1 (panel / RI-CLPM)</a></li>
+          <li><a href="ising.html" class="nav-link">Ising &amp; Blume-Capel</a></li>
+          <li><a href="mllvm.html" class="nav-link">Multi-level (ml_lvm)</a></li>
+          <li><a href="meta.html" class="nav-link">Meta-analysis</a></li>
+        </ul>
+      </li>
+      <li><a href="examples.html" class="nav-link">Examples</a></li>
+      <li><a href="about.html" class="nav-link">About</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="page-header container container-narrow">
+  <h1>Meta-analytic Models</h1>
+  <p class="subtitle">Pooling correlation matrices and networks across studies (MAGNA)</p>
+</div>
+
+<main class="container container-narrow">
+
+  <div class="toc">
+    <h3>Contents</h3>
+    <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#model">The Random-Effects Model</a></li>
+      <li><a href="#input">Data Input</a></li>
+      <li><a href="#vmethod">Sampling-Variance Methods (Vmethod)</a></li>
+      <li><a href="#example">Example: Meta-analytic GGM on Simulated Studies</a></li>
+      <li><a href="#related">Related Functions: meta_lvm, meta_gvar</a></li>
+      <li><a href="#summary">Summary</a></li>
+    </ul>
+  </div>
+
+  <section id="overview">
+    <h2>Overview</h2>
+    <p>
+      The meta-analytic family implements <strong>Meta-Analytic Gaussian Network Aggregation (MAGNA)</strong>: a one-stage random-effects framework for pooling correlation (or covariance) matrices from multiple studies into a single model, while accounting for between-study heterogeneity. The pooled structure can be modeled directly as a correlation matrix (<code>meta_varcov()</code>) or as a <strong>Gaussian Graphical Model</strong> (<code>meta_ggm()</code>), yielding a meta-analytic partial-correlation network.
+    </p>
+    <p>
+      Typical use cases include aggregating published correlation matrices of symptom measures into a pooled symptom network, or combining the correlation matrices of several (possibly heterogeneous) samples collected by different labs.
+    </p>
+    <div class="note">
+      <strong>Reference:</strong> Epskamp, S., Isvoranu, A. M., &amp; Cheung, M. W.-L. (2022). Meta-analytic Gaussian network aggregation. <em>Psychometrika, 87</em>(1), 12&ndash;46. DOI: <a href="https://doi.org/10.1007/s11336-021-09764-3">10.1007/s11336-021-09764-3</a>
+    </div>
+  </section>
+
+  <section id="model">
+    <h2>The Random-Effects Model</h2>
+    <p>
+      For each study $s$, the vector of sample correlations $\boldsymbol{r}_s$ is modeled as:
+    </p>
+    <p class="formula">$$\boldsymbol{r}_s = \boldsymbol{\rho} + \boldsymbol{u}_s + \boldsymbol{e}_s$$</p>
+    <ul>
+      <li><strong>$\boldsymbol{\rho}$</strong>: the pooled (population-average) correlation structure &mdash; the quantity of interest, optionally parameterized as a GGM ($\boldsymbol{\Omega}_y$, matrix <code>omega_y</code>).</li>
+      <li><strong>$\boldsymbol{u}_s$</strong>: random study effects with covariance matrix $\boldsymbol{\Sigma}_{\text{RE}}$ (matrix <code>sigma_randomEffects</code>), capturing <em>between-study heterogeneity</em>.</li>
+      <li><strong>$\boldsymbol{e}_s$</strong>: sampling error with (approximately) known covariance $\boldsymbol{V}_s$, computed from the study sample sizes (see <a href="#vmethod">Vmethod</a>).</li>
+    </ul>
+    <p>
+      Both the pooled structure and the random-effects covariance can be parameterized as <code>cov</code>, <code>chol</code> (default for random effects), <code>prec</code>, <code>ggm</code>, or <code>cor</code>. The square roots of the diagonal of $\boldsymbol{\Sigma}_{\text{RE}}$ are the heterogeneity standard deviations of each correlation, analogous to $\tau$ in univariate meta-analysis.
+    </p>
+  </section>
+
+  <section id="input">
+    <h2>Data Input</h2>
+    <p><code>meta_varcov()</code> and <code>meta_ggm()</code> accept three kinds of input:</p>
+    <table>
+      <thead><tr><th>Input</th><th>Arguments</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Correlation matrices</td>
+          <td><code>cors</code> (list) + <code>nobs</code> (vector)</td>
+          <td>The standard MAGNA input. Missing variables in a study may be <code>NA</code>.</td>
+        </tr>
+        <tr>
+          <td>Covariance matrices</td>
+          <td><code>covs</code> (list) + <code>nobs</code> (vector)</td>
+          <td><span class="badge-new">0.15.30</span> Covariances are now genuinely modeled as covariances (<code>corinput = FALSE</code>); previously they were silently treated as correlations.</td>
+        </tr>
+        <tr>
+          <td>Raw data</td>
+          <td><code>data</code> + <code>studyvar</code></td>
+          <td>Per-study correlations and sample sizes are computed internally.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="vmethod">
+    <h2>Sampling-Variance Methods (Vmethod)</h2>
+    <p>
+      The sampling covariance matrices $\boldsymbol{V}_s$ of the study correlations must be estimated. The <code>Vmethod</code> argument controls how:
+    </p>
+    <table>
+      <thead><tr><th>Vmethod</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>"individual"</code> (default)</td><td>Per-study $\boldsymbol{V}_s$ based on each study&#39;s own correlations.</td></tr>
+        <tr><td><code>"pooled"</code></td><td>$\boldsymbol{V}_s$ based on the pooled correlation matrix, scaled by study sample size.</td></tr>
+        <tr><td><code>"OS_individual"</code> <span class="badge-new">0.15.30</span></td><td>Olkin&ndash;Siotani (1976) asymptotic covariance of sample correlations, per study.</td></tr>
+        <tr><td><code>"OS_pooled"</code> <span class="badge-new">0.15.30</span></td><td>Olkin&ndash;Siotani covariance evaluated at the pooled correlations.</td></tr>
+        <tr><td><code>"metaSEM_individual"</code> / <code>"metaSEM_weighted"</code></td><td>Compatibility options mirroring the <code>metaSEM</code> package.</td></tr>
+      </tbody>
+    </table>
+    <div class="note">
+      <strong>Which to choose?</strong> The new Olkin&ndash;Siotani options (validated against <code>metaSEM::asyCov</code>) are recommended when the heterogeneity (random-effects) variances themselves are of substantive interest. The default is unchanged for backward compatibility with published MAGNA analyses.
+    </div>
+    <p>
+      The related argument <code>Vestimation</code> (<code>"averaged"</code>, the default, or <code>"per_study"</code>) controls whether the sampling-error part of the likelihood uses an averaged or per-study weight matrix.
+    </p>
+  </section>
+
+  <section id="example">
+    <h2>Example: Meta-analytic GGM on Simulated Studies</h2>
+    <p>
+      We simulate 12 studies whose data come from a common chain network ($V_1 - V_2 - V_3 - V_4$, all partial correlations 0.3) with mild between-study heterogeneity, and pool them with <code>meta_ggm()</code>. This example is fully reproducible and runs in seconds:
+    </p>
+    <pre><code class="language-r">library("psychonetrics")
+library("dplyr")
+
+# --- Simulate per-study correlation matrices ---
+set.seed(123)
+nStudy <- 12
+nv <- 4
+
+# True partial-correlation network (chain): V1 - V2 - V3 - V4
+Omega <- matrix(0, nv, nv)
+Omega[1, 2] <- Omega[2, 3] <- Omega[3, 4] <- 0.3
+Omega <- Omega + t(Omega)
+
+# Implied correlation matrix:
+Delta <- diag(1 / sqrt(diag(solve(diag(nv) - Omega))))
+trueSigma <- Delta %*% solve(diag(nv) - Omega) %*% Delta
+
+cors <- list(); nobs <- numeric(nStudy)
+for (s in seq_len(nStudy)) {
+  nobs[s] <- round(runif(1, 200, 600))
+  # Study-specific population (between-study heterogeneity):
+  P <- cov2cor(trueSigma + crossprod(matrix(rnorm(nv * nv, 0, 0.08), nv, nv)))
+  X <- matrix(rnorm(nobs[s] * nv), nobs[s], nv) %*% chol(P)
+  cors[[s]] <- cor(X)
+  colnames(cors[[s]]) <- rownames(cors[[s]]) <- paste0("V", 1:nv)
+}
+
+# --- Fit the meta-analytic GGM ---
+mod_meta <- meta_ggm(cors = cors, nobs = nobs,
+                     Vmethod = "OS_pooled") %>% runmodel
+
+# Pooled partial-correlation network (recovers the true chain):
+round(getmatrix(mod_meta, "omega_y"), 2)
+
+# Heterogeneity SDs per correlation:
+round(sqrt(diag(getmatrix(mod_meta, "sigma_randomEffects"))), 3)
+
+# --- Prune to a sparse pooled network ---
+mod_meta_pruned <- mod_meta %>% prune(alpha = 0.05, matrices = "omega_y")
+compare(saturated = mod_meta, pruned = mod_meta_pruned)</code></pre>
+    <span class="output-label">Output (abbreviated)</span>
+    <div class="output-block">&gt; round(getmatrix(mod_meta, "omega_y"), 2)
+     [,1] [,2] [,3] [,4]
+[1,] 0.00 0.30 0.00 0.01
+[2,] 0.30 0.00 0.29 0.02
+[3,] 0.00 0.29 0.00 0.29
+[4,] 0.01 0.02 0.29 0.00
+
+&gt; compare(saturated = mod_meta, pruned = mod_meta_pruned)
+     model DF     AIC     BIC RMSEA Chisq Chisq_diff DF_diff p_value
+ saturated  0 -175.28 -162.19
+    pruned  3 -180.21 -168.57   ~ 0  1.08       1.08       3    0.78</div>
+    <p>
+      The pooled network recovers the true chain structure (edges &asymp; 0.30), and pruning correctly removes the three null edges without significant loss of fit (p = 0.78).
+    </p>
+  </section>
+
+  <section id="related">
+    <h2>Related Functions: meta_lvm, meta_gvar</h2>
+    <ul>
+      <li><strong><code>meta_lvm()</code></strong>: single-stage meta-analytic <em>latent variable</em> models &mdash; a CFA/SEM for the pooled correlation/covariance structure combined with a random-effects model for between-study heterogeneity. Supports all standard parameterizations for the latent, residual, and random-effects structures.</li>
+      <li><strong><code>meta_var1()</code> / <code>meta_gvar()</code></strong>: meta-analytic VAR(1) models pooling <em>temporal</em> and <em>contemporaneous</em> network structures across multiple time-series studies. Accepts raw time-series data (<code>data</code> + <code>studyvar</code>) or pre-computed Toeplitz covariance matrices (<code>covs</code> + <code>nobs</code>).</li>
+      <li><strong><code>meta_ggm()</code></strong> is shorthand for <code>meta_varcov(..., type = "ggm")</code>.</li>
+    </ul>
+  </section>
+
+  <section id="summary">
+    <h2>Summary</h2>
+    <ul>
+      <li>Meta-analytic models pool correlation/covariance structures across studies in a one-stage random-effects framework (MAGNA)</li>
+      <li><code>meta_ggm()</code> yields a pooled partial-correlation network with heterogeneity estimates per correlation</li>
+      <li>Input can be correlation matrices, covariance matrices (genuinely supported since 0.15.30), or raw data with a study indicator</li>
+      <li>New Olkin&ndash;Siotani <code>Vmethod</code> options are recommended when heterogeneity variances are of interest</li>
+      <li>The usual workflow applies: <code>runmodel</code> &rarr; <code>prune</code> &rarr; <code>compare</code></li>
+      <li>Latent variable (<code>meta_lvm</code>) and time-series (<code>meta_gvar</code>) extensions are available</li>
+    </ul>
+    <h3>Further Reading</h3>
+    <ul>
+      <li>Epskamp, S., Isvoranu, A. M., &amp; Cheung, M. W.-L. (2022). Meta-analytic Gaussian network aggregation. <em>Psychometrika, 87</em>(1), 12&ndash;46.</li>
+    </ul>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container footer-grid">
+    <div>
+      <h4>psychonetrics</h4>
+      <p>An R package for Structural Equation Modeling and Confirmatory Network Analysis.</p>
+      <p>Developed by <a href="about.html">Sacha Epskamp</a>.</p>
+    </div>
+    <div>
+      <h4>Links</h4>
+      <ul>
+        <li><a href="https://github.com/SachaEpskamp/psychonetrics">GitHub Repository</a></li>
+        <li><a href="https://cran.r-project.org/package=psychonetrics">CRAN</a></li>
+        <li><a href="https://github.com/SachaEpskamp/psychonetrics/issues">Report a Bug</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Affiliation</h4>
+      <img src="img/nus-logo-blue.png" alt="National University of Singapore" class="nus-logo-footer">
+      <p>National University of Singapore<br>Methods, Data Science, and AI Lab</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 Sacha Epskamp. Built with plain HTML &amp; CSS.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="js/main.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: "$$", right: "$$", display: true},
+        {left: "$", right: "$", display: false}
+      ],
+      throwOnError: false
+    });
+  });
+</script>
+</body>
+</html>
