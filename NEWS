@@ -1,3 +1,160 @@
+Changes in Version 0.15.30
+  o This release implements the remaining findings of a large internal code
+    audit: bug fixes across all model families, robustness and performance
+    improvements, a documentation overhaul, and a new automated test suite.
+
+  o ESTIMATION AND OPTIMIZATION:
+  o Fixed an inverted positive-definiteness flag and re-enabled the optimizer
+    penalty for improper (non-positive-definite) implied covariance matrices.
+    Previously the ML objective was unbounded below at such points, which
+    could make optimizers (notably nlminb, the default) diverge to absurd
+    estimates on panel models (panelvar/panelgvar) and SEM models. Both the
+    C++ and R fit paths now return a large penalty instead.
+  o Fixed the experimental "LBFGS++" optimizer reporting convergence at
+    infeasible points (non-finite objective, penalty bound, NA parameters, or
+    iteration limit); such runs now trigger runmodel's emergency restart or a
+    clear error. Also fixed runmodel's recovery logic for the C++ optimizer
+    branches: NA optimizer output now triggers an emergency restart, and
+    failed recoveries stop with an informative error.
+  o Fixed emergencystart() constraining the wrong edges to zero in its glasso
+    restart (free edges were zeroed instead of structurally fixed ones).
+  o latentgrowth() (and lvm models with fully fixed nu and free nu_eta) now
+    uses least-squares starting values for the latent means, fixing frequent
+    non-convergence on growth data with nonzero means.
+  o Fixed elastic-net penalized ML (0 < alpha < 1) applying the ridge
+    component twice in the proximal-gradient optimizer; LASSO (alpha = 1)
+    results are unaffected. The default beta_min for penalized-model lambda
+    selection is now "numerical" (1e-05), matching the documentation.
+  o Fixed an operator-precedence bug in the internal spectral shift used for
+    start values (it added 0.001 to every element instead of shifting the
+    diagonal and could leave matrices exactly singular). Start values of
+    dlvm1/panelgvar-type models on difficult data may change slightly
+    (typically improving convergence). The GGM correlation-input runtime path
+    no longer applies a spectral shift, aligning the R and C++ paths.
+  o solve_symmetric: the log-determinant plugin for non-positive-definite
+    matrices now also catches NaN. Fixed a potential stale-cache issue in the
+    C++ optimization workspace (cached model now protected from garbage
+    collection). refit()-ed models now select the same default optimizer as
+    freshly specified models; runmodel() warns when bounded = TRUE is ignored
+    by ucminf.
+
+  o GENERAL BUG FIXES:
+  o fullFIML = TRUE (row-wise FIML) errored with "Not a matrix." for all
+    standard model families; the C++ FIML fit, gradient, expected Hessian and
+    log-likelihood now handle both single implied matrices and per-row lists.
+  o Fixed equal = "omega_zeta" being silently ignored (and "lowertri_zeta"
+    wrongly applied instead) in lvm/lnm/lrnm models with a latent network.
+  o factorscores() now correctly accounts for structural regressions (beta)
+    in the regression method and adds the model-implied latent means to both
+    methods, fixing wrong scores in SEM-style and multi-group models.
+  o Fixed varcov(covtype = "choose"): detected unbiased (n-1) input
+    covariances are now correctly rescaled to ML.
+  o Fixed multiple-comparison p-value adjustment (prune/adjust): the
+    correction is now over unique parameters rather than parameter-table
+    rows, so equality-constrained parameters are no longer over-penalized.
+  o Fixed prune(recursive = TRUE) resetting alpha to 0.01 (and dropping
+    mode/startreduce/limit) in passes after the first.
+  o Likelihood-based fit measures (logl, AIC, BIC, ebic) are now retained
+    when chisq/baseline measures are unavailable (e.g. baseline_saturated =
+    FALSE). Fixed the ebic.75 fit measure (used gamma 0.7 instead of 0.75).
+  o Fixed getmatrix(..., diag = FALSE) zeroing the wrong elements.
+  o runmodel(analyticFisher = FALSE) now actually uses the numeric Fisher
+    information on the default C++ path. Fixed the identification check in
+    greedy stepup() inspecting the previous model's information.
+  o Standard errors: inversion-failure/pseudoinverse warnings are no longer
+    suppressed when verbose = FALSE; negative inverse-information variances
+    now yield NA standard errors with a warning (R and C++ paths).
+  o setestimator() now resets the computed flag, propagates the estimator to
+    baseline/saturated models, and validates required sample statistics.
+  o varcov-family models (ggm, corr, ...) now give an informative error when
+    corinput = TRUE is combined with a meanstructure under (penalized) ML,
+    instead of crashing during optimization.
+  o Fixed parequal() argument handling (named runmodel arguments leaked into
+    the constraint set). fixpar() and friends now error on mistyped variable
+    labels instead of silently doing nothing. compare() reports NA p-values
+    for equal-df models and warns on negative chi-square differences.
+  o Fixed lvm/lnm/meta_lvm with latent = "ggm" and a single latent variable
+    crashing at construction. lvm() now warns when there are more latent
+    than observed variables. bifactor() uses deterministic starting values.
+
+  o ISING / BLUME-CAPEL:
+  o The partition function and moment computations now use log-sum-exp
+    accumulation: extreme parameter values no longer produce Inf/NaN fits,
+    gradients, or Fisher information (results unchanged in the normal
+    regime). Long state-space enumerations can now be interrupted.
+  o Raw data are now validated against the responses argument (stray values
+    error instead of silently biasing the fit); only missing = "listwise" is
+    supported and other options error at construction; the free inverse
+    temperature beta is now bounded at 0; groupequal("delta") now correctly
+    frees the group-specific beta in Blume-Capel models.
+
+  o TIME SERIES / PANEL MODELS:
+  o Fixed sigma_within (and sigma_crosssection) reporting in dlvm1-family
+    models: the between-person residual covariance was added instead of the
+    within-person residual covariance (estimation was not affected).
+  o ri_clpm stationarity constraints ("innovation"/"contemporaneous") now
+    select parameters structurally per wave; pruned/fixpar'd models
+    previously produced corrupted equality constraints and now constrain
+    correctly or stop with an informative error. Unpruned behavior unchanged
+    (wave 1 and the random-intercept block remain free).
+  o tsData(): grouped data previously ignored lags, scale, center and
+    centerWithin; lags other than 1 erroneously produced lag-1 columns. Both
+    fixed. var1()/gvar() gain a centerWithin argument (default FALSE).
+  o ml_lvm: variable names containing regex metacharacters (e.g. "y.1") are
+    no longer silently dropped (same fix in dlvm1/ri_clpm wide matching);
+    the C++ implied structure now correctly subsets by the design matrix for
+    incomplete designs, matching the R implementation; the default vars now
+    excludes the groups column. dlvm1-family constructors error informatively
+    with fewer than two waves. dlvm1 "version2" start values now use the
+    between-person residual covariance estimate for epsilon_between.
+
+  o META-ANALYTIC MODELS:
+  o meta_varcov now genuinely supports covariance matrices as input (covs=
+    defaults to corinput = FALSE as documented); previously covariances were
+    silently modeled as correlations and corinput = FALSE crashed.
+  o New Vmethod options "OS_individual" and "OS_pooled" in meta_varcov: the
+    Olkin-Siotani (1976) sampling covariance of sample correlations
+    (validated against metaSEM::asyCov), recommended when heterogeneity
+    (random-effects) variances are of substantive interest. The default
+    Vmethod is unchanged for backward compatibility with published analyses.
+  o Fixed meta_varcov/meta_ggm with estimator = "ML" and meta_lvm with
+    residual = "prec" crashing at the first gradient evaluation. Fixed
+    bivariate (single-correlation) meta_varcov crashing at construction.
+    Meta models now error informatively when two variables are never
+    observed together in any study. meta_lvm uses the C++ Jacobian for the
+    Fisher information when cpp = TRUE.
+
+  o PERFORMANCE:
+  o The joint equality score test used by addMIs/runmodel on multi-group
+    models factorizes the bordered information system once: up to several
+    hundred times faster on large equality-constrained models (identical
+    results). The matrices argument of addMIs() is now implemented.
+  o Commutation matrices are constructed directly in sparse form and, with
+    the other algebra helper matrices, cached per dimension: substantially
+    faster model construction (about 3x for a 30-node GGM). The sparse
+    Fisher-information path is now reachable for sparse model Jacobians.
+  o Ising state enumeration avoids per-state matrix copies and the
+    log-likelihood reuses the prepared partition function (about 1.3-1.6x
+    faster Ising runmodel). Plus assorted micro-optimizations.
+
+  o INFRASTRUCTURE, DOCUMENTATION AND TESTS:
+  o Added an automated test suite (tinytest) covering the psychonetrics.org
+    examples plus targeted regression tests for the fixes in this release,
+    with reference values cross-checked against lavaan. tinytest added to
+    Suggests; removed unused dependencies GA, combinat, VCA and abind.
+  o loop_psychonetrics() and replicator() gain a seed argument for
+    reproducible (parallel) simulations; aggregate_bootstraps()'s
+    remove_problematic argument is now respected.
+  o Large documentation cleanup: fixed a broken example in partialprune.Rd,
+    corrected the documented MIs() type values, documented lambda = "full",
+    corrected Cholesky equations and stale paragraphs in the family pages,
+    added missing \value sections, fixed broken examples, removed the
+    unimplemented "MUML" option from ml_lvm(), added a ggplot2 guard to
+    CIplot(), and fixed many typos.
+  o Added inst/COPYRIGHTS and a DESCRIPTION Copyright field documenting the
+    bundled LBFGS++ (MIT) headers; removed a linker flag that stripped debug
+    symbols (CRAN policy); dev-checklist files excluded from the build.
+
 Changes in Version 0.15.29
   o Bugfix: the "loadings" identification used by lvm(), ml_lvm(), dlvm1() and
     tsdlvm1() could silently overwrite a user-fixed (or built-in) nonzero
