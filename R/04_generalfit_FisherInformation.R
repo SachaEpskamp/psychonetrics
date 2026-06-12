@@ -8,6 +8,17 @@ numeric_FisherInformation <- function(model){
 
 # General Fisher information former:
 psychonetrics_FisherInformation <- function(model, analytic = TRUE){
+  # The two-level ML estimator only has an R implementation:
+  model <- force_R_path_if_needed(model)
+
+  # The two-level ML estimator (distribution "TwoLevelGaussian") has no
+  # analytic expected Hessian yet (Phase 2); route to the numeric Fisher
+  # information, which evaluates the analytic gradient at the expected
+  # (model-implied) sufficient statistics. Slow but correct:
+  if (model@distribution == "TwoLevelGaussian"){
+    return(numeric_FisherInformation(model))
+  }
+
   # Maybe do numeric?
   if (!analytic){
     return(numeric_FisherInformation(model))

@@ -1,4 +1,7 @@
 prepareModel <- function(x, model){
+  # The two-level ML estimator only has an R implementation:
+  model <- force_R_path_if_needed(model)
+
   # What model?
   framework <- model@model
   

@@ -62,8 +62,8 @@ ml_lvm <- function(
   groups, # ignored if missing. Can be character indicating groupvar, or vector with names of groups
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
-  # fitfunctions, 
-  estimator = "FIML",
+  # fitfunctions,
+  estimator = c("default","FIML","ML"),
   optimizer,
   storedata = FALSE,
   verbose = FALSE,
@@ -87,8 +87,15 @@ ml_lvm <- function(
   within_residual <- match.arg(within_residual)
   between_residual <- match.arg(between_residual)
   identification <- match.arg(identification)
+  # Estimators:
+  # - "FIML": wide-format full-information ML (the only estimator before
+  #   0.15.31, and still the only estimator supporting missing data).
+  # - "ML": sufficient-statistics two-level ML (McDonald & Goldstein, 1989;
+  #   Muthen, 1990); much faster for large clusters, complete data only.
+  # - "default": picks "ML" when the data are complete and the largest cluster
+  #   has more than 5 units, otherwise "FIML". Resolved below once the data
+  #   have been checked:
   estimator <- match.arg(estimator)
-  if (estimator != "FIML") stop("Only FIML supported.")
   
   # Check clusters:
   if (missing(clusters)){
@@ -173,8 +180,30 @@ ml_lvm <- function(
   
   # Max in cluster:
   maxInCluster <- max(data[['CLUSTERID']])
-  
-  
+
+  # Resolve the estimator:
+  anyMissing <- anyNA(data[,vars])
+  if (estimator == "default"){
+    if (!anyMissing && maxInCluster > 5){
+      estimator <- "ML"
+    } else {
+      estimator <- "FIML"
+    }
+    if (verbose){
+      message("Using estimator = '", estimator, "' (set the 'estimator' argument to overwrite).")
+    }
+  }
+  if (estimator == "ML"){
+    if (anyMissing){
+      stop("estimator = 'ML' (two-level sufficient-statistics maximum likelihood) does not support missing data. Use estimator = 'FIML' instead, or remove the rows with missing values.")
+    }
+    if (!isFALSE(bootstrap)){
+      stop("estimator = 'ML' does not support 'bootstrap' for ml_lvm models. Use estimator = 'FIML' instead.")
+    }
+    if (verbose) experimentalWarning("ml_lvm two-level ML estimator")
+  }
+
+
   # Standardize the data:
   if (standardize == "z"){
     for (v in seq_along(vars)){
@@ -238,18 +267,61 @@ ml_lvm <- function(
   
   # Obtain sample stats:
   if (missing(sampleStats)){
-    sampleStats <- samplestats(data = datawide, 
-                               vars = allVars, 
-                               groups = groups,
-                               fimldata = estimator == "FIML",
-                               storedata = storedata,
-                               verbose=verbose,
-                               bootstrap=bootstrap,
-                               boot_sub = boot_sub,
-                               boot_resample = boot_resample)
+    if (estimator == "ML"){
+      # Two-level ML: the wide-format sample covariances are not used for
+      # estimation (the two-level sufficient statistics below are), but the
+      # sample object is still needed for group/variable bookkeeping and start
+      # values. Unbalanced clusters yield NAs in the wide format, so use
+      # pairwise covariances and muffle the (here harmless) NA-covariance
+      # warning that very unbalanced designs can trigger:
+      sampleStats <- withCallingHandlers(
+        samplestats(data = datawide,
+                    vars = allVars,
+                    groups = groups,
+                    missing = "pairwise",
+                    fimldata = FALSE,
+                    storedata = storedata,
+                    verbose=verbose,
+                    bootstrap=bootstrap,
+                    boot_sub = boot_sub,
+                    boot_resample = boot_resample),
+        warning = function(w){
+          if (grepl("NA sample covariances", conditionMessage(w))){
+            invokeRestart("muffleWarning")
+          }
+        })
+    } else {
+      sampleStats <- samplestats(data = datawide,
+                                 vars = allVars,
+                                 groups = groups,
+                                 fimldata = estimator == "FIML",
+                                 storedata = storedata,
+                                 verbose=verbose,
+                                 bootstrap=bootstrap,
+                                 boot_sub = boot_sub,
+                                 boot_resample = boot_resample)
+    }
   }
-  
-  
+
+  # Two-level sufficient statistics per group (computed once from the long
+  # data; reused by the recursive baseline/saturated calls via 'sampleStats'):
+  if (estimator == "ML" && length(get_twolevel_stats(sampleStats)) == 0){
+    twolevelStats <- list()
+    for (g in seq_len(nrow(sampleStats@groups))){
+      subData <- data[data[[groups]] == sampleStats@groups$label[g], , drop = FALSE]
+      twolevelStats[[g]] <- twolevel_sufficient_statistics(
+        Y = as.matrix(subData[,vars,drop=FALSE]),
+        cluster = subData[[clusters]]
+      )
+      # The number of independent observations equals the number of clusters:
+      if (twolevelStats[[g]]$J != sampleStats@groups$nobs[g]){
+        stop("Internal error: number of clusters in the two-level sufficient statistics does not match the number of rows in the wide-format data. Please report this bug.")
+      }
+    }
+    sampleStats@twolevel <- twolevelStats
+  }
+
+
   
   # designPattern matrix:
   designPattern <- as(1*(!is.na(design)),"matrix")
@@ -297,11 +369,18 @@ ml_lvm <- function(
                                     within_latent = within_latent, between_latent = between_latent,
                                     within_residual = within_residual, between_residual = between_residual
                                   ),
-                                  sample = sampleStats,computed = FALSE, 
+                                  sample = sampleStats,computed = FALSE,
                                   equal = equal,
-                                  optimizer =  defaultoptimizer(), estimator = estimator, distribution = "Gaussian",
+                                  optimizer =  defaultoptimizer(), estimator = estimator,
+                                  distribution = ifelse(estimator == "ML", "TwoLevelGaussian", "Gaussian"),
                                   identification=identification, verbose=verbose)
-  
+
+  # The two-level ML estimator only has an R implementation (the C++ switches
+  # additionally guard on the distribution via force_R_path_if_needed):
+  if (estimator == "ML"){
+    model@cpp <- FALSE
+  }
+
   # Number of groups:
   nGroup <- nrow(model@sample@groups)
   
@@ -586,8 +665,11 @@ ml_lvm <- function(
     #                                              baseline_saturated = FALSE,
     #                                              sampleStats = sampleStats)
     
-    # if not FIML, Treat as computed:
-    if (estimator != "FIML"){
+    # if not FIML (or two-level ML), Treat as computed. NOT for the two-level
+    # ML estimator: its saturated model (free Sigma_within and Sigma_between)
+    # has no closed-form solution at the start values, so it must be optimized
+    # by runmodel() just like for FIML:
+    if (!estimator %in% c("FIML","ML")){
       model@baseline_saturated$saturated@computed <- TRUE
       
       # FIXME: TODO

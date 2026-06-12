@@ -1,5 +1,8 @@
 # General gradient function:
 psychonetrics_gradient <- function(x, model){
+  # The two-level ML estimator only has an R implementation:
+  model <- force_R_path_if_needed(model)
+
   # I need an estimator part, a model part and a manual part
   # Prepare
   # message("Prep model...")
@@ -20,7 +23,8 @@ psychonetrics_gradient <- function(x, model){
       model@estimator,
       "ML" = switch(model@distribution,
                     "Gaussian" = jacobian_gaussian_sigma_cpp, # <- Updated!
-                    "Spin" = jacobian_Ising_cpp # <- updated!
+                    "Spin" = jacobian_Ising_cpp, # <- updated!
+                    "TwoLevelGaussian" = jacobian_gaussian2L_sigma # R implementation only
       ),
       "PML" = switch(model@distribution,
                      "Gaussian" = jacobian_gaussian_sigma_cpp,
@@ -46,7 +50,8 @@ psychonetrics_gradient <- function(x, model){
       model@estimator,
       "ML" = switch(model@distribution,
                     "Gaussian" = jacobian_gaussian_sigma,
-                    "Spin" = jacobian_Ising
+                    "Spin" = jacobian_Ising,
+                    "TwoLevelGaussian" = jacobian_gaussian2L_sigma
       ),
       "PML" = switch(model@distribution,
                      "Gaussian" = jacobian_gaussian_sigma,

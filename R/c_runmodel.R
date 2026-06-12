@@ -43,6 +43,10 @@ runmodel <- function(
   
   saturated <- match.arg(saturated)
 
+  # The two-level ML estimator only has an R implementation; transparently use
+  # the R code path even when C++ was requested:
+  x <- force_R_path_if_needed(x)
+
   if (!missing(optim.control)){
     warning("'optim.control' is deprecated and will be removed in a future version. Please use setoptimizer(..., optim.args = ...).")
     x@optim.args <- optim.control

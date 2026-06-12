@@ -1,5 +1,9 @@
 # Implied model for precision. Requires appropriate model matrices:
-implied_ml_lvm <- function(model,all = FALSE){
+# twolevel_only: used by the sufficient-statistics two-level ML estimator
+# (estimator = "ML"); skips forming the (potentially large) wide-format mean
+# vector, covariance matrix and its inverse, and instead stores the p-variate
+# mu, sigma_within and sigma_between next to the derivative helper matrices:
+implied_ml_lvm <- function(model,all = FALSE, twolevel_only = FALSE){
   if (model@cpp){
     x <- formModelMatrices_cpp(model)
   } else {
@@ -42,55 +46,69 @@ implied_ml_lvm <- function(model,all = FALSE){
     Betasta_sigmaZeta_within <- BetaStar_within %*% x[[g]]$sigma_zeta_within
     Betasta_sigmaZeta_between <- BetaStar_between %*% x[[g]]$sigma_zeta_between
     
-    # 
+    #
     # Implied mean vector:
     impMu <-  x[[g]]$nu +  x[[g]]$lambda %*% BetaStar_between  %*% x[[g]]$nu_eta
-    
-    fullMu <- as(do.call(rbind,lapply(seq_len(nMaxInCluster),function(t){
-      impMu[design[,t]==1,,drop=FALSE]
-    })), "matrix")
-    
+
     # List of implied varcovs within-subject latents:
     nLatent <- ncol(x[[g]]$lambda)
-    
+
     # Implied within covariance:
     sigma_eta_within <- Betasta_sigmaZeta_within %*% t(BetaStar_within)
     sigma_eta_between <- Betasta_sigmaZeta_between %*% t(BetaStar_between)
-    
-    # Create the block Toeplitz:
-    fullSigma_within_latent  <- as.matrix(Diagonal(nMaxInCluster) %x% sigma_eta_within)
-    
-    # Full within-subject cov matrix:
-    fullSigma_within <- (Diagonal(nMaxInCluster) %x% x[[g]]$lambda) %*% fullSigma_within_latent %*% (Diagonal(nMaxInCluster) %x% t(x[[g]]$lambda)) + (Diagonal(nMaxInCluster) %x% x[[g]]$sigma_epsilon_within)
-    
-    # Full between-subject cov matrix:
-    fullSigma_between <- matrix(1,nMaxInCluster,nMaxInCluster) %x%  (
-      x[[g]]$lambda %*% sigma_eta_between %*% t(x[[g]]$lambda) + x[[g]]$sigma_epsilon_between
-    )
-    
-    # Full implied covmat:
-    fullSigma <- fullSigma_within + fullSigma_between
-    
-    # Subset and add to the list:
-    x[[g]]$mu <- fullMu
-    x[[g]]$sigma <- fullSigma[as.vector(design)==1,as.vector(design)==1]
-    
-    # FIXME: forcing symmetric, but not sure why this is needed...
-    x[[g]]$sigma <- as.matrix(0.5*(x[[g]]$sigma + t(x[[g]]$sigma)))
-    
-    # if (any(is.na( x[[g]]$sigma))){
-    #   browser()
-    # }
-    # Precision:
-    x[[g]]$kappa <- solve_symmetric(x[[g]]$sigma, logdet = TRUE)
-    
-    # FIXME: forcing symmetric, but not sure why this is needed...
-    # x[[g]]$kappa <- 0.5*(x[[g]]$kappa + t(x[[g]]$kappa))
-    
-    # Let's round to make sparse if possible:
-    # x[[g]]$kappa <- as(round(x[[g]]$kappa,14),"Matrix")
 
-    
+    if (twolevel_only && !all){
+      # Sufficient-statistics two-level ML estimator: only the p-variate mean
+      # and the per-level covariance matrices are needed (no wide-format
+      # matrices, no inverse of the wide covariance matrix):
+      x[[g]]$mu <- as.matrix(impMu)
+
+      sigma_within <- as.matrix(x[[g]]$lambda %*% sigma_eta_within %*% t(x[[g]]$lambda) + x[[g]]$sigma_epsilon_within)
+      sigma_between <- as.matrix(x[[g]]$lambda %*% sigma_eta_between %*% t(x[[g]]$lambda) + x[[g]]$sigma_epsilon_between)
+
+      # Force symmetric:
+      x[[g]]$sigma_within <- 0.5*(sigma_within + t(sigma_within))
+      x[[g]]$sigma_between <- 0.5*(sigma_between + t(sigma_between))
+    } else {
+      fullMu <- as(do.call(rbind,lapply(seq_len(nMaxInCluster),function(t){
+        impMu[design[,t]==1,,drop=FALSE]
+      })), "matrix")
+
+      # Create the block Toeplitz:
+      fullSigma_within_latent  <- as.matrix(Diagonal(nMaxInCluster) %x% sigma_eta_within)
+
+      # Full within-subject cov matrix:
+      fullSigma_within <- (Diagonal(nMaxInCluster) %x% x[[g]]$lambda) %*% fullSigma_within_latent %*% (Diagonal(nMaxInCluster) %x% t(x[[g]]$lambda)) + (Diagonal(nMaxInCluster) %x% x[[g]]$sigma_epsilon_within)
+
+      # Full between-subject cov matrix:
+      fullSigma_between <- matrix(1,nMaxInCluster,nMaxInCluster) %x%  (
+        x[[g]]$lambda %*% sigma_eta_between %*% t(x[[g]]$lambda) + x[[g]]$sigma_epsilon_between
+      )
+
+      # Full implied covmat:
+      fullSigma <- fullSigma_within + fullSigma_between
+
+      # Subset and add to the list:
+      x[[g]]$mu <- fullMu
+      x[[g]]$sigma <- fullSigma[as.vector(design)==1,as.vector(design)==1]
+
+      # FIXME: forcing symmetric, but not sure why this is needed...
+      x[[g]]$sigma <- as.matrix(0.5*(x[[g]]$sigma + t(x[[g]]$sigma)))
+
+      # if (any(is.na( x[[g]]$sigma))){
+      #   browser()
+      # }
+      # Precision:
+      x[[g]]$kappa <- solve_symmetric(x[[g]]$sigma, logdet = TRUE)
+
+      # FIXME: forcing symmetric, but not sure why this is needed...
+      # x[[g]]$kappa <- 0.5*(x[[g]]$kappa + t(x[[g]]$kappa))
+
+      # Let's round to make sparse if possible:
+      # x[[g]]$kappa <- as(round(x[[g]]$kappa,14),"Matrix")
+    }
+
+
     # Extra matrices needed in optimization:
     if (!all){
       Lambda_BetaStar_within <- x[[g]]$lambda %*%  BetaStar_within

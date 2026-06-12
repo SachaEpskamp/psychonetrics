@@ -24,6 +24,32 @@
 # Helper to emit a one-time experimental feature warning (only when version < 0.16):
 .experimental_warned <- new.env(parent = emptyenv())
 
+# The two-level sufficient-statistics ML estimator (ml_lvm with
+# estimator = "ML", distribution "TwoLevelGaussian") currently only has an R
+# implementation. This helper transparently downgrades a model to the R code
+# path so that all `if (model@cpp)` switches take the R branch, even when the
+# user requested C++ (e.g. via usecpp()). Called defensively at the central
+# dispatch points (prepareModel, fit, gradient, Fisher information, runmodel):
+force_R_path_if_needed <- function(model){
+  if (length(model@distribution) == 1 &&
+      model@distribution == "TwoLevelGaussian" &&
+      isTRUE(model@cpp)){
+    model@cpp <- FALSE
+  }
+  model
+}
+
+# Safe reader for the two-level sufficient statistics: psychonetrics objects
+# saved before 0.15.31 lack the 'twolevel' slot in their samplestats, so guard
+# with .hasSlot before accessing:
+get_twolevel_stats <- function(samplestats){
+  if (methods::.hasSlot(samplestats, "twolevel")){
+    samplestats@twolevel
+  } else {
+    list()
+  }
+}
+
 experimentalWarning <- function(feature) {
   # Only warn for pre-0.16 versions:
   ver <- utils::packageVersion("psychonetrics")

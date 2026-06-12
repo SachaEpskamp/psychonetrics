@@ -16,6 +16,28 @@ expectedmodel <- function(x){
         }
       }
     }
+  } else if (x@distribution == "TwoLevelGaussian"){
+    # Two-level ML estimator (ml_lvm): replace the two-level sufficient
+    # statistics by their model-implied expectations, so that the analytic
+    # gradient is zero in expectation and its numeric Jacobian equals the
+    # expected (Fisher) information. With Omega_s = Sigma_B + Sigma_W / n_s
+    # the expectations are E(S_PW) = Sigma_W, E(mean.d_s) = mu and
+    # E(A_s) = Omega_s (split here as cov.d_s = Omega_s, mean.d_s = mu):
+    start <- parVector(x)
+    prep <- prepareModel(start, x)
+    twolevelStats <- get_twolevel_stats(x@sample)
+    for (g in 1:nrow(x@sample@groups)){
+      mu_g <- as.vector(prep$groupModels[[g]]$mu)
+      SW_g <- as.matrix(prep$groupModels[[g]]$sigma_within)
+      SB_g <- as.matrix(prep$groupModels[[g]]$sigma_between)
+      twolevelStats[[g]]$S_PW <- SW_g
+      sizes <- twolevelStats[[g]]$sizes
+      for (s in seq_len(nrow(sizes))){
+        twolevelStats[[g]]$mean_d[[s]] <- mu_g
+        twolevelStats[[g]]$cov_d[[s]] <- SB_g + SW_g / sizes$nj[s]
+      }
+    }
+    x@sample@twolevel <- twolevelStats
   } else if (x@distribution == "Spin"){
     start <- parVector(x)
     prep <- prepareModel(start, x)

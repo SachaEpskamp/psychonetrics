@@ -1,4 +1,12 @@
 setestimator <- function(x, estimator){
+  # ml_lvm models cannot be switched to/from the two-level sufficient
+  # statistics ML estimator after creation, as this changes the distribution
+  # ("TwoLevelGaussian") and requires (re)computing the two-level sufficient
+  # statistics. Rebuild the model instead:
+  if (x@model == "ml_lvm" && estimator != x@estimator &&
+      (estimator == "ML" || (length(x@distribution) == 1 && x@distribution == "TwoLevelGaussian"))){
+    stop("The estimator of an ml_lvm model cannot be switched between 'FIML' and the two-level 'ML' estimator after the model is created. Rebuild the model with ml_lvm(..., estimator = '", estimator, "').")
+  }
   # Validate that the sample slots required by the new estimator are present:
   .check_estimator_requirements <- function(model, estimator){
     if (estimator == "FIML"){

@@ -35,7 +35,8 @@ ml_lvm(data, lambda, clusters, within_latent = c("cov",
                    lowertri_epsilon_between = "diag", nu, nu_eta,
                    identify = TRUE, identification = c("loadings",
                    "variance"), vars, latents, groups, equal = "none",
-                   baseline_saturated = TRUE, estimator = "FIML",
+                   baseline_saturated = TRUE, estimator = c("default",
+                   "FIML", "ML"),
                    optimizer, storedata = FALSE, verbose =
                    FALSE, standardize = c("none", "z", "quantile"),
                    sampleStats, bootstrap = FALSE, boot_sub,
@@ -158,7 +159,7 @@ A character vector indicating which matrices should be constrained equal across 
 A logical indicating if the baseline and saturated model should be included. Mostly used internally and NOT Recommended to be used manually.
 }
   \item{estimator}{
-Estimator used. Currently only \code{"FIML"} is supported.
+The estimator to be used. \code{"FIML"} (wide-format full-information maximum likelihood) was the only estimator before version 0.15.31 and remains the only estimator that supports missing data. \code{"ML"} (experimental) is a much faster sufficient-statistics two-level maximum likelihood estimator for complete data; see Details. \code{"default"} selects \code{"ML"} when the data are complete and the largest cluster contains more than 5 units, and \code{"FIML"} otherwise.
 }
  \item{optimizer}{
 The optimizer to be used. Can be one of \code{"nlminb"} (the default R \code{nlminb} function), \code{"ucminf"} (from the \code{optimr} package), \code{"nloptr_TNEWTON"} (preconditioned truncated Newton via \code{nloptr}), and \code{"LBFGS++"} (pure C++ L-BFGS-B). Defaults to \code{"nlminb"}.
@@ -188,11 +189,66 @@ Logical, should the bootstrap be with replacement (\code{TRUE}) or without repla
 Arguments sent to 'ml_lvm'
 }
 }
+\details{
+With \code{estimator = "FIML"}, every cluster is treated as one wide-format observation (members stacked side by side) and the model is estimated with full-information maximum likelihood over the missingness patterns. This handles missing data, but its cost grows quickly with the cluster size.
+
+With \code{estimator = "ML"} (experimental, complete data only), the same two-level random-intercept likelihood is instead evaluated from sufficient statistics (McDonald & Goldstein, 1989; Muthen, 1990). Writing \eqn{\Sigma_W}{Sigma_W} and \eqn{\Sigma_B}{Sigma_B} for the implied within- and between-cluster covariance matrices and \eqn{\mu}{mu} for the implied mean vector, minus twice the log-likelihood equals
+\deqn{(N - J)\left[\ln|\Sigma_W| + \mathrm{tr}(\Sigma_W^{-1} S_{PW})\right] + \sum_s m_s \left[\ln|\Sigma_s| + n_s \mathrm{tr}(\Sigma_s^{-1} A_s)\right] + N p \ln(2\pi),}{(N - J)[ln|Sigma_W| + tr(Sigma_W^-1 S_PW)] + sum_s m_s [ln|Sigma_s| + n_s tr(Sigma_s^-1 A_s)] + N p ln(2 pi),}
+in which \eqn{N} is the number of units, \eqn{J} the number of clusters, \eqn{S_{PW}}{S_PW} the pooled within-cluster covariance matrix, and, per distinct cluster size \eqn{n_s} with \eqn{m_s} clusters, \eqn{\Sigma_s = \Sigma_W + n_s \Sigma_B}{Sigma_s = Sigma_W + n_s Sigma_B} and \eqn{A_s} the second-moment matrix of the corresponding cluster means around \eqn{\mu}{mu}. The two estimators optimize numerically identical objectives (the fit function values coincide at identical parameter values), so they converge to the same solution; the same likelihood is also used by \code{lavaan} for two-level models (Rosseel, 2012). The sufficient statistics are computed once, making \code{"ML"} much faster than \code{"FIML"} when clusters are large, and its cost does not depend on the cluster sizes. The \code{"ML"} estimator does not support missing data: use \code{"FIML"} for incomplete data. Standard errors and modification indices for \code{"ML"} currently use a numerically evaluated expected Fisher information.
+}
+
 \value{
 An object of the class psychonetrics (\link{psychonetrics-class})
 }
 
+\references{
+McDonald, R. P., & Goldstein, H. (1989). Balanced versus unbalanced designs for linear structural relations in two-level data. British Journal of Mathematical and Statistical Psychology, 42(2), 215-232.
+
+Muthen, B. O. (1990). Mean and covariance structure analysis of hierarchical data. UCLA Statistics Series #62.
+
+Rosseel, Y. (2012). lavaan: An R Package for Structural Equation Modeling. Journal of Statistical Software, 48(2), 1-36. \doi{10.18637/jss.v048.i02}
+}
+
 \author{
 Sacha Epskamp <mail@sachaepskamp.com>
+}
+
+\examples{
+\donttest{
+# Simulate two-level data with 2 latent variables on both levels:
+set.seed(1)
+J <- 50 # clusters
+nj <- 10 # units per cluster
+p <- 6
+Lambda <- matrix(0, p, 2)
+Lambda[1:3,1] <- c(1, 0.8, 0.7)
+Lambda[4:6,2] <- c(1, 0.9, 0.6)
+PsiW <- matrix(c(1,0.3,0.3,1), 2)
+PsiB <- matrix(c(0.5,0.2,0.2,0.4), 2)
+data <- do.call(rbind, lapply(seq_len(J), function(j){
+  bj <- MASS::mvrnorm(1, rep(0,2), PsiB)
+  ej <- rnorm(p, sd = 0.4) # between-level residuals
+  t(replicate(nj, as.vector(Lambda \%*\% (bj + MASS::mvrnorm(1, rep(0,2), PsiW))) +
+      ej + rnorm(p, sd = 0.7)))
+}))
+data <- as.data.frame(data)
+names(data) <- paste0("y", 1:p)
+data$cluster <- rep(seq_len(J), each = nj)
+
+# Lambda model matrix (shared across levels):
+lambda <- matrix(0, p, 2)
+lambda[1:3,1] <- lambda[4:6,2] <- 1
+
+# Two-level ML estimator (fast, complete data):
+mod <- ml_lvm(data, lambda = lambda, clusters = "cluster", estimator = "ML")
+mod <- runmodel(mod)
+mod
+
+# The FIML estimator (slower; supports missing data) converges to the
+# same solution:
+mod_fiml <- ml_lvm(data, lambda = lambda, clusters = "cluster",
+                   estimator = "FIML")
+mod_fiml <- runmodel(mod_fiml)
+}
 }
 
