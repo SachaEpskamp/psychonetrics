@@ -21,10 +21,10 @@ using namespace arma;
 // Setting delta = 0 recovers the classical Ising Hamiltonian exactly.
 // [[Rcpp::export]]
 double H(
-    arma::vec state,
-    arma::mat graph,
-    arma::vec tau,
-    arma::vec delta
+    const arma::vec& state,
+    const arma::mat& graph,
+    const arma::vec& tau,
+    const arma::vec& delta
 ){
 
 
@@ -46,10 +46,10 @@ double H(
 // Potential (copied from IsingSampler):
 // [[Rcpp::export]]
 double Pot(
-    arma::vec state,
-    arma::mat graph,
-    arma::vec tau,
-    arma::vec delta,
+    const arma::vec& state,
+    const arma::mat& graph,
+    const arma::vec& tau,
+    const arma::vec& delta,
     double beta
 ){
   return exp(-1.0 * beta * H(state,graph,tau,delta));
@@ -134,11 +134,11 @@ double maxLogPot_Ising(
 // in extreme regimes; consumers should prefer logZ).
 // [[Rcpp::export]]
 Rcpp::List isingExpectation(
-    arma::mat graph,
-    arma::vec tau,
-    arma::vec delta,
+    const arma::mat& graph,
+    const arma::vec& tau,
+    const arma::vec& delta,
     double beta,
-    arma::vec responses,
+    const arma::vec& responses,
     double min_sum
 ){
   int nVar = graph.n_cols;
@@ -260,11 +260,11 @@ Rcpp::List isingExpectation(
 // result stays finite even when raw exp(-beta*H) would overflow/underflow:
 // [[Rcpp::export]]
 double computeLogZ_cpp(
-    arma::mat graph,
-    arma::vec tau,
-    arma::vec delta,
+    const arma::mat& graph,
+    const arma::vec& tau,
+    const arma::vec& delta,
     double beta,
-    arma::vec responses,
+    const arma::vec& responses,
     double min_sum
 ){
   int nVar = graph.n_cols;
@@ -339,11 +339,11 @@ double computeLogZ_cpp(
 // to 0 in extreme regimes — prefer computeLogZ_cpp):
 // [[Rcpp::export]]
 double computeZ_cpp(
-    arma::mat graph,
-    arma::vec tau,
-    arma::vec delta,
+    const arma::mat& graph,
+    const arma::vec& tau,
+    const arma::vec& delta,
     double beta,
-    arma::vec responses,
+    const arma::vec& responses,
     double min_sum
 ){
   return(exp(computeLogZ_cpp(graph, tau, delta, beta, responses, min_sum)));

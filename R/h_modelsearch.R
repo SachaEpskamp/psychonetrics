@@ -216,7 +216,7 @@ modelsearch <- function(x,
                                          start = x@parameters$epc[curpar], verbose = FALSE)
           
           # Run the model:
-          suppressWarnings(propMods[[i]] <- propMods[[i]] %>% runmodel(verbose = FALSE, addMIs = FALSE, return_improper = TRUE,...))
+          suppressWarnings(propMods[[i]] <- propMods[[i]] %>% runmodel(verbose = FALSE, addMIs = FALSE, addSEs = FALSE, return_improper = TRUE,...))
           
           # Fisher information ok?
           # ev <- eigen(propMods[[i]]@information)$values
@@ -264,7 +264,7 @@ modelsearch <- function(x,
               }
               
               # Run the model:
-              suppressWarnings(propMods[[i]] <- propMods[[i]] %>% runmodel(verbose = FALSE, addMIs = FALSE,return_improper = TRUE, ...))
+              suppressWarnings(propMods[[i]] <- propMods[[i]] %>% runmodel(verbose = FALSE, addMIs = FALSE, addSEs = FALSE,return_improper = TRUE, ...))
               
               # Fisher information ok?
               # ev <- eigen(propMods[[i]]@information)$values
@@ -297,7 +297,7 @@ modelsearch <- function(x,
                                         group = x@parameters$group_id[curpar], verbose = FALSE)
           
           # Run the model:
-          propMods[[i]] <- propMods[[i]] %>% runmodel(verbose = FALSE, addMIs = FALSE, return_improper = TRUE, ...)
+          propMods[[i]] <- propMods[[i]] %>% runmodel(verbose = FALSE, addMIs = FALSE, addSEs = FALSE, return_improper = TRUE, ...)
           
           # Fisher information ok?
           # ev <- eigen(propMods[[i]]@information)$values
@@ -342,7 +342,7 @@ modelsearch <- function(x,
               
               
               # Run the model:
-              propMods[[i]] <- propMods[[i]] %>% runmodel(verbose = FALSE, addMIs = FALSE, return_improper = TRUE, ...)
+              propMods[[i]] <- propMods[[i]] %>% runmodel(verbose = FALSE, addMIs = FALSE, addSEs = FALSE, return_improper = TRUE, ...)
               
               
               proper <- TRUE
@@ -413,8 +413,19 @@ modelsearch <- function(x,
       }
 
       
-      # Update the model:
-      x <- propMods[[whichBest]] %>% addMIs(verbose = FALSE)
+      # Update the model. Candidate models are run with addSEs = FALSE (only
+      # their fit measures and Fisher information are consumed above); the
+      # accepted model needs SEs (the p-values feed the prune candidates of the
+      # next iteration), so they are added here. addSEs is deterministic given
+      # the estimates and @information, so this matches running the accepted
+      # candidate with addSEs = TRUE:
+      x <- propMods[[whichBest]]
+      if (x@cpp){
+        x <- addSEs_cpp(x, verbose = FALSE)
+      } else {
+        x <- addSEs(x, verbose = FALSE)
+      }
+      x <- x %>% addMIs(verbose = FALSE)
       
       
       # Update list of candidates:

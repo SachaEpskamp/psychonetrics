@@ -244,7 +244,14 @@ d_phi_theta_lvm <- function(prep){
   
   # FIXME: Computationall it is nicer to make the whole object first then fill it
   # Bind by colum and return: 
-  Reduce("bdiag",d_per_group)
+  # Single bdiag(list) call instead of Reduce("bdiag", ...), which is
+  # quadratic in the number of groups (for a single group the matrix is
+  # returned as-is, exactly as Reduce did):
+  if (length(d_per_group) == 1L){
+    d_per_group[[1]]
+  } else {
+    bdiag(d_per_group)
+  }
 }
 
 

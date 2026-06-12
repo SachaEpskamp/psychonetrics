@@ -46,7 +46,16 @@ Rcpp::List implied_lvm_cpp_core(
     // Matrices I need in every model framework when estimating:
     int n = beta.n_rows;
     arma::mat I = eye(n,n);
-    arma::mat BetaStar = inv(I - beta);
+    // beta == 0 (the default): BetaStar = (I - 0)^{-1} = I exactly, so the
+    // inverse (and the nLat^2 x nLat^2 Kronecker product below) can be
+    // skipped. Bit-identical shortcut:
+    const bool beta_zero = beta.is_zero();
+    arma::mat BetaStar;
+    if (beta_zero){
+      BetaStar = I;
+    } else {
+      BetaStar = inv(I - beta);
+    }
     arma::mat Lambda_BetaStar = lambda * BetaStar;
 
     // If NOT all (I know it is confusing), store these matrices (and some more):
@@ -55,7 +64,12 @@ Rcpp::List implied_lvm_cpp_core(
       grouplist["Lambda_BetaStar"] = Lambda_BetaStar;
 
       arma::mat Betasta_sigmaZeta = BetaStar * sigma_zeta;
-      arma::mat tBetakronBeta = kron(BetaStar.t(), BetaStar);
+      arma::mat tBetakronBeta;
+      if (beta_zero){
+        tBetakronBeta = eye(n*n, n*n);
+      } else {
+        tBetakronBeta = kron(BetaStar.t(), BetaStar);
+      }
 
       grouplist["Betasta_sigmaZeta"] = Betasta_sigmaZeta;
       grouplist["tBetakronBeta"] = tBetakronBeta;

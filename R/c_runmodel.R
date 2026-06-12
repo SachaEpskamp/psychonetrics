@@ -1044,8 +1044,13 @@ runmodel <- function(
       warning("Model might not have converged properly: mean(abs(gradient)) > 1.")
     }
   }
-  
-  
+
+  # Release the C++ prepared-model cache: it retains the full per-group
+  # prepared model (implied matrices and, for FIML, references to the pattern
+  # data) from the last fit/gradient evaluation, which is only useful while
+  # optimizing. Clearing it here frees that memory at runmodel exit:
+  clearPrepCache_cpp()
+
   # Return model:
   return(x)
 }

@@ -390,14 +390,15 @@ arma::mat d_phi_theta_lvm_group_cpp(
     arma::uvec keepRows;
     // Keep all mean/threshold rows
     arma::uvec meanRows = arma::linspace<arma::uvec>(0, nMean_Thresh - 1, nMean_Thresh);
-    // For sigma rows, keep only off-diagonal (lower triangular, not diagonal)
-    arma::uvec offDiagRows;
+    // For sigma rows, keep only off-diagonal (lower triangular, not diagonal).
+    // Preallocate (nvar*(nvar-1)/2 entries) instead of growing via resize():
+    arma::uvec offDiagRows(nvar * (nvar - 1) / 2);
     int idx = 0;
+    int outIdx = 0;
     for (int j = 0; j < nvar; j++){
       for (int i = j; i < nvar; i++){
         if (i != j){
-          offDiagRows.resize(offDiagRows.n_elem + 1);
-          offDiagRows(offDiagRows.n_elem - 1) = nMean_Thresh + idx;
+          offDiagRows(outIdx++) = nMean_Thresh + idx;
         }
         idx++;
       }

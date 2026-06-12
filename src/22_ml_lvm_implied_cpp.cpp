@@ -88,9 +88,23 @@ Rcpp::List implied_ml_lvm_cpp_core(
     // arma::mat I2 = eye(n_lat*n_lat, n_lat*n_lat);
     
     // Some stuff needed now:
-    // Beta star within:
-    arma::mat BetaStar_within = inv(I - beta_within);
-    arma::mat BetaStar_between = inv(I - beta_between);
+    // Beta star within/between. When beta == 0 (the default) the inverse is
+    // exactly I, so it (and the Kronecker products below) can be skipped
+    // (bit-identical shortcut):
+    const bool beta_within_zero = beta_within.is_zero();
+    const bool beta_between_zero = beta_between.is_zero();
+    arma::mat BetaStar_within;
+    if (beta_within_zero){
+      BetaStar_within = I;
+    } else {
+      BetaStar_within = inv(I - beta_within);
+    }
+    arma::mat BetaStar_between;
+    if (beta_between_zero){
+      BetaStar_between = I;
+    } else {
+      BetaStar_between = inv(I - beta_between);
+    }
     
     arma::mat Betasta_sigmaZeta_within = BetaStar_within * sigma_zeta_within;
     arma::mat Betasta_sigmaZeta_between = BetaStar_between * sigma_zeta_between;
@@ -165,8 +179,18 @@ Rcpp::List implied_ml_lvm_cpp_core(
     if (!all){
       arma::mat Lambda_BetaStar_within = lambda *  BetaStar_within;
       arma::mat Lambda_BetaStar_between = lambda *  BetaStar_between;
-      arma::mat tBetakronBeta_within = kron( BetaStar_within.t() , BetaStar_within );
-      arma::mat tBetakronBeta_between = kron( BetaStar_between.t()  , BetaStar_between  );
+      arma::mat tBetakronBeta_within;
+      if (beta_within_zero){
+        tBetakronBeta_within = eye(n_lat*n_lat, n_lat*n_lat);
+      } else {
+        tBetakronBeta_within = kron( BetaStar_within.t() , BetaStar_within );
+      }
+      arma::mat tBetakronBeta_between;
+      if (beta_between_zero){
+        tBetakronBeta_between = eye(n_lat*n_lat, n_lat*n_lat);
+      } else {
+        tBetakronBeta_between = kron( BetaStar_between.t()  , BetaStar_between  );
+      }
       
       grouplist["BetaStar_within"] = BetaStar_within;
       grouplist["BetaStar_between"] = BetaStar_between;

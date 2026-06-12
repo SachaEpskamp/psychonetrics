@@ -11,6 +11,29 @@ using namespace Rcpp;
 using namespace arma;
 
 
+
+// Build a sparse diagonal weights matrix from the diagonal of W without
+// materializing a dense diagmat copy first. Exact zeros are dropped, matching
+// the former (arma::sp_mat)diagmat(W) conversion:
+static arma::sp_mat sparse_diag_weights(const arma::mat& W){
+  const arma::uword n = W.n_rows;
+  arma::vec d = W.diag();
+  arma::uword nnz = 0;
+  for (arma::uword k = 0; k < n; k++) if (d(k) != 0.0) nnz++;
+  arma::umat locs(2, nnz);
+  arma::vec vals(nnz);
+  arma::uword out = 0;
+  for (arma::uword k = 0; k < n; k++){
+    if (d(k) != 0.0){
+      locs(0, out) = k;
+      locs(1, out) = k;
+      vals(out) = d(k);
+      out++;
+    }
+  }
+  return arma::sp_mat(locs, vals, n, n);
+}
+
 // GROUP FIT FUNCTION //
 // [[Rcpp::export]]
 double ULS_Gauss_cpp_pergroup(
@@ -31,7 +54,11 @@ double ULS_Gauss_cpp_pergroup(
     mu = arma::vec(means.n_elem, arma::fill::zeros);
   }
 
-  arma::mat WLS_W = grouplist["WLS.W"];
+  // No-copy view of the (constant, prepared) weights matrix. This matrix can
+  // be large ((nMean + nVar*(nVar+1)/2)^2) and is rebuilt by R between calls,
+  // so avoid copying it on every fit/gradient evaluation:
+  Rcpp::NumericMatrix WLS_W_rcpp = grouplist["WLS.W"];
+  const arma::mat WLS_W(WLS_W_rcpp.begin(), WLS_W_rcpp.nrow(), WLS_W_rcpp.ncol(), false, true);
 
   std::string estimator = grouplist["estimator"];
 
@@ -46,10 +73,6 @@ double ULS_Gauss_cpp_pergroup(
   int i;
   int nvar = means.n_elem;
   
-  // If DWLS, only use the diagonal:
-  if (estimator == "DWLS"){
-    WLS_W = diagmat(WLS_W);
-  }
   
   // If no tau, do normal stuff:
   if (!grouplist.containsElementNamed("tau") || !grouplist.containsElementNamed("thresholds")){
@@ -115,6 +138,10 @@ double ULS_Gauss_cpp_pergroup(
   arma::mat resvec;
   if (estimator == "WLS"){
     resvec = (obs - imp).t() * WLS_W * (obs - imp);  
+  } else if (estimator == "DWLS"){
+    // Diagonal weights: build the sparse diagonal directly (no dense
+    // diagmat copy per evaluation):
+    resvec = (obs - imp).t() * sparse_diag_weights(WLS_W) * (obs - imp);
   } else {
     resvec = (obs - imp).t() * (arma::sp_mat)WLS_W * (obs - imp);
   }

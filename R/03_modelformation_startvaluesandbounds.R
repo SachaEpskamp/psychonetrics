@@ -1,53 +1,33 @@
 
-parVector <- function(x){
+# Helper: index of the first parameter-table row for each parameter number
+# 1..max(par). match() returns the FIRST match, exactly as the former
+# which(par == i)[1] per-parameter loop did, but in a single O(nrow) pass
+# instead of O(npar * nrow):
+firstParRows <- function(x){
+  match(seq_len(max(x@parameters$par)), x@parameters$par)
+}
 
+parVector <- function(x){
   # Obtain the starting values:
-  start <- numeric(max(x@parameters$par))
-  for (i in seq_along(start)){
-    start[i] <- x@parameters$est[which(x@parameters$par==i)[1]]
-  }
-  start
+  x@parameters$est[firstParRows(x)]
 }
 
 lowerBound <- function(x){
-  # Obtain the starting values:
-  lower <- numeric(max(x@parameters$par))
-  for (i in seq_along(lower)){
-    lower[i] <- x@parameters$minimum[which(x@parameters$par==i)[1]]
-  }
-  lower
+  x@parameters$minimum[firstParRows(x)]
 }
 
 upperBound <- function(x){
-  # Obtain the starting values:
-  upper <- numeric(max(x@parameters$par))
-  for (i in seq_along(upper)){
-    upper[i] <- x@parameters$maximum[which(x@parameters$par==i)[1]]
-  }
-  upper
+  x@parameters$maximum[firstParRows(x)]
 }
 
 rowMat <- function(x){
-  # Obtain the starting values:
-  row <- numeric(max(x@parameters$par))
-  for (i in seq_along(row)){
-    row[i] <- x@parameters$row[which(x@parameters$par==i)[1]]
-  }
-  row
+  as.numeric(x@parameters$row[firstParRows(x)])
 }
 colMat <- function(x){
-  # Obtain the starting values:
-  col <- numeric(max(x@parameters$par))
-  for (i in seq_along(col)){
-    col[i] <- x@parameters$col[which(x@parameters$par==i)[1]]
-  }
-  col
+  as.numeric(x@parameters$col[firstParRows(x)])
 }
 parMat <- function(x){
-  # Obtain the starting values:
-  mat <- numeric(max(x@parameters$par))
-  for (i in seq_along(mat)){
-    mat[i] <- x@parameters$matrix[which(x@parameters$par==i)[1]]
-  }
-  mat
+  rows <- firstParRows(x)
+  if (length(rows) == 0L) return(numeric(0))
+  x@parameters$matrix[rows]
 }

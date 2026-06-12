@@ -44,7 +44,13 @@ aggregate_bootstraps <- function(
   remove <- numeric(0)
   if (remove_problematic){
     for (i in seq_along(new_dots)){
-      grad <- psychonetrics_gradient(parVector(new_dots[[i]]),new_dots[[i]])
+      # Use the C++ gradient when available (same convergence screen as
+      # runmodel's warn_gradient check; the R fallback is much slower):
+      if (new_dots[[i]]@cpp){
+        grad <- psychonetrics_gradient_cpp(parVector(new_dots[[i]]),new_dots[[i]])
+      } else {
+        grad <- psychonetrics_gradient(parVector(new_dots[[i]]),new_dots[[i]])
+      }
       if (mean(abs(grad)) > 1){
         remove <- c(remove,i)
       }

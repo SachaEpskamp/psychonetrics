@@ -161,6 +161,10 @@ psychonetrics_fitfunction_cpp <- function(x, model) {
     .Call(`_psychonetrics_psychonetrics_fitfunction_cpp`, x, model)
 }
 
+clearPrepCache_cpp <- function() {
+    invisible(.Call(`_psychonetrics_clearPrepCache_cpp`))
+}
+
 impliedModel_cpp <- function(model, all = FALSE) {
     .Call(`_psychonetrics_impliedModel_cpp`, model, all)
 }

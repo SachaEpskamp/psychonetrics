@@ -28,32 +28,25 @@ arma::mat WLS_wmat(
   auto thi = [&](size_t s1, size_t s2, size_t s3)->double& { return thirdorder[s1 + s2 * nvar + s3 * nvar * nvar]; };
   auto four = [&](size_t s1, size_t s2, size_t s3, size_t s4)->double& { return fourthorder[s1 + s2 * nvar+ s3 * nvar * nvar + s4 * nvar * nvar * nvar]; };
   
+  // The accumulators above are value-initialized to zero by std::vector, so
+  // no per-iteration (p == 0) zeroing is needed inside the hot loop. The
+  // 1/ncase factor is constant; hoist it out of the loop (same value as the
+  // former per-term std::pow(ncase, -1.0), so results are bit-identical):
+  const double inv_ncase = std::pow((double)ncase, -1.0);
   for (p=0; p < ncase; p++){
     for (g = 0; g < nvar; g++){
       for (h = g; h < nvar; h ++){
-        if (p==0){
-          sec(g, h) = 0;
-        }
-        
         // Check for NA:
         if (std::isfinite(data(p,g)) && std::isfinite(data(p,h))){
-          sec(g,h) += std::pow((double)ncase,-1.0) * (data(p,g) - means(g)) * (data(p,h) - means(h));
+          sec(g,h) += inv_ncase * (data(p,g) - means(g)) * (data(p,h) - means(h));
           for (i = 0; i < nvar; i++){
-            if (p==0){
-              thi(g,h,i) = 0;
-            }
-            
             // Check NA:
             if (std::isfinite(data(p,i))){
-              thi(g,h,i) += std::pow((double)ncase,-1.0) * (data(p,g) - means(g)) * (data(p,h) - means(h)) * (data(p,i) - means(i)) ;
+              thi(g,h,i) += inv_ncase * (data(p,g) - means(g)) * (data(p,h) - means(h)) * (data(p,i) - means(i)) ;
               for (j = i; j < nvar; j ++){
-                if (p==0){
-                  four(i,j,g,h) = 0;
-                }
-                
                 // Check NA:
                 if (std::isfinite(data(p,j))){
-                  four(i,j,g,h) +=  std::pow((double)ncase,-1.0) *(data(p,i) - means(i)) * (data(p,j) - means(j)) * (data(p,g) - means(g)) * (data(p,h) - means(h)); 
+                  four(i,j,g,h) +=  inv_ncase *(data(p,i) - means(i)) * (data(p,j) - means(j)) * (data(p,g) - means(g)) * (data(p,h) - means(h)); 
                 }
               }
               

@@ -12,20 +12,20 @@ using namespace arma;
 
 
 double computeZ_cpp(
-                arma::mat graph,
-                arma::vec tau,
-                arma::vec delta,
+                const arma::mat& graph,
+                const arma::vec& tau,
+                const arma::vec& delta,
                 double beta,
-                arma::vec responses,
+                const arma::vec& responses,
                 double min_sum
 );
 
 double computeLogZ_cpp(
-                arma::mat graph,
-                arma::vec tau,
-                arma::vec delta,
+                const arma::mat& graph,
+                const arma::vec& tau,
+                const arma::vec& delta,
                 double beta,
-                arma::vec responses,
+                const arma::vec& responses,
                 double min_sum
 );
 
@@ -40,11 +40,11 @@ double maxLogPot_Ising(
 
 
 Rcpp::List isingExpectation(
-    arma::mat graph,
-    arma::vec tau,
-    arma::vec delta,
+    const arma::mat& graph,
+    const arma::vec& tau,
+    const arma::vec& delta,
     double beta,
-    arma::vec responses,
+    const arma::vec& responses,
     double min_sum
 );
 

@@ -47,6 +47,15 @@ void invalidatePrepCache() {
     s_hasCachedPrep = false;
 }
 
+// R-callable wrapper: runmodel() clears the prep cache on exit so the cached
+// prepared model (per-group implied matrices and, for FIML, references to the
+// pattern data) does not outlive the fit. The cache keying (model SEXP + x)
+// is untouched; this only releases the retained result:
+// [[Rcpp::export]]
+void clearPrepCache_cpp() {
+    invalidatePrepCache();
+}
+
 // [[Rcpp::export]]
 Rcpp::List impliedModel_cpp(
     const S4& model,

@@ -171,6 +171,9 @@ partialprune <- function(
   }
   
   # Prune first:
+  # NOTE: the trailing runmodel looks redundant (prune(runmodel = TRUE) already
+  # runs the pruned model), but it re-polishes the optimum and removing it
+  # changes estimates at ~1e-8, so it is kept for exact backward compatibility:
   if (verbose) message("Pruning model...")
   mod_prune <- prune(x,alpha=alpha,verbose=FALSE,runmodel=TRUE,matrices=matrices,identify=identify,...) %>% runmodel
   

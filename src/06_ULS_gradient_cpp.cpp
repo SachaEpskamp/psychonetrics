@@ -32,7 +32,11 @@ arma::mat ULS_Gauss_gradient_pergroup_cpp(
     mu = arma::vec(means.n_elem, arma::fill::zeros);
   }
 
-  arma::mat WLS_W = grouplist["WLS.W"];
+  // No-copy view of the (constant, prepared) weights matrix. This matrix can
+  // be large ((nMean + nVar*(nVar+1)/2)^2) and is rebuilt by R between calls,
+  // so avoid copying it on every fit/gradient evaluation:
+  Rcpp::NumericMatrix WLS_W_rcpp = grouplist["WLS.W"];
+  const arma::mat WLS_W(WLS_W_rcpp.begin(), WLS_W_rcpp.nrow(), WLS_W_rcpp.ncol(), false, true);
 
   std::string estimator = grouplist["estimator"];
 
@@ -47,10 +51,6 @@ arma::mat ULS_Gauss_gradient_pergroup_cpp(
   int i;
   int nvar = means.n_elem;
   
-  // If DWLS, only use the diagonal:
-  if (estimator == "DWLS"){
-    WLS_W = diagmat(WLS_W);
-  }
   
   // If no tau, do normal stuff:
   if (!grouplist.containsElementNamed("tau") || !grouplist.containsElementNamed("thresholds")){
@@ -111,7 +111,14 @@ arma::mat ULS_Gauss_gradient_pergroup_cpp(
   imp = imp.subvec(1, imp.n_elem - 1);
   
   // Now compute the gradient:
-  arma::mat Jac = -2 * (obs - imp).t() * WLS_W;
+  arma::mat Jac;
+  if (estimator == "DWLS"){
+    // Diagonal weights: row vector x diagonal matrix == elementwise product
+    // with the diagonal (no dense diagmat copy per evaluation):
+    Jac = -2 * ((obs - imp) % WLS_W.diag()).t();
+  } else {
+    Jac = -2 * (obs - imp).t() * WLS_W;
+  }
   
   return(Jac);
 }

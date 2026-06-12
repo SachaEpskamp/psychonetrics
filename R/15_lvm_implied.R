@@ -22,11 +22,20 @@ implied_lvm <- function(model, all = FALSE){
    
 
     
-    # Matrices I need in every model framework when estimating:
-      BetaStar <- as.matrix(solve(Diagonal(nrow(x[[g]]$beta)) - x[[g]]$beta))
-      Lambda_BetaStar <- x[[g]]$lambda %*%  BetaStar 
+    # Matrices I need in every model framework when estimating.
+    # When beta == 0 (the default), BetaStar = (I - 0)^{-1} = I exactly and
+    # t(BetaStar) %x% BetaStar = I, so the solve() and the nLat^2 x nLat^2
+    # Kronecker product can be skipped (bit-identical shortcut):
+      nLat_g <- nrow(x[[g]]$beta)
+      if (all(x[[g]]$beta == 0)){
+        BetaStar <- diag(nLat_g)
+        tBetakronBeta <- diag(nLat_g^2)
+      } else {
+        BetaStar <- as.matrix(solve(Diagonal(nLat_g) - x[[g]]$beta))
+        tBetakronBeta <- t(BetaStar) %x% BetaStar
+      }
+      Lambda_BetaStar <- x[[g]]$lambda %*%  BetaStar
       Betasta_sigmaZeta <- BetaStar %*% x[[g]]$sigma_zeta
-      tBetakronBeta <- t(BetaStar) %x% BetaStar      
       
       
       # If not all, store these extra matrices too:

@@ -146,6 +146,47 @@
       Z1p[seq_len(npar), seq_len(npar)]
     }
 
+    # ---- Fast path: factorize the bordered system once for all tuples ----
+    # For nonsingular Info_lav and full-row-rank R1 the bordered (pseudo)inverse
+    # block equals Z11 = A - A R1' (R1 A R1')^{-1} R1 A with A = Info_lav^{-1},
+    # so the statistic s' Z11 s = s'As - w_k' (U_kk)^{-1} w_k, where U = R A R',
+    # w = R A s and k indexes the KEPT constraint rows. The kept-block inverse
+    # quadratic form follows from the full P = U^{-1} via the partitioned
+    # inverse identity (U_kk)^{-1} = P_kk - P_kr P_rr^{-1} P_rk, so each tuple
+    # costs O(m (G-1)) instead of a fresh O((npar+m)^3) MASS::ginv. This
+    # reproduces the ginv-based reference to ~1e-13 relative error; if any
+    # factorization fails (singular/ill-conditioned information), we fall back
+    # to the exact per-tuple ginv path below.
+    fastQuad <- NULL
+    fast <- tryCatch({
+      if (rcond(Info_lav) < 1e-12) stop("ill-conditioned information")
+      ch <- chol(Info_lav)
+      A_s <- backsolve(ch, forwardsolve(t(ch), score_lav))  # A s
+      A_Rt <- backsolve(ch, forwardsolve(t(ch), t(R)))      # A R'
+      U <- R %*% A_Rt                                       # R A R'
+      U <- 0.5 * (U + t(U))
+      if (rcond(U) < 1e-12) stop("ill-conditioned constraint system")
+      P <- chol2inv(chol(U))                                # U^{-1}
+      w <- as.vector(R %*% A_s)                             # R A s
+      z <- as.vector(P %*% w)
+      list(P = P, w = w, z = z, wz = sum(w * z), c0 = sum(score_lav * A_s))
+    }, error = function(e) NULL)
+    if (!is.null(fast)){
+      # s' Z11 s when releasing (removing) constraint rows r:
+      fastQuad <- function(r){
+        tryCatch({
+          if (length(r) == 0L) return(fast$c0 - fast$wz)
+          Prr <- fast$P[r, r, drop = FALSE]
+          wr <- fast$w[r]; zr <- fast$z[r]
+          Prr_wr <- as.vector(Prr %*% wr)
+          a <- zr - Prr_wr
+          quad_kept <- (fast$wz - 2 * sum(wr * zr) + sum(wr * Prr_wr)) -
+            sum(a * solve(Prr, a))
+          fast$c0 - quad_kept
+        }, error = function(e) NA_real_)
+      }
+    }
+
     # Univariate: one stat per row of R (release just that one row).
     # Skipped when joint_only = TRUE: addMIs() only consumes the joint result,
     # so the univariate ginv loop is wasted work during partialprune's repeat
@@ -153,10 +194,14 @@
     # joint_only = FALSE so the printed "Univariate" table is unaffected.
     if (!joint_only){
       for (r in seq_len(nrow(R))){
-        R1 <- R[-r, , drop = FALSE]
-        Z <- tryCatch(Z1plus1(R1), error = function(e) NULL)
-        X2_uni <- if (is.null(Z)) NA_real_
-        else as.numeric(t(score_lav) %*% Z %*% score_lav / (2 * nTotal))
+        if (!is.null(fastQuad)){
+          X2_uni <- as.numeric(fastQuad(r) / (2 * nTotal))
+        } else {
+          R1 <- R[-r, , drop = FALSE]
+          Z <- tryCatch(Z1plus1(R1), error = function(e) NULL)
+          X2_uni <- if (is.null(Z)) NA_real_
+          else as.numeric(t(score_lav) %*% Z %*% score_lav / (2 * nTotal))
+        }
         tup_i <- row_tuple[r]; j_in_tup <- row_within_tuple[r]
         info <- tuples[[tup_i]]
         uni_rows[[length(uni_rows) + 1L]] <- data.frame(
@@ -174,10 +219,14 @@
     for (i in seq_along(tuples)){
       info <- tuples[[i]]
       r_set <- which(row_tuple == i)
-      R1 <- R[-r_set, , drop = FALSE]
-      Z <- tryCatch(Z1plus1(R1), error = function(e) NULL)
-      Tjoint <- if (is.null(Z)) NA_real_
-      else as.numeric(t(score_lav) %*% Z %*% score_lav / (2 * nTotal))
+      if (!is.null(fastQuad)){
+        Tjoint <- as.numeric(fastQuad(r_set) / (2 * nTotal))
+      } else {
+        R1 <- R[-r_set, , drop = FALSE]
+        Z <- tryCatch(Z1plus1(R1), error = function(e) NULL)
+        Tjoint <- if (is.null(Z)) NA_real_
+        else as.numeric(t(score_lav) %*% Z %*% score_lav / (2 * nTotal))
+      }
       df_j <- length(r_set)
       p_j <- if (is.na(Tjoint)) NA_real_ else pchisq(Tjoint, df_j, lower.tail = FALSE)
       total_rows[[length(total_rows) + 1L]] <- data.frame(

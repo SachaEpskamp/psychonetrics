@@ -492,6 +492,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// clearPrepCache_cpp
+void clearPrepCache_cpp();
+RcppExport SEXP _psychonetrics_clearPrepCache_cpp() {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    clearPrepCache_cpp();
+    return R_NilValue;
+END_RCPP
+}
 // impliedModel_cpp
 Rcpp::List impliedModel_cpp(const S4& model, bool all);
 RcppExport SEXP _psychonetrics_impliedModel_cpp(SEXP modelSEXP, SEXP allSEXP) {
@@ -2069,77 +2078,77 @@ BEGIN_RCPP
 END_RCPP
 }
 // H
-double H(arma::vec state, arma::mat graph, arma::vec tau, arma::vec delta);
+double H(const arma::vec& state, const arma::mat& graph, const arma::vec& tau, const arma::vec& delta);
 RcppExport SEXP _psychonetrics_H(SEXP stateSEXP, SEXP graphSEXP, SEXP tauSEXP, SEXP deltaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type state(stateSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type graph(graphSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type tau(tauSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type delta(deltaSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type state(stateSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type graph(graphSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type delta(deltaSEXP);
     rcpp_result_gen = Rcpp::wrap(H(state, graph, tau, delta));
     return rcpp_result_gen;
 END_RCPP
 }
 // Pot
-double Pot(arma::vec state, arma::mat graph, arma::vec tau, arma::vec delta, double beta);
+double Pot(const arma::vec& state, const arma::mat& graph, const arma::vec& tau, const arma::vec& delta, double beta);
 RcppExport SEXP _psychonetrics_Pot(SEXP stateSEXP, SEXP graphSEXP, SEXP tauSEXP, SEXP deltaSEXP, SEXP betaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type state(stateSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type graph(graphSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type tau(tauSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type delta(deltaSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type state(stateSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type graph(graphSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type delta(deltaSEXP);
     Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
     rcpp_result_gen = Rcpp::wrap(Pot(state, graph, tau, delta, beta));
     return rcpp_result_gen;
 END_RCPP
 }
 // isingExpectation
-Rcpp::List isingExpectation(arma::mat graph, arma::vec tau, arma::vec delta, double beta, arma::vec responses, double min_sum);
+Rcpp::List isingExpectation(const arma::mat& graph, const arma::vec& tau, const arma::vec& delta, double beta, const arma::vec& responses, double min_sum);
 RcppExport SEXP _psychonetrics_isingExpectation(SEXP graphSEXP, SEXP tauSEXP, SEXP deltaSEXP, SEXP betaSEXP, SEXP responsesSEXP, SEXP min_sumSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type graph(graphSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type tau(tauSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type delta(deltaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type graph(graphSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type delta(deltaSEXP);
     Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type responses(responsesSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type responses(responsesSEXP);
     Rcpp::traits::input_parameter< double >::type min_sum(min_sumSEXP);
     rcpp_result_gen = Rcpp::wrap(isingExpectation(graph, tau, delta, beta, responses, min_sum));
     return rcpp_result_gen;
 END_RCPP
 }
 // computeLogZ_cpp
-double computeLogZ_cpp(arma::mat graph, arma::vec tau, arma::vec delta, double beta, arma::vec responses, double min_sum);
+double computeLogZ_cpp(const arma::mat& graph, const arma::vec& tau, const arma::vec& delta, double beta, const arma::vec& responses, double min_sum);
 RcppExport SEXP _psychonetrics_computeLogZ_cpp(SEXP graphSEXP, SEXP tauSEXP, SEXP deltaSEXP, SEXP betaSEXP, SEXP responsesSEXP, SEXP min_sumSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type graph(graphSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type tau(tauSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type delta(deltaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type graph(graphSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type delta(deltaSEXP);
     Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type responses(responsesSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type responses(responsesSEXP);
     Rcpp::traits::input_parameter< double >::type min_sum(min_sumSEXP);
     rcpp_result_gen = Rcpp::wrap(computeLogZ_cpp(graph, tau, delta, beta, responses, min_sum));
     return rcpp_result_gen;
 END_RCPP
 }
 // computeZ_cpp
-double computeZ_cpp(arma::mat graph, arma::vec tau, arma::vec delta, double beta, arma::vec responses, double min_sum);
+double computeZ_cpp(const arma::mat& graph, const arma::vec& tau, const arma::vec& delta, double beta, const arma::vec& responses, double min_sum);
 RcppExport SEXP _psychonetrics_computeZ_cpp(SEXP graphSEXP, SEXP tauSEXP, SEXP deltaSEXP, SEXP betaSEXP, SEXP responsesSEXP, SEXP min_sumSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type graph(graphSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type tau(tauSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type delta(deltaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type graph(graphSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type delta(deltaSEXP);
     Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type responses(responsesSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type responses(responsesSEXP);
     Rcpp::traits::input_parameter< double >::type min_sum(min_sumSEXP);
     rcpp_result_gen = Rcpp::wrap(computeZ_cpp(graph, tau, delta, beta, responses, min_sum));
     return rcpp_result_gen;
@@ -2375,6 +2384,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_psychonetrics_gradient_cpp_inner", (DL_FUNC) &_psychonetrics_psychonetrics_gradient_cpp_inner, 5},
     {"_psychonetrics_psychonetrics_gradient_cpp", (DL_FUNC) &_psychonetrics_psychonetrics_gradient_cpp, 4},
     {"_psychonetrics_psychonetrics_fitfunction_cpp", (DL_FUNC) &_psychonetrics_psychonetrics_fitfunction_cpp, 2},
+    {"_psychonetrics_clearPrepCache_cpp", (DL_FUNC) &_psychonetrics_clearPrepCache_cpp, 0},
     {"_psychonetrics_impliedModel_cpp", (DL_FUNC) &_psychonetrics_impliedModel_cpp, 2},
     {"_psychonetrics_prepareModel_cpp", (DL_FUNC) &_psychonetrics_prepareModel_cpp, 2},
     {"_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_inner", (DL_FUNC) &_psychonetrics_logLikelihood_gaussian_subgroup_fiml_cpp_inner, 5},

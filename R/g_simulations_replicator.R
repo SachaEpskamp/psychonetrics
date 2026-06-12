@@ -17,7 +17,8 @@ replicator <- function(
   verbose = TRUE,
   env = parent.frame(n=1),
   packages = c("psychonetrics","magrittr"), # Packages to load
-  export
+  export,
+  seed = NULL # If not NULL, used for reproducible RNG (clusterSetRNGStream in parallel; set.seed sequentially)
 ){
   results <- match.arg(results)
   
@@ -31,18 +32,27 @@ replicator <- function(
   
   # Ncores > 1:
   if (nCores > 1){
-    nClust <- nCores - 1
-    cl <- makePSOCKcluster(nClust)  
-    if (!missing(export)){
-      parallel::clusterExport(cl, export)  
+    # Use all requested cores (this used to be nCores - 1, so that nCores = 2
+    # yielded a single worker):
+    cl <- makePSOCKcluster(nCores)
+    on.exit(stopCluster(cl), add = TRUE)
+
+    # Reproducible parallel RNG streams (same pattern as loop_psychonetrics):
+    if (!is.null(seed)){
+      clusterSetRNGStream(cl, iseed = seed)
     }
-  # Run:   
+
+    if (!missing(export)){
+      parallel::clusterExport(cl, export)
+    }
+  # Run:
     #FIXME: At the moment I copy the global workspace, BAD SOLUTION
     Results <- pblapply(seq_len(reps),FUN = replicator_inner_multicore, input=input, expr=expr, packages=packages,cl = cl)
-    
-    # Stop the cluster:
-    stopCluster(cl)
   } else {
+    # Reproducible sequential RNG:
+    if (!is.null(seed)){
+      set.seed(seed)
+    }
     Results <- pblapply(seq_len(reps),FUN = replicator_inner_singlecore, input=input,  expr=expr)
   }
 

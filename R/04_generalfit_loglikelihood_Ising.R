@@ -41,15 +41,21 @@ logLikelihood_Ising_subgroup_fiml <- function(...){
 
 
 # Fit function per group:
-logLikelihood_Ising_group_sumstat <- function(omega,tau,beta,delta,squares,means,responses,nobs,...){
+logLikelihood_Ising_group_sumstat <- function(omega,tau,beta,delta,squares,means,responses,nobs,logZ = NULL,min_sum = -Inf,...){
   # Graph and thresholds:
   thresholds <- as.vector(tau)
   graph <- as.matrix(omega)
   beta <- as.numeric(beta)
   delta <- as.vector(delta)
 
-  # Compute log(Z) (log-sum-exp; finite even when raw Z would overflow/underflow):
-  logZ <- computeLogZ(graph, thresholds, as.numeric(beta), responses, delta = delta)
+  # Compute log(Z) (log-sum-exp; finite even when raw Z would overflow/underflow).
+  # The prepared group models (prepare_Ising / prepare_Ising_cpp) already carry
+  # logZ from the same log-sum-exp state enumeration, so reuse it instead of
+  # enumerating the full state space again. Only safe when min_sum is not used:
+  # the prepared logZ honours min_sum while this function historically did not.
+  if (is.null(logZ) || is.finite(min_sum)){
+    logZ <- computeLogZ(graph, thresholds, as.numeric(beta), responses, delta = delta)
+  }
 
   # Compute summary statistics:
   # FIXME: Not nice, will make things double
