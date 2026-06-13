@@ -78,6 +78,16 @@ Method for computing the saturated model log-likelihood. \code{"default"} runs t
 }
 \details{
 For penalized models (PML or PFIML) with auto-select penalty parameters (\code{penalty_lambda = NA}, the default), \code{runmodel} automatically calls \code{\link{find_penalized_lambda}} to select the optimal penalty strength via EBIC grid search before fitting. The \code{criterion} and \code{beta_min} arguments control this search. After the lambda search, use \code{\link{refit}} for post-selection inference with standard errors.
+
+For the robust maximum likelihood estimators (\code{"MLM"}, \code{"MLMV"},
+\code{"MLMVS"}, \code{"MLR"}; see \code{\link{setestimator}}), the point
+estimates are obtained by plain maximum likelihood, while \code{runmodel}
+additionally computes robust (sandwich) standard errors, a scaled test
+statistic (Satorra-Bentler family or Yuan-Bentler) and robust RMSEA/CFI/TLI.
+These are stored in the model fit measures (\code{chisq.scaled},
+\code{chisq.scaling.factor}, \code{df.scaled}, \code{chisq.shift.parameters},
+\code{rmsea.robust}, \code{cfi.robust}, \code{tli.robust}). Robust ML currently
+requires complete (continuous) raw data; missing-data (FIML) support is planned.
 }
 \value{
 An object of the class psychonetrics (\link{psychonetrics-class})

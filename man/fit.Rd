@@ -5,7 +5,14 @@
 Print fit indices
 }
 \description{
-This function will print all fit indices of the model/
+This function will print all fit indices of the model. For the least-squares
+estimators with a mean-and-variance adjusted test (\code{"DWLS"}/\code{"WLSMV"})
+and for the robust maximum likelihood estimators (\code{"MLM"}, \code{"MLMV"},
+\code{"MLMVS"}, \code{"MLR"}; see \code{\link{setestimator}}), the printed
+measures additionally include the scaled test statistic (\code{chisq.scaled},
+\code{chisq.scaling.factor}, \code{df.scaled}, and \code{chisq.shift.parameters}
+for the scaled-and-shifted variant) and, for robust ML, the robust fit indices
+(\code{rmsea.robust}, \code{cfi.robust}, \code{tli.robust}).
 }
 \usage{
 fit(x)

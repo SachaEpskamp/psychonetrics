@@ -98,8 +98,15 @@ runmodel <- function(
   if (optimizer == "default"){
     optimizer <- defaultoptimizer(x)
   }
-  
-  
+
+  # Experimental warning for robust ML estimators (MLM/MLMV/MLMVS/MLR), gated on
+  # verbose (these map internally to estimator = "ML" with robust SE/test flags):
+  if (x@estimator == "ML" && is_robust_ML(x)){
+    if (x@verbose){
+      experimentalWarning(paste0("robust ML (", get_robust_config(x)$label, ")"))
+    }
+  }
+
   # optimizer <- match.arg(optimizer)
   level <- match.arg(level)
   if (!is(x,"psychonetrics")){
@@ -1015,15 +1022,20 @@ runmodel <- function(
   }
   # Add SEs (skip for penalized models - use refit() for post-selection inference):
   if (addSEs && !is_penalized){
-    if (x@cpp){
+    # Robust ML (MLM/MLMV/MLMVS/MLR) standard errors are implemented in the R
+    # getVCOV() sandwich path; the C++ addSEs_cpp() only delegates to R for
+    # ULS/DWLS. Route robust ML through the R addSEs() so its sandwich VCOV is
+    # used (point estimates and all other estimators are unaffected):
+    use_cpp_SEs <- x@cpp && !(x@estimator == "ML" && is_robust_ML(x))
+    if (use_cpp_SEs){
       if (verbose){
         message("Adding standard errors...")
       }
-      x <- addSEs_cpp(x,verbose=verbose,approximate_SEs=approximate_SEs)  
+      x <- addSEs_cpp(x,verbose=verbose,approximate_SEs=approximate_SEs)
     } else {
       x <- addSEs(x, verbose=verbose,approximate_SEs=approximate_SEs)
     }
-    
+
   }
   
   

@@ -729,6 +729,39 @@ samplestats_norawts <- function(
   
   
   
+  # Store Gamma (asymptotic covariance) of the sample statistics for the
+  # maximum-likelihood estimators (estimator = "ML") when raw, complete data
+  # are available. This is needed for the robust ML estimators MLM/MLMV/MLMVS
+  # (Browne 1984 sandwich SEs and the Satorra-Bentler family of scaled test
+  # statistics), which map internally to estimator = "ML". The same LS_Gamma()
+  # used for WLS/DWLS is applied here, honouring meanstructure / corinput row
+  # dropping. Only computed when the default weightsmatrix = "none" path is
+  # taken (i.e. not WLS/DWLS/ULS, which fill gammamatrix above) and the data are
+  # complete (no missingness); FIML (missing data) robust ML is Phase 2.
+  if (length(gammamatrix) == 0 &&
+      is.character(weightsmatrix) && length(weightsmatrix) == 1 && weightsmatrix == "none" &&
+      !missing(data) && !is.null(data)){
+    ml_gamma <- tryCatch({
+      gm <- vector("list", nGroup)
+      ok <- TRUE
+      grp <- data[[groups]]
+      for (g in seq_len(nGroup)){
+        # The group column is integer-coded here, EXCEPT when storedata = TRUE
+        # has already overwritten it with the group names (see the storedata
+        # block above). Match either representation:
+        mask <- grp == g | grp == groupNames[g]
+        subData <- data[mask, c(vars), drop = FALSE]
+        # Only well-defined for complete data (listwise): skip if any NA remain.
+        if (anyNA(subData) || nrow(subData) < 2){ ok <- FALSE; break }
+        gm[[g]] <- LS_Gamma(subData, meanstructure = meanstructure, corinput = corinput)
+      }
+      if (ok) gm else list()
+    }, error = function(e) list())
+    if (length(ml_gamma) == nGroup){
+      gammamatrix <- ml_gamma
+    }
+  }
+
   # Store Gamma (asymptotic covariance) for WLSMV correction:
   if (length(gammamatrix) > 0){
     object@WLS.Gamma <- gammamatrix

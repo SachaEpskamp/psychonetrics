@@ -96,7 +96,8 @@ generate_psychonetrics <- setClass("psychonetrics", slots = c(
   cpp = "logical",
   meanstructure = "logical",
   verbose = "logical",
-  penalty = "list" # Penalty configuration for PML: lambda, alpha
+  penalty = "list", # Penalty configuration for PML: lambda, alpha
+  robust = "list" # Robust ML configuration (MLM/MLMV/MLMVS/MLR): se, test, label. Empty list = non-robust. Always read via .hasSlot() so models saved before this slot existed still load.
 ),
 prototype = list(
   model = "dummy", submodel = "none",
@@ -158,7 +159,8 @@ prototype = list(
   cpp = TRUE, # Use C++ when available
   meanstructure = TRUE,
   verbose = FALSE,
-  penalty = list(lambda = 0, alpha = 1) # Global penalty: lambda=strength, alpha=elastic net mixing (1=LASSO)
+  penalty = list(lambda = 0, alpha = 1), # Global penalty: lambda=strength, alpha=elastic net mixing (1=LASSO)
+  robust = list() # Empty = non-robust ML/FIML/WLS. Populated by setestimator() for MLM/MLMV/MLMVS/MLR.
 ))
 
 

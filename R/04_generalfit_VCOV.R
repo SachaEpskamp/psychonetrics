@@ -1,4 +1,77 @@
+# Robust ML standard errors (Phase 1, complete data). Returns the parameter
+# covariance matrix (already divided by N) for a robust ML estimator, or NULL
+# if the required building blocks are unavailable (so the caller falls back to
+# the naive VCOV). The point estimates are plain ML; only the covariance of the
+# estimator changes.
+#
+#  robust.sem (Browne 1984; MLM/MLMV/MLMVS):
+#     Vcov = E^-1 [ sum_g f_g Delta_g' V_g Gamma_g V_g Delta_g ] E^-1 / N
+#  robust.huber.white (MLR):
+#     Vcov = A^-1 [ sum_g f_g Delta_g' B1_g Delta_g ] A^-1 / N
+#  with A the OBSERVED unit information (or x@information when
+#  information = "expected").
+getVCOV_robust <- function(model, information = c("observed","expected")){
+  information <- match.arg(information)
+  cfg <- get_robust_config(model)
+  se_type <- cfg$se
+  if (is.null(se_type) || !nzchar(se_type)) return(NULL)
+
+  n <- sum(model@sample@groups$nobs)
+
+  if (se_type == "robust.sem"){
+    comp <- tryCatch(ml_robust_components(model), error = function(e) NULL)
+    if (is.null(comp)) return(NULL)
+    E_inv <- tryCatch(solve(comp$E), error = function(e) NULL)
+    if (is.null(E_inv) || any(!is.finite(E_inv))) return(NULL)
+    meat <- matrix(0, comp$npar, comp$npar)
+    for (g in seq_len(comp$nGroups)){
+      VD <- comp$V[[g]] %*% comp$Delta[[g]]
+      meat <- meat + comp$fg[g] * (t(VD) %*% comp$Gamma[[g]] %*% VD)
+    }
+    return(E_inv %*% meat %*% E_inv / n)
+  }
+
+  if (se_type == "robust.huber.white"){
+    meat <- tryCatch(mlr_meat_components(model), error = function(e) NULL)
+    if (is.null(meat)) return(NULL)
+    # Bread A: observed information (hessian-based) by default; the expected
+    # information (x@information) is offered as a cheaper alternative.
+    if (information == "expected"){
+      if (!is.null(model@information) && length(model@information) > 0){
+        A <- as.matrix(model@information)
+      } else if (model@cpp){
+        A <- psychonetrics_FisherInformation_cpp(model)
+      } else {
+        A <- psychonetrics_FisherInformation(model)
+      }
+    } else {
+      A <- meat$A
+    }
+    A_inv <- tryCatch(solve(A), error = function(e) NULL)
+    if (is.null(A_inv) || any(!is.finite(A_inv))) return(NULL)
+    B0 <- matrix(0, meat$npar, meat$npar)
+    for (g in seq_len(meat$nGroups)){
+      B0 <- B0 + meat$fg[g] * (t(meat$Delta[[g]]) %*% meat$B1[[g]] %*% meat$Delta[[g]])
+    }
+    return(A_inv %*% B0 %*% A_inv / n)
+  }
+
+  NULL
+}
+
 getVCOV <- function(model,approximate_SEs = FALSE){
+
+  # Robust ML standard errors (MLM/MLMV/MLMVS/MLR). These map internally to
+  # estimator = "ML"; the point estimates are unchanged but the sampling
+  # covariance is a sandwich estimator. Fall through to the naive VCOV below if
+  # the robust building blocks are unavailable.
+  if (model@estimator == "ML" && is_robust_ML(model)){
+    robInfo <- tryCatch(getVCOV_robust(model), error = function(e) NULL)
+    if (!is.null(robInfo) && all(is.finite(robInfo))){
+      return(robInfo)
+    }
+    # else: fall back to naive ML VCOV (computed below).
+  }
 
   # The @information slot is a "matrix" slot, so when a model is run with
   # addInformation = FALSE it holds the default empty 0x0 matrix rather than

@@ -6,6 +6,275 @@ has_WLS_Gamma <- function(x) {
   .hasSlot(x@sample, "WLS.Gamma") && length(x@sample@WLS.Gamma) > 0
 }
 
+# Build the full model Jacobian Delta = d_phi_theta_<model>(prep) %*% Mmatrix.
+# This is the derivative of the (stacked, per-group) sample-statistic vector
+# (means then vech(Sigma), column-major lower triangle) with respect to the
+# free parameters. Shared by the least-squares sandwich (wls_sandwich_components)
+# and the robust ML machinery (ml_robust_components).
+build_Delta_full <- function(x){
+  if (x@cpp){
+    prep <- prepareModel_cpp(parVector(x), x)
+  } else {
+    prep <- prepareModel(parVector(x), x)
+  }
+  if (x@cpp){
+    modelJacobian <- switch(
+      x@model,
+      "varcov" = d_phi_theta_varcov_cpp,
+      "lvm" = d_phi_theta_lvm_cpp,
+      "var1" = d_phi_theta_var1_cpp,
+      "dlvm1" = d_phi_theta_dlvm1_cpp,
+      "tsdlvm1" = d_phi_theta_tsdlvm1_cpp,
+      "meta_varcov" = d_phi_theta_meta_varcov_cpp,
+      "Ising" = ,
+      "BlumeCapel" = d_phi_theta_Ising_cpp,
+      "ml_lvm" = d_phi_theta_ml_lvm_cpp,
+      "meta_lvm" = d_phi_theta_meta_lvm_cpp,
+      "meta_var1" = d_phi_theta_meta_var1_cpp
+    )
+  } else {
+    modelJacobian <- switch(
+      x@model,
+      "varcov" = d_phi_theta_varcov,
+      "lvm" = d_phi_theta_lvm,
+      "var1" = d_phi_theta_var1,
+      "dlvm1" = d_phi_theta_dlvm1,
+      "tsdlvm1" = d_phi_theta_tsdlvm1,
+      "meta_varcov" = d_phi_theta_meta_varcov,
+      "Ising" = ,
+      "BlumeCapel" = d_phi_theta_Ising,
+      "ml_lvm" = d_phi_theta_ml_lvm,
+      "meta_lvm" = d_phi_theta_meta_lvm,
+      "meta_var1" = d_phi_theta_meta_var1
+    )
+  }
+  modelPart <- modelJacobian(prep)
+  if (x@cpp){
+    M <- Mmatrix_cpp(x@parameters)
+  } else {
+    M <- Mmatrix(x@parameters)
+  }
+  as.matrix(modelPart %*% M)
+}
+
+# Normal-theory (ML) weight matrix V for one group, in the sample-statistic
+# ordering (means then vech(Sigma)). V = bdiag(Sigma^-1, 0.5 D'(Sigma^-1 (x)
+# Sigma^-1) D). Honours meanstructure / corinput row dropping exactly as
+# LS_weightsmat() does (drop the leading nvar mean rows when !meanstructure;
+# drop the variance rows when corinput). When kappa = Sigma^-1 is already
+# available it is reused to avoid a re-inversion.
+ml_Vmat <- function(Sigma, meanstructure = TRUE, corinput = FALSE, kappa = NULL){
+  Sigma <- as.matrix(Sigma)
+  p <- ncol(Sigma)
+  Si <- if (is.null(kappa)) solve(Sigma) else as.matrix(kappa)
+  D <- lavaan::lav_matrix_duplication(p)
+  V22 <- as.matrix(0.5 * t(D) %*% (Si %x% Si) %*% D)
+  nstat <- p + p * (p + 1) / 2
+  V <- matrix(0, nstat, nstat)
+  V[seq_len(p), seq_len(p)] <- Si
+  V[-seq_len(p), -seq_len(p)] <- V22
+  # Drop mean rows/cols if no mean structure:
+  if (!meanstructure){
+    V <- V[-seq_len(p), -seq_len(p), drop = FALSE]
+  }
+  # Drop variance rows/cols if correlation input:
+  if (corinput){
+    inds <- meanstructure * p + which(diag(p)[lower.tri(diag(p), diag = TRUE)] == 1)
+    V <- V[-inds, -inds, drop = FALSE]
+  }
+  V
+}
+
+# Assemble the per-group robust-ML building blocks for estimator = "ML":
+#   Delta_g : group rows of the model Jacobian (means then vech(Sigma))
+#   V_g     : normal-theory weight matrix from the model-implied Sigma_g
+#   Gamma_g : asymptotic covariance of the sample statistics (x@sample@WLS.Gamma)
+#   E       : x@information (unit expected Fisher information; SEs from
+#             solve(E)/N reproduce lavaan se = "standard")
+#   fg      : group weights n_g / N
+# Returns NULL when the estimator is not ML or Gamma is unavailable.
+ml_robust_components <- function(x){
+  if (x@estimator != "ML") return(NULL)
+  if (!has_WLS_Gamma(x)) return(NULL)
+  if (length(x@modelmatrices) == 0) return(NULL)
+
+  nGroups <- nrow(x@sample@groups)
+  nobs_per_group <- x@sample@groups$nobs
+  nTotal <- sum(nobs_per_group)
+
+  Delta_full <- build_Delta_full(x)
+
+  meanstructure <- x@meanstructure
+  corinput <- isTRUE(x@sample@corinput)
+
+  # Row count per group from the stored Gamma:
+  nrows_per_group <- sapply(x@sample@WLS.Gamma, nrow)
+  if (sum(nrows_per_group) != nrow(Delta_full)) return(NULL)
+
+  Delta_list <- vector("list", nGroups)
+  V_list <- vector("list", nGroups)
+  Gamma_list <- vector("list", nGroups)
+  row_offset <- 0
+  for (g in seq_len(nGroups)){
+    ng <- nrows_per_group[g]
+    row_inds <- row_offset + seq_len(ng)
+    Delta_list[[g]] <- Delta_full[row_inds, , drop = FALSE]
+    row_offset <- row_offset + ng
+
+    Sigma_g <- x@modelmatrices[[g]]$sigma
+    kappa_g <- x@modelmatrices[[g]]$kappa
+    V_list[[g]] <- ml_Vmat(Sigma_g, meanstructure = meanstructure,
+                           corinput = corinput, kappa = kappa_g)
+    Gamma_list[[g]] <- as.matrix(x@sample@WLS.Gamma[[g]])
+  }
+
+  # Expected unit information E (= x@information). Recompute if absent.
+  if (!is.null(x@information) && length(x@information) > 0){
+    E <- as.matrix(x@information)
+  } else if (x@cpp){
+    E <- psychonetrics_FisherInformation_cpp(x)
+  } else {
+    E <- psychonetrics_FisherInformation(x)
+  }
+
+  list(
+    Delta = Delta_list,
+    V = V_list,
+    Gamma = Gamma_list,
+    E = E,
+    fg = nobs_per_group / nTotal,
+    nGroups = nGroups,
+    npar = ncol(Delta_full),
+    nTotal = nTotal
+  )
+}
+
+# Casewise scores of the saturated (h1) Gaussian log-likelihood w.r.t. the
+# sample statistics (mu, vech(Sigma)), evaluated at the supplied mu/Sigma.
+# Rows = cases, columns = (means then vech(Sigma)) in psychonetrics ordering.
+# Honours meanstructure / corinput row dropping exactly as ml_Vmat() / LS_Gamma.
+#   mean part:  w_i = Sigma^-1 (y_i - mu)
+#   cov  part:  m_i,(a,b) = 0.5 (w_ia w_ib - (Sigma^-1)_ab), with the duplication
+#               (vech) factor applied by halving the diagonal entries.
+ml_casewise_scores_h1 <- function(Y, mu, Sigma, meanstructure = TRUE, corinput = FALSE){
+  Y <- as.matrix(Y)
+  p <- ncol(Y)
+  Si <- solve(Sigma)
+  Yc <- sweep(Y, 2, mu)            # y_i - mu
+  W <- Yc %*% Si                   # dlogl_i/dmu = Si (y_i - mu)
+  ii <- unlist(lapply(seq_len(p), function(j) j:p))   # vech row idx (col-major)
+  jj <- rep(seq_len(p), times = p:1)                  # vech col idx
+  Z <- W[, ii, drop = FALSE] * W[, jj, drop = FALSE]
+  iS <- Si[cbind(ii, jj)]
+  Sc_s <- sweep(Z, 2, iS)
+  diagh <- which(ii == jj)
+  Sc_s[, diagh] <- Sc_s[, diagh] / 2
+  SC <- cbind(W, Sc_s)
+  if (!meanstructure){
+    SC <- SC[, -seq_len(p), drop = FALSE]
+  }
+  if (corinput){
+    inds <- meanstructure * p + which(diag(p)[lower.tri(diag(p), diag = TRUE)] == 1)
+    SC <- SC[, -inds, drop = FALSE]
+  }
+  SC
+}
+
+# Assemble the Huber-White (MLR) meat components for estimator = "ML" from raw,
+# complete data (Phase 1). Returns NULL when raw data are unavailable.
+# Components per group g:
+#   Delta_g : group model Jacobian (means then vech(Sigma))
+#   B1_g    : crossprod of casewise saturated scores at the MODEL-implied
+#             moments (muHat_g, SigmaHat_g) / n_g  (the SE meat: casewise scores
+#             w.r.t. theta are SC1_g %*% Delta_g)
+#   B1u_g   : crossprod of casewise saturated scores at the SAMPLE moments
+#             (ybar_g, S_g) / n_g  (for the Yuan-Bentler tr_h1 term)
+#   S_g     : sample covariance (divisor n_g, ML/biased — matches Gamma & lavaan)
+#   fg      : group weights n_g / N
+#   A       : full OBSERVED unit information of the model parameters
+#             = 0.5 * jacobian(psychonetrics_gradient, parVector(x), x) symmetrised
+#             (do NOT pre-apply expectedmodel(): that yields the EXPECTED info).
+mlr_meat_components <- function(x){
+  if (x@estimator != "ML") return(NULL)
+  if (length(x@modelmatrices) == 0) return(NULL)
+  if (!.hasSlot(x@sample, "rawdata") || nrow(x@sample@rawdata) == 0) return(NULL)
+  if (length(x@sample@fimldata) > 0) return(NULL)   # missing data -> Phase 2
+  if (!has_WLS_Gamma(x)) return(NULL)
+
+  rawdata <- x@sample@rawdata
+  vars <- attr(rawdata, "vars")
+  groupcol <- attr(rawdata, "groups")
+  if (is.null(vars) || is.null(groupcol)) return(NULL)
+
+  meanstructure <- x@meanstructure
+  corinput <- isTRUE(x@sample@corinput)
+
+  nGroups <- nrow(x@sample@groups)
+  group_labels <- x@sample@groups$label
+  nobs_per_group <- x@sample@groups$nobs
+  nTotal <- sum(nobs_per_group)
+
+  Delta_full <- build_Delta_full(x)
+
+  # Row count per group from the stored Gamma (same ordering as Delta):
+  nrows_per_group <- sapply(x@sample@WLS.Gamma, nrow)
+  if (sum(nrows_per_group) != nrow(Delta_full)) return(NULL)
+
+  Delta_list <- vector("list", nGroups)
+  B1_list <- vector("list", nGroups)
+  B1u_list <- vector("list", nGroups)
+  S_list <- vector("list", nGroups)
+
+  row_offset <- 0
+  for (g in seq_len(nGroups)){
+    ng_stat <- nrows_per_group[g]
+    row_inds <- row_offset + seq_len(ng_stat)
+    Delta_list[[g]] <- Delta_full[row_inds, , drop = FALSE]
+    row_offset <- row_offset + ng_stat
+
+    Yg <- as.matrix(rawdata[rawdata[[groupcol]] == group_labels[g], vars, drop = FALSE])
+    Yg <- Yg[stats::complete.cases(Yg), , drop = FALSE]
+    ng <- nrow(Yg)
+    if (ng < 2) return(NULL)
+
+    muHat <- as.numeric(x@modelmatrices[[g]]$mu)
+    SigmaHat <- as.matrix(x@modelmatrices[[g]]$sigma)
+
+    SC1 <- ml_casewise_scores_h1(Yg, muHat, SigmaHat,
+                                 meanstructure = meanstructure, corinput = corinput)
+    B1_list[[g]] <- crossprod(SC1) / ng
+
+    ybar <- colMeans(Yg)
+    Sg <- crossprod(sweep(Yg, 2, ybar)) / ng
+    S_list[[g]] <- Sg
+    SC1u <- ml_casewise_scores_h1(Yg, ybar, Sg,
+                                  meanstructure = meanstructure, corinput = corinput)
+    B1u_list[[g]] <- crossprod(SC1u) / ng
+  }
+
+  # Full OBSERVED unit information of the model parameters (hessian-based).
+  # numeric_FisherInformation() applies expectedmodel() first (giving the
+  # EXPECTED information); here we deliberately do NOT, to obtain the observed
+  # information that forms the Huber-White sandwich bread.
+  G <- function(par) as.numeric(psychonetrics_gradient(par, x))
+  A <- 0.5 * numDeriv::jacobian(G, parVector(x))
+  A <- 0.5 * (A + t(A))
+
+  list(
+    Delta = Delta_list,
+    B1 = B1_list,
+    B1u = B1u_list,
+    S = S_list,
+    A = A,
+    fg = nobs_per_group / nTotal,
+    nGroups = nGroups,
+    npar = ncol(Delta_full),
+    nTotal = nTotal,
+    meanstructure = meanstructure,
+    corinput = corinput
+  )
+}
+
 # Assemble the per-group model Jacobian (Delta), weight matrix (W) and
 # asymptotic covariance of the sample statistics (Gamma) for the least-squares
 # estimators (WLS / DWLS / ULS). Both the W and Gamma lists follow the lavaan
@@ -142,78 +411,116 @@ wls_sandwich_components <- function(x) {
   )
 }
 
-# Compute WLSMV (mean-and-variance adjusted) scaled test statistic.
-# Implements Satorra-Bentler-style correction for WLS/DWLS/ULS estimators.
-# References: Satorra & Bentler (1994), Muthen (1993)
-compute_wlsmv_correction <- function(x) {
-
-  # Assemble per-group Delta, W (scaled) and Gamma (scaled):
-  comp <- wls_sandwich_components(x)
-  if (is.null(comp)) {
-    return(NULL)
-  }
-  Delta_list <- comp$Delta
-  W_list <- comp$W
-  Gamma_list <- comp$Gamma
-  nGroups <- comp$nGroups
-  nTotal <- comp$nTotal
-
-  # Bread inverse E_inv = (sum_g Delta_g' W_g Delta_g)^-1:
-  E_inv <- solve(comp$DtWD)
-
-  # Now compute per-group UGamma and accumulate traces:
-  trace_UG <- 0
-  trace_UG2 <- 0
-
-  for (g in seq_len(nGroups)) {
-    # U_g = W_g - W_g Delta_g E_inv Delta_g' W_g  (projection matrix):
-    WD <- W_list[[g]] %*% Delta_list[[g]]
-    U_g <- W_list[[g]] - WD %*% E_inv %*% t(WD)
-
-    # UGamma:
-    UG <- U_g %*% Gamma_list[[g]]
-
-    # Accumulate traces:
-    trace_UG <- trace_UG + sum(diag(UG))
-    trace_UG2 <- trace_UG2 + sum(UG * t(UG))  # = tr(UG %*% UG)
-  }
-
-  # Compute scaling:
-  if (trace_UG2 <= 0 || !is.finite(trace_UG2)) {
-    return(NULL)
-  }
-
-  # Get the integer df from the model:
-  nobs <- x@sample@nobs
-  npar <- max(x@parameters$par)
-  df_integer <- nobs - npar
+# Integer degrees of freedom of a fitted model (nobs - npar, adjusted for a
+# constrained saturated model). Shared by the scaled-test helpers.
+model_df_integer <- function(x){
+  df_integer <- x@sample@nobs - max(x@parameters$par)
   if (!is.null(x@baseline_saturated$saturated)) {
-    df_integer <- df_integer - (x@baseline_saturated$saturated@sample@nobs - max(x@baseline_saturated$saturated@parameters$par))
+    df_integer <- df_integer -
+      (x@baseline_saturated$saturated@sample@nobs -
+         max(x@baseline_saturated$saturated@parameters$par))
+  }
+  df_integer
+}
+
+# Unscaled likelihood-ratio chi-square of a fitted ML model = -2*(LL - satLL).
+# Used by the robust-ML scaled-test helpers when the caller (addfit) does not
+# pass the already-computed chi-square. Returns NULL if a LL is unavailable.
+# NB: for ML this is NOT objective * N (objective is the ML discrepancy).
+ml_model_chisq <- function(x){
+  LL <- tryCatch(psychonetrics_logLikelihood(x), error = function(e) NA_real_)
+  satLL <- NA_real_
+  if (!is.null(x@baseline_saturated$saturated)){
+    satLL <- tryCatch(psychonetrics_logLikelihood(x@baseline_saturated$saturated),
+                      error = function(e) NA_real_)
+  }
+  if (is.na(LL) || is.na(satLL)) return(NULL)
+  -2 * (LL - satLL)
+}
+
+# Core Satorra-Bentler-family scaled test statistic computation, shared by the
+# least-squares (WLS/DWLS/ULS) and robust-ML (MLM/MLMV/MLMVS) paths.
+#
+# Inputs (per group g, lavaan group-weighting convention already applied):
+#   Delta_list  : list of group model Jacobians (means then vech(Sigma))
+#   Wt_list     : list of WEIGHT blocks   Wtilde_g = f_g * W_g
+#                 (W_g = the estimating weight matrix: V_g for ML, W_g for WLS,
+#                  diag(W_g) for DWLS, I for ULS)
+#   Gt_list     : list of GAMMA blocks    Gtilde_g = Gamma_g / f_g
+#   bread       : the matrix E whose inverse projects out the fitted directions
+#                 (DtWD = sum_g Delta_g' Wtilde_g Delta_g for least squares;
+#                  the expected Fisher information x@information for ML — these
+#                  coincide for ML since E = sum_g f_g Delta_g' V_g Delta_g)
+#   chisq_naive : the (unscaled) chi-square = N * objective (or -2(LL-satLL))
+#   df_integer  : integer degrees of freedom
+#
+# The U Gamma trace and especially trace((U Gamma)^2) are accumulated on the
+# GLOBAL block-diagonal stack (V_all, G_all, Delta_all) rather than summed per
+# group. The per-group accumulation is only correct when there are NO equality
+# constraints linking parameters ACROSS groups; with cross-group constraints
+# (e.g. group.equal in a multi-group model) U Gamma is not block-diagonal and
+# the per-group sum of trace((U_g Gamma_g)^2) understates the true
+# trace((U Gamma)^2). lavaan fixed the analogous bug in 0.6-13. For a single
+# group the global form reduces exactly to the per-group form, so single-group
+# output is unchanged.
+compute_scaled_test_core <- function(Delta_list, Wt_list, Gt_list, bread,
+                                      chisq_naive, df_integer){
+  nGroups <- length(Delta_list)
+
+  E_inv <- tryCatch(solve(bread), error = function(e) NULL)
+  if (is.null(E_inv) || any(!is.finite(E_inv))) return(NULL)
+
+  bdiag_dense <- function(L){
+    n <- sum(vapply(L, nrow, integer(1)))
+    M <- matrix(0, n, n)
+    o <- 0L
+    for (B in L){ nb <- nrow(B); M[o + seq_len(nb), o + seq_len(nb)] <- B; o <- o + nb }
+    M
   }
 
-  chisq_naive <- x@objective * nTotal
+  if (nGroups == 1L){
+    # Single group: per-group form (identical to the global form, but cheaper).
+    WD <- Wt_list[[1]] %*% Delta_list[[1]]
+    U <- Wt_list[[1]] - WD %*% E_inv %*% t(WD)
+    UG <- U %*% Gt_list[[1]]
+  } else {
+    V_all <- bdiag_dense(Wt_list)
+    G_all <- bdiag_dense(Gt_list)
+    Delta_all <- do.call(rbind, Delta_list)
+    U <- V_all - V_all %*% Delta_all %*% E_inv %*% t(Delta_all) %*% V_all
+    UG <- U %*% G_all
+  }
 
-  # Mean-and-Variance adjusted (Satorra-Bentler style):
+  trace_UG  <- sum(diag(UG))
+  trace_UG2 <- sum(UG * t(UG))   # tr((U Gamma)^2)
+
+  if (trace_UG2 <= 0 || !is.finite(trace_UG2)) return(NULL)
+
+  # Mean-and-Variance adjusted (Satterthwaite; fractional df):
   df_mv <- trace_UG^2 / trace_UG2
   scaling_mv <- trace_UG / df_mv  # = trace_UG2 / trace_UG
   chisq_mv <- chisq_naive / scaling_mv
 
-  # Scaled-shifted (Asparouhov & Muthen 2010, used by lavaan WLSMV):
-  # a = sqrt(df / trace_UG2)
-  # shift = df - a * trace_UG
-  # T_scaled_shifted = a * T_naive + shift
-  # scaling_factor = 1/a
+  # Satorra-Bentler (mean adjusted): c = trace_UG / df; T = T_naive / c.
+  scaling_sb <- trace_UG / df_integer
+  chisq_sb <- chisq_naive / scaling_sb
+
+  # Scaled-shifted (Satorra 2000; Asparouhov & Muthen 2010):
   a <- sqrt(df_integer / trace_UG2)
   shift <- df_integer - a * trace_UG
   chisq_ss <- a * chisq_naive + shift
   scaling_ss <- 1 / a
 
   list(
-    # Mean-variance adjusted (fractional df):
+    # Satorra-Bentler (mean adjusted) — used by MLM:
+    chisq.scaled.sb = chisq_sb,
+    df.scaled.sb = df_integer,
+    scaling.factor.sb = scaling_sb,
+    # Mean-variance adjusted (fractional df) — used by MLMVS:
     chisq.scaled.mv = chisq_mv,
     df.scaled.mv = df_mv,
     scaling.factor.mv = scaling_mv,
-    # Scaled-shifted (integer df, matches lavaan WLSMV):
+    # Scaled-shifted (integer df, lavaan WLSMV / MLMV):
     chisq.scaled = chisq_ss,
     df.scaled = df_integer,
     scaling.factor = scaling_ss,
@@ -222,6 +529,177 @@ compute_wlsmv_correction <- function(x) {
     trace.UGamma = trace_UG,
     trace.UGamma2 = trace_UG2
   )
+}
+
+# Compute WLSMV (mean-and-variance / scaled-shifted) scaled test statistic for
+# the least-squares estimators (WLS/DWLS/ULS).
+# References: Satorra & Bentler (1994), Muthen (1993), Asparouhov & Muthen (2010)
+compute_wlsmv_correction <- function(x) {
+
+  # Assemble per-group Delta, W (scaled by f_g) and Gamma (scaled by 1/f_g):
+  comp <- wls_sandwich_components(x)
+  if (is.null(comp)) {
+    return(NULL)
+  }
+
+  compute_scaled_test_core(
+    Delta_list = comp$Delta,
+    Wt_list = comp$W,        # already f_g * W_g
+    Gt_list = comp$Gamma,    # already Gamma_g / f_g
+    bread = comp$DtWD,       # sum_g Delta_g' (f_g W_g) Delta_g
+    chisq_naive = x@objective * comp$nTotal,
+    df_integer = model_df_integer(x)
+  )
+}
+
+# Compute the robust-ML scaled test statistic (Satorra-Bentler family) for
+# estimator = "ML" (used by MLM/MLMV/MLMVS). Uses the normal-theory weight
+# matrix V_g and the expected Fisher information E = x@information.
+# References: Satorra & Bentler (1994), Satorra (2000), Asparouhov & Muthen (2010)
+compute_ml_scaled_test <- function(x, comp = NULL, chisq = NULL) {
+  if (is.null(comp)) comp <- ml_robust_components(x)
+  if (is.null(comp)) return(NULL)
+  # The unscaled chi-square for ML is -2*(LL - satLL), NOT objective*N. The
+  # caller (addfit) passes the chi-square it already computed; fall back to
+  # computing it here if not supplied.
+  if (is.null(chisq)) chisq <- ml_model_chisq(x)
+  if (is.null(chisq) || !is.finite(chisq)) return(NULL)
+
+  fg <- comp$fg
+  nGroups <- comp$nGroups
+  Wt_list <- vector("list", nGroups)
+  Gt_list <- vector("list", nGroups)
+  for (g in seq_len(nGroups)){
+    Wt_list[[g]] <- fg[g] * comp$V[[g]]       # Vtilde_g = f_g V_g
+    Gt_list[[g]] <- comp$Gamma[[g]] / fg[g]   # Gtilde_g = Gamma_g / f_g
+  }
+
+  # For ML the bread is the expected unit Fisher information E. By construction
+  # E = sum_g f_g Delta_g' V_g Delta_g = sum_g Delta_g' Wtilde_g Delta_g, so it
+  # plays exactly the role of DtWD in the least-squares path.
+  compute_scaled_test_core(
+    Delta_list = comp$Delta,
+    Wt_list = Wt_list,
+    Gt_list = Gt_list,
+    bread = comp$E,
+    chisq_naive = chisq,
+    df_integer = model_df_integer(x)
+  )
+}
+
+# Robust-ML Huber-White (MLR) Yuan-Bentler-Mplus scaled test statistic for
+# estimator = "ML". Complete data only (Phase 1).
+# References: Yuan & Bentler (2000); the "Mplus" variant matches lavaan's
+#   test = "yuan.bentler.mplus" (default for estimator = "MLR").
+#
+# c = (tr_h1 - tr_h0) / df, with
+#   tr_h1 = sum_g tr( B1u_g A1u_g^{-1} )   built at the SAMPLE moments
+#           (A1u_g = normal-theory info at (ybar_g, S_g); B1u_g = crossprod of
+#            casewise saturated scores at the sample moments / n_g),
+#   tr_h0 = sum_g f_g tr( B0_g A^{-1} )    with B0_g STRUCTURED (the same meat
+#           that feeds the Huber-White SEs) and A the full hessian-based
+#           OBSERVED information of the model parameters.
+compute_mlr_scaled_test <- function(x, meat = NULL, chisq = NULL) {
+  if (x@estimator != "ML") return(NULL)
+  if (is.null(meat)) meat <- mlr_meat_components(x)
+  if (is.null(meat)) return(NULL)
+  if (is.null(chisq)) chisq <- ml_model_chisq(x)
+  if (is.null(chisq) || !is.finite(chisq)) return(NULL)
+
+  df_integer <- model_df_integer(x)
+  if (df_integer <= 0) return(NULL)
+
+  # tr_h1: unstructured (saturated) first-order vs expected info at the SAMPLE
+  # moments, accumulated per group.
+  tr_h1 <- 0
+  for (g in seq_len(meat$nGroups)){
+    A1u <- ml_Vmat(meat$S[[g]], meanstructure = meat$meanstructure,
+                   corinput = meat$corinput)
+    B1u <- meat$B1u[[g]]
+    A1u_inv <- tryCatch(solve(A1u), error = function(e) NULL)
+    if (is.null(A1u_inv)) return(NULL)
+    tr_h1 <- tr_h1 + sum(B1u * t(A1u_inv))
+  }
+
+  # tr_h0: structured first-order information (the SE meat) against the full
+  # observed information A.
+  A_inv <- tryCatch(solve(meat$A), error = function(e) NULL)
+  if (is.null(A_inv)) return(NULL)
+  tr_h0 <- 0
+  for (g in seq_len(meat$nGroups)){
+    B0_g <- t(meat$Delta[[g]]) %*% meat$B1[[g]] %*% meat$Delta[[g]]
+    tr_h0 <- tr_h0 + meat$fg[g] * sum(B0_g * t(A_inv))
+  }
+
+  trUG <- tr_h1 - tr_h0
+  if (!is.finite(trUG) || trUG <= 0) return(NULL)
+  scaling <- trUG / df_integer
+
+  list(
+    chisq.scaled = chisq / scaling,
+    df.scaled = df_integer,
+    scaling.factor = scaling,
+    shift.parameter = NA_real_,
+    trace.UGamma = trUG
+  )
+}
+
+# Dispatch the robust-ML scaled test statistic for a fitted model according to
+# its robust configuration (set by setestimator / the constructors). Returns a
+# normalised list with components chisq.scaled, df.scaled, scaling.factor,
+# shift.parameter (NA when not scaled-shifted) and scaling.factor.sb (the
+# mean-adjusted Satorra-Bentler factor, used by the robust fit indices for ALL
+# MLM-family variants), or NULL if the test cannot be computed.
+#   MLM   -> Satorra-Bentler (mean adjusted)
+#   MLMV  -> scaled-and-shifted
+#   MLMVS -> mean-and-variance adjusted (Satterthwaite, fractional df)
+#   MLR   -> Yuan-Bentler-Mplus
+robust_scaled_test <- function(x, chisq = NULL){
+  cfg <- get_robust_config(x)
+  test <- cfg$test
+  if (is.null(test) || !nzchar(test)) return(NULL)
+
+  if (test == "yuan.bentler.mplus"){
+    res <- compute_mlr_scaled_test(x, chisq = chisq)
+    if (is.null(res)) return(NULL)
+    res$scaling.factor.sb <- res$scaling.factor   # YB scaling is already "mean adjusted"
+    return(res)
+  }
+
+  # MLM family (robust.sem): compute all three scalings, then select.
+  full <- compute_ml_scaled_test(x, chisq = chisq)
+  if (is.null(full)) return(NULL)
+
+  if (test == "satorra.bentler"){
+    res <- list(
+      chisq.scaled = full$chisq.scaled.sb,
+      df.scaled = full$df.scaled.sb,
+      scaling.factor = full$scaling.factor.sb,
+      shift.parameter = NA_real_
+    )
+  } else if (test == "scaled.shifted"){
+    res <- list(
+      chisq.scaled = full$chisq.scaled,        # scaled-shifted
+      df.scaled = full$df.scaled,
+      scaling.factor = full$scaling.factor,    # 1/a
+      shift.parameter = full$shift.parameter
+    )
+  } else if (test == "mean.var.adjusted"){
+    res <- list(
+      chisq.scaled = full$chisq.scaled.mv,
+      df.scaled = full$df.scaled.mv,           # fractional df*
+      scaling.factor = full$scaling.factor.mv,
+      shift.parameter = NA_real_
+    )
+  } else {
+    return(NULL)
+  }
+  # The robust RMSEA/CFI/TLI use the Satorra-Bentler (mean-adjusted) scaling
+  # factor c regardless of which test variant is reported:
+  res$scaling.factor.sb <- full$scaling.factor.sb
+  res$trace.UGamma <- full$trace.UGamma
+  res$trace.UGamma2 <- full$trace.UGamma2
+  res
 }
 
 
@@ -401,7 +879,23 @@ addfit <- function(
       fitMeasures$chisq.scaling.factor <- wlsmv_model$scaling.factor
     }
   }
-  
+
+  # Robust ML scaled test statistic (MLM/MLMV/MLMVS = Satorra-Bentler family;
+  # MLR = Yuan-Bentler-Mplus). Stored alongside the unscaled chisq:
+  robust_model <- NULL
+  if (x@estimator == "ML" && is_robust_ML(x)) {
+    robust_model <- tryCatch(robust_scaled_test(x, chisq = fitMeasures$chisq), error = function(e) NULL)
+    if (!is.null(robust_model)) {
+      fitMeasures$chisq.scaled <- robust_model$chisq.scaled
+      fitMeasures$df.scaled <- robust_model$df.scaled
+      fitMeasures$pvalue.scaled <- pchisq(robust_model$chisq.scaled, robust_model$df.scaled, lower.tail = FALSE)
+      fitMeasures$chisq.scaling.factor <- robust_model$scaling.factor
+      if (!is.null(robust_model$shift.parameter) && is.finite(robust_model$shift.parameter)){
+        fitMeasures$chisq.shift.parameters <- robust_model$shift.parameter
+      }
+    }
+  }
+
   # Some pars:
   Tm <- fitMeasures$chisq
   dfm <- fitMeasures$df
@@ -443,7 +937,22 @@ addfit <- function(
         fitMeasures$baseline.chisq.scaling.factor <- wlsmv_baseline$scaling.factor
       }
     }
-    
+
+    # Robust ML scaled baseline (same correction as the model; needed for the
+    # robust incremental fit indices and the robust RMSEA baseline factor c_B):
+    robust_baseline <- NULL
+    if (!is.null(robust_model) && x@estimator == "ML" && is_robust_ML(x)) {
+      robust_baseline <- tryCatch(
+        robust_scaled_test(x@baseline_saturated$baseline, chisq = fitMeasures$baseline.chisq),
+        error = function(e) NULL)
+      if (!is.null(robust_baseline)) {
+        fitMeasures$baseline.chisq.scaled <- robust_baseline$chisq.scaled
+        fitMeasures$baseline.df.scaled <- robust_baseline$df.scaled
+        fitMeasures$baseline.pvalue.scaled <- pchisq(robust_baseline$chisq.scaled, robust_baseline$df.scaled, lower.tail = FALSE)
+        fitMeasures$baseline.chisq.scaling.factor <- robust_baseline$scaling.factor
+      }
+    }
+
     # Incremental Fit Indices
     Tb <- fitMeasures$baseline.chisq
     
@@ -508,6 +1017,25 @@ addfit <- function(
       fitMeasures$ifi.scaled <- ifelse(ifi_denom_s <= 0, 1, (Tb_s - Tm_s) / ifi_denom_s)
       fitMeasures$rni.scaled <- ((Tb_s - dfb_s) - (Tm_s - dfm_s)) / (Tb_s - dfb_s)
       fitMeasures$cfi.scaled <- ifelse(dfm_s > Tm_s, 1, 1 - (Tm_s - dfm_s)/(Tb_s - dfb_s))
+    }
+
+    # Robust incremental fit indices (Brosseau-Liard & Savalei 2014) for robust
+    # ML. These use the UNscaled chi-squares Tm/Tb with the Satorra-Bentler
+    # (mean-adjusted) scaling factors c (model) and c_B (baseline):
+    #   cfi.robust = 1 - max(Tm - c dfm, 0) / max(Tm - c dfm, Tb - c_B dfb, 0)
+    #   tli.robust = 1 - (Tm - c dfm) dfb / ((Tb - c_B dfb) dfm)
+    if (!is.null(robust_model) && !is.null(robust_baseline)) {
+      c_m <- robust_model$scaling.factor.sb
+      c_b <- robust_baseline$scaling.factor.sb
+      if (!is.null(c_m) && !is.null(c_b) && is.finite(c_m) && is.finite(c_b)) {
+        t1r <- max(c(Tm - c_m*dfm, 0))
+        t2r <- max(c(Tm - c_m*dfm, Tb - c_b*dfb, 0))
+        fitMeasures$cfi.robust <- if (t2r <= 0) 1 else 1 - t1r/t2r
+        ttr1 <- (Tm - c_m*dfm)*dfb
+        ttr2 <- (Tb - c_b*dfb)*dfm
+        fitMeasures$tli.robust <- if (dfm > 0 && abs(ttr2) > 0) 1 - ttr1/ttr2 else 1
+        fitMeasures$nnfi.robust <- fitMeasures$tli.robust
+      }
     }
 
     } else {
@@ -605,6 +1133,48 @@ addfit <- function(
     fitMeasures$rmsea.scaled <- sqrt( max( c((Tm_s/sampleSize)/dfm_s - 1/sampleSize, 0) ) )
     if (!is.finite(fitMeasures$rmsea.scaled)) fitMeasures$rmsea.scaled <- NA
     fitMeasures$rmsea.scaled <- fitMeasures$rmsea.scaled * sqrt(nGroups)
+  }
+
+  # Robust RMSEA (Brosseau-Liard & Savalei 2014; Savalei 2010) for robust ML.
+  # Uses the UNscaled Tm with the Satorra-Bentler (mean-adjusted) scaling factor
+  # c = trace(U Gamma)/df:
+  #   rmsea.robust = sqrt( max( (Tm/N)/dfm - c/N, 0 ) ) * sqrt(G)
+  # The same mean-adjusted c is used for ALL MLM-family variants (MLM/MLMV/MLMVS)
+  # and matches lavaan's rmsea.robust (which is identical across these variants).
+  # The confidence-interval bounds invert pchisq(Tm_scaled, dfm, ncp) for the
+  # non-centrality lambda and map it back with sqrt(c lambda / (N dfm)) * sqrt(G).
+  if (!is.null(robust_model) && dfm > 0) {
+    c_rmsea <- robust_model$scaling.factor.sb
+    if (!is.null(c_rmsea) && is.finite(c_rmsea)) {
+      rr <- sqrt( max( c((Tm/sampleSize)/dfm - c_rmsea/sampleSize, 0) ) )
+      if (!is.finite(rr)) rr <- NA
+      fitMeasures$rmsea.robust <- rr * sqrt(nGroups)
+
+      # Confidence interval (invert the noncentral chi-square on the SCALED Tm):
+      Tm_sc <- fitMeasures$chisq.scaled
+      dfm_sc <- fitMeasures$df.scaled
+      if (!chisq_too_large && is.finite(Tm_sc) && is.finite(dfm_sc) && dfm_sc >= 1) {
+        low.l <- function(lambda) (pchisq(Tm_sc, df = dfm_sc, ncp = lambda) - 0.95)
+        if (low.l(0) < 0.0){
+          fitMeasures$rmsea.ci.lower.robust <- 0
+        } else {
+          ll <- if (low.l(0) * low.l(Tm_sc) > 0) NA else
+            try(uniroot(low.l, lower = 0, upper = Tm_sc)$root, silent = TRUE)
+          if (inherits(ll, "try-error")) ll <- NA
+          fitMeasures$rmsea.ci.lower.robust <- sqrt(c_rmsea * ll / (sampleSize * dfm)) * sqrt(nGroups)
+        }
+        N.RMSEA.r <- max(sampleSize, Tm_sc * 4)
+        up.l <- function(lambda) (pchisq(Tm_sc, df = dfm_sc, ncp = lambda) - 0.05)
+        if (up.l(N.RMSEA.r) > 0 || up.l(0) < 0){
+          fitMeasures$rmsea.ci.upper.robust <- 0
+        } else {
+          lu <- if (up.l(0) * up.l(N.RMSEA.r) > 0) NA else
+            try(uniroot(up.l, lower = 0, upper = N.RMSEA.r)$root, silent = TRUE)
+          if (inherits(lu, "try-error")) lu <- NA
+          fitMeasures$rmsea.ci.upper.robust <- sqrt(c_rmsea * lu / (sampleSize * dfm)) * sqrt(nGroups)
+        }
+      }
+    }
   }
 
   # SRMR (Bentler, 1995):

@@ -24,7 +24,26 @@ usecpp(x, use = TRUE)
 A \code{psychonetrics} model.
 }
   \item{estimator}{
-A string indicating the estimator to be used
+A string indicating the estimator to be used. Maximum likelihood (\code{"ML"}),
+full-information maximum likelihood (\code{"FIML"}), and the least-squares
+estimators (\code{"WLS"}, \code{"DWLS"}, \code{"ULS"}; \code{"WLSMV"} is a
+synonym for \code{"DWLS"} with a mean-and-variance adjusted scaled test) are
+supported. In addition, the following \emph{robust maximum likelihood}
+estimators are available for complete continuous data (raw data required).
+They use plain ML for the point estimates but report robust (sandwich) standard
+errors, a scaled test statistic and robust RMSEA/CFI/TLI:
+\describe{
+  \item{\code{"MLM"}}{Browne (1984) "robust.sem" sandwich standard errors and the Satorra-Bentler (1994) mean-adjusted scaled chi-square.}
+  \item{\code{"MLMV"}}{Robust.sem standard errors and the scaled-and-shifted chi-square (Satorra 2000; Asparouhov & Muthen 2010).}
+  \item{\code{"MLMVS"}}{Robust.sem standard errors and the mean-and-variance adjusted (Satterthwaite) scaled chi-square with fractional degrees of freedom.}
+  \item{\code{"MLR"}}{Huber-White (sandwich) standard errors and the Yuan-Bentler (2000) scaled chi-square (the Mplus variant). Requires the raw data to be stored; the model constructors set \code{storedata = TRUE} automatically when \code{estimator = "MLR"}.}
+}
+These robust estimators map internally to \code{estimator = "ML"} plus robust
+standard-error and test flags, so the point estimates are identical to plain ML.
+The scaled statistics are stored in the fit measures (\code{chisq.scaled},
+\code{chisq.scaling.factor}, \code{df.scaled}, \code{chisq.shift.parameters},
+\code{rmsea.robust}, \code{cfi.robust}, \code{tli.robust}). Missing data (FIML)
+with robust ML is not yet supported.
 }
   \item{optimizer}{
 The optimizer to be used. The following optimizers are available:
@@ -69,7 +88,57 @@ An object of the class psychonetrics (\link{psychonetrics-class})
 }
 
 }
+\references{
+Browne, M. W. (1984). Asymptotically distribution-free methods for the analysis
+of covariance structures. \emph{British Journal of Mathematical and Statistical
+Psychology, 37}(1), 62-83.
+
+Satorra, A., & Bentler, P. M. (1994). Corrections to test statistics and
+standard errors in covariance structure analysis. In A. von Eye & C. C. Clogg
+(Eds.), \emph{Latent variables analysis: Applications for developmental
+research} (pp. 399-419). Sage.
+
+Yuan, K.-H., & Bentler, P. M. (2000). Three likelihood-based methods for mean
+and covariance structure analysis with nonnormal missing data. \emph{Sociological
+Methodology, 30}(1), 165-200.
+
+Savalei, V. (2010). Expected versus observed information in SEM with incomplete
+normal and nonnormal data. \emph{Psychological Methods, 15}(4), 352-367.
+
+Brosseau-Liard, P. E., & Savalei, V. (2014). Adjusting incremental fit indices
+for nonnormality. \emph{Multivariate Behavioral Research, 49}(5), 460-470.
+
+Asparouhov, T., & Muthen, B. (2010). \emph{Simple second order chi-square
+correction.} Mplus Technical Appendix.
+}
 \author{
 Sacha Epskamp
+}
+\examples{
+\donttest{
+# Robust maximum likelihood (MLR) on the Holzinger-Swineford data:
+library("lavaan")
+data("HolzingerSwineford1939")
+vars <- paste0("x", 1:9)
+
+# Three-factor CFA loadings matrix:
+Lambda <- matrix(0, 9, 3)
+Lambda[1:3, 1] <- Lambda[4:6, 2] <- Lambda[7:9, 3] <- 1
+
+# Robust ML (Huber-White SEs + Yuan-Bentler scaled chi-square). The point
+# estimates are identical to plain ML; only the SEs, the scaled test and the
+# robust fit indices differ:
+mod <- lvm(HolzingerSwineford1939, lambda = Lambda, vars = vars,
+           identification = "variance", estimator = "MLR")
+mod <- runmodel(mod)
+
+# Robust fit measures (chisq.scaled, rmsea.robust, cfi.robust, ...):
+fit(mod)
+
+# Equivalent via setestimator() (the model must store the raw data):
+mod2 <- lvm(HolzingerSwineford1939, lambda = Lambda, vars = vars,
+            identification = "variance", estimator = "ML", storedata = TRUE)
+mod2 <- runmodel(setestimator(mod2, "MLM"))
+}
 }
 

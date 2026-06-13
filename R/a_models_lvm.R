@@ -111,6 +111,18 @@ lvm <- function(
     estimator <- "DWLS"
   }
 
+  # Robust ML estimators (MLM/MLMV/MLMVS/MLR) map to estimator = "ML" plus a
+  # robust SE/test configuration (Phase 1: complete data only):
+  .robust_resolved <- resolve_robust_estimator(estimator)
+  estimator <- .robust_resolved$estimator
+  robust_cfg <- .robust_resolved$robust
+  # MLR's Huber-White SEs and Yuan-Bentler test need casewise scores, so the
+  # raw data must be stored. Force storedata = TRUE for MLR (the MLM family only
+  # needs Gamma, which is stored in the sample stats):
+  if (isTRUE(nzchar(robust_cfg$se)) && robust_cfg$label == "MLR"){
+    storedata <- TRUE
+  }
+
   if (estimator == "default"){
     if (length(ordered) > 0){
       estimator <- "DWLS"
@@ -766,6 +778,23 @@ lvm <- function(
     }
     if (!is.null(model@baseline_saturated$saturated)) {
       model@baseline_saturated$saturated@estimator <- base_est
+    }
+  }
+
+  # Store robust ML configuration (MLM/MLMV/MLMVS/MLR) and propagate it to the
+  # baseline/saturated models so the scaled baseline statistic uses the same
+  # correction (needed for the robust incremental fit indices):
+  if (length(robust_cfg) > 0 && .hasSlot(model, "robust")){
+    model@robust <- robust_cfg
+    if (!is.null(model@baseline_saturated$baseline) &&
+        is(model@baseline_saturated$baseline, "psychonetrics") &&
+        .hasSlot(model@baseline_saturated$baseline, "robust")){
+      model@baseline_saturated$baseline@robust <- robust_cfg
+    }
+    if (!is.null(model@baseline_saturated$saturated) &&
+        is(model@baseline_saturated$saturated, "psychonetrics") &&
+        .hasSlot(model@baseline_saturated$saturated, "robust")){
+      model@baseline_saturated$saturated@robust <- robust_cfg
     }
   }
 

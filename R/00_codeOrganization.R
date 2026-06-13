@@ -68,3 +68,26 @@ experimentalWarning <- function(feature) {
   message("Note: '", feature, "' is experimental in psychonetrics ", ver,
           ". Please report any unexpected behavior to https://github.com/SachaEpskamp/psychonetrics/issues")
 }
+
+# Robust ML configuration accessor. The @robust slot was added in 0.15.31;
+# models saved before that lack the slot, so it is always read via .hasSlot()
+# and treated as a non-robust (empty) configuration if absent. Returns a list
+# with components:
+#   se    : "robust.sem" (MLM family), "robust.huber.white" (MLR), or "" (none)
+#   test  : "satorra.bentler", "scaled.shifted", "mean.var.adjusted",
+#           "yuan.bentler.mplus", or "" (none)
+#   label : the user-facing estimator name ("MLM"/"MLMV"/"MLMVS"/"MLR")
+# Only meaningful when x@estimator == "ML" (robust ML maps internally to ML
+# point estimation plus robust SE/test flags).
+get_robust_config <- function(x){
+  if (!.hasSlot(x, "robust")) return(list())
+  cfg <- x@robust
+  if (!is.list(cfg)) return(list())
+  cfg
+}
+
+# TRUE if the model carries a robust ML configuration:
+is_robust_ML <- function(x){
+  cfg <- get_robust_config(x)
+  isTRUE(nzchar(cfg$se)) || isTRUE(nzchar(cfg$test))
+}
