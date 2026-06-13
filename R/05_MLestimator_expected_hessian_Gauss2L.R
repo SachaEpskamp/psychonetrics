@@ -25,6 +25,15 @@
 
 # Per group:
 expected_hessian_Gauss2L_group <- function(mu, sigma_within, sigma_between, twolevel, D_y, ...){
+  # The closed-form expected information below assumes COMPLETE data within
+  # each distinct cluster size. With within-cluster missingness the expected
+  # information is pattern-dependent and has no such closed form; those models
+  # therefore use numeric Fisher information for SEs (see
+  # psychonetrics_FisherInformation / runmodel). This branch should not be
+  # reached for missing data:
+  if (isTRUE(twolevel$missing)){
+    stop("Internal error: analytic expected Hessian is not available for two-level ML with missing data; numeric Fisher information should be used instead. Please report this bug.")
+  }
   SW <- as.matrix(sigma_within)
   SB <- as.matrix(sigma_between)
   mu <- as.vector(mu)

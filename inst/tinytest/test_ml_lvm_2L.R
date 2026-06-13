@@ -87,11 +87,18 @@ modF <- ml_lvm(dat, lambda = lambda, clusters = "cl", estimator = "FIML")
 expect_equal(modF@estimator, "FIML")
 expect_equal(modF@distribution, "Gaussian")
 
-# ML with missing data errors informatively:
+# ML with within-cluster missing data is now SUPPORTED (Phase 4): it builds a
+# TwoLevelGaussian model on the R path (no C++ twin for the missing-data
+# likelihood) instead of erroring:
 datna <- dat; datna$y1[3] <- NA
-expect_error(suppressWarnings(ml_lvm(datna, lambda = lambda, clusters = "cl", estimator = "ML")),
-             pattern = "missing data")
-# default with missing data picks FIML:
+mod_na_ML <- suppressWarnings(ml_lvm(datna, lambda = lambda, clusters = "cl", estimator = "ML"))
+expect_equal(mod_na_ML@estimator, "ML")
+expect_equal(mod_na_ML@distribution, "TwoLevelGaussian")
+expect_false(mod_na_ML@cpp)   # forced R path for missing-data ML
+# the two-level statistics carry the missing-data flag:
+expect_true(any(vapply(psychonetrics:::get_twolevel_stats(mod_na_ML@sample),
+                       function(s) isTRUE(s$missing), logical(1))))
+# default with missing data stays on FIML (conservative):
 mod_na <- suppressWarnings(suppressMessages(ml_lvm(datna, lambda = lambda, clusters = "cl")))
 expect_equal(mod_na@estimator, "FIML")
 
@@ -215,6 +222,91 @@ perm <- c(p + k2 + 1:p, p + 1:k2, p + k2 + p + 1:k2)
 I_pn <- 0.5 * as.matrix(psychonetrics:::expected_hessian_Gauss2L(
   psychonetrics:::prepareModel(xs2, usecpp(modML, FALSE))))
 expect_true(max(abs(I_pn - I_lav[perm, perm])) <= 1e-10 * max(1, max(abs(I_lav))))
+
+## ============================================================================
+## Phase 4: within-cluster MISSING-DATA two-level ML. Fast deterministic checks
+## (CRAN); full lavaan agreement runs under at_home() below.
+## ============================================================================
+
+# Impose seeded MCAR within-cluster missingness, never a fully-missing row:
+impose_mcar <- function(dat, p, frac, seed){
+  set.seed(seed)
+  M <- matrix(runif(nrow(dat) * p) < frac, nrow(dat), p)
+  for (i in which(rowSums(M) == p)) M[i, sample(p, 1)] <- FALSE
+  for (k in 1:p) dat[[paste0("y", k)]][M[, k]] <- NA
+  dat
+}
+
+# (m1) The missing-data likelihood reduces EXACTLY to the complete-data
+# sufficient-statistics likelihood when no values are missing. Build a model on
+# complete data and replace its two-level statistics by the missing-data
+# structure (which on complete data has a single, fully-observed pattern), then
+# compare the fit and gradient at the same parameter vector on the R path:
+modR_ss <- usecpp(ml_lvm(dat, lambda = lambda, clusters = "cl", estimator = "ML"), FALSE)
+ts_miss <- lapply(seq_len(nrow(modR_ss@sample@groups)), function(g){
+  psychonetrics:::twolevel_missing_statistics(as.matrix(dat[, 1:p]), dat$cl)
+})
+modR_miss <- modR_ss
+modR_miss@sample@twolevel <- ts_miss
+xss <- psychonetrics:::parVector(modR_ss)
+expect_true(abs(psychonetrics:::psychonetrics_fitfunction(xss, modR_ss) -
+                psychonetrics:::psychonetrics_fitfunction(xss, modR_miss)) <= 1e-8)
+set.seed(4); xrr <- xss + runif(length(xss), -0.03, 0.03)
+expect_true(abs(psychonetrics:::psychonetrics_fitfunction(xrr, modR_ss) -
+                psychonetrics:::psychonetrics_fitfunction(xrr, modR_miss)) <= 1e-8)
+expect_true(max(abs(psychonetrics:::psychonetrics_gradient(xrr, modR_ss) -
+                    psychonetrics:::psychonetrics_gradient(xrr, modR_miss))) <= 1e-8)
+
+# (m2) analytic gradient of the missing-data likelihood equals numDeriv, at the
+# start values and at a perturbed point (small balanced design, runs fast):
+datm_s <- impose_mcar(simdat_2l(202, J = 40, sizes = 6), p, 0.15, 11)
+modm_s <- suppressWarnings(ml_lvm(datm_s, lambda = lambda, clusters = "cl", estimator = "ML"))
+xm <- psychonetrics:::parVector(modm_s)
+gAm <- psychonetrics:::psychonetrics_gradient(xm, modm_s)
+gNm <- numDeriv::grad(function(par) psychonetrics:::psychonetrics_fitfunction(par, modm_s), xm)
+expect_true(max(abs(gAm - gNm)) <= 1e-6)
+set.seed(5); xm2 <- xm + runif(length(xm), -0.04, 0.04)
+gAm2 <- psychonetrics:::psychonetrics_gradient(xm2, modm_s)
+gNm2 <- numDeriv::grad(function(par) psychonetrics:::psychonetrics_fitfunction(par, modm_s), xm2)
+expect_true(max(abs(gAm2 - gNm2)) <= 1e-6)
+
+# (m3) the missing-data log-likelihood (with 2*pi) matches an independent
+# clean-room evaluation of the same per-pattern formula:
+cleanroom_logl_2l_missing <- function(Y, cluster, mu, SW, SB){
+  Y <- as.matrix(Y); p <- ncol(Y)
+  cl <- as.integer(factor(cluster)); J <- max(cl)
+  R <- !is.na(Y); SW.inv <- solve(SW)
+  SW.ld <- as.numeric(determinant(SW, TRUE)$modulus)
+  symupd <- function(na){
+    if (!length(na)) return(list(inv = SW.inv, ld = SW.ld))
+    H <- SW.inv[na, na, drop = FALSE]; A <- SW.inv[na, -na, drop = FALSE]
+    list(inv = SW.inv[-na, -na, drop = FALSE] - crossprod(A, solve(H, A)),
+         ld = SW.ld + as.numeric(determinant(H, TRUE)$modulus))
+  }
+  Yc <- sweep(Y, 2, mu); PIJ <- matrix(0, nrow(Y), p)
+  Wlog <- 0; Alist <- rep(list(matrix(0, p, p)), J)
+  patkey <- apply(R, 1, function(r) paste(which(r), collapse = ","))
+  for (k in unique(patkey)){
+    rows <- which(patkey == k); o <- which(R[rows[1], ]); na <- which(!R[rows[1], ])
+    u <- symupd(na); Wlog <- Wlog + u$ld * length(rows)
+    PIJ[rows, o] <- Yc[rows, o, drop = FALSE] %*% u$inv
+    Wf <- matrix(0, p, p); Wf[o, o] <- u$inv
+    for (j in unique(cl[rows])) Alist[[j]] <- Alist[[j]] + Wf * sum(cl[rows] == j)
+  }
+  qa <- sum(PIJ * Yc, na.rm = TRUE)
+  PJ <- rowsum(PIJ, cl, reorder = TRUE); qb <- 0; ld <- 0
+  for (j in 1:J){
+    M <- SB %*% Alist[[j]]; diag(M) <- diag(M) + 1
+    ld <- ld + as.numeric(determinant(M, TRUE)$modulus)
+    qb <- qb + sum(PJ[j, ] * solve(M, drop(SB %*% PJ[j, ])))
+  }
+  -0.5 * ((qa - qb) + (Wlog + ld) + sum(R) * log(2 * pi))
+}
+gmm <- psychonetrics:::prepareModel(xm, modm_s)$groupModels[[1]]
+ll_ref_m <- cleanroom_logl_2l_missing(datm_s[, 1:p], datm_s$cl, as.vector(gmm$mu),
+                                      as.matrix(gmm$sigma_within), as.matrix(gmm$sigma_between))
+ll_pn_m <- psychonetrics:::psychonetrics_logLikelihood(modm_s)
+expect_true(abs(ll_pn_m - ll_ref_m) < 1e-8)
 
 ## ---- full lavaan comparisons (slow) ----
 if (at_home()){
@@ -393,4 +485,60 @@ if (at_home()){
   expect_true(modp@computed)
   expect_true(is.finite(modp@fitmeasures$cfi))
   expect_true(tp < 5)
+
+  ## ==========================================================================
+  ## Phase 4 (slow): within-cluster MISSING-DATA two-level ML vs lavaan with
+  ## missing = "ml", for an unbalanced and a balanced design.
+  ## ==========================================================================
+
+  ## (m4) UNBALANCED, 15% MCAR: logl, implied moments and gradient vs lavaan:
+  datmu <- impose_mcar(simdat_2l(321, J = 80, sizes = 5:15), p, 0.15, 9001)
+  modmu <- suppressWarnings(ml_lvm(datmu, lambda = lambda, clusters = "cl", estimator = "ML"))
+  modmu@optim.args <- list(control = list(rel.tol = 1e-14, x.tol = 1e-12,
+                                          iter.max = 2000, eval.max = 3000))
+  modmu <- runmodel(modmu, addMIs = FALSE, addSEs = FALSE, addInformation = FALSE)
+  fitmu <- sem(lmod, data = datmu, cluster = "cl", missing = "ml",
+               se = "none", test = "none", baseline = FALSE)
+  expect_true(abs(modmu@fitmeasures$logl - as.numeric(logLik(fitmu))) < 1e-4)
+  xou <- psychonetrics:::parVector(modmu)
+  gmou <- psychonetrics:::prepareModel(xou, modmu)$groupModels[[1]]
+  implu <- lavInspect(fitmu, "implied")
+  expect_true(max(abs(as.matrix(gmou$sigma_within) - as.matrix(implu$within$cov))) < 1e-3)
+  expect_true(max(abs(as.matrix(gmou$sigma_between) - as.matrix(implu$cl$cov))) < 1e-3)
+  expect_true(max(abs(as.vector(gmou$mu) -
+                      (as.numeric(implu$within$mean) + as.numeric(implu$cl$mean)))) < 1e-3)
+  gAou <- psychonetrics:::psychonetrics_gradient(xou, modmu)
+  gNou <- numDeriv::grad(function(par) psychonetrics:::psychonetrics_fitfunction(par, modmu), xou)
+  expect_true(max(abs(gAou - gNou)) < 1e-6)
+
+  ## (m5) BALANCED, 12% MCAR: logl, df, chisq and SEs vs lavaan (observed
+  ## information, which is lavaan's multilevel default and the convention used
+  ## by psychonetrics' numeric Fisher information for the missing-data path):
+  datmb <- impose_mcar(simdat_2l(42, J = 100, sizes = 10), p, 0.12, 9002)
+  modmb <- suppressWarnings(ml_lvm(datmb, lambda = lambda, clusters = "cl", estimator = "ML"))
+  modmb@optim.args <- list(control = list(rel.tol = 1e-14, x.tol = 1e-12,
+                                          iter.max = 2000, eval.max = 3000))
+  modmb <- runmodel(modmb, addMIs = FALSE)
+  fitmb <- sem(lmod, data = datmb, cluster = "cl", missing = "ml",
+               information = "observed")
+  expect_true(abs(modmb@fitmeasures$logl - as.numeric(logLik(fitmb))) < 1e-4)
+  expect_equal(as.numeric(modmb@fitmeasures$df), as.numeric(fitMeasures(fitmb, "df")))
+  expect_true(abs(modmb@fitmeasures$chisq - fitMeasures(fitmb, "chisq")) < 1e-1)
+  # SEs are finite for all free parameters and match lavaan's observed-info SEs:
+  prmb <- modmb@parameters
+  expect_false(any(is.na(prmb$se[!prmb$fixed])))
+  peb <- parameterEstimates(fitmb)
+  freebm <- prmb[!prmb$fixed & !duplicated(prmb$par), ]
+  match_se_m <- sapply(seq_len(nrow(freebm)), function(i){
+    d <- abs(peb$est - freebm$est[i]); j <- which.min(d)
+    if (d[j] < 1e-2) peb$se[j] else NA
+  })
+  okm <- !is.na(match_se_m) & match_se_m > 0
+  expect_true(sum(okm) >= nrow(freebm) - 2)
+  expect_true(max(abs(freebm$se[okm] - match_se_m[okm]) / match_se_m[okm]) < 1e-2)
+  # (Note: with missing data the two-level ML and the wide-format FIML do NOT
+  # optimize the same objective -- FIML's missingness patterns are over the
+  # wide-format cluster rows, not the per-unit two-level patterns -- so they
+  # need not coincide, unlike the complete-data case. The relevant external
+  # reference is lavaan's two-level missing-data ML, checked in (m4)/(m5).)
 }

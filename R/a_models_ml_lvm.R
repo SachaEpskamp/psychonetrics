@@ -90,11 +90,16 @@ ml_lvm <- function(
   # Estimators:
   # - "FIML": wide-format full-information ML (the only estimator before
   #   0.15.31, and still the only estimator supporting missing data).
-  # - "ML": sufficient-statistics two-level ML (McDonald & Goldstein, 1989;
-  #   Muthen, 1990); much faster for large clusters, complete data only.
-  # - "default": picks "ML" when the data are complete and the largest cluster
-  #   has more than 5 units, otherwise "FIML". Resolved below once the data
-  #   have been checked:
+  # - "ML": two-level maximum likelihood (McDonald & Goldstein, 1989;
+  #   Muthen, 1990). For COMPLETE data this uses the fast sufficient-statistics
+  #   path (cost independent of cluster size); for within-cluster MISSING data
+  #   (MCAR/MAR) it uses the per-pattern / per-cluster missing-data likelihood
+  #   (Phase 4, R-only path with numeric Fisher information for SEs).
+  # - "default": picks "ML" when the data are COMPLETE and the largest cluster
+  #   has more than 5 units, otherwise "FIML". With missing data the default
+  #   stays on FIML (the long-standing, well-tested path); the missing-data ML
+  #   estimator is used only when estimator = "ML" is requested explicitly.
+  #   Resolved below once the data have been checked:
   estimator <- match.arg(estimator)
   
   # Check clusters:
@@ -194,13 +199,16 @@ ml_lvm <- function(
     }
   }
   if (estimator == "ML"){
-    if (anyMissing){
-      stop("estimator = 'ML' (two-level sufficient-statistics maximum likelihood) does not support missing data. Use estimator = 'FIML' instead, or remove the rows with missing values.")
-    }
     if (!isFALSE(bootstrap)){
       stop("estimator = 'ML' does not support 'bootstrap' for ml_lvm models. Use estimator = 'FIML' instead.")
     }
-    if (verbose) experimentalWarning("ml_lvm two-level ML estimator")
+    if (verbose){
+      if (anyMissing){
+        experimentalWarning("ml_lvm two-level ML estimator with within-cluster missing data")
+      } else {
+        experimentalWarning("ml_lvm two-level ML estimator")
+      }
+    }
   }
 
 
@@ -681,7 +689,15 @@ ml_lvm <- function(
   } else {
     model <- setoptimizer(model, optimizer)
   }
-  
+
+  # Two-level ML with within-cluster missing data uses the R fit/gradient path
+  # (the per-pattern missing-data likelihood has no C++ twin) and numeric
+  # Fisher information for SEs. Force the R path on the model and its
+  # baseline/saturated reference models (usecpp() propagates to both):
+  if (estimator == "ML" && twolevel_model_has_missing(model)){
+    model <- usecpp(model, FALSE)
+  }
+
   # Return model:
   return(model)
 }

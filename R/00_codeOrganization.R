@@ -48,6 +48,16 @@ get_twolevel_stats <- function(samplestats){
   }
 }
 
+# TRUE if a model uses the two-level ML estimator (distribution
+# "TwoLevelGaussian") AND its data carry within-cluster missingness (so the
+# per-pattern missing-data likelihood is used). Such models use the R fit/
+# gradient path and numeric Fisher information for SEs (Phase 4):
+twolevel_model_has_missing <- function(model){
+  if (model@distribution != "TwoLevelGaussian") return(FALSE)
+  ts <- get_twolevel_stats(model@sample)
+  length(ts) > 0 && any(vapply(ts, function(s) isTRUE(s$missing), logical(1)))
+}
+
 experimentalWarning <- function(feature) {
   # Only warn for pre-0.16 versions:
   ver <- utils::packageVersion("psychonetrics")

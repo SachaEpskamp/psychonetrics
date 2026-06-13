@@ -13,6 +13,12 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
     return(numeric_FisherInformation(model))
   }
 
+  # Two-level ML with within-cluster missing data has no closed-form expected
+  # information; use numeric Fisher information instead (Phase 4):
+  if (twolevel_model_has_missing(model)){
+    return(numeric_FisherInformation(model))
+  }
+
   # Prepare model:
   if (model@cpp){
     prep <- prepareModel_cpp(parVector(model), model) # <- upated!

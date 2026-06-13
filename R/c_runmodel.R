@@ -868,10 +868,12 @@ runmodel <- function(
       message("Computing Fisher information...")
     }
     
-    if (!analyticFisher){
+    if (!analyticFisher || twolevel_model_has_missing(x)){
       # Numeric (numDeriv-based) information. The C++ analytic path does not
       # honour analyticFisher (its 2nd argument is useM, not analytic), so we
-      # explicitly route to the numeric R implementation here regardless of cpp:
+      # explicitly route to the numeric R implementation here regardless of cpp.
+      # Two-level ML with within-cluster missing data has no closed-form
+      # expected information and is also routed here (Phase 4):
       x@information <- numeric_FisherInformation(x)
     } else if (x@cpp){
       x@information <- psychonetrics_FisherInformation_cpp(x, analyticFisher)

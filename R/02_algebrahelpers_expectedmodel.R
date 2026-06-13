@@ -17,10 +17,19 @@ expectedmodel <- function(x){
       }
     }
   } else if (x@distribution == "TwoLevelGaussian"){
-    # Two-level ML estimator (ml_lvm): replace the two-level sufficient
-    # statistics by their model-implied expectations, so that the analytic
-    # gradient is zero in expectation and its numeric Jacobian equals the
-    # expected (Fisher) information. With Omega_s = Sigma_B + Sigma_W / n_s
+    # Two-level ML with WITHIN-cluster MISSING data: the sufficient statistics
+    # do not compress and there is no per-size moment to replace by its
+    # expectation. numeric_FisherInformation() then differentiates the
+    # gradient at the given parameters on the raw data, i.e. it uses the
+    # (numeric) observed-information-based unit information -- a well-defined
+    # estimator of the information. So leave the model unchanged here:
+    if (twolevel_model_has_missing(x)){
+      return(x)
+    }
+    # Two-level ML estimator (ml_lvm), COMPLETE data: replace the two-level
+    # sufficient statistics by their model-implied expectations, so that the
+    # analytic gradient is zero in expectation and its numeric Jacobian equals
+    # the expected (Fisher) information. With Omega_s = Sigma_B + Sigma_W / n_s
     # the expectations are E(S_PW) = Sigma_W, E(mean.d_s) = mu and
     # E(A_s) = Omega_s (split here as cov.d_s = Omega_s, mean.d_s = mu):
     start <- parVector(x)
