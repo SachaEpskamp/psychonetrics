@@ -49,9 +49,8 @@ meta_var1 <- function(
   boot_resample
 ){
 
-  message(paste0("Note: 'meta_var1()' is experimental in psychonetrics ",
-                 utils::packageVersion("psychonetrics"),
-                 ". Please report any unexpected behavior to https://github.com/SachaEpskamp/psychonetrics/issues"))
+  # Experimental-feature note, gated at the shared cutoff (silent from 0.17):
+  experimentalWarning("meta_var1()")
 
   contemporaneous <- match.arg(contemporaneous)
   randomEffects <- match.arg(randomEffects)

@@ -65,9 +65,8 @@ meta_lvm <- function(
   boot_resample
 ){
   
-  message(paste0("Note: 'meta_lvm()' is experimental in psychonetrics ",
-                 utils::packageVersion("psychonetrics"),
-                 ". Please report any unexpected behavior to https://github.com/SachaEpskamp/psychonetrics/issues"))
+  # Experimental-feature note, gated at the shared cutoff (silent from 0.17):
+  experimentalWarning("meta_lvm()")
 
   # Standardize input arguments:
   si <- standardize_input(
