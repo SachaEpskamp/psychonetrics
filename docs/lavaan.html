@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Interoperability between psychonetrics and lavaan: fromlavaan() and tolavaan() convert fitted models, model syntax, and parameter tables between the two frameworks">
+  <title>lavaan Interoperability | psychonetrics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="navbar">
+  <div class="container nav-container">
+    <a href="index.html" class="nav-brand">psychonetrics</a>
+    <button class="nav-toggle" aria-label="Toggle navigation">&#9776;</button>
+    <ul class="nav-menu">
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="whatsnew.html" class="nav-link">What&#39;s New</a></li>
+      <li><a href="tutorial.html" class="nav-link">Tutorial</a></li>
+      <li class="nav-dropdown">
+        <button class="nav-link dropdown-toggle" aria-expanded="false" aria-haspopup="true">
+          Models <svg class="dropdown-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="varcov.html" class="nav-link">Varcov (GGM)</a></li>
+          <li><a href="lvm.html" class="nav-link">LVM (CFA / SEM)</a></li>
+          <li><a href="var1.html" class="nav-link">Var1 (time series)</a></li>
+          <li><a href="dlvm1.html" class="nav-link">DLVM1 (panel / RI-CLPM)</a></li>
+          <li><a href="ising.html" class="nav-link">Ising &amp; Blume-Capel</a></li>
+          <li><a href="mllvm.html" class="nav-link">Multi-level (ml_lvm)</a></li>
+          <li><a href="meta.html" class="nav-link">Meta-analysis</a></li>
+          <li class="dropdown-divider"><a href="robust.html" class="nav-link">Robust &amp; scaled estimation</a></li>
+          <li><a href="lavaan.html" class="nav-link">lavaan interoperability</a></li>
+        </ul>
+      </li>
+      <li><a href="examples.html" class="nav-link">Examples</a></li>
+      <li><a href="about.html" class="nav-link">About</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- Page Header -->
+<div class="page-header container container-narrow">
+  <h1>lavaan Interoperability</h1>
+  <p class="subtitle">Convert models between psychonetrics and lavaan with fromlavaan() and tolavaan()</p>
+</div>
+
+<main class="container container-narrow">
+
+  <div class="toc">
+    <h3>Contents</h3>
+    <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#fromlavaan">fromlavaan(): lavaan &rarr; psychonetrics</a></li>
+      <li><a href="#tolavaan">tolavaan(): psychonetrics &rarr; lavaan</a></li>
+      <li><a href="#scope">Supported features</a></li>
+      <li><a href="#summary">Summary</a></li>
+    </ul>
+  </div>
+
+  <section id="overview">
+    <h2>Overview</h2>
+    <p>
+      <a href="https://lavaan.ugent.be/">lavaan</a> is the standard R package for structural equation modeling, with its familiar model syntax (<code>=~</code>, <code>~</code>, <code>~~</code>). psychonetrics offers complementary strengths: network (GGM) parameterizations, automated network search (<code>prune()</code> / <code>stepup()</code>), Ising and time-series models, and meta-analytic SEM. Version 0.15.31 adds two converters &mdash; validated against lavaan &mdash; so you can move a model between the two frameworks and use the best tool for each step.
+    </p>
+    <ul>
+      <li><strong><code>fromlavaan()</code></strong> converts a fitted lavaan object (or model syntax + data) into an equivalent psychonetrics <code>lvm</code> model.</li>
+      <li><strong><code>tolavaan()</code></strong> converts a psychonetrics <code>lvm</code> model into a fitted lavaan object, or just its parameter table.</li>
+    </ul>
+    <p>
+      The bridge is the <code>lvm</code> family with <code>latent = "cov"</code> and <code>residual = "cov"</code> &mdash; the standard ML CFA/SEM parameterization that both packages share.
+    </p>
+  </section>
+
+  <section id="fromlavaan">
+    <h2>fromlavaan(): lavaan &rarr; psychonetrics</h2>
+    <p>
+      Specify and fit a model in lavaan as usual, then hand the fitted object to <code>fromlavaan()</code>. The resulting psychonetrics model reproduces the lavaan estimates, standard errors, chi-square, degrees of freedom and log-likelihood &mdash; after which the full psychonetrics toolbox (modification indices, pruning, network reparameterization) becomes available.
+    </p>
+    <pre><code class="language-r">library("psychonetrics")
+library("lavaan")
+library("dplyr")
+data(HolzingerSwineford1939)
+
+# A standard three-factor CFA in lavaan syntax:
+HS.model <- 'visual  =~ x1 + x2 + x3
+             textual =~ x4 + x5 + x6
+             speed   =~ x7 + x8 + x9'
+fit_lav <- cfa(HS.model, data = HolzingerSwineford1939, meanstructure = TRUE)
+
+# Convert to psychonetrics and (re-)estimate:
+mod_pn <- fit_lav %>% fromlavaan %>% runmodel
+
+mod_pn %>% fit</code></pre>
+    <span class="output-label">Output</span>
+    <div class="output-block">logl   lavaan        : -3737.745
+logl   psychonetrics : -3737.745       # exact match
+chisq  lavaan        :  85.306   df 24
+chisq  psychonetrics :  85.306   df 24</div>
+    <p>
+      Multi-group models and cross-group equality constraints carry over too. For example, a two-group CFA with equal loadings (<code>group.equal = "loadings"</code>) reproduces exactly:
+    </p>
+    <pre><code class="language-r">fit_mg <- cfa(HS.model, data = HolzingerSwineford1939,
+              group = "school", group.equal = "loadings",
+              meanstructure = TRUE)
+
+mod_mg <- fit_mg %>% fromlavaan %>% runmodel
+mod_mg %>% fit</code></pre>
+    <span class="output-label">Output</span>
+    <div class="output-block">                lavaan        psychonetrics
+logl            -3686.294     -3686.294
+chisq           124.044       124.044
+df               54            54
+npar             54            54</div>
+    <div class="note">
+      <strong>Meanstructure tip.</strong> Fit the lavaan model with <code>meanstructure = TRUE</code> for the log-likelihood to match exactly. If the lavaan model has no mean structure, <code>fromlavaan()</code> still reproduces estimates, standard errors, chi-square and df, but adds a saturated mean structure and warns that the log-likelihood differs by a constant.
+    </div>
+  </section>
+
+  <section id="tolavaan">
+    <h2>tolavaan(): psychonetrics &rarr; lavaan</h2>
+    <p>
+      The reverse converter takes a fitted psychonetrics <code>lvm</code> (with <code>latent = "cov"</code>, <code>residual = "cov"</code>) and returns either a fitted <code>lavaan</code> object (the default) or a lavaan parameter table (<code>type = "partable"</code>). This is handy for reusing lavaan's reporting, plotting (e.g. <code>semPlot</code>), or downstream tools:
+    </p>
+    <pre><code class="language-r"># Round-trip the model from the previous example back to lavaan:
+back <- tolavaan(mod_pn)
+
+class(back)               # "lavaan"
+logLik(back)              # -3737.745  (matches the psychonetrics fit)
+
+# Or extract just the parameter table:
+pt <- tolavaan(mod_pn, type = "partable")</code></pre>
+    <span class="output-label">Output</span>
+    <div class="output-block">class(back)  : "lavaan"
+logLik(back) : -3737.745</div>
+    <p>
+      Estimates, standard errors, chi-square and log-likelihood round-trip exactly, so a model can travel <em>lavaan &rarr; psychonetrics &rarr; lavaan</em> without drift.
+    </p>
+  </section>
+
+  <section id="scope">
+    <h2>Supported features</h2>
+    <p>
+      The converters target standard maximum-likelihood CFA/SEM. The following are supported:
+    </p>
+    <ul>
+      <li>Factor loadings, regressions, (residual) variances and covariances, intercepts and latent means.</li>
+      <li>Multiple groups and cross-group equality constraints (e.g. measurement invariance).</li>
+      <li>Both common identification schemes: marker loadings and <code>std.lv = TRUE</code> (fixed latent variances).</li>
+      <li>FIML for missing data.</li>
+    </ul>
+    <p>
+      Features outside this scope (for example ordered-categorical estimators, certain nonlinear constraints, or definitions that do not map onto the <code>lvm</code> cov/cov parameterization) raise an <strong>informative error</strong> rather than silently producing a wrong model. For network parameterizations, fit in psychonetrics directly &mdash; see the <a href="lvm.html">LVM page</a>.
+    </p>
+  </section>
+
+  <section id="summary">
+    <h2>Summary</h2>
+    <ul>
+      <li><code>fromlavaan()</code> converts a fitted lavaan object (or syntax + data) to a psychonetrics <code>lvm</code> model, reproducing estimates, SEs, chi-square, df and log-likelihood.</li>
+      <li><code>tolavaan()</code> converts a psychonetrics <code>lvm</code> back to a fitted lavaan object or parameter table.</li>
+      <li>Multi-group models, equality constraints, <code>std.lv</code> and FIML are all supported; unsupported features error informatively.</li>
+      <li>Use lavaan for specification and reporting, and psychonetrics for network reparameterization, automated search, and <a href="robust.html">robust estimation</a>.</li>
+    </ul>
+  </section>
+
+</main>
+
+<!-- Footer -->
+<footer>
+  <div class="container footer-grid">
+    <div>
+      <h4>psychonetrics</h4>
+      <p>An R package for Structural Equation Modeling and Confirmatory Network Analysis.</p>
+      <p>Developed by <a href="about.html">Sacha Epskamp</a>.</p>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="tutorial.html">Tutorial</a></li>
+        <li><a href="examples.html">Examples</a></li>
+        <li><a href="whatsnew.html">What&#39;s New</a></li>
+        <li><a href="robust.html">Robust &amp; scaled estimation</a></li>
+        <li><a href="lavaan.html">lavaan interoperability</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Links</h4>
+      <ul>
+        <li><a href="https://github.com/SachaEpskamp/psychonetrics">GitHub Repository</a></li>
+        <li><a href="https://cran.r-project.org/package=psychonetrics">CRAN</a></li>
+        <li><a href="https://github.com/SachaEpskamp/psychonetrics/issues">Report a Bug</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Affiliation</h4>
+      <img src="img/nus-logo-blue.png" alt="National University of Singapore" class="nus-logo-footer">
+      <p>National University of Singapore<br>Methods, Data Science, and AI Lab</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 Sacha Epskamp. Built with plain HTML &amp; CSS.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

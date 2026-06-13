@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="What's new in psychonetrics: RI-CLPM models, Blume-Capel models, multi-state Ising, penalized estimation, meta-analytic models, and the 0.15.30 stability release">
+  <meta name="description" content="What's new in psychonetrics: robust ML (MLM/MLMV/MLMVS/MLR), fast two-level ML for ml_lvm, lavaan interoperability, standardized solutions, scaled chi-square difference tests, plus RI-CLPM, Blume-Capel and the 0.15.30 stability release">
   <title>What's New | psychonetrics</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -49,12 +49,17 @@
 <main class="container container-narrow">
 
   <p>
-    The 0.15.x series brought several major new modeling frameworks to psychonetrics &mdash; random-intercept cross-lagged panel models, the Blume-Capel model, multi-state Ising models, and genuinely covariance-based meta-analysis &mdash; capped by a large stability and performance release (0.15.30). This page summarizes the highlights; the full changelog is in the package <a href="https://github.com/SachaEpskamp/psychonetrics/blob/master/NEWS">NEWS</a> file. All code snippets below were run with psychonetrics 0.15.30.
+    Version 0.15.31 adds a wave of new modeling functionality, every piece validated against <strong>lavaan</strong>: robust maximum-likelihood estimators with scaled test statistics and robust fit indices, a fast two-level ML estimator for multi-level latent variable models, converters to and from lavaan, completely-standardized solutions with standard errors, scaled chi-square difference tests, the Wishart likelihood, and fixed exogenous covariates. Earlier in the 0.15.x series came random-intercept cross-lagged panel models, the Blume-Capel model, multi-state Ising models, and genuinely covariance-based meta-analysis &mdash; capped by a large stability and performance release (0.15.30). This page summarizes the highlights; the full changelog is in the package <a href="https://github.com/SachaEpskamp/psychonetrics/blob/master/NEWS">NEWS</a> file. All code snippets below were run against the package and cross-checked against lavaan 0.6-21.
   </p>
 
   <div class="toc">
     <h4>On this page</h4>
     <ol>
+      <li><a href="#robust">0.15.31 &mdash; Robust maximum likelihood (MLM / MLMV / MLMVS / MLR)</a></li>
+      <li><a href="#mlml">0.15.31 &mdash; Fast multilevel SEM: two-level ML for ml_lvm()</a></li>
+      <li><a href="#lavaan">0.15.31 &mdash; Interoperability with lavaan: fromlavaan() &amp; tolavaan()</a></li>
+      <li><a href="#stdwishart">0.15.31 &mdash; Standardized solutions, the Wishart likelihood &amp; fixed exogenous covariates</a></li>
+      <li><a href="#scaleddiff">0.15.31 &mdash; Scaled chi-square difference tests</a></li>
       <li><a href="#audit">0.15.30 &mdash; Stability &amp; performance release</a></li>
       <li><a href="#meta">0.15.30 &mdash; Meta-analysis: covariance input &amp; Olkin&ndash;Siotani V methods</a></li>
       <li><a href="#blumecapel">0.15.13&ndash;0.15.17 &mdash; Blume-Capel &amp; multi-state Ising models</a></li>
@@ -63,6 +68,175 @@
       <li><a href="#penalized">0.15 &mdash; Penalized (regularized) estimation</a></li>
       <li><a href="#mllvm">0.15 series &mdash; Multi-level &amp; meta-analytic frameworks matured</a></li>
     </ol>
+  </div>
+
+  <!-- ===================== 0.15.31 robust ML ===================== -->
+  <div class="whatsnew-item" id="robust">
+    <h2>Robust maximum likelihood (MLM / MLMV / MLMVS / MLR) <span class="version-tag">0.15.31</span></h2>
+    <p class="whatsnew-meta">June 2026 &mdash; see the new <a href="robust.html">robust &amp; scaled estimation page</a></p>
+    <p>
+      psychonetrics now offers the full family of robust maximum-likelihood estimators, selectable through the model constructors or with <code>setestimator()</code>. The point estimates are ordinary maximum likelihood, but the inference is corrected for non-normality:
+    </p>
+    <ul>
+      <li><strong><code>"MLM"</code>, <code>"MLMV"</code>, <code>"MLMVS"</code></strong> &mdash; Browne (1984) robust sandwich standard errors with the Satorra&ndash;Bentler, scaled-and-shifted, and mean-and-variance-adjusted scaled chi-square, respectively (complete data).</li>
+      <li><strong><code>"MLR"</code></strong> &mdash; Huber&ndash;White sandwich standard errors with the Yuan&ndash;Bentler&ndash;Mplus scaled chi-square; <strong>supports missing data via FIML</strong> with the Savalei (2010) FIML-corrected robust fit indices.</li>
+    </ul>
+    <p>All estimators also report robust <strong>RMSEA / CFI / TLI</strong>. Everything was validated against lavaan.</p>
+    <pre><code class="language-r">library("psychonetrics")
+library("lavaan")
+library("dplyr")
+data(HolzingerSwineford1939)
+
+Lambda <- matrix(0, 9, 3)
+Lambda[1:3, 1] <- 1; Lambda[4:6, 2] <- 1; Lambda[7:9, 3] <- 1
+
+# Robust ML (MLR): sandwich SEs + scaled chi-square + robust fit indices
+mod_mlr <- lvm(HolzingerSwineford1939, lambda = Lambda,
+               vars = paste0("x", 1:9),
+               latents = c("visual", "textual", "speed"),
+               identification = "variance",
+               estimator = "MLR") %>% runmodel
+
+mod_mlr %>% fit</code></pre>
+    <span class="output-label">Output (selected rows)</span>
+    <div class="output-block">                 Measure   Value
+                   chisq   85.31
+                      df      24
+            chisq.scaled   87.13
+   chisq.scaling.factor   0.979
+                     cfi   0.931
+              cfi.robust   0.930
+              tli.robust   0.895
+                   rmsea   0.092
+            rmsea.robust   0.092</div>
+    <p>
+      These match <code>lavaan::cfa(&hellip;, estimator = "MLR")</code> to three decimals (scaled &chi;&sup2; = 87.13, scaling factor 0.979, robust CFI 0.930, robust TLI 0.895). See the <a href="robust.html">robust estimation page</a> for MLM and the <code>setestimator()</code> workflow.
+    </p>
+  </div>
+
+  <!-- ===================== 0.15.31 two-level ML ===================== -->
+  <div class="whatsnew-item" id="mlml">
+    <h2>Fast multilevel SEM: two-level ML for ml_lvm() <span class="version-tag">0.15.31</span></h2>
+    <p class="whatsnew-meta">June 2026 &mdash; see the <a href="mllvm.html#estimator">multi-level page</a></p>
+    <p>
+      <code>ml_lvm()</code> gains a sufficient-statistics <strong>two-level ML estimator</strong> (<code>estimator = "ML"</code>; McDonald &amp; Goldstein, 1989; Muthen, 1990). It optimizes the numerically identical objective as the wide-format FIML estimator but is dramatically faster for models with large clusters, with full C++ standard errors and modification indices. Within-cluster missing data (MCAR/MAR) is also supported. The <code>estimator</code> argument now defaults to <code>"default"</code>, which selects <code>"ML"</code> for complete data with the largest cluster &gt; 5 units and <code>"FIML"</code> otherwise; explicit <code>estimator = "FIML"</code> reproduces previous results exactly.
+    </p>
+    <pre><code class="language-r"># 60 clusters of 18 units, 2 factors x 3 indicators on each level
+mod_ml   <- ml_lvm(Data, lambda = Lambda, clusters = "cluster",
+                   vars = paste0("y", 1:6), estimator = "ML")   %>% runmodel
+mod_fiml <- ml_lvm(Data, lambda = Lambda, clusters = "cluster",
+                   vars = paste0("y", 1:6), estimator = "FIML") %>% runmodel</code></pre>
+    <span class="output-label">Output</span>
+    <div class="output-block">estimator = ML  : chisq = 26.557  df = 20  cfi = 0.997   time =  6.6s
+estimator = FIML: chisq = 26.557  df = 20  cfi = 0.995   time = 18.0s
+logl(ML) - logl(FIML) = -1.3e-11    # numerically identical objective</div>
+    <p>
+      The two estimators give the same fit; <code>"ML"</code> is here about 3&times; faster, and the gap grows with cluster size. (CFI/RMSEA use the number of clusters <em>J</em> for the two-level estimator, matching lavaan's two-level SEM, so they can differ slightly from the FIML values.)
+    </p>
+  </div>
+
+  <!-- ===================== 0.15.31 lavaan interop ===================== -->
+  <div class="whatsnew-item" id="lavaan">
+    <h2>Interoperability with lavaan: fromlavaan() &amp; tolavaan() <span class="version-tag">0.15.31</span></h2>
+    <p class="whatsnew-meta">June 2026 &mdash; see the <a href="lavaan.html">lavaan interoperability page</a></p>
+    <p>
+      Two new converters bridge psychonetrics and <strong>lavaan</strong>. <code>fromlavaan()</code> turns a fitted lavaan object (or model syntax + data) into an equivalent psychonetrics <code>lvm</code>, reproducing estimates, standard errors, chi-square, df and log-likelihood for standard ML fits (multi-group, equality constraints, <code>std.lv</code> and FIML are supported). <code>tolavaan()</code> goes the other way, converting a psychonetrics <code>lvm</code> into a fitted lavaan object or parameter table &mdash; so you can specify in one framework and prune, search, or report in the other.
+    </p>
+    <pre><code class="language-r">library("psychonetrics"); library("lavaan"); library("dplyr")
+data(HolzingerSwineford1939)
+
+HS.model <- 'visual  =~ x1 + x2 + x3
+             textual =~ x4 + x5 + x6
+             speed   =~ x7 + x8 + x9'
+fit_lav <- cfa(HS.model, data = HolzingerSwineford1939, meanstructure = TRUE)
+
+# lavaan  ->  psychonetrics:
+mod_pn <- fit_lav %>% fromlavaan %>% runmodel
+
+# ... and back again:
+back   <- tolavaan(mod_pn)</code></pre>
+    <span class="output-label">Output</span>
+    <div class="output-block">logl   lavaan        : -3737.745
+logl   psychonetrics : -3737.745       # exact match
+chisq  lavaan        :  85.306   df 24
+chisq  psychonetrics :  85.306   df 24
+tolavaan() -> class  : "lavaan"  (logl -3737.745)</div>
+    <p>
+      Estimates, standard errors, chi-square and log-likelihood round-trip exactly. Unsupported lavaan features raise informative errors rather than failing silently.
+    </p>
+  </div>
+
+  <!-- ===================== 0.15.31 std / wishart / fixed_x ===================== -->
+  <div class="whatsnew-item" id="stdwishart">
+    <h2>Standardized solutions, the Wishart likelihood &amp; fixed exogenous covariates <span class="version-tag">0.15.31</span></h2>
+    <p class="whatsnew-meta">June 2026 &mdash; see the <a href="lvm.html#std">LVM</a> and <a href="varcov.html#fixedx">varcov</a> pages</p>
+    <p>
+      Three smaller additions to the <code>lvm</code> and <code>varcov</code> families round out the release.
+    </p>
+    <h4>Completely standardized solutions</h4>
+    <p>
+      <code>parameters(x, standardized = TRUE)</code> now returns the completely standardized (<code>std.all</code>) solution with delta-method standard errors (new <code>std</code> and <code>se_std</code> columns), matching <code>lavaan::standardizedSolution()</code>:
+    </p>
+    <pre><code class="language-r">mod_cfa <- lvm(HolzingerSwineford1939, lambda = Lambda,
+               vars = paste0("x", 1:9),
+               latents = c("visual", "textual", "speed"),
+               identification = "variance") %>% runmodel
+
+parameters(mod_cfa, standardized = TRUE)   # adds std + se_std columns</code></pre>
+    <span class="output-label">Output (standardized loadings of the visual factor)</span>
+    <div class="output-block"> var1   var2    est     se    std  se_std
+   x1 visual  0.900  0.081  0.772   0.055
+   x2 visual  0.498  0.077  0.424   0.060
+   x3 visual  0.656  0.074  0.581   0.055</div>
+    <p>The <code>std</code> / <code>se_std</code> columns equal lavaan's <code>est.std</code> / <code>se</code> exactly.</p>
+    <h4>The Wishart likelihood</h4>
+    <p>
+      <code>likelihood = "wishart"</code> for <code>lvm()</code> and <code>varcov()</code> uses the unbiased (<em>n</em>&minus;1) sample covariance with an (<em>n</em>&minus;1)-scaled chi-square and standard errors, matching <code>lavaan(likelihood = "wishart")</code>. The default <code>likelihood = "normal"</code> (the <em>n</em> denominator) is unchanged.
+    </p>
+    <pre><code class="language-r">mod_w <- lvm(HolzingerSwineford1939, lambda = Lambda, vars = paste0("x", 1:9),
+             latents = c("visual", "textual", "speed"),
+             identification = "variance",
+             likelihood = "wishart") %>% runmodel
+mod_w %>% fit    # chisq = 85.022, df = 24  (matches lavaan likelihood = "wishart")</code></pre>
+    <h4>Fixed exogenous covariates</h4>
+    <p>
+      <code>fixed_x</code> fixes declared exogenous covariates' means and mutual (co)variances to their sample values (conditioning on <em>x</em>), matching <code>lavaan(fixed.x = TRUE)</code>. In <code>varcov()</code> it names exogenous observed variables; in <code>lvm()</code> it names the single-indicator latents carrying those covariates.
+    </p>
+    <pre><code class="language-r"># Same covariance model, with x3 and x4 treated as fixed exogenous covariates:
+m0 <- varcov(HolzingerSwineford1939, vars = c("x1","x2","x3","x4"),
+             type = "cov", sigma = S) %>% runmodel
+m1 <- varcov(HolzingerSwineford1939, vars = c("x1","x2","x3","x4"),
+             type = "cov", sigma = S, fixed_x = c("x3","x4")) %>% runmodel</code></pre>
+    <span class="output-label">Output</span>
+    <div class="output-block">default       : npar = 13   df = 1
+fixed_x x3,x4 : npar =  8   df = 1     # x3,x4 means + (co)variances dropped</div>
+    <p>
+      Estimates, standard errors, chi-square, df and the conditional log-likelihood match <code>lavaan(fixed.x = TRUE)</code>; incremental fit indices use psychonetrics' unconditional baseline.
+    </p>
+  </div>
+
+  <!-- ===================== 0.15.31 scaled diff test ===================== -->
+  <div class="whatsnew-item" id="scaleddiff">
+    <h2>Scaled chi-square difference tests <span class="version-tag">0.15.31</span></h2>
+    <p class="whatsnew-meta">June 2026 &mdash; see the <a href="robust.html#difftest">robust estimation page</a></p>
+    <p>
+      For nested models fitted with a robust or scaled estimator, <code>compare()</code> now reports a Satorra&ndash;Bentler-family <strong>scaled chi-square difference test</strong> (new <code>Chisq_diff_scaled</code> and <code>p_value_scaled</code> columns). A new <code>scaled.test.method</code> argument selects <code>"satorra.bentler.2001"</code> (default), <code>"satorra.bentler.2010"</code>, or <code>"satorra.2000"</code> (scaled-and-shifted; appropriate for MLMV/WLSMV). Output for non-robust estimators is unchanged. This reproduces lavaan's <code>lavTestLRT()</code>.
+    </p>
+    <pre><code class="language-r"># Two nested MLR models (configural vs equal loadings across schools):
+mod_config <- lvm(HolzingerSwineford1939, lambda = Lambda, vars = paste0("x", 1:9),
+                  latents = c("visual","textual","speed"),
+                  identification = "variance",
+                  groups = "school", estimator = "MLR") %>% runmodel
+mod_weak   <- mod_config %>% groupequal("lambda") %>% runmodel
+
+compare(configural = mod_config, weak = mod_weak)</code></pre>
+    <span class="output-label">Output (selected columns)</span>
+    <div class="output-block">      model DF  Chisq Chisq_diff DF_diff p_value Chisq_diff_scaled p_value_scaled
+ configural 48 115.85
+       weak 54 124.04       8.19       6    0.22              6.57           0.36</div>
+    <p>
+      The scaled difference (6.57, p = 0.36) matches <code>lavaan::lavTestLRT()</code> (6.567, p = 0.363).
+    </p>
   </div>
 
   <!-- ===================== 0.15.30 audit ===================== -->
@@ -235,6 +409,16 @@ mod_ml %>% fit    # verified: X2(20) = 15.92, p = 0.72, CFI = 1.00
       <h4>psychonetrics</h4>
       <p>An R package for Structural Equation Modeling and Confirmatory Network Analysis.</p>
       <p>Developed by <a href="about.html">Sacha Epskamp</a>.</p>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="tutorial.html">Tutorial</a></li>
+        <li><a href="examples.html">Examples</a></li>
+        <li><a href="whatsnew.html">What&#39;s New</a></li>
+        <li><a href="robust.html">Robust &amp; scaled estimation</a></li>
+        <li><a href="lavaan.html">lavaan interoperability</a></li>
+      </ul>
     </div>
     <div>
       <h4>Links</h4>

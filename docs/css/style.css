@@ -132,6 +132,11 @@ li { margin-bottom: .35rem; }
 .dropdown-toggle.parent-active {
   background: rgba(239,124,0,.25); color: var(--white);
 }
+/* Separator before the "methods" items in the Models dropdown */
+.dropdown-menu .dropdown-divider {
+  border-top: 1px solid rgba(255,255,255,.18);
+  margin-top: .35rem; padding-top: .35rem;
+}
 
 /* --- Hero --- */
 .hero {

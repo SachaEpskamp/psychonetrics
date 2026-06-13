@@ -34,6 +34,8 @@
           <li><a href="ising.html" class="nav-link">Ising &amp; Blume-Capel</a></li>
           <li><a href="mllvm.html" class="nav-link">Multi-level (ml_lvm)</a></li>
           <li><a href="meta.html" class="nav-link">Meta-analysis</a></li>
+          <li class="dropdown-divider"><a href="robust.html" class="nav-link">Robust &amp; scaled estimation</a></li>
+          <li><a href="lavaan.html" class="nav-link">lavaan interoperability</a></li>
         </ul>
       </li>
       <li><a href="examples.html" class="nav-link">Examples</a></li>
@@ -60,6 +62,7 @@
       <li><a href="#example-confirmatory">Example: Confirmatory GGM</a></li>
       <li><a href="#example-multigroup">Example: Multi-Group Network Comparison</a></li>
       <li><a href="#example-penalized">Example: Penalized GGM (PML)</a></li>
+      <li><a href="#fixedx">Fixed exogenous covariates, standardized solutions &amp; the Wishart likelihood</a></li>
       <li><a href="#summary">Summary</a></li>
     </ul>
   </div>
@@ -425,6 +428,43 @@ mod_tuned <- find_penalized_lambda(mod_spec,
     </div>
   </section>
 
+  <!-- Fixed-x / standardized / wishart -->
+  <section id="fixedx">
+    <h2>Fixed exogenous covariates, standardized solutions &amp; the Wishart likelihood <span class="version-tag">0.15.31</span></h2>
+
+    <h3>Fixed exogenous covariates</h3>
+    <p>
+      In a conditional (regression-style) model some variables act purely as predictors. The <code>fixed_x</code> argument fixes the declared exogenous covariates' means and mutual (co)variances to their sample values &mdash; conditioning on <em>x</em> rather than modeling its distribution &mdash; exactly as <code>lavaan(fixed.x = TRUE)</code> does. The fixed quantities drop out of the parameter count and degrees of freedom. In <code>varcov()</code> this is available for <code>type = "cov"</code> and names the exogenous observed variables directly:
+    </p>
+    <pre><code class="language-r"># A 4-variable covariance model with one off-diagonal fixed to zero (so df > 0):
+S <- matrix(1, 4, 4)
+S[1, 2] <- S[2, 1] <- 0
+
+# Without fixed_x: all means and (co)variances are estimated.
+m0 <- varcov(HolzingerSwineford1939, vars = c("x1","x2","x3","x4"),
+             type = "cov", sigma = S) %>% runmodel
+
+# Treat x3 and x4 as fixed exogenous covariates:
+m1 <- varcov(HolzingerSwineford1939, vars = c("x1","x2","x3","x4"),
+             type = "cov", sigma = S, fixed_x = c("x3","x4")) %>% runmodel</code></pre>
+    <span class="output-label">Output</span>
+    <div class="output-block">default       : npar = 13   df = 1
+fixed_x x3,x4 : npar =  8   df = 1     # x3,x4 means + (co)variances no longer estimated</div>
+    <p>
+      Fixing <code>x3</code> and <code>x4</code> removes their two means plus the three (co)variances among them from the count. Estimates, standard errors, chi-square, df and the conditional log-likelihood match <code>lavaan(fixed.x = TRUE)</code>; incremental fit indices use psychonetrics' unconditional baseline.
+    </p>
+
+    <h3>Standardized solutions</h3>
+    <p>
+      As in the <a href="lvm.html#std">lvm family</a>, <code>parameters(x, standardized = TRUE)</code> returns the completely standardized (<code>std.all</code>) solution with delta-method standard errors (new <code>std</code> and <code>se_std</code> columns), matching <code>lavaan::standardizedSolution()</code>.
+    </p>
+
+    <h3>The Wishart likelihood</h3>
+    <p>
+      Setting <code>likelihood = "wishart"</code> uses the unbiased (<em>n</em>&minus;1) sample covariance with an (<em>n</em>&minus;1)-scaled chi-square and standard errors, matching <code>lavaan(likelihood = "wishart")</code>. The default <code>likelihood = "normal"</code> (the <em>n</em> denominator) is unchanged. For continuous non-normal data, robust ML estimators are also available &mdash; see the <a href="robust.html">robust &amp; scaled estimation page</a>.
+    </p>
+  </section>
+
   <!-- Summary -->
   <section id="summary">
     <h2>Summary</h2>
@@ -466,6 +506,16 @@ mod_tuned <- find_penalized_lambda(mod_spec,
       <h4>psychonetrics</h4>
       <p>An R package for Structural Equation Modeling and Confirmatory Network Analysis.</p>
       <p>Developed by <a href="about.html">Sacha Epskamp</a>.</p>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="tutorial.html">Tutorial</a></li>
+        <li><a href="examples.html">Examples</a></li>
+        <li><a href="whatsnew.html">What&#39;s New</a></li>
+        <li><a href="robust.html">Robust &amp; scaled estimation</a></li>
+        <li><a href="lavaan.html">lavaan interoperability</a></li>
+      </ul>
     </div>
     <div>
       <h4>Links</h4>

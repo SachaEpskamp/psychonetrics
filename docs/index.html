@@ -36,6 +36,8 @@
           <li><a href="ising.html" class="nav-link">Ising &amp; Blume-Capel</a></li>
           <li><a href="mllvm.html" class="nav-link">Multi-level (ml_lvm)</a></li>
           <li><a href="meta.html" class="nav-link">Meta-analysis</a></li>
+          <li class="dropdown-divider"><a href="robust.html" class="nav-link">Robust &amp; scaled estimation</a></li>
+          <li><a href="lavaan.html" class="nav-link">lavaan interoperability</a></li>
         </ul>
       </li>
       <li><a href="examples.html" class="nav-link">Examples</a></li>
@@ -49,9 +51,13 @@
   <a class="ticker-label" href="whatsnew.html">What&#39;s&nbsp;New</a>
   <div class="ticker-viewport">
     <ul class="ticker-track">
+      <li><a href="whatsnew.html#robust"><span class="ticker-version">0.15.31</span> Robust ML: MLM / MLMV / MLMVS / MLR with scaled tests &amp; robust fit indices</a></li>
+      <li><a href="whatsnew.html#lavaan"><span class="ticker-version">0.15.31</span> Interoperability with lavaan: fromlavaan() &amp; tolavaan() converters</a></li>
+      <li><a href="whatsnew.html#mlml"><span class="ticker-version">0.15.31</span> Fast multilevel SEM: a two-level ML estimator for ml_lvm()</a></li>
+      <li><a href="whatsnew.html#stdwishart"><span class="ticker-version">0.15.31</span> Standardized solutions, the Wishart likelihood &amp; fixed exogenous covariates</a></li>
+      <li><a href="whatsnew.html#scaleddiff"><span class="ticker-version">0.15.31</span> Scaled chi-square difference tests in compare()</a></li>
       <li><a href="whatsnew.html#audit"><span class="ticker-version">0.15.30</span> Major stability &amp; performance release: ~3&times; faster model construction</a></li>
       <li><a href="whatsnew.html#meta"><span class="ticker-version">0.15.30</span> Meta-analysis: covariance input &amp; Olkin&ndash;Siotani V methods</a></li>
-      <li><a href="whatsnew.html#audit"><span class="ticker-version">0.15.30</span> New automated test suite cross-checked against lavaan</a></li>
       <li><a href="whatsnew.html#blumecapel"><span class="ticker-version">0.15.15</span> New Blume-Capel model for ordered categorical data</a></li>
       <li><a href="whatsnew.html#blumecapel"><span class="ticker-version">0.15.13</span> Ising models now support more than two response options</a></li>
       <li><a href="whatsnew.html#riclpm"><span class="ticker-version">0.15.12</span> RI-CLPM: random-intercept cross-lagged panel models + stationarity search</a></li>
@@ -59,9 +65,13 @@
       <li><a href="whatsnew.html#mllvm"><span class="ticker-version">0.15</span> Multi-level latent variable models &amp; meta-analytic SEM matured</a></li>
     </ul>
     <ul class="ticker-track" aria-hidden="true">
+      <li><a href="whatsnew.html#robust" tabindex="-1"><span class="ticker-version">0.15.31</span> Robust ML: MLM / MLMV / MLMVS / MLR with scaled tests &amp; robust fit indices</a></li>
+      <li><a href="whatsnew.html#lavaan" tabindex="-1"><span class="ticker-version">0.15.31</span> Interoperability with lavaan: fromlavaan() &amp; tolavaan() converters</a></li>
+      <li><a href="whatsnew.html#mlml" tabindex="-1"><span class="ticker-version">0.15.31</span> Fast multilevel SEM: a two-level ML estimator for ml_lvm()</a></li>
+      <li><a href="whatsnew.html#stdwishart" tabindex="-1"><span class="ticker-version">0.15.31</span> Standardized solutions, the Wishart likelihood &amp; fixed exogenous covariates</a></li>
+      <li><a href="whatsnew.html#scaleddiff" tabindex="-1"><span class="ticker-version">0.15.31</span> Scaled chi-square difference tests in compare()</a></li>
       <li><a href="whatsnew.html#audit" tabindex="-1"><span class="ticker-version">0.15.30</span> Major stability &amp; performance release: ~3&times; faster model construction</a></li>
       <li><a href="whatsnew.html#meta" tabindex="-1"><span class="ticker-version">0.15.30</span> Meta-analysis: covariance input &amp; Olkin&ndash;Siotani V methods</a></li>
-      <li><a href="whatsnew.html#audit" tabindex="-1"><span class="ticker-version">0.15.30</span> New automated test suite cross-checked against lavaan</a></li>
       <li><a href="whatsnew.html#blumecapel" tabindex="-1"><span class="ticker-version">0.15.15</span> New Blume-Capel model for ordered categorical data</a></li>
       <li><a href="whatsnew.html#blumecapel" tabindex="-1"><span class="ticker-version">0.15.13</span> Ising models now support more than two response options</a></li>
       <li><a href="whatsnew.html#riclpm" tabindex="-1"><span class="ticker-version">0.15.12</span> RI-CLPM: random-intercept cross-lagged panel models + stationarity search</a></li>
@@ -132,7 +142,7 @@
       </div>
       <div class="feature-item">
         <h4>Multiple Estimators</h4>
-        <p>ML, FIML (missing data), PML/PFIML (penalized)<sup>*</sup>, WLS, DWLS, and WLSMV<sup>*</sup> estimation.</p>
+        <p>ML, FIML (missing data), <a href="robust.html">robust ML (MLM / MLMV / MLMVS / MLR)</a>, PML/PFIML (penalized)<sup>*</sup>, WLS, DWLS, and WLSMV<sup>*</sup> estimation.</p>
       </div>
       <div class="feature-item">
         <h4>Automated Model Search</h4>
@@ -205,6 +215,22 @@
         <p>Meta-analytic Gaussian network aggregation (MAGNA): pool correlation or covariance matrices across studies into a single network or SEM, with random-effects heterogeneity.</p>
         <p><strong>Wrappers:</strong> <code>meta_ggm()</code>, <code>meta_varcov()</code>, <code>meta_lvm()</code>, <code>meta_gvar()</code></p>
         <a href="meta.html" class="card-link">Learn more &rarr;</a>
+      </div>
+    </div>
+
+    <h2 style="text-align:center; border-bottom:none; margin-top:3rem;">Methods &amp; Estimation <span class="badge-new">New</span></h2>
+    <div class="cards-grid">
+      <div class="card">
+        <h3>Robust &amp; Scaled Estimation</h3>
+        <p>Robust maximum-likelihood estimators for non-normal data &mdash; sandwich standard errors, scaled chi-square statistics, robust RMSEA/CFI/TLI, and scaled chi-square difference tests in <code>compare()</code>. Validated against lavaan.</p>
+        <p><strong>Estimators:</strong> <code>"MLM"</code>, <code>"MLMV"</code>, <code>"MLMVS"</code>, <code>"MLR"</code></p>
+        <a href="robust.html" class="card-link">Learn more &rarr;</a>
+      </div>
+      <div class="card">
+        <h3>lavaan Interoperability</h3>
+        <p>Move models between psychonetrics and <strong>lavaan</strong>: convert a fitted lavaan model (or syntax) into a psychonetrics <code>lvm</code> and back, reproducing estimates, standard errors, chi-square and log-likelihood exactly.</p>
+        <p><strong>Functions:</strong> <code>fromlavaan()</code>, <code>tolavaan()</code></p>
+        <a href="lavaan.html" class="card-link">Learn more &rarr;</a>
       </div>
     </div>
   </div>
@@ -297,6 +323,16 @@ compare(saturated = model, pruned = model_pruned, final = model_final)</code></p
       <h4>psychonetrics</h4>
       <p>An R package for Structural Equation Modeling and Confirmatory Network Analysis.</p>
       <p>Developed by <a href="about.html">Sacha Epskamp</a>.</p>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="tutorial.html">Tutorial</a></li>
+        <li><a href="examples.html">Examples</a></li>
+        <li><a href="whatsnew.html">What&#39;s New</a></li>
+        <li><a href="robust.html">Robust &amp; scaled estimation</a></li>
+        <li><a href="lavaan.html">lavaan interoperability</a></li>
+      </ul>
     </div>
     <div>
       <h4>Links</h4>
