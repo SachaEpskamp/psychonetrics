@@ -95,6 +95,28 @@ expect_error(suppressWarnings(ml_lvm(datna, lambda = lambda, clusters = "cl", es
 mod_na <- suppressWarnings(suppressMessages(ml_lvm(datna, lambda = lambda, clusters = "cl")))
 expect_equal(mod_na@estimator, "FIML")
 
+# default heuristic when the largest cluster has <= 5 units -> FIML (complete
+# data, but clusters too small for the sufficient-statistics ML to pay off):
+dat5 <- simdat_2l(11, J = 40, sizes = 5)         # all clusters size 5
+expect_equal(ml_lvm(dat5, lambda = lambda, clusters = "cl")@estimator, "FIML")
+dat25 <- simdat_2l(12, J = 40, sizes = 2:5)      # max size 5
+expect_equal(ml_lvm(dat25, lambda = lambda, clusters = "cl")@estimator, "FIML")
+
+# verbose = TRUE announces the chosen estimator and the experimental note;
+# verbose = FALSE is silent (no experimental note). The experimental note fires
+# at most once per session, so collect messages from a single verbose call:
+msgs <- character(0)
+withCallingHandlers(
+  ml_lvm(dat, lambda = lambda, clusters = "cl", verbose = TRUE),
+  message = function(m){ msgs <<- c(msgs, conditionMessage(m)); invokeRestart("muffleMessage") })
+expect_true(any(grepl("Using estimator = 'ML'", msgs)))
+# verbose = FALSE: no estimator-choice or experimental messages:
+msgs_quiet <- character(0)
+withCallingHandlers(
+  ml_lvm(dat, lambda = lambda, clusters = "cl", verbose = FALSE),
+  message = function(m){ msgs_quiet <<- c(msgs_quiet, conditionMessage(m)); invokeRestart("muffleMessage") })
+expect_false(any(grepl("Using estimator|experimental", msgs_quiet)))
+
 ## ---- (d) 2L objective equals the FIML objective at identical parameters ----
 xs <- psychonetrics:::parVector(modML)
 expect_equal(xs, psychonetrics:::parVector(modF))
@@ -298,4 +320,77 @@ if (at_home()){
   expect_equal(modd@estimator, "FIML")
   modd <- suppressWarnings(runmodel(modd, addMIs = FALSE, addSEs = FALSE, addInformation = FALSE))
   expect_true(modd@computed)
+
+  ## (1) saturated/baseline reference models and fit measures vs lavaan.
+  ## The saturated and baseline models are themselves two-level models that
+  ## runmodel() optimizes numerically; these must reach the same maximum as
+  ## lavaan's EM-based h1/baseline. Use the balanced model fitted above (modb,
+  ## fitb) so the comparison is on a converged, well-specified model.
+  lavb <- fitMeasures(fitb)
+  # Saturated (unrestricted) log-likelihood: psychonetrics optimizes it, lavaan
+  # uses EM (default tol ~1e-4 in older lavaan), so allow 1e-3:
+  expect_true(abs(modb@fitmeasures$unrestricted.logl -
+                  as.numeric(lavb["unrestricted.logl"])) < 1e-3)
+  # Baseline (independence) log-likelihood vs lavaan's independence model.
+  # lavaan's fitMeasures() does not always expose baseline.logl for two-level
+  # models, so refit the independence model explicitly:
+  basll_lav <- as.numeric(logLik(lavaan:::lav_object_independence(fitb)))
+  expect_true(abs(modb@fitmeasures$baseline.logl - basll_lav) < 1e-3)
+  # Model chi-square and degrees of freedom: chisq close, df EXACTLY equal:
+  expect_true(abs(modb@fitmeasures$chisq - as.numeric(lavb["chisq"])) < 1e-3)
+  expect_equal(as.numeric(modb@fitmeasures$df), as.numeric(lavb["df"]))
+  # Baseline chi-square and df (drives CFI/TLI): df EXACTLY equal:
+  expect_true(abs(modb@fitmeasures$baseline.chisq - as.numeric(lavb["baseline.chisq"])) < 1e-2)
+  expect_equal(as.numeric(modb@fitmeasures$baseline.df), as.numeric(lavb["baseline.df"]))
+  # CFI/TLI finite, plausible, and agree with lavaan (same baseline convention):
+  expect_true(is.finite(modb@fitmeasures$cfi) && modb@fitmeasures$cfi > 0.9 &&
+              modb@fitmeasures$cfi <= 1 + 1e-8)
+  expect_true(is.finite(modb@fitmeasures$tli))
+  expect_true(abs(modb@fitmeasures$cfi - as.numeric(lavb["cfi"])) < 1e-3)
+  expect_true(abs(modb@fitmeasures$tli - as.numeric(lavb["tli"])) < 1e-3)
+
+  ## (1b) RMSEA n-convention: psychonetrics uses n = #clusters (J), lavaan uses
+  ## n = #units (N). On a MISSPECIFIED model (nonzero RMSEA) with chi-square and
+  ## df otherwise agreeing, psychonetrics' RMSEA is larger by EXACTLY sqrt(N/J).
+  ## Fit a 1-factor model (the 2-factor data misfit it) with loadings shared
+  ## across levels, and a matching lavaan model with equal level-1/level-2
+  ## loadings:
+  lambda1 <- matrix(1, p, 1)
+  lmod1 <- '
+  level: 1
+   fw =~ y1 + L2*y2 + L3*y3 + L4*y4 + L5*y5 + L6*y6
+  level: 2
+   fb =~ y1 + L2*y2 + L3*y3 + L4*y4 + L5*y5 + L6*y6
+  '
+  modm <- ml_lvm(datb, lambda = lambda1, clusters = "cl", estimator = "ML")
+  modm@optim.args <- list(control = list(rel.tol = 1e-14, x.tol = 1e-12,
+                                         iter.max = 1000, eval.max = 2000))
+  modm <- runmodel(modm, addMIs = FALSE)
+  fitm <- sem(lmod1, data = datb, cluster = "cl")
+  Nb <- nrow(datb); Jb <- length(unique(datb$cl))
+  # chi-square and df agree with lavaan (well-matched parameterization):
+  expect_true(abs(modm@fitmeasures$chisq - fitMeasures(fitm, "chisq")) < 1e-2)
+  expect_equal(as.numeric(modm@fitmeasures$df), as.numeric(fitMeasures(fitm, "df")))
+  # nonzero RMSEA, and the ratio to lavaan's is exactly sqrt(N/J):
+  expect_true(modm@fitmeasures$rmsea > 0.05)
+  expect_true(abs(modm@fitmeasures$rmsea /
+                  as.numeric(fitMeasures(fitm, "rmsea")) - sqrt(Nb/Jb)) < 1e-4)
+  # internal consistency: ML's misspecified-model logl equals FIML's (the two
+  # estimators optimize the same objective), even though both differ from
+  # lavaan when the model is misspecified and clusters are unbalanced:
+  modmF <- ml_lvm(datb, lambda = lambda1, clusters = "cl", estimator = "FIML")
+  modmF@optim.args <- modm@optim.args
+  modmF <- runmodel(modmF, addMIs = FALSE, addSEs = FALSE, addInformation = FALSE)
+  expect_true(abs(modm@fitmeasures$logl - modmF@fitmeasures$logl) < 1e-4)
+
+  ## (3) performance: a full runmodel under "ML" on J = 100 clusters of size
+  ## 18-25 with p = 6 is fast. The sufficient-statistics cost does not grow with
+  ## cluster size, so this is well under a second on CI; use a generous bound:
+  datp <- simdat_2l(2024, J = 100, sizes = 18:25)
+  tp <- system.time(
+    modp <- runmodel(ml_lvm(datp, lambda = lambda, clusters = "cl", estimator = "ML"))
+  )[["elapsed"]]
+  expect_true(modp@computed)
+  expect_true(is.finite(modp@fitmeasures$cfi))
+  expect_true(tp < 5)
 }
