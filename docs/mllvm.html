@@ -177,6 +177,9 @@ round(getmatrix(mod_ml, "sigma_zeta_within"), 2)</code></pre>
     <p>
       Historically <code>ml_lvm()</code> estimated the model by full-information maximum likelihood (FIML) on the wide (one row per cluster) data layout. That is exact, but it scales poorly: each cluster contributes a likelihood term whose dimension grows with its size, so large clusters are expensive. Version 0.15.31 adds a <strong>sufficient-statistics two-level ML estimator</strong> (<code>estimator = "ML"</code>; McDonald &amp; Goldstein, 1989; Muthen, 1990) that optimizes the <em>numerically identical objective</em> but works from the within- and between-cluster sufficient statistics, with full C++ standard errors and modification indices.
     </p>
+    <div class="note">
+      <strong>Same likelihood, two engines &mdash; not an approximation.</strong> <code>"ML"</code> and <code>"FIML"</code> here are two ways of <em>computing</em> the same exact two-level maximum-likelihood fit; they converge to identical estimates, standard errors and fit (the objective values coincide to ~1e-13). This is <em>not</em> the approximate &ldquo;MUML&rdquo; / pseudo-balanced estimator &mdash; the sufficient-statistics evaluation is exact, including for unbalanced cluster sizes. The <code>"ML"</code>/<code>"FIML"</code> labels follow the convention used everywhere in psychonetrics (<code>"ML"</code> fits to summary statistics, <code>"FIML"</code> fits row by row to the raw data); they describe the computational route, not complete-versus-missing data &mdash; both routes can handle within-cluster missingness.
+    </div>
     <p>
       The <code>estimator</code> argument now defaults to <code>"default"</code>, which picks <code>"ML"</code> for complete data whose largest cluster exceeds 5 units, and <code>"FIML"</code> otherwise. Explicit <code>estimator = "FIML"</code> reproduces previous results exactly.
     </p>
