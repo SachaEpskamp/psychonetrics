@@ -71,7 +71,7 @@
       Ordinary maximum likelihood (ML) for continuous data assumes multivariate normality. When that assumption is violated &mdash; skewed or heavy-tailed items, excess kurtosis &mdash; the ML <em>point estimates</em> remain consistent, but the model chi-square is inflated and the standard errors are biased. <strong>Robust maximum-likelihood estimators</strong> keep the ML estimates and correct the inference: they replace the naive standard errors with sandwich (robust) standard errors and rescale the chi-square so that its reference distribution is approximately correct.
     </p>
     <p>
-      Added in version 0.15.31 and validated against <strong>lavaan</strong>, psychonetrics implements the full robust-ML family. They are available for the <a href="lvm.html">lvm</a> and <a href="varcov.html">varcov</a> families and are selected either through the model constructors (<code>estimator = &hellip;</code>) or afterwards with <a href="#setestimator"><code>setestimator()</code></a>.
+      Added in version 0.16 and validated against <strong>lavaan</strong>, psychonetrics implements the full robust-ML family. They are available for the <a href="lvm.html">lvm</a> and <a href="varcov.html">varcov</a> families and are selected either through the model constructors (<code>estimator = &hellip;</code>) or afterwards with <a href="#setestimator"><code>setestimator()</code></a>.
     </p>
     <div class="note">
       <strong>Point estimates are unchanged maximum likelihood.</strong> Switching from <code>"ML"</code> to a robust estimator changes only the standard errors, the test statistic, and the fit indices &mdash; never the parameter estimates themselves.

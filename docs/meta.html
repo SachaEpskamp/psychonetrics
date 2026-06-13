@@ -107,7 +107,7 @@
         <tr>
           <td>Covariance matrices</td>
           <td><code>covs</code> (list) + <code>nobs</code> (vector)</td>
-          <td><span class="badge-new">0.15.30</span> Covariances are now genuinely modeled as covariances (<code>corinput = FALSE</code>); previously they were silently treated as correlations.</td>
+          <td><span class="badge-new">0.16</span> Covariances are now genuinely modeled as covariances (<code>corinput = FALSE</code>); previously they were silently treated as correlations.</td>
         </tr>
         <tr>
           <td>Raw data</td>
@@ -128,8 +128,8 @@
       <tbody>
         <tr><td><code>"individual"</code> (default)</td><td>Per-study $\boldsymbol{V}_s$ based on each study&#39;s own correlations.</td></tr>
         <tr><td><code>"pooled"</code></td><td>$\boldsymbol{V}_s$ based on the pooled correlation matrix, scaled by study sample size.</td></tr>
-        <tr><td><code>"OS_individual"</code> <span class="badge-new">0.15.30</span></td><td>Olkin&ndash;Siotani (1976) asymptotic covariance of sample correlations, per study.</td></tr>
-        <tr><td><code>"OS_pooled"</code> <span class="badge-new">0.15.30</span></td><td>Olkin&ndash;Siotani covariance evaluated at the pooled correlations.</td></tr>
+        <tr><td><code>"OS_individual"</code> <span class="badge-new">0.16</span></td><td>Olkin&ndash;Siotani (1976) asymptotic covariance of sample correlations, per study.</td></tr>
+        <tr><td><code>"OS_pooled"</code> <span class="badge-new">0.16</span></td><td>Olkin&ndash;Siotani covariance evaluated at the pooled correlations.</td></tr>
         <tr><td><code>"metaSEM_individual"</code> / <code>"metaSEM_weighted"</code></td><td>Compatibility options mirroring the <code>metaSEM</code> package.</td></tr>
       </tbody>
     </table>
@@ -217,7 +217,7 @@ compare(saturated = mod_meta, pruned = mod_meta_pruned)</code></pre>
     <ul>
       <li>Meta-analytic models pool correlation/covariance structures across studies in a one-stage random-effects framework (MAGNA)</li>
       <li><code>meta_ggm()</code> yields a pooled partial-correlation network with heterogeneity estimates per correlation</li>
-      <li>Input can be correlation matrices, covariance matrices (genuinely supported since 0.15.30), or raw data with a study indicator</li>
+      <li>Input can be correlation matrices, covariance matrices (genuinely supported since 0.16), or raw data with a study indicator</li>
       <li>New Olkin&ndash;Siotani <code>Vmethod</code> options are recommended when heterogeneity variances are of interest</li>
       <li>The usual workflow applies: <code>runmodel</code> &rarr; <code>prune</code> &rarr; <code>compare</code></li>
       <li>Latent variable (<code>meta_lvm</code>) and time-series (<code>meta_gvar</code>) extensions are available</li>

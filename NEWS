@@ -1,3 +1,29 @@
+Changes in Version 0.16
+  o Version 0.16 is a major feature release that consolidates the 0.15.x
+    development series. It bundles a large internal code audit (numerous
+    bug fixes, robustness and performance improvements across all model
+    families, and a new automated test suite) together with substantial new
+    modeling functionality, all validated against lavaan. The detailed
+    per-version changelog is retained below.
+
+  o NEW: a fast sufficient-statistics two-level maximum-likelihood estimator for
+    multi-level latent variable models (ml_lvm(estimator = "ML")), supporting
+    complete and within-cluster-missing data.
+
+  o NEW: robust maximum-likelihood estimators MLM, MLMV, MLMVS and MLR
+    (robust/sandwich standard errors, scaled chi-square statistics and robust
+    RMSEA/CFI/TLI), with Satorra-Bentler-family scaled chi-square difference
+    tests in compare().
+
+  o NEW: lavaan interoperability via fromlavaan() and tolavaan(), standardized
+    (std.all) solutions with delta-method standard errors, the wishart
+    likelihood, and fixed exogenous covariates (fixed_x).
+
+  o The estimators, fit measures, standard errors and converters listed above
+    were validated against lavaan as a numerical oracle. Several of the new
+    methods carry an experimental note (shown when verbose = TRUE) and may still
+    change.
+
 Changes in Version 0.15.31
   o This release adds new modeling functionality validated against lavaan: a
     fast two-level maximum-likelihood estimator for multi-level latent variable

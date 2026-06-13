@@ -21,7 +21,7 @@
   packageStartupMessage("This is ",paste(pkgname, version),"! For questions, issues, and bug reports, please see github.com/SachaEpskamp/psychonetrics.")
 }
 
-# Helper to emit a one-time experimental feature warning (only when version < 0.16):
+# Helper to emit a one-time experimental feature warning (only when version < 0.17):
 .experimental_warned <- new.env(parent = emptyenv())
 
 # Historic helper (0.15.31 development): the two-level sufficient-statistics
@@ -59,9 +59,10 @@ twolevel_model_has_missing <- function(model){
 }
 
 experimentalWarning <- function(feature) {
-  # Only warn for pre-0.16 versions:
+  # Only warn for pre-0.17 versions (the new 0.16 methods are still flagged
+  # experimental; raise this once they are considered stable):
   ver <- utils::packageVersion("psychonetrics")
-  if (ver >= "0.16") return(invisible())
+  if (ver >= "0.17") return(invisible())
   # Only warn once per feature per session:
   if (isTRUE(.experimental_warned[[feature]])) return(invisible())
   .experimental_warned[[feature]] <- TRUE

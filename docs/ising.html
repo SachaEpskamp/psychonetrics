@@ -75,7 +75,7 @@
     <p>Originating from statistical physics, where it was developed to model ferromagnetic materials, the Ising model has found widespread application in psychology and social sciences for analyzing binary questionnaire data, such as yes/no responses, present/absent symptoms, or agree/disagree items.</p>
 
     <p>The Ising model represents the joint probability distribution of binary variables through pairwise interactions, making it a natural choice for network analysis of binary data. Each edge in the network represents the association between two binary variables after controlling for all other variables in the system.</p>
-    <p><span class="badge-new">New</span> Since version 0.15.13, <code>Ising()</code> is no longer restricted to binary data: any number of <strong>ordered response options</strong> is supported. And since 0.15.15, the new <code>BlumeCapel()</code> model extends the Ising distribution with a per-node quadratic potential. See <a href="#blumecapel">below</a>.</p>
+    <p><span class="badge-new">New</span> Since version 0.16, <code>Ising()</code> is no longer restricted to binary data: any number of <strong>ordered response options</strong> is supported. And since 0.16, the new <code>BlumeCapel()</code> model extends the Ising distribution with a per-node quadratic potential. See <a href="#blumecapel">below</a>.</p>
   </section>
 
   <!-- Mathematical Model -->
@@ -195,7 +195,7 @@
 
   <!-- Multi-state Ising & Blume-Capel -->
   <section id="blumecapel">
-    <h2>Multi-state Ising &amp; the Blume-Capel Model <span class="version-tag">0.15.13 &ndash; 0.15.17</span></h2>
+    <h2>Multi-state Ising &amp; the Blume-Capel Model <span class="version-tag">0.16</span></h2>
     <p>
       The Ising distribution has been generalized to the <strong>Spin distribution</strong>, which adds a per-node quadratic potential $\delta_i$:
     </p>
@@ -220,7 +220,7 @@ getmatrix(mod_bc, "delta")</code></pre>
       <code>BlumeCapel()</code> shares the <code>Ising()</code> engine &mdash; fit measures, modification indices, <code>prune()</code> / <code>stepup()</code> search, multi-group analysis, and <code>groupequal()</code> constraints (including <code>"delta"</code>) all work as usual. A fully reproducible simulated example is on the <a href="examples.html#ex-blumecapel">examples page</a>.
     </p>
     <div class="note">
-      <strong>Numerical robustness</strong> <span class="version-tag">0.15.30</span>: the partition function and moment computations now use log-sum-exp accumulation, so extreme parameter values no longer produce <code>Inf</code>/<code>NaN</code> fits, and long state-space enumerations can be interrupted.
+      <strong>Numerical robustness</strong> <span class="version-tag">0.16</span>: the partition function and moment computations now use log-sum-exp accumulation, so extreme parameter values no longer produce <code>Inf</code>/<code>NaN</code> fits, and long state-space enumerations can be interrupted.
     </div>
   </section>
 

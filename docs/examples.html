@@ -1542,7 +1542,7 @@ Selected model: panelVAR</div>
       <span class="example-chevron">&#9660;</span>
     </div>
     <div class="example-body">
-      <p>This example pools the correlation matrices of 12 simulated studies into a single <strong>meta-analytic Gaussian Graphical Model</strong> (MAGNA; Epskamp, Isvoranu &amp; Cheung, 2022). The studies share a chain network (V1&ndash;V2&ndash;V3&ndash;V4, partial correlations 0.3) with mild between-study heterogeneity. We use the Olkin&ndash;Siotani sampling-covariance method added in 0.15.30. See the <a href="meta.html">meta-analysis page</a> for details.</p>
+      <p>This example pools the correlation matrices of 12 simulated studies into a single <strong>meta-analytic Gaussian Graphical Model</strong> (MAGNA; Epskamp, Isvoranu &amp; Cheung, 2022). The studies share a chain network (V1&ndash;V2&ndash;V3&ndash;V4, partial correlations 0.3) with mild between-study heterogeneity. We use the Olkin&ndash;Siotani sampling-covariance method added in 0.16. See the <a href="meta.html">meta-analysis page</a> for details.</p>
       <pre><code class="language-r">library(psychonetrics)
 library(dplyr)
 
@@ -1607,7 +1607,7 @@ compare(saturated = mod_meta, pruned = mod_meta_pruned)</code></pre>
       <span class="example-chevron">&#9660;</span>
     </div>
     <div class="example-body">
-      <p>Since 0.15.13, <code>Ising()</code> accepts <strong>more than two response options</strong>, and since 0.15.15 the <strong>Blume-Capel model</strong> adds a per-node quadratic potential &delta; controlling the preference for neutral versus extreme responses. Here we simulate 5 ternary (&minus;1/0/+1) variables from a true Blume-Capel chain network by enumerating all 3&#8309; = 243 response patterns exactly, then compare the Ising and Blume-Capel fits. See the <a href="ising.html#blumecapel">Ising &amp; Blume-Capel page</a>.</p>
+      <p>Since 0.16, <code>Ising()</code> accepts <strong>more than two response options</strong>, and since 0.16 the <strong>Blume-Capel model</strong> adds a per-node quadratic potential &delta; controlling the preference for neutral versus extreme responses. Here we simulate 5 ternary (&minus;1/0/+1) variables from a true Blume-Capel chain network by enumerating all 3&#8309; = 243 response patterns exactly, then compare the Ising and Blume-Capel fits. See the <a href="ising.html#blumecapel">Ising &amp; Blume-Capel page</a>.</p>
       <pre><code class="language-r">library(psychonetrics)
 library(dplyr)
 

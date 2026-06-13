@@ -73,7 +73,7 @@
       The model decomposes each observation into a <strong>within-cluster</strong> component (how units deviate from their cluster average) and a <strong>between-cluster</strong> component (how cluster averages differ from each other), each with its own measurement model and latent structure. As everywhere in psychonetrics, every latent and residual covariance matrix on either level can independently be parameterized as a Gaussian Graphical Model.
     </p>
     <div class="note">
-      <strong>Recently fixed</strong> <span class="version-tag">0.15.18 &ndash; 0.15.30</span>: latent intercepts are now properly identified (standard errors and degrees of freedom of older fits were affected; estimates were not), the analytic gradient includes the previously omitted mean derivative for between-level regressions, and variable names containing special characters (e.g. <code>"y.1"</code>) are no longer silently dropped. See <a href="whatsnew.html#mllvm">What&#39;s New</a>.
+      <strong>Recently fixed</strong> <span class="version-tag">0.16</span>: latent intercepts are now properly identified (standard errors and degrees of freedom of older fits were affected; estimates were not), the analytic gradient includes the previously omitted mean derivative for between-level regressions, and variable names containing special characters (e.g. <code>"y.1"</code>) are no longer silently dropped. See <a href="whatsnew.html#mllvm">What&#39;s New</a>.
     </div>
   </section>
 
@@ -88,7 +88,7 @@
       <li>Structural regressions are possible on both levels via <code>beta_within</code> and <code>beta_between</code>.</li>
     </ul>
     <p>
-      Key matrices include <code>sigma_zeta_within</code> / <code>sigma_zeta_between</code> (or <code>omega_zeta_within</code> / <code>omega_zeta_between</code> for GGM parameterizations) and <code>sigma_epsilon_within</code> / <code>sigma_epsilon_between</code>. Estimation handles unbalanced cluster sizes naturally, and as of version 0.15.31 a fast <a href="#estimator">sufficient-statistics two-level ML estimator</a> is used by default for complete data.
+      Key matrices include <code>sigma_zeta_within</code> / <code>sigma_zeta_between</code> (or <code>omega_zeta_within</code> / <code>omega_zeta_between</code> for GGM parameterizations) and <code>sigma_epsilon_within</code> / <code>sigma_epsilon_between</code>. Estimation handles unbalanced cluster sizes naturally, and as of version 0.16 a fast <a href="#estimator">sufficient-statistics two-level ML estimator</a> is used by default for complete data.
     </p>
   </section>
 
@@ -173,9 +173,9 @@ round(getmatrix(mod_ml, "sigma_zeta_within"), 2)</code></pre>
   </section>
 
   <section id="estimator">
-    <h2>Estimation: two-level ML vs FIML <span class="version-tag">0.15.31</span></h2>
+    <h2>Estimation: two-level ML vs FIML <span class="version-tag">0.16</span></h2>
     <p>
-      Historically <code>ml_lvm()</code> estimated the model by full-information maximum likelihood (FIML) on the wide (one row per cluster) data layout. That is exact, but it scales poorly: each cluster contributes a likelihood term whose dimension grows with its size, so large clusters are expensive. Version 0.15.31 adds a <strong>sufficient-statistics two-level ML estimator</strong> (<code>estimator = "ML"</code>; McDonald &amp; Goldstein, 1989; Muthen, 1990) that optimizes the <em>numerically identical objective</em> but works from the within- and between-cluster sufficient statistics, with full C++ standard errors and modification indices.
+      Historically <code>ml_lvm()</code> estimated the model by full-information maximum likelihood (FIML) on the wide (one row per cluster) data layout. That is exact, but it scales poorly: each cluster contributes a likelihood term whose dimension grows with its size, so large clusters are expensive. Version 0.16 adds a <strong>sufficient-statistics two-level ML estimator</strong> (<code>estimator = "ML"</code>; McDonald &amp; Goldstein, 1989; Muthen, 1990) that optimizes the <em>numerically identical objective</em> but works from the within- and between-cluster sufficient statistics, with full C++ standard errors and modification indices.
     </p>
     <div class="note">
       <strong>Same likelihood, two engines &mdash; not an approximation.</strong> <code>"ML"</code> and <code>"FIML"</code> here are two ways of <em>computing</em> the same exact two-level maximum-likelihood fit; they converge to identical estimates, standard errors and fit (the objective values coincide to ~1e-13). This is <em>not</em> the approximate &ldquo;MUML&rdquo; / pseudo-balanced estimator &mdash; the sufficient-statistics evaluation is exact, including for unbalanced cluster sizes. The <code>"ML"</code>/<code>"FIML"</code> labels follow the convention used everywhere in psychonetrics (<code>"ML"</code> fits to summary statistics, <code>"FIML"</code> fits row by row to the raw data); they describe the computational route, not complete-versus-missing data &mdash; both routes can handle within-cluster missingness.

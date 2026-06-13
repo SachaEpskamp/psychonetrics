@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="What's new in psychonetrics: robust ML (MLM/MLMV/MLMVS/MLR), fast two-level ML for ml_lvm, lavaan interoperability, standardized solutions, scaled chi-square difference tests, plus RI-CLPM, Blume-Capel and the 0.15.30 stability release">
+  <meta name="description" content="What's new in psychonetrics: robust ML (MLM/MLMV/MLMVS/MLR), fast two-level ML for ml_lvm, lavaan interoperability, standardized solutions, scaled chi-square difference tests, plus RI-CLPM, Blume-Capel and the 0.16 stability release">
   <title>What's New | psychonetrics</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -49,30 +49,30 @@
 <main class="container container-narrow">
 
   <p>
-    Version 0.15.31 adds a wave of new modeling functionality, every piece validated against <strong>lavaan</strong>: robust maximum-likelihood estimators with scaled test statistics and robust fit indices, a fast two-level ML estimator for multi-level latent variable models, converters to and from lavaan, completely-standardized solutions with standard errors, scaled chi-square difference tests, the Wishart likelihood, and fixed exogenous covariates. Earlier in the 0.15.x series came random-intercept cross-lagged panel models, the Blume-Capel model, multi-state Ising models, and genuinely covariance-based meta-analysis &mdash; capped by a large stability and performance release (0.15.30). This page summarizes the highlights; the full changelog is in the package <a href="https://github.com/SachaEpskamp/psychonetrics/blob/master/NEWS">NEWS</a> file. All code snippets below were run against the package and cross-checked against lavaan 0.6-21.
+    Version 0.16 adds a wave of new modeling functionality, every piece validated against <strong>lavaan</strong>: robust maximum-likelihood estimators with scaled test statistics and robust fit indices, a fast two-level ML estimator for multi-level latent variable models, converters to and from lavaan, completely-standardized solutions with standard errors, scaled chi-square difference tests, the Wishart likelihood, and fixed exogenous covariates. Earlier in the 0.15.x series came random-intercept cross-lagged panel models, the Blume-Capel model, multi-state Ising models, and genuinely covariance-based meta-analysis &mdash; capped by a large stability and performance release (0.16). This page summarizes the highlights; the full changelog is in the package <a href="https://github.com/SachaEpskamp/psychonetrics/blob/master/NEWS">NEWS</a> file. All code snippets below were run against the package and cross-checked against lavaan 0.6-21.
   </p>
 
   <div class="toc">
     <h4>On this page</h4>
     <ol>
-      <li><a href="#robust">0.15.31 &mdash; Robust maximum likelihood (MLM / MLMV / MLMVS / MLR)</a></li>
-      <li><a href="#mlml">0.15.31 &mdash; Fast multilevel SEM: two-level ML for ml_lvm()</a></li>
-      <li><a href="#lavaan">0.15.31 &mdash; Interoperability with lavaan: fromlavaan() &amp; tolavaan()</a></li>
-      <li><a href="#stdwishart">0.15.31 &mdash; Standardized solutions, the Wishart likelihood &amp; fixed exogenous covariates</a></li>
-      <li><a href="#scaleddiff">0.15.31 &mdash; Scaled chi-square difference tests</a></li>
-      <li><a href="#audit">0.15.30 &mdash; Stability &amp; performance release</a></li>
-      <li><a href="#meta">0.15.30 &mdash; Meta-analysis: covariance input &amp; Olkin&ndash;Siotani V methods</a></li>
-      <li><a href="#blumecapel">0.15.13&ndash;0.15.17 &mdash; Blume-Capel &amp; multi-state Ising models</a></li>
-      <li><a href="#riclpm">0.15.12 &mdash; RI-CLPM: random-intercept cross-lagged panel models</a></li>
-      <li><a href="#multigroup">0.15.4&ndash;0.15.16 &mdash; Multi-group tooling</a></li>
-      <li><a href="#penalized">0.15 &mdash; Penalized (regularized) estimation</a></li>
-      <li><a href="#mllvm">0.15 series &mdash; Multi-level &amp; meta-analytic frameworks matured</a></li>
+      <li><a href="#robust">0.16 &mdash; Robust maximum likelihood (MLM / MLMV / MLMVS / MLR)</a></li>
+      <li><a href="#mlml">0.16 &mdash; Fast multilevel SEM: two-level ML for ml_lvm()</a></li>
+      <li><a href="#lavaan">0.16 &mdash; Interoperability with lavaan: fromlavaan() &amp; tolavaan()</a></li>
+      <li><a href="#stdwishart">0.16 &mdash; Standardized solutions, the Wishart likelihood &amp; fixed exogenous covariates</a></li>
+      <li><a href="#scaleddiff">0.16 &mdash; Scaled chi-square difference tests</a></li>
+      <li><a href="#audit">0.16 &mdash; Stability &amp; performance release</a></li>
+      <li><a href="#meta">0.16 &mdash; Meta-analysis: covariance input &amp; Olkin&ndash;Siotani V methods</a></li>
+      <li><a href="#blumecapel">0.16 &mdash; Blume-Capel &amp; multi-state Ising models</a></li>
+      <li><a href="#riclpm">0.16 &mdash; RI-CLPM: random-intercept cross-lagged panel models</a></li>
+      <li><a href="#multigroup">0.16 &mdash; Multi-group tooling</a></li>
+      <li><a href="#penalized">0.16 &mdash; Penalized (regularized) estimation</a></li>
+      <li><a href="#mllvm">0.16 &mdash; Multi-level &amp; meta-analytic frameworks matured</a></li>
     </ol>
   </div>
 
-  <!-- ===================== 0.15.31 robust ML ===================== -->
+  <!-- ===================== 0.16 robust ML ===================== -->
   <div class="whatsnew-item" id="robust">
-    <h2>Robust maximum likelihood (MLM / MLMV / MLMVS / MLR) <span class="version-tag">0.15.31</span></h2>
+    <h2>Robust maximum likelihood (MLM / MLMV / MLMVS / MLR) <span class="version-tag">0.16</span></h2>
     <p class="whatsnew-meta">June 2026 &mdash; see the new <a href="robust.html">robust &amp; scaled estimation page</a></p>
     <p>
       psychonetrics now offers the full family of robust maximum-likelihood estimators, selectable through the model constructors or with <code>setestimator()</code>. The point estimates are ordinary maximum likelihood, but the inference is corrected for non-normality:
@@ -114,9 +114,9 @@ mod_mlr %>% fit</code></pre>
     </p>
   </div>
 
-  <!-- ===================== 0.15.31 two-level ML ===================== -->
+  <!-- ===================== 0.16 two-level ML ===================== -->
   <div class="whatsnew-item" id="mlml">
-    <h2>Fast multilevel SEM: two-level ML for ml_lvm() <span class="version-tag">0.15.31</span></h2>
+    <h2>Fast multilevel SEM: two-level ML for ml_lvm() <span class="version-tag">0.16</span></h2>
     <p class="whatsnew-meta">June 2026 &mdash; see the <a href="mllvm.html#estimator">multi-level page</a></p>
     <p>
       <code>ml_lvm()</code> gains a sufficient-statistics <strong>two-level ML estimator</strong> (<code>estimator = "ML"</code>; McDonald &amp; Goldstein, 1989; Muthen, 1990). It optimizes the numerically identical objective as the wide-format FIML estimator but is dramatically faster for models with large clusters, with full C++ standard errors and modification indices. The two are the same exact likelihood computed two ways (not an approximation, and not the pseudo-balanced &ldquo;MUML&rdquo;); the <code>"ML"</code>/<code>"FIML"</code> labels denote the computational route &mdash; summary statistics versus row by row, as elsewhere in psychonetrics &mdash; and both can handle within-cluster missing data (MCAR/MAR). The <code>estimator</code> argument now defaults to <code>"default"</code>, which selects <code>"ML"</code> for complete data with the largest cluster &gt; 5 units and <code>"FIML"</code> otherwise; explicit <code>estimator = "FIML"</code> reproduces previous results exactly.
@@ -135,9 +135,9 @@ logl(ML) - logl(FIML) = -1.3e-11    # numerically identical objective</div>
     </p>
   </div>
 
-  <!-- ===================== 0.15.31 lavaan interop ===================== -->
+  <!-- ===================== 0.16 lavaan interop ===================== -->
   <div class="whatsnew-item" id="lavaan">
-    <h2>Interoperability with lavaan: fromlavaan() &amp; tolavaan() <span class="version-tag">0.15.31</span></h2>
+    <h2>Interoperability with lavaan: fromlavaan() &amp; tolavaan() <span class="version-tag">0.16</span></h2>
     <p class="whatsnew-meta">June 2026 &mdash; see the <a href="lavaan.html">lavaan interoperability page</a></p>
     <p>
       Two new converters bridge psychonetrics and <strong>lavaan</strong>. <code>fromlavaan()</code> turns a fitted lavaan object (or model syntax + data) into an equivalent psychonetrics <code>lvm</code>, reproducing estimates, standard errors, chi-square, df and log-likelihood for standard ML fits (multi-group, equality constraints, <code>std.lv</code> and FIML are supported). <code>tolavaan()</code> goes the other way, converting a psychonetrics <code>lvm</code> into a fitted lavaan object or parameter table &mdash; so you can specify in one framework and prune, search, or report in the other.
@@ -166,9 +166,9 @@ tolavaan() -> class  : "lavaan"  (logl -3737.745)</div>
     </p>
   </div>
 
-  <!-- ===================== 0.15.31 std / wishart / fixed_x ===================== -->
+  <!-- ===================== 0.16 std / wishart / fixed_x ===================== -->
   <div class="whatsnew-item" id="stdwishart">
-    <h2>Standardized solutions, the Wishart likelihood &amp; fixed exogenous covariates <span class="version-tag">0.15.31</span></h2>
+    <h2>Standardized solutions, the Wishart likelihood &amp; fixed exogenous covariates <span class="version-tag">0.16</span></h2>
     <p class="whatsnew-meta">June 2026 &mdash; see the <a href="lvm.html#std">LVM</a> and <a href="varcov.html#fixedx">varcov</a> pages</p>
     <p>
       Three smaller additions to the <code>lvm</code> and <code>varcov</code> families round out the release.
@@ -215,9 +215,9 @@ fixed_x x3,x4 : npar =  8   df = 1     # x3,x4 means + (co)variances dropped</di
     </p>
   </div>
 
-  <!-- ===================== 0.15.31 scaled diff test ===================== -->
+  <!-- ===================== 0.16 scaled diff test ===================== -->
   <div class="whatsnew-item" id="scaleddiff">
-    <h2>Scaled chi-square difference tests <span class="version-tag">0.15.31</span></h2>
+    <h2>Scaled chi-square difference tests <span class="version-tag">0.16</span></h2>
     <p class="whatsnew-meta">June 2026 &mdash; see the <a href="robust.html#difftest">robust estimation page</a></p>
     <p>
       For nested models fitted with a robust or scaled estimator, <code>compare()</code> now reports a Satorra&ndash;Bentler-family <strong>scaled chi-square difference test</strong> (new <code>Chisq_diff_scaled</code> and <code>p_value_scaled</code> columns). A new <code>scaled.test.method</code> argument selects <code>"satorra.bentler.2001"</code> (default), <code>"satorra.bentler.2010"</code>, or <code>"satorra.2000"</code> (scaled-and-shifted; appropriate for MLMV/WLSMV). Output for non-robust estimators is unchanged. This reproduces lavaan's <code>lavTestLRT()</code>.
@@ -239,12 +239,12 @@ compare(configural = mod_config, weak = mod_weak)</code></pre>
     </p>
   </div>
 
-  <!-- ===================== 0.15.30 audit ===================== -->
+  <!-- ===================== 0.16 audit ===================== -->
   <div class="whatsnew-item" id="audit">
-    <h2>Stability &amp; performance release <span class="version-tag">0.15.30</span></h2>
+    <h2>Stability &amp; performance release <span class="version-tag">0.16</span></h2>
     <p class="whatsnew-meta">June 2026</p>
     <p>
-      Version 0.15.30 implements the findings of a large internal code audit: bug fixes across all model families, robustness improvements, substantial speedups, and a new automated test suite. No user action is needed &mdash; existing scripts keep working, but many run faster and more reliably.
+      Version 0.16 implements the findings of a large internal code audit: bug fixes across all model families, robustness improvements, substantial speedups, and a new automated test suite. No user action is needed &mdash; existing scripts keep working, but many run faster and more reliably.
     </p>
     <h4>Robustness</h4>
     <ul>
@@ -268,7 +268,7 @@ compare(configural = mod_config, weak = mod_weak)</code></pre>
 
   <!-- ===================== meta ===================== -->
   <div class="whatsnew-item" id="meta">
-    <h2>Meta-analysis: covariance input &amp; Olkin&ndash;Siotani V methods <span class="version-tag">0.15.30</span></h2>
+    <h2>Meta-analysis: covariance input &amp; Olkin&ndash;Siotani V methods <span class="version-tag">0.16</span></h2>
     <p class="whatsnew-meta">June 2026 &mdash; see the new <a href="meta.html">meta-analysis page</a></p>
     <p>
       <code>meta_varcov()</code> now genuinely supports <strong>covariance matrices</strong> as input (previously covariances were silently modeled as correlations), and two new <code>Vmethod</code> options &mdash; <code>"OS_individual"</code> and <code>"OS_pooled"</code> &mdash; implement the Olkin&ndash;Siotani (1976) sampling covariance of sample correlations, validated against <code>metaSEM::asyCov</code>. These are recommended when the between-study heterogeneity (random-effects) variances are of substantive interest. The default <code>Vmethod</code> is unchanged, so published analyses reproduce exactly.
@@ -287,13 +287,13 @@ getmatrix(mod_meta, "omega_y")
 # Prune to a sparse pooled network:
 mod_meta %>% prune(alpha = 0.05, matrices = "omega_y")</code></pre>
     <p>
-      Also in 0.15.30: <code>meta_varcov()</code> / <code>meta_ggm()</code> with <code>estimator = "ML"</code> and bivariate (single-correlation) meta-analyses no longer crash, and meta models give an informative error when two variables are never observed together in any study.
+      Also in 0.16: <code>meta_varcov()</code> / <code>meta_ggm()</code> with <code>estimator = "ML"</code> and bivariate (single-correlation) meta-analyses no longer crash, and meta models give an informative error when two variables are never observed together in any study.
     </p>
   </div>
 
   <!-- ===================== Blume-Capel ===================== -->
   <div class="whatsnew-item" id="blumecapel">
-    <h2>Blume-Capel &amp; multi-state Ising models <span class="version-tag">0.15.13 &ndash; 0.15.17</span></h2>
+    <h2>Blume-Capel &amp; multi-state Ising models <span class="version-tag">0.16</span></h2>
     <p class="whatsnew-meta">See the updated <a href="ising.html#blumecapel">Ising &amp; Blume-Capel page</a></p>
     <p>
       The Ising model has been generalized in two directions. First, <code>Ising()</code> now accepts <strong>any number of ordered response options</strong> (e.g., <code>c(-1, 0, 1)</code> or a Likert scale), not just binary responses &mdash; the parameterization is unchanged, and binary results are identical to before. Second, the new <code>BlumeCapel()</code> model adds a per-node <strong>quadratic potential</strong> &delta; that controls the tendency toward extreme versus neutral responses:
@@ -310,13 +310,13 @@ compare(ising = mod_ising, blume_capel = mod_bc)
 #        ising  8656.65  8726.92
 #  blume_capel  8407.63  8501.32</code></pre>
     <p>
-      Because the exact maximum likelihood enumerates all <code>length(responses)^nNode</code> response patterns, multi-state models are limited to small networks; the new <code>maxStates</code> argument controls this limit. In 0.15.30 the partition function additionally uses log-sum-exp accumulation, so extreme parameter values no longer produce <code>Inf</code>/<code>NaN</code> fits.
+      Because the exact maximum likelihood enumerates all <code>length(responses)^nNode</code> response patterns, multi-state models are limited to small networks; the new <code>maxStates</code> argument controls this limit. In 0.16 the partition function additionally uses log-sum-exp accumulation, so extreme parameter values no longer produce <code>Inf</code>/<code>NaN</code> fits.
     </p>
   </div>
 
   <!-- ===================== RI-CLPM ===================== -->
   <div class="whatsnew-item" id="riclpm">
-    <h2>RI-CLPM: random-intercept cross-lagged panel models <span class="version-tag">0.15.12</span></h2>
+    <h2>RI-CLPM: random-intercept cross-lagged panel models <span class="version-tag">0.16</span></h2>
     <p class="whatsnew-meta">See the <a href="dlvm1.html#riclpm">panel-data page</a> for a full walkthrough</p>
     <p>
       The random intercept cross-lagged panel model framework has been finalized. <code>ri_clpm()</code> accepts the same flexible data input as the dlvm1 family (wide format with a design matrix, or long format via <code>idvar</code>), builds an independence baseline so CFI/TLI are available, and supports standardization options. The new <code>ri_clpm_search()</code> runs a sequential <strong>stationarity search</strong>: it adds stationarity of intercepts, temporal effects, contemporaneous relations, and innovation variances one at a time &mdash; and finally the panel-VAR model &mdash; keeping each constraint only if it does not worsen fit:
@@ -336,31 +336,31 @@ search <- ri_clpm_search(mod, criterion = "BIC")
 #
 # Selected model: panelVAR</code></pre>
     <p>
-      In 0.15.30 the stationarity constraints were further hardened: they now select parameters structurally per wave, so pruned or partially fixed models constrain correctly instead of silently corrupting the constraint set.
+      In 0.16 the stationarity constraints were further hardened: they now select parameters structurally per wave, so pruned or partially fixed models constrain correctly instead of silently corrupting the constraint set.
     </p>
   </div>
 
   <!-- ===================== multigroup tooling ===================== -->
   <div class="whatsnew-item" id="multigroup">
-    <h2>Multi-group tooling <span class="version-tag">0.15.4 &ndash; 0.15.16</span></h2>
+    <h2>Multi-group tooling <span class="version-tag">0.16</span></h2>
     <p>
       Several smaller releases improved multi-group workflows:
     </p>
     <ul>
-      <li><strong><code>equalityScoreTest()</code></strong> <span class="version-tag">0.15.4</span>: a score (Lagrange multiplier) test for cross-group equality constraints that reproduces <code>lavaan::lavTestScore</code> to numerical precision. <code>MIs(type = "free")</code> now also reports joint multivariate score statistics.</li>
-      <li><strong><code>partialprune()</code></strong> <span class="version-tag">0.15.5&ndash;0.15.9</span>: better specificity at low sample sizes (<code>release_model = "pruned"</code>), joint score tests for ranking candidate releases, and large speedups &mdash; an N = 15, two-group Ising <code>partialprune()</code> dropped from ~700s to ~43s.</li>
-      <li><strong><code>allequal()</code></strong> <span class="version-tag">0.15.16</span>: constrain all free elements of a matrix to a single shared parameter within each group &mdash; e.g., all thresholds equal, or an equal-edge-weight network.</li>
-      <li><strong>Saturated-model fix</strong> <span class="version-tag">0.15.10</span>: the internal saturated reference model no longer inherits cross-group equality from <code>equal = ...</code>, fixing inflated chi-square p-values and negative degrees of freedom.</li>
-      <li><strong>Multi-group ordinal data fix</strong> <span class="version-tag">0.15.19</span>: per-group polychoric correlations are now computed from each group&#39;s own rows (previously all groups silently received pooled statistics). Robust sandwich standard errors for ULS/DWLS estimators followed in 0.15.20, matching lavaan&#39;s <code>se = "robust"</code>.</li>
+      <li><strong><code>equalityScoreTest()</code></strong> <span class="version-tag">0.16</span>: a score (Lagrange multiplier) test for cross-group equality constraints that reproduces <code>lavaan::lavTestScore</code> to numerical precision. <code>MIs(type = "free")</code> now also reports joint multivariate score statistics.</li>
+      <li><strong><code>partialprune()</code></strong> <span class="version-tag">0.16</span>: better specificity at low sample sizes (<code>release_model = "pruned"</code>), joint score tests for ranking candidate releases, and large speedups &mdash; an N = 15, two-group Ising <code>partialprune()</code> dropped from ~700s to ~43s.</li>
+      <li><strong><code>allequal()</code></strong> <span class="version-tag">0.16</span>: constrain all free elements of a matrix to a single shared parameter within each group &mdash; e.g., all thresholds equal, or an equal-edge-weight network.</li>
+      <li><strong>Saturated-model fix</strong> <span class="version-tag">0.16</span>: the internal saturated reference model no longer inherits cross-group equality from <code>equal = ...</code>, fixing inflated chi-square p-values and negative degrees of freedom.</li>
+      <li><strong>Multi-group ordinal data fix</strong> <span class="version-tag">0.16</span>: per-group polychoric correlations are now computed from each group&#39;s own rows (previously all groups silently received pooled statistics). Robust sandwich standard errors for ULS/DWLS estimators followed in 0.16, matching lavaan&#39;s <code>se = "robust"</code>.</li>
     </ul>
   </div>
 
   <!-- ===================== penalized ===================== -->
   <div class="whatsnew-item" id="penalized">
-    <h2>Penalized (regularized) estimation <span class="version-tag">0.15</span></h2>
+    <h2>Penalized (regularized) estimation <span class="version-tag">0.16</span></h2>
     <p class="whatsnew-meta">Experimental &mdash; see the <a href="tutorial.html#penalized">tutorial</a> for details</p>
     <p>
-      The 0.15 release introduced penalized maximum likelihood (<code>estimator = "PML"</code>) and penalized FIML (<code>"PFIML"</code>) with LASSO, ridge, and elastic-net penalties. The penalty parameter is selected automatically via an EBIC-based grid search with warm starts (<code>find_penalized_lambda()</code>), and <code>refit()</code> re-estimates the selected sparse structure without the penalty for valid inference:
+      The 0.16 release introduced penalized maximum likelihood (<code>estimator = "PML"</code>) and penalized FIML (<code>"PFIML"</code>) with LASSO, ridge, and elastic-net penalties. The penalty parameter is selected automatically via an EBIC-based grid search with warm starts (<code>find_penalized_lambda()</code>), and <code>refit()</code> re-estimates the selected sparse structure without the penalty for valid inference:
     </p>
     <pre><code class="language-r">library("psychonetrics")
 library("dplyr")
@@ -374,16 +374,16 @@ mod_pml@optim$penalty$lambda     # selected penalty: 0.088 (15 of 45 edges set t
 # Refit the selected structure without penalty for valid inference:
 mod_refit <- mod_pml %>% refit</code></pre>
     <p>
-      Recent fixes: the elastic-net penalty (0 &lt; <code>penalty_alpha</code> &lt; 1) no longer applies the ridge component twice (0.15.30; LASSO results were unaffected), and the default <code>beta_min</code> thresholding now matches the documentation.
+      Recent fixes: the elastic-net penalty (0 &lt; <code>penalty_alpha</code> &lt; 1) no longer applies the ridge component twice (0.16; LASSO results were unaffected), and the default <code>beta_min</code> thresholding now matches the documentation.
     </p>
   </div>
 
   <!-- ===================== ml_lvm + meta frameworks ===================== -->
   <div class="whatsnew-item" id="mllvm">
-    <h2>Multi-level &amp; meta-analytic frameworks matured <span class="version-tag">0.15 series</span></h2>
+    <h2>Multi-level &amp; meta-analytic frameworks matured <span class="version-tag">0.16</span></h2>
     <p class="whatsnew-meta">See the new <a href="mllvm.html">multi-level</a> and <a href="meta.html">meta-analysis</a> pages</p>
     <p>
-      The multi-level latent variable model <code>ml_lvm()</code> &mdash; a two-level random-intercept model decomposing within-cluster and between-cluster structures &mdash; received important correctness fixes in this series: the latent intercepts are now properly identified (0.15.18; standard errors and degrees of freedom were affected, estimates were not), the analytic Jacobian includes the previously omitted mean derivative with respect to the between-level regressions (0.15.28), and variable-name matching and incomplete-design handling were hardened (0.15.30).
+      The multi-level latent variable model <code>ml_lvm()</code> &mdash; a two-level random-intercept model decomposing within-cluster and between-cluster structures &mdash; received important correctness fixes in this series: the latent intercepts are now properly identified (0.16; standard errors and degrees of freedom were affected, estimates were not), the analytic Jacobian includes the previously omitted mean derivative with respect to the between-level regressions (0.16), and variable-name matching and incomplete-design handling were hardened (0.16).
     </p>
     <pre><code class="language-r"># Two-level CFA: 60 clusters, 2 factors, 6 indicators
 mod_ml <- ml_lvm(Data, lambda = Lambda, clusters = "cluster") %>% runmodel
