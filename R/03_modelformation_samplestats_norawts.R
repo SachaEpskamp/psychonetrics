@@ -19,8 +19,10 @@ samplestats_norawts <- function(
   fullFIML = FALSE, # <- if estimator is FIML, do full FIML. Usually not needed...
   bootstrap = FALSE,
   boot_sub,
-  boot_resample
+  boot_resample,
+  likelihood = c("normal","wishart") # Gaussian likelihood scaling. "wishart" stores the UNBIASED (n-1 denominator) sample covariance per group instead of the ML (n denominator) one (matches lavaan likelihood = "wishart").
 ){
+  likelihood <- match.arg(likelihood)
   # bootstrap defaults:
   if (bootstrap == "nonparametric"){
     bootstrap <- TRUE
@@ -272,7 +274,11 @@ samplestats_norawts <- function(
         # drop = FALSE keeps a single-variable selection a matrix so nrow()/cov()
         # behave (otherwise a 1-node model fails with a cryptic NULL nrow error):
         datmat <- data[,c(vars), drop = FALSE]
-        cov <- (nrow(datmat)-1)/(nrow(datmat)) * cov(datmat, use = switch(
+        # ML (n denominator) covariance by default; the UNBIASED (n-1) covariance
+        # under likelihood = "wishart" (cov() is already n-1, so the rescaling is
+        # skipped):
+        cov_rescale <- if (likelihood == "wishart") 1 else (nrow(datmat)-1)/(nrow(datmat))
+        cov <- cov_rescale * cov(datmat, use = switch(
           missing, "listwise" = "complete.obs", "pairwise" = "pairwise.complete.obs"
         ))
 
@@ -370,7 +376,9 @@ samplestats_norawts <- function(
           
           # drop = FALSE keeps a single-variable selection a matrix (see above):
           subData <- data[data[[groups]] == g,c(vars), drop = FALSE]
-          cov <-  (nrow(subData)-1)/(nrow(subData)) *
+          # ML (n) covariance by default; unbiased (n-1) under wishart:
+          cov_rescale <- if (likelihood == "wishart") 1 else (nrow(subData)-1)/(nrow(subData))
+          cov <-  cov_rescale *
             cov(subData, use = switch(
               missing, "listwise" = "complete.obs", "pairwise" = "pairwise.complete.obs"
             ))
@@ -582,6 +590,15 @@ samplestats_norawts <- function(
     if (covtype == "UB"){
       for (i in seq_along(covs)){
         covs[[i]] <- covUBtoML(as.matrix(covs[[i]]), nobs[i])
+      }
+    }
+
+    # Under likelihood = "wishart" the stored covariance must be the UNBIASED
+    # (n-1 denominator) one. The covs are in ML form here, so rescale by
+    # n/(n-1) per group:
+    if (likelihood == "wishart"){
+      for (i in seq_along(covs)){
+        covs[[i]] <- as.matrix(covs[[i]]) * nobs[i] / (nobs[i] - 1)
       }
     }
   }

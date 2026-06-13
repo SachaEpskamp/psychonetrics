@@ -74,6 +74,33 @@ getVCOV <- function(model,approximate_SEs = FALSE){
     # else: fall back to naive ML VCOV (computed below).
   }
 
+  # Wishart Gaussian likelihood (varcov / lvm, complete-data ML): the parameter
+  # covariance is scaled by 1/(n_g - 1) per group instead of 1/n_g (so SEs are
+  # inflated by sqrt(n_g/(n_g-1))), matching lavaan likelihood = "wishart". The
+  # unit Fisher information weights group g by n_g/N (see expected_hessian_*),
+  # so recomputing it on a copy of the model whose group sizes are reduced to
+  # (n_g - 1) yields sum_g ((n_g-1)/(N-G)) I_g; dividing that by (N-G) gives
+  # exactly (sum_g (n_g-1) I_g)^-1 — the Wishart sampling covariance for any
+  # number of groups. The point estimates are unaffected (the implied matrices
+  # do not depend on nobs).
+  if (is_wishart(model) && model@estimator %in% c("ML")){
+    nobs_g <- model@sample@groups$nobs
+    if (all(nobs_g > 1)){
+      model_w <- model
+      model_w@sample@groups$nobs <- nobs_g - 1
+      # Force a fresh information computation on the reduced-nobs copy (the
+      # cached x@information used the full nobs):
+      model_w@information <- matrix(0, 0, 0)
+      if (model_w@cpp){
+        Info_w <- psychonetrics_FisherInformation_cpp(model_w)
+      } else {
+        Info_w <- psychonetrics_FisherInformation(model_w)
+      }
+      nW <- sum(nobs_g - 1)
+      return(1/nW * as.matrix(solve_symmetric(Info_w, approx = approximate_SEs)))
+    }
+  }
+
   # The @information slot is a "matrix" slot, so when a model is run with
   # addInformation = FALSE it holds the default empty 0x0 matrix rather than
   # NULL. Treat a zero-size matrix as absent and recompute the Fisher

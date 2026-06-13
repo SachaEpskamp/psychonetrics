@@ -1113,6 +1113,50 @@ fiml_saturated_loglikelihood <- function(x) {
   total_ll / 2
 }
 
+# Per-group Gaussian ML discrepancy F_g of a fitted varcov / lvm model: the
+# normal-theory fit function evaluated at the model-implied moments against the
+# stored sample moments,
+#   F_g = log|Sigma| - log|S| + tr(S Sigma^-1) - p  [ + (ybar - mu)' Sigma^-1 (ybar - mu) ]
+# (the mean term is included only when the model carries a mean structure). The
+# sum_g n_g F_g equals -2*(LL - satLL); the Wishart chi-square replaces the n_g
+# multipliers by (n_g - 1). Returns a numeric vector (one F_g per group), or NULL
+# if the implied / sample moments are unavailable.
+gaussian_discrepancy_per_group <- function(x){
+  if (length(x@modelmatrices) == 0) return(NULL)
+  if (length(x@sample@covs) == 0) return(NULL)
+  nGroup <- nrow(x@sample@groups)
+  meanstructure <- x@meanstructure
+  Fvec <- numeric(nGroup)
+  for (g in seq_len(nGroup)){
+    Sigma <- as.matrix(x@modelmatrices[[g]]$sigma)
+    S <- as.matrix(x@sample@covs[[g]])
+    p <- ncol(Sigma)
+    Si <- solve(Sigma)
+    Fml <- as.numeric(determinant(Sigma, logarithm = TRUE)$modulus) -
+      as.numeric(determinant(S, logarithm = TRUE)$modulus) +
+      sum(S * t(Si)) - p
+    if (meanstructure){
+      mu <- as.numeric(x@modelmatrices[[g]]$mu)
+      ybar <- as.numeric(x@sample@means[[g]])
+      if (length(mu) == p && length(ybar) == p && !anyNA(ybar)){
+        dmu <- ybar - mu
+        Fml <- Fml + as.numeric(crossprod(dmu, Si %*% dmu))
+      }
+    }
+    Fvec[g] <- Fml
+  }
+  Fvec
+}
+
+# Wishart chi-square of a fitted Gaussian model = sum_g (n_g - 1) * F_g (vs the
+# normal-theory chi-square sum_g n_g * F_g = -2*(LL - satLL)). Used for the model
+# and the baseline under likelihood = "wishart". Returns NULL if F_g unavailable.
+wishart_chisq <- function(x){
+  Fvec <- gaussian_discrepancy_per_group(x)
+  if (is.null(Fvec)) return(NULL)
+  sum((x@sample@groups$nobs - 1) * Fvec)
+}
+
 # Computes fit measures
 addfit <- function(
  x, #, ebicTuning = 0.25
@@ -1201,11 +1245,24 @@ addfit <- function(
     LL <- NA
   }
 
+  # fixed.x: the x-block is conditioned on rather than modelled, so the reported
+  # log-likelihoods are the CONDITIONAL log-likelihoods (likelihood of the
+  # endogenous variables given x), obtained by subtracting the saturated marginal
+  # x-block log-likelihood from the joint log-likelihoods. This matches lavaan's
+  # fixed.x reporting. The chi-square (-2*(LL - satLL)) is unaffected because the
+  # same marginal cancels (the x-block is fixed identically in the model and the
+  # saturated reference), so it is computed from the unadjusted joint LL/satLL
+  # below; only the reported logl / AIC / BIC change.
+  fx_marg <- 0
+  if (length(get_fixed_x(x)$idx) > 0){
+    fx_marg <- tryCatch(fixed_x_marginal_loglik(x), error = function(e) 0)
+  }
+
   # Add to list:
-  fitMeasures$logl <- LL
-  fitMeasures$unrestricted.logl <- satLL
-  fitMeasures$baseline.logl <- basLL
-  
+  fitMeasures$logl <- LL - fx_marg
+  fitMeasures$unrestricted.logl <- satLL - fx_marg
+  fitMeasures$baseline.logl <- basLL - fx_marg
+
   # Number of variables:
   fitMeasures$nvar <- nVar <- nrow(x@sample@variables)
   
@@ -1226,7 +1283,15 @@ addfit <- function(
   
   # Likelihood ratio:
   if (x@estimator %in% c("FIML","ML")){
-    fitMeasures$chisq <- -2 * (LL - satLL)
+    # Under the Wishart Gaussian likelihood the chi-square uses (n_g - 1)
+    # multipliers (chisq = sum_g (n_g-1) F_g) rather than the normal-theory
+    # -2*(LL - satLL) = sum_g n_g F_g (matches lavaan likelihood = "wishart").
+    wchisq <- if (is_wishart(x)) tryCatch(wishart_chisq(x), error = function(e) NULL) else NULL
+    if (!is.null(wchisq) && is.finite(wchisq)){
+      fitMeasures$chisq <- wchisq
+    } else {
+      fitMeasures$chisq <- -2 * (LL - satLL)
+    }
   } else  if (x@estimator %in% c("WLS","DWLS","ULS")){
     fitMeasures$chisq <- x@objective  * (sampleSize)
   }
@@ -1288,7 +1353,13 @@ addfit <- function(
     # fitMeasures$fmin_baseline <- x@baseline_saturated$baseline@objective
     # fitMeasures$baseline.chisq <-  sampleSize * fitMeasures$fmin_baseline
     if (x@estimator%in% c("FIML","ML")){
-      fitMeasures$baseline.chisq <-  -2 * (basLL - satLL)
+      # Wishart: baseline chisq also uses (n_g - 1) multipliers.
+      wbchisq <- if (is_wishart(x)) tryCatch(wishart_chisq(x@baseline_saturated$baseline), error = function(e) NULL) else NULL
+      if (!is.null(wbchisq) && is.finite(wbchisq)){
+        fitMeasures$baseline.chisq <- wbchisq
+      } else {
+        fitMeasures$baseline.chisq <-  -2 * (basLL - satLL)
+      }
     } else  if (x@estimator %in% c("WLS","DWLS","ULS")){
       fitMeasures$baseline.chisq <- x@baseline_saturated$baseline@objective  * (sampleSize)
     }

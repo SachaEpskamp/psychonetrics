@@ -109,6 +109,7 @@ prototype = list(
     var2_id = integer(0),
     est = numeric(0),
     std = numeric(0),
+    se_std = numeric(0), # Standard error of the standardized (std.all) estimate; filled by parameters(standardized = TRUE). NA for fixed parameters and for families other than lvm/varcov. Always read defensively (objects saved before this column existed lack it).
     se = numeric(0),
     p = numeric(0),
     se_boot = numeric(0),

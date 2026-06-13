@@ -24,6 +24,8 @@ varcov <- function(
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   estimator = "default",
+  likelihood = c("normal","wishart"), # Gaussian likelihood scaling (ML/FIML only). "normal" (default) uses the n denominator; "wishart" uses the n-1 denominator (unbiased S, chisq = (N-1) Fhat, SEs scaled by sqrt(N/(N-1))), matching lavaan likelihood = "wishart".
+  fixed_x = character(0), # Exogenous variables whose means and mutual (co)variances are fixed to their sample values (excluded from npar/df), matching lavaan fixed.x = TRUE. Only for type = "cov".
   optimizer,
   storedata = FALSE,
   WLS.W,
@@ -93,9 +95,34 @@ varcov <- function(
     }
   }
 
+  # Gaussian likelihood scaling ("normal" / "wishart"). The wishart scaling is a
+  # complete-data ML feature: it requires the n-1 (unbiased) sample covariance and
+  # the (N-1) chisq/SE scaling, which are only defined for complete-data ML (as in
+  # lavaan, which likewise restricts likelihood = "wishart" to ML). Error
+  # informatively for FIML / PFIML (missing data) and the least-squares
+  # estimators:
+  likelihood <- match.arg(likelihood)
+  if (likelihood == "wishart"){
+    if (estimator %in% c("FIML","PFIML")){
+      stop("likelihood = 'wishart' is not supported for the 'FIML' estimator (it requires complete-data maximum likelihood). Use likelihood = 'normal' (the default).")
+    }
+    if (estimator %in% c("WLS","DWLS","ULS","PML")){
+      stop("likelihood = 'wishart' is only supported for maximum-likelihood (estimator = 'ML') estimation, not for ", estimator, ".")
+    }
+    if (length(ordered) > 0){
+      stop("likelihood = 'wishart' is not supported for ordinal data.")
+    }
+    if (isTRUE(rawts)){
+      stop("likelihood = 'wishart' is not supported for raw time-series input.")
+    }
+  }
+
   # Experimental warnings:
   if (length(ordered) > 0) {
     experimentalWarning("ordinal data in varcov()")
+  }
+  if (likelihood == "wishart" && verbose) {
+    experimentalWarning("wishart likelihood")
   }
 
   # Check WLS for ordinal:
@@ -119,12 +146,29 @@ varcov <- function(
   
   # Type:
   type <- match.arg(type)
-  
+
+  # fixed.x exogenous covariates. Only supported for the covariance
+  # parameterisation (type = "cov"), where the x-x block lives directly in the
+  # 'sigma' matrix; the other parameterisations (ggm/prec/chol/cor) do not
+  # expose the x-x covariance block as free parameters.
+  fixed_x <- as.character(fixed_x)
+  if (length(fixed_x) > 0){
+    if (type != "cov"){
+      stop("fixed_x is currently only supported for varcov(type = 'cov').")
+    }
+    if (length(ordered) > 0){
+      stop("fixed_x is not supported for ordinal data.")
+    }
+    if (estimator %in% c("FIML","PFIML")){
+      stop("fixed_x is not supported for the 'FIML' estimator. Use complete data with estimator = 'ML'.")
+    }
+  }
+
   # Set meanstructure:
   if (missing(meanstructure)){
     meanstructure <- (!missing(data) || !missing(means))
   }
-  
+
   # Check FIML:
   if (!missing(data) && !meanstructure && estimator %in% c("FIML", "PFIML")){
     stop("meanstructure = FALSE is not yet supported for 'FIML'/'PFIML' estimator")
@@ -140,6 +184,9 @@ varcov <- function(
       }
       has_missing <- any(is.na(data[, check_vars, drop = FALSE]))
       if (has_missing) {
+        if (likelihood == "wishart") {
+          stop("likelihood = 'wishart' is not supported with missing data (it requires complete-data maximum likelihood). Use listwise deletion or likelihood = 'normal'.")
+        }
         if (estimator == "ML") {
           estimator <- "FIML"
         } else if (estimator == "PML") {
@@ -189,9 +236,10 @@ varcov <- function(
                                fullFIML=fullFIML,
                                bootstrap=bootstrap,
                                boot_sub = boot_sub,
-                               boot_resample = boot_resample)
+                               boot_resample = boot_resample,
+                               likelihood = likelihood)
   }
- 
+
   # Overwrite corinput:
   corinput <- sampleStats@corinput
 
@@ -206,10 +254,23 @@ varcov <- function(
   nNode <- nrow(sampleStats@variables)
   
   # Generate model object:
-  model <- generate_psychonetrics(model = "varcov",sample = sampleStats,computed = FALSE, 
+  # Validate fixed_x against the variable names (now that sample stats exist):
+  if (length(fixed_x) > 0){
+    varlabels <- sampleStats@variables$label
+    bad <- setdiff(fixed_x, varlabels)
+    if (length(bad) > 0){
+      stop("fixed_x variable(s) not found among the model variables: ", paste(bad, collapse = ", "))
+    }
+    if (length(fixed_x) >= length(varlabels)){
+      stop("fixed_x cannot include all variables: at least one endogenous variable must remain.")
+    }
+    if (verbose) experimentalWarning("fixed.x exogenous covariates")
+  }
+
+  model <- generate_psychonetrics(model = "varcov",sample = sampleStats,computed = FALSE,
                                   equal = equal,
                                   optimizer =  defaultoptimizer(), estimator = estimator, distribution = "Gaussian",
-                                  rawts = rawts, types = list(y = type),
+                                  rawts = rawts, types = list(y = type, likelihood = likelihood, fixed_x = fixed_x),
                                   submodel = type, meanstructure = meanstructure, verbose=verbose)
   
   # Number of groups:
@@ -227,12 +288,19 @@ varcov <- function(
 
   
   # Add number of observations:
-  model@sample@nobs <-  
+  model@sample@nobs <-
     nNode * (nNode-1) / 2 * nGroup + # Covariances per group
     (!corinput) * nNode * nGroup + # Variances (ignored if correlation matrix is input)
     meanstructure * nMeans + # Means per group
     nThresh
-  
+
+  # fixed.x: the pure x-block (x means + x-x (co)variances) is conditioned on
+  # rather than modelled, so its statistics leave the df count:
+  if (length(fixed_x) > 0){
+    p_x <- length(fixed_x)
+    model@sample@nobs <- model@sample@nobs - fixed_x_nstat_drop(p_x, nGroup, meanstructure)
+  }
+
   # Model matrices:
   modMatrices <- list()
   
@@ -338,8 +406,25 @@ varcov <- function(
  
   # Generate the full parameter table:
   pars <- do.call(generateAllParameterTables, modMatrices)
-  
-  
+
+
+  # fixed.x: fix the x-block of the parameter table (x means in 'mu' and the x-x
+  # covariance block in 'sigma') to the sample moments and renumber the free
+  # parameters. The cross (x-y) covariances and the y-y block remain free, so
+  # the model conditions on x while every endogenous moment stays estimated:
+  if (length(fixed_x) > 0){
+    x_idx <- match(fixed_x, sampleStats@variables$label)
+    pars$partable <- apply_fixed_x_partable(
+      partable = pars$partable,
+      x_idx = x_idx,
+      cov_matrix = "sigma",
+      mean_matrix = if (meanstructure) "mu" else NA_character_,
+      sample_covs = model@sample@covs,
+      sample_means = model@sample@means,
+      group_ids = model@sample@groups$id
+    )
+  }
+
   # Store in model:
   model@parameters <- pars$partable
   model@matrices <- pars$mattable
@@ -403,7 +488,7 @@ varcov <- function(
                                                   meanstructure=meanstructure,
                                                   corinput = corinput,
                                                   ordered = ordered,
-                                                  baseline_saturated = FALSE,sampleStats=sampleStats)
+                                                  baseline_saturated = FALSE,sampleStats=sampleStats, likelihood = likelihood)
     } else {
       model@baseline_saturated$baseline <- varcov(data,
                                                   type = "cor",
@@ -419,7 +504,7 @@ varcov <- function(
                                                   meanstructure=meanstructure,
                                                   corinput = corinput,
                                                   ordered = ordered,
-                                                  baseline_saturated = FALSE,sampleStats=sampleStats)
+                                                  baseline_saturated = FALSE,sampleStats=sampleStats, likelihood = likelihood)
     }
 
     
@@ -447,7 +532,7 @@ varcov <- function(
                                                    meanstructure=meanstructure,
                                                    corinput = corinput,
                                                    ordered = ordered,
-                                                   baseline_saturated = FALSE,sampleStats=sampleStats)
+                                                   baseline_saturated = FALSE,sampleStats=sampleStats, likelihood = likelihood)
     } else {
       model@baseline_saturated$saturated <- varcov(data,
                                                    type = "cor",
@@ -462,7 +547,7 @@ varcov <- function(
                                                    meanstructure=meanstructure,
                                                    corinput = corinput,
                                                    ordered = ordered,
-                                                   baseline_saturated = FALSE,sampleStats=sampleStats)
+                                                   baseline_saturated = FALSE,sampleStats=sampleStats, likelihood = likelihood)
     }
 
     

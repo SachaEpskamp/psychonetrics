@@ -24,6 +24,8 @@ lvm(data, lambda, latent = c("cov", "chol", "prec",
                    groups, groupvar, covs, cors, means, nobs,
                    missing = "auto", equal = "none",
                    baseline_saturated = TRUE, estimator = "default",
+                   likelihood = c("normal", "wishart"),
+                   fixed_x = character(0),
                    optimizer, storedata = FALSE, WLS.W, covtype =
                    c("choose", "ML", "UB"), corinput, standardize = c("none", "z",
                    "quantile"), sampleStats, verbose = FALSE,
@@ -140,6 +142,12 @@ A logical indicating if the baseline and saturated model should be included. Mos
   \item{estimator}{
 The estimator to be used. Currently implemented are \code{"ML"} for maximum likelihood estimation, \code{"FIML"} for full-information maximum likelihood estimation, \code{"PML"} for penalized maximum likelihood estimation, \code{"PFIML"} for penalized full-information maximum likelihood estimation, \code{"ULS"} for unweighted least squares estimation, \code{"WLS"} for weighted least squares estimation, and \code{"DWLS"} for diagonally weighted least squares estimation. \code{"WLSMV"} is accepted as a synonym for \code{"DWLS"} (both use DWLS estimation with a mean-and-variance adjusted scaled test statistic). When \code{missing = "auto"} (default), \code{"ML"} is automatically switched to \code{"FIML"} and \code{"PML"} to \code{"PFIML"} if missing data is detected. Defaults to \code{"ML"} for continuous data and \code{"DWLS"} when ordinal variables are specified via \code{ordered}.
 }
+  \item{likelihood}{
+The Gaussian likelihood scaling for maximum-likelihood estimation. \code{"normal"} (the default) uses the \eqn{n} (biased) sample-covariance denominator; \code{"wishart"} uses the \eqn{n-1} (unbiased) sample covariance per group, so the chi-square uses \eqn{(n_g - 1)} multipliers and the standard errors are inflated by \eqn{\sqrt{n_g/(n_g-1)}}, matching \code{lavaan}'s \code{likelihood = "wishart"} (Rosseel, 2012). Only available for complete-data maximum likelihood (\code{estimator = "ML"}); it errors for \code{FIML}, least-squares and ordinal estimators and for raw time-series input. Default \code{"normal"} reproduces previous behaviour exactly.
+}
+  \item{fixed_x}{
+Character vector of exogenous \emph{latent} variable names whose means and mutual (co)variances are fixed to their sample values and excluded from the free-parameter count and the degrees-of-freedom statistic count, matching \code{lavaan}'s \code{sem(..., fixed.x = TRUE)} (Rosseel, 2012). This is the way to enter observed exogenous covariates into a \pkg{psychonetrics} SEM: model each observed covariate as a single-indicator latent (loading 1, residual variance 0) and pass that latent's name. Fixing conditions the model on these covariates and relaxes the multivariate-normality assumption on them; regression paths from the fixed-x latents (\eqn{x \rightarrow \eta}) remain free. Only supported for complete-data \code{estimator = "ML"}. The reported log-likelihood is the conditional log-likelihood. Default \code{character(0)} (behaviour unchanged). \emph{Note}: as in \code{\link{varcov}}, the incremental fit indices use the unconditional baseline and may differ from \code{lavaan}; the absolute fit measures (chi-square, df, RMSEA, AIC, BIC, log-likelihood) and all estimates and standard errors match.
+}
   \item{optimizer}{
 The optimizer to be used. Can be one of \code{"nlminb"} (the default R \code{nlminb} function), \code{"ucminf"} (from the \code{optimr} package), \code{"nloptr_TNEWTON"} (preconditioned truncated Newton via \code{nloptr}), and \code{"LBFGS++"} (pure C++ L-BFGS-B). Defaults to \code{"nlminb"}.
 }
@@ -217,6 +225,8 @@ An object of the class psychonetrics (\link{psychonetrics-class})
 Epskamp, S., Rhemtulla, M., & Borsboom, D. (2017). Generalized network psychometrics: Combining network and latent variable models. Psychometrika, 82(4), 904-927.
 
 Muthen, B. (1984). A general structural equation model with dichotomous, ordered categorical, and continuous latent variable indicators. Psychometrika, 49(1), 115-132.
+
+Rosseel, Y. (2012). lavaan: An R package for structural equation modeling. \emph{Journal of Statistical Software, 48}(2), 1--36. \doi{10.18637/jss.v048.i02}
 }
 \author{
 Sacha Epskamp
@@ -271,6 +281,9 @@ mod1
 
 # Look at parameter estimates:
 mod1 \%>\% parameters
+
+# Completely standardized (std.all) solution with standard errors:
+mod1 \%>\% parameters(standardized = TRUE)
 
 # Look at modification indices:
 mod1 \%>\% MIs

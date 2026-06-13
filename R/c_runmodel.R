@@ -1027,8 +1027,11 @@ runmodel <- function(
     # getVCOV() sandwich path; the C++ addSEs_cpp() only delegates to R for
     # ULS/DWLS. Route robust ML through the R addSEs() so its sandwich VCOV is
     # used (point estimates and all other estimators are unaffected). MLR with
-    # within-row missing data maps internally to FIML, so include FIML here:
-    use_cpp_SEs <- x@cpp && !(x@estimator %in% c("ML", "FIML") && is_robust_ML(x))
+    # within-row missing data maps internally to FIML, so include FIML here.
+    # Wishart models also use the R addSEs() so getVCOV()'s (n-1)-scaled
+    # parameter covariance is applied (the C++ addSEs_cpp uses 1/n directly):
+    use_cpp_SEs <- x@cpp && !(x@estimator %in% c("ML", "FIML") && is_robust_ML(x)) &&
+      !is_wishart(x)
     if (use_cpp_SEs){
       if (verbose){
         message("Adding standard errors...")

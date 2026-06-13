@@ -1,20 +1,35 @@
 # psychonetrics parameter extraction:
-parameters <- function(x){
-  
+parameters <- function(x, standardized = FALSE){
+
   # FIXME: if the model is aggregate bootstraps run different function instead:
   if (is(x,"psychonetrics_bootstrap")){
     return(parameters_bootstrap(x))
   }
-  
+
   # Error if not psychonetrics:
   stopifnot(is(x,"psychonetrics"))
-  
-  
+
+
   # Bootstrap warning:
   if (x@sample@bootstrap){
     boot_warning()
   }
-  
+
+  # Standardized (std.all) solution. Compute std / se_std for the supported
+  # families (lvm, varcov) and warn otherwise. Populating the parameters table
+  # in a local copy keeps x@parameters (and thus the returned object) unchanged
+  # unless the user explicitly requests standardization.
+  if (isTRUE(standardized)){
+    if (x@model %in% c("lvm", "varcov")){
+      if (x@verbose) experimentalWarning("standardized solutions")
+      x <- addStandardized(x)
+    } else {
+      warning("Standardized solutions are currently only implemented for the 'lvm' and 'varcov' model families; returning NA in the 'std' / 'se_std' columns.")
+      if (is.null(x@parameters[["std"]])) x@parameters$std <- rep(NA_real_, nrow(x@parameters))
+      if (is.null(x@parameters[["se_std"]])) x@parameters$se_std <- rep(NA_real_, nrow(x@parameters))
+    }
+  }
+
 
   # # AWESOME HEADER!!!
   # cat(
@@ -25,10 +40,13 @@ parameters <- function(x){
   # No awesome header :(
   # Obtain the parameter table:
   parTable <- x@parameters
-  
+
+  # Ensure the standardized columns exist (guarded for old objects):
+  if (is.null(parTable[["std"]])) parTable$std <- rep(NA_real_, nrow(parTable))
+  if (is.null(parTable[["se_std"]])) parTable$se_std <- rep(NA_real_, nrow(parTable))
+
   # filter only non-zero parameters and select only relevant columns:
-  # FIXME: std not yet implemented, so remove now:
-  
+
   if (x@estimator == "PML") {
     cols <- c("var1","op","var2","est","penalty_lambda","matrix","row","col","group","par")
     boots <- FALSE
@@ -39,6 +57,11 @@ parameters <- function(x){
     cols <- c("var1","op","var2","est","se","p","matrix","row","col","group","par")
     boots <- FALSE
   }
+  # Insert the standardized columns (std, se_std) right after est when requested:
+  if (isTRUE(standardized)){
+    est_pos <- match("est", cols)
+    cols <- append(cols, c("std","se_std"), after = est_pos)
+  }
   parTable <- parTable %>% filter(drop(!.data[['fixed']]|.data[['est']] != 0)) %>%
     select(all_of(cols))
 
@@ -47,6 +70,10 @@ parameters <- function(x){
 
   # Pretty numbers:
   parTable$est <- goodNum2(parTable$est)
+  if (isTRUE(standardized)){
+    parTable$std <- goodNum2(parTable$std)
+    parTable$se_std <- goodNum(parTable$se_std)
+  }
   if (x@estimator == "PML") {
     parTable$penalty_lambda <- goodNum2(parTable$penalty_lambda)
   } else {
@@ -63,7 +90,7 @@ parameters <- function(x){
   # if not computed, remove est, se and p (only if they exist):
   if (!x@computed){
     warning("Model has not been computed! Not returning estimates, standard errors and p-values. Use runmodel() to compute the model.")
-    drop_cols <- intersect(c("est", "se", "p"), names(parTable))
+    drop_cols <- intersect(c("est", "std", "se_std", "se", "p"), names(parTable))
     parTable <- parTable %>% select(-all_of(drop_cols))
   }
   

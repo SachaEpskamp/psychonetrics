@@ -19,7 +19,9 @@ varcov(data, type = c("cov", "chol", "prec", "ggm", "cor"),
                    "full", mu, tau, vars, ordered = character(0), groups,
                    groupvar, covs, cors, means, nobs, missing = "auto", equal =
                    "none", baseline_saturated = TRUE, estimator =
-                   "default", optimizer, storedata = FALSE, WLS.W,
+                   "default", likelihood = c("normal", "wishart"),
+                   fixed_x = character(0),
+                   optimizer, storedata = FALSE, WLS.W,
                    sampleStats, meanstructure, corinput, verbose = FALSE,
                    covtype = c("choose", "ML", "UB"), standardize =
                    c("none", "z", "quantile"), fullFIML = FALSE,
@@ -103,6 +105,12 @@ A logical indicating if the baseline and saturated model should be included. Mos
   \item{estimator}{
 The estimator to be used. Currently implemented are \code{"ML"} for maximum likelihood estimation, \code{"FIML"} for full-information maximum likelihood estimation, \code{"PML"} for penalized maximum likelihood estimation, \code{"PFIML"} for penalized full-information maximum likelihood estimation, \code{"ULS"} for unweighted least squares estimation, \code{"WLS"} for weighted least squares estimation, and \code{"DWLS"} for diagonally weighted least squares estimation. \code{"WLSMV"} is accepted as a synonym for \code{"DWLS"} (both use DWLS estimation with a mean-and-variance adjusted scaled test statistic). When \code{missing = "auto"} (default), \code{"ML"} is automatically switched to \code{"FIML"} and \code{"PML"} to \code{"PFIML"} if missing data is detected. Defaults to \code{"ML"} for continuous data and \code{"DWLS"} when ordinal variables are specified via \code{ordered}.
 }
+  \item{likelihood}{
+The Gaussian likelihood scaling for maximum-likelihood estimation. \code{"normal"} (the default) uses the \eqn{n} (biased) sample-covariance denominator, so the chi-square is \eqn{N \hat{F}} and the parameter covariance is \eqn{\mathrm{Info}^{-1}/N}. \code{"wishart"} uses the \eqn{n-1} (unbiased) sample covariance per group, so the chi-square uses \eqn{(n_g - 1)} multipliers and the standard errors are inflated by \eqn{\sqrt{n_g/(n_g-1)}}, matching \code{lavaan}'s \code{likelihood = "wishart"} (Rosseel, 2012). Only available for complete-data maximum likelihood (\code{estimator = "ML"}); it errors for \code{FIML}, least-squares and ordinal estimators and for raw time-series input. Default \code{"normal"} reproduces the behaviour of previous versions exactly.
+}
+  \item{fixed_x}{
+Character vector of exogenous variable names whose means and mutual (co)variances are fixed to their sample values and excluded from the free-parameter count and the degrees-of-freedom statistic count, matching \code{lavaan}'s \code{sem(..., fixed.x = TRUE)} (Rosseel, 2012). The model is thereby conditioned on these variables, which relaxes the distributional (multivariate-normality) assumption on them; the cross-covariances between the fixed-x and the endogenous variables remain free. Only supported for \code{type = "cov"} and complete-data \code{estimator = "ML"}. The reported log-likelihood is the conditional log-likelihood (of the endogenous variables given x). Default \code{character(0)} (no fixed.x; behaviour unchanged). \emph{Note}: the incremental fit indices (CFI/TLI/NFI/\ldots) use \pkg{psychonetrics}' unconditional independence baseline and may therefore differ from \code{lavaan}, which conditions its baseline on x; the absolute fit measures (chi-square, df, RMSEA, AIC, BIC, log-likelihood) and all estimates and standard errors match \code{lavaan}.
+}
   \item{optimizer}{
 The optimizer to be used. Can be one of \code{"nlminb"} (the default R \code{nlminb} function), \code{"ucminf"} (from the \code{optimr} package), \code{"nloptr_TNEWTON"} (preconditioned truncated Newton via \code{nloptr}), and \code{"LBFGS++"} (pure C++ L-BFGS-B). Defaults to \code{"nlminb"}.
 }
@@ -179,6 +187,8 @@ An object of the class psychonetrics
 }
 \references{
 Epskamp, S., Rhemtulla, M., & Borsboom, D. (2017). Generalized network psychometrics: Combining network and latent variable models. Psychometrika, 82(4), 904-927.
+
+Rosseel, Y. (2012). lavaan: An R package for structural equation modeling. \emph{Journal of Statistical Software, 48}(2), 1--36. \doi{10.18637/jss.v048.i02}
 }
 \author{
 Sacha Epskamp
@@ -265,5 +275,15 @@ mod_pml@optim$lambda_search
 
 # Obtain the sparse network:
 getmatrix(mod_pml, "omega")
+
+# Wishart likelihood (n-1 denominator), matching lavaan likelihood = "wishart":
+mod_wis <- varcov(ConsData, vars = vars, type = "cov", likelihood = "wishart")
+mod_wis <- mod_wis \%>\% runmodel
+
+# fixed.x: condition on A1 and A2 as exogenous covariates (their means and
+# mutual covariances are fixed to the sample values, excluded from npar/df):
+mod_fx <- varcov(ConsData, vars = vars, type = "cov",
+                 fixed_x = c("A1", "A2"))
+mod_fx <- mod_fx \%>\% runmodel
 }
 }

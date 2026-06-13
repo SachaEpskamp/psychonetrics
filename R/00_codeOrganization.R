@@ -91,3 +91,21 @@ is_robust_ML <- function(x){
   cfg <- get_robust_config(x)
   isTRUE(nzchar(cfg$se)) || isTRUE(nzchar(cfg$test))
 }
+
+# Gaussian likelihood scaling for the varcov / lvm families: "normal" (the
+# default, n denominator: chisq = N * Fhat, naive VCOV = Info^-1 / N) or
+# "wishart" (n-1 denominator: unbiased sample covariance, chisq = (N-1) * Fhat,
+# VCOV = Info^-1 / (N-1)), matching lavaan's likelihood = argument. Stored in
+# x@types$likelihood by the constructors; read here with a default of "normal"
+# so that models created before this feature (no likelihood entry) behave
+# exactly as before.
+model_likelihood <- function(x){
+  lik <- x@types$likelihood
+  if (is.null(lik) || !nzchar(lik)) return("normal")
+  lik
+}
+
+# TRUE if the model uses the Wishart Gaussian likelihood scaling.
+is_wishart <- function(x){
+  identical(model_likelihood(x), "wishart")
+}

@@ -45,6 +45,8 @@ lvm <- function(
   equal = "none", # Can also be any of the matrices
   baseline_saturated = TRUE, # Leave to TRUE! Only used to stop recursive calls
   estimator = "default",
+  likelihood = c("normal","wishart"), # Gaussian likelihood scaling (ML only). "normal" (default) uses the n denominator; "wishart" uses the n-1 denominator (unbiased S, chisq = (N-1) Fhat, SEs scaled by sqrt(N/(N-1))), matching lavaan likelihood = "wishart".
+  fixed_x = character(0), # Exogenous latent variable(s) whose means and mutual (co)variances are fixed to their (free) ML values and excluded from npar/df, matching lavaan fixed.x = TRUE for observed exogenous covariates modelled as single-indicator latents.
   optimizer,
   storedata = FALSE,
   WLS.W,
@@ -131,9 +133,45 @@ lvm <- function(
     }
   }
 
+  # fixed.x exogenous covariates (latent names). Supported for complete-data ML
+  # only; the named latents must be exogenous single-indicator latents (the
+  # standard way to enter observed exogenous covariates in a psychonetrics SEM).
+  fixed_x <- as.character(fixed_x)
+  if (length(fixed_x) > 0){
+    if (length(ordered) > 0){
+      stop("fixed_x is not supported for ordinal data.")
+    }
+    if (estimator %in% c("FIML","PFIML")){
+      stop("fixed_x is not supported for the 'FIML' estimator. Use complete data with estimator = 'ML'.")
+    }
+  }
+
+  # Gaussian likelihood scaling ("normal" / "wishart"). Wishart is a
+  # complete-data ML feature (unbiased S, (N-1) chisq/SE scaling); error
+  # informatively for FIML (missing data), ordinal/least-squares and raw
+  # time-series input (lavaan likewise restricts likelihood = "wishart" to ML):
+  likelihood <- match.arg(likelihood)
+  if (likelihood == "wishart"){
+    if (estimator %in% c("FIML","PFIML")){
+      stop("likelihood = 'wishart' is not supported for the 'FIML' estimator (it requires complete-data maximum likelihood). Use likelihood = 'normal' (the default).")
+    }
+    if (estimator %in% c("WLS","DWLS","ULS","PML")){
+      stop("likelihood = 'wishart' is only supported for maximum-likelihood (estimator = 'ML') estimation, not for ", estimator, ".")
+    }
+    if (length(ordered) > 0){
+      stop("likelihood = 'wishart' is not supported for ordinal data.")
+    }
+    if (isTRUE(rawts)){
+      stop("likelihood = 'wishart' is not supported for raw time-series input.")
+    }
+  }
+
   # Experimental warnings:
   if (length(ordered) > 0) {
     experimentalWarning("ordinal data in lvm()")
+  }
+  if (likelihood == "wishart" && verbose) {
+    experimentalWarning("wishart likelihood")
   }
 
   # Check WLS for ordinal:
@@ -173,6 +211,9 @@ lvm <- function(
       }
       has_missing <- any(is.na(data[, check_vars, drop = FALSE]))
       if (has_missing) {
+        if (likelihood == "wishart") {
+          stop("likelihood = 'wishart' is not supported with missing data (it requires complete-data maximum likelihood). Use listwise deletion or likelihood = 'normal'.")
+        }
         if (estimator == "ML") {
           estimator <- "FIML"
         } else if (estimator == "PML") {
@@ -232,7 +273,8 @@ lvm <- function(
                                  standardize = standardize,
                                  bootstrap = bootstrap,
                                  boot_sub = boot_sub,
-                                 boot_resample = boot_resample)
+                                 boot_resample = boot_resample,
+                                 likelihood = likelihood)
     }
   }
 
@@ -262,7 +304,7 @@ lvm <- function(
   model <- generate_psychonetrics(model = "lvm",sample = sampleStats,computed = FALSE,
                                   equal = equal,identification=identification,
                                   optimizer =  defaultoptimizer(), estimator = estimator, distribution = "Gaussian",
-                                  rawts = rawts, types = list(latent = latent, residual = residual),
+                                  rawts = rawts, types = list(latent = latent, residual = residual, likelihood = likelihood, fixed_x = fixed_x),
                                   meanstructure = meanstructure,
                                   verbose=verbose)
 
@@ -643,10 +685,54 @@ lvm <- function(
     }
   }
 
+  # fixed.x: fix the exogenous latent block (their sigma_zeta (co)variances and
+  # the observed indicators' intercepts) to the sample moments and remove their
+  # statistics from the df count. The named exogenous variables must be
+  # single-indicator latents (the standard way to enter observed exogenous
+  # covariates into a psychonetrics SEM): each must be a latent whose lambda
+  # column has exactly one non-zero (unit) loading.
+  if (length(fixed_x) > 0){
+    bad <- setdiff(fixed_x, latents)
+    if (length(bad) > 0){
+      stop("fixed_x must name exogenous *latent* variables (the single-indicator latents carrying the observed covariates). Not found among the latents: ",
+           paste(bad, collapse = ", "), ". The latents are: ", paste(latents, collapse = ", "), ".")
+    }
+    lat_idx <- match(fixed_x, latents)
+    obs_idx <- integer(length(lat_idx))
+    for (k in seq_along(lat_idx)){
+      col <- lambda[, lat_idx[k]]
+      nz <- which(col != 0)
+      if (length(nz) != 1){
+        stop("fixed_x latent '", fixed_x[k], "' is not a single-indicator latent (its lambda column must have exactly one non-zero loading). fixed_x in lvm() is only supported for observed exogenous covariates entered as single-indicator latents.")
+      }
+      obs_idx[k] <- nz
+    }
+
+    pars$partable <- apply_fixed_x_partable_lvm(
+      partable = pars$partable,
+      lat_idx = lat_idx,
+      obs_idx = obs_idx,
+      sample_covs = model@sample@covs,
+      sample_means = model@sample@means,
+      group_ids = model@sample@groups$id,
+      meanstructure = meanstructure
+    )
+
+    # Remove the x-block statistics from the df count:
+    p_x <- length(fixed_x)
+    model@sample@nobs <- model@sample@nobs - fixed_x_nstat_drop(p_x, nGroup, meanstructure)
+
+    # Record the observed indicator indices so the conditional-logl adjustment
+    # (fixed_x_marginal_loglik) can find the x-block among the observed variables:
+    model@types$fixed_x_obs_idx <- obs_idx
+
+    if (verbose) experimentalWarning("fixed.x exogenous covariates")
+  }
+
   # Store in model:
   model@parameters <- pars$partable
   model@matrices <- pars$mattable
-  
+
   # Extra matrices:
   model@extramatrices <- list(
     D = psychonetrics::duplicationMatrix(nNode), # non-strict duplciation matrix
@@ -688,7 +774,7 @@ lvm <- function(
                                                meanstructure = meanstructure,
                                                corinput = corinput,
                                                ordered = ordered,
-                                               baseline_saturated = FALSE, sampleStats = sampleStats)
+                                               baseline_saturated = FALSE, sampleStats = sampleStats, likelihood = likelihood)
     } else {
       model@baseline_saturated$baseline <- varcov(data,
                                                   type = "cor",
@@ -704,7 +790,7 @@ lvm <- function(
                                                   meanstructure = meanstructure,
                                                   corinput = corinput,
                                                   ordered = ordered,
-                                                  baseline_saturated = FALSE, sampleStats = sampleStats)
+                                                  baseline_saturated = FALSE, sampleStats = sampleStats, likelihood = likelihood)
     }
 
     # Add model:
@@ -728,7 +814,7 @@ lvm <- function(
              meanstructure = meanstructure,
              corinput = corinput,
              ordered = ordered,
-             baseline_saturated = FALSE, sampleStats = sampleStats)
+             baseline_saturated = FALSE, sampleStats = sampleStats, likelihood = likelihood)
     } else {
       model@baseline_saturated$saturated <- varcov(data,
              type = "cor",
@@ -743,7 +829,7 @@ lvm <- function(
              meanstructure = meanstructure,
              corinput = corinput,
              ordered = ordered,
-             baseline_saturated = FALSE, sampleStats = sampleStats)
+             baseline_saturated = FALSE, sampleStats = sampleStats, likelihood = likelihood)
     }
 
     # if not FIML/PFIML, Treat as computed:
