@@ -180,26 +180,177 @@ ml_casewise_scores_h1 <- function(Y, mu, Sigma, meanstructure = TRUE, corinput =
   SC
 }
 
-# Assemble the Huber-White (MLR) meat components for estimator = "ML" from raw,
-# complete data (Phase 1). Returns NULL when raw data are unavailable.
+# Pattern-wise casewise scores of the saturated (h1) Gaussian log-likelihood
+# w.r.t. the sample statistics (mu, vech(Sigma)) under MISSING data (FIML).
+# Rows = cases (all rows of Y, including those with NAs), columns = (means then
+# vech(Sigma)) in psychonetrics ordering (the full p + p(p+1)/2 set; missing
+# entries contribute exactly zero). For a case i with observed index set o and
+# residual r = y_io - mu_o, W = Sigma_oo^-1 r:
+#   mean part   : padded W   (zeros for missing variables)
+#   cov  part   : 0.5 (W_a W_b - (Sigma_oo^-1)_ab) for a,b BOTH observed, else 0,
+#                 with the vech (duplication) factor applied by doubling the
+#                 off-diagonal entries (and leaving the diagonal as 0.5 * .).
+# Cases are grouped by missing pattern for speed. Matches lavScores() under
+# missing = "fiml" to machine precision (see extra fable_audit_scripts proto).
+# FIML always carries a mean structure and is never a correlation input, so the
+# meanstructure / corinput row dropping of ml_casewise_scores_h1 does not apply.
+ml_casewise_scores_h1_missing <- function(Y, mu, Sigma){
+  Y <- as.matrix(Y)
+  n <- nrow(Y); p <- ncol(Y)
+  ii <- unlist(lapply(seq_len(p), function(j) j:p))   # vech row idx (col-major)
+  jj <- rep(seq_len(p), times = p:1)                  # vech col idx
+  ns <- p * (p + 1) / 2
+  SC <- matrix(0, n, p + ns)
+  # Group cases by missing pattern (TRUE = observed):
+  obsmat <- !is.na(Y)
+  pat <- apply(obsmat, 1, function(z) paste(as.integer(z), collapse = ""))
+  for (pt in unique(pat)){
+    idx <- which(pat == pt)
+    o <- which(obsmat[idx[1], ])
+    if (length(o) == 0) next
+    Soi <- solve(Sigma[o, o, drop = FALSE])
+    Yc <- sweep(Y[idx, o, drop = FALSE], 2, mu[o])
+    W <- Yc %*% Soi                       # rows: Sigma_oo^-1 (y_o - mu_o)
+    SC[idx, o] <- W
+    for (k in seq_len(ns)){
+      a <- ii[k]; b <- jj[k]
+      ia <- match(a, o); ib <- match(b, o)
+      if (is.na(ia) || is.na(ib)) next    # contributes 0 unless both observed
+      m <- 0.5 * (W[, ia] * W[, ib] - Soi[ia, ib])
+      SC[idx, p + k] <- if (a == b) m else 2 * m
+    }
+  }
+  SC
+}
+
+# Pattern-based OBSERVED information of the UNSTRUCTURED (saturated, h1) Gaussian
+# log-likelihood w.r.t. (mu, vech(Sigma)) under MISSING data, evaluated at the
+# supplied (mu, Sigma). This is the negative Hessian of the FIML saturated
+# log-likelihood (lavaan's lav_mvnorm_missing_logl_hessian), divided by n so it
+# is a UNIT information matrix. Used in the Yuan-Bentler-Mplus tr_h1 term under
+# FIML. Per pattern p (frequency n_p, observed set o, pattern mean M_p, pattern
+# covariance S_p with divisor n_p):
+#   s_inv = pad(Sigma_oo^-1)
+#   t21   = pad(Sigma_oo^-1 (M_p - mu_o))
+#   Wt    = S_p + (M_p - mu_o)(M_p - mu_o)'
+#   t22   = pad(Sigma_oo^-1 (2 Wt - Sigma_oo) Sigma_oo^-1)
+# blocks [s_inv, t21-cross via D'(t21 (x) s_inv); 0.5 D'(s_inv (x) t22) D],
+# frequency-weighted and divided by n. Matches lavaan's unstructured observed h1
+# information under missingness to machine precision.
+ml_h1_information_observed_missing <- function(Y, mu, Sigma){
+  Y <- as.matrix(Y)
+  n <- nrow(Y); p <- ncol(Y); ns <- p * (p + 1) / 2
+  H11 <- matrix(0, p, p); H21 <- matrix(0, ns, p); H22 <- matrix(0, ns, ns)
+  obsmat <- !is.na(Y)
+  pat <- apply(obsmat, 1, function(z) paste(as.integer(z), collapse = ""))
+  for (pt in unique(pat)){
+    idx <- which(pat == pt); npat <- length(idx)
+    o <- which(obsmat[idx[1], ])
+    if (length(o) == 0) next
+    Yp <- Y[idx, o, drop = FALSE]
+    Mp <- colMeans(Yp)
+    Sp <- crossprod(sweep(Yp, 2, Mp)) / npat
+    Soi <- solve(Sigma[o, o, drop = FALSE])
+    s_inv <- matrix(0, p, p); s_inv[o, o] <- Soi
+    t21 <- matrix(0, p, 1); t21[o, 1] <- Soi %*% (Mp - mu[o])
+    Wt <- Sp + tcrossprod(Mp - mu[o])
+    aaa <- Soi %*% (2 * Wt - Sigma[o, o, drop = FALSE]) %*% Soi
+    t22 <- matrix(0, p, p); t22[o, o] <- aaa
+    H11 <- H11 + npat * s_inv
+    H21 <- H21 + npat * lavaan::lav_matrix_duplication_pre(t21 %x% s_inv)
+    H22 <- H22 + npat * 0.5 * lavaan::lav_matrix_duplication_pre_post(s_inv %x% t22)
+  }
+  rbind(cbind(H11, t(H21)), cbind(H21, H22)) / n
+}
+
+# Per-group EM/saturated (h1, unstructured) moments under FIML, as a list of
+# list(mu, sigma) per group. These are a property of the DATA (not of the
+# structural model) and match lavaan's lavTech(fit, "h1") moments. Source order:
+#   1. the model's own fitted saturated submodel (x@baseline_saturated$saturated)
+#      — available for a fitted structural model;
+#   2. otherwise (e.g. the baseline model, which carries no saturated submodel),
+#      fit a saturated varcov FIML model to the stored raw data per group.
+# Returns NULL if neither source is available.
+fiml_em_saturated_moments <- function(x){
+  nGroups <- nrow(x@sample@groups)
+
+  # 1. Reuse the model's fitted saturated submodel if present:
+  sat <- x@baseline_saturated$saturated
+  if (!is.null(sat) && is(sat, "psychonetrics") && length(sat@modelmatrices) >= nGroups){
+    return(lapply(seq_len(nGroups), function(g)
+      list(mu = as.numeric(sat@modelmatrices[[g]]$mu),
+           sigma = as.matrix(sat@modelmatrices[[g]]$sigma))))
+  }
+
+  # 2. Fall back to fitting a saturated varcov FIML model to the raw data. The
+  # saturated (fully free) varcov has df = 0, so its fitted moments are the EM
+  # estimates of (mu, Sigma) under missingness.
+  rawdata <- x@sample@rawdata
+  vars <- attr(rawdata, "vars")
+  groupcol <- attr(rawdata, "groups")
+  if (is.null(vars) || is.null(groupcol) || nrow(rawdata) == 0) return(NULL)
+
+  vc_args <- list(data = rawdata, vars = vars, estimator = "FIML",
+                  storedata = FALSE, baseline_saturated = FALSE)
+  if (nGroups > 1) vc_args$groups <- groupcol   # omit for a single group
+  satmod <- tryCatch(do.call(varcov, vc_args), error = function(e) NULL)
+  if (is.null(satmod)) return(NULL)
+  satfit <- tryCatch(
+    runmodel(satmod,
+      addfit = FALSE, addMIs = FALSE, addSEs = FALSE, addInformation = FALSE,
+      analyticFisher = FALSE, verbose = FALSE, warn_gradient = FALSE,
+      warn_bounds = FALSE, warn_improper = FALSE),
+    error = function(e) NULL)
+  if (is.null(satfit) || length(satfit@modelmatrices) < nGroups) return(NULL)
+
+  # varcov() may reorder groups; align by the group labels used by x:
+  sat_labels <- satfit@sample@groups$label
+  x_labels <- x@sample@groups$label
+  lapply(seq_len(nGroups), function(g){
+    sg <- match(x_labels[g], sat_labels)
+    if (is.na(sg)) sg <- g
+    list(mu = as.numeric(satfit@modelmatrices[[sg]]$mu),
+         sigma = as.matrix(satfit@modelmatrices[[sg]]$sigma))
+  })
+}
+
+# Assemble the Huber-White (MLR) meat components for estimator = "ML" (complete
+# data, Phase 1) or estimator = "FIML" (within-row missing data, Phase 2) from
+# raw data. Returns NULL when raw data are unavailable.
 # Components per group g:
 #   Delta_g : group model Jacobian (means then vech(Sigma))
 #   B1_g    : crossprod of casewise saturated scores at the MODEL-implied
 #             moments (muHat_g, SigmaHat_g) / n_g  (the SE meat: casewise scores
-#             w.r.t. theta are SC1_g %*% Delta_g)
-#   B1u_g   : crossprod of casewise saturated scores at the SAMPLE moments
-#             (ybar_g, S_g) / n_g  (for the Yuan-Bentler tr_h1 term)
-#   S_g     : sample covariance (divisor n_g, ML/biased — matches Gamma & lavaan)
+#             w.r.t. theta are SC1_g %*% Delta_g). Under FIML the scores are the
+#             pattern-wise FIML scores and n_g counts ALL rows (incl. incomplete).
+#   B1u_g   : crossprod of casewise saturated scores at the SATURATED moments
+#             / n_g  (for the Yuan-Bentler tr_h1 term). Complete data: the sample
+#             moments (ybar_g, S_g). FIML: the EM/saturated moments (mu1_g,
+#             Sigma1_g) from the saturated model's modelmatrices (= lavaan's h1).
+#   S_g     : the moments used for the unstructured h1 information. Complete data:
+#             sample covariance (divisor n_g, ML/biased — matches Gamma & lavaan).
+#             FIML: the EM/saturated covariance Sigma1_g.
+#   mu1_g, Y_g : (FIML only) the EM/saturated mean and the raw data matrix (with
+#             NAs) for the group, needed by the pattern-based h1 observed
+#             information in the scaled test.
+#   missing : TRUE for the FIML (missing-data) path, FALSE for complete data.
 #   fg      : group weights n_g / N
 #   A       : full OBSERVED unit information of the model parameters
 #             = 0.5 * jacobian(psychonetrics_gradient, parVector(x), x) symmetrised
 #             (do NOT pre-apply expectedmodel(): that yields the EXPECTED info).
+#             This is the observed information of the ML (complete) or FIML
+#             (missing) fit function, which forms the Huber-White sandwich bread.
 mlr_meat_components <- function(x){
-  if (x@estimator != "ML") return(NULL)
+  is_fiml <- x@estimator == "FIML"
+  if (!is_fiml && x@estimator != "ML") return(NULL)
   if (length(x@modelmatrices) == 0) return(NULL)
   if (!.hasSlot(x@sample, "rawdata") || nrow(x@sample@rawdata) == 0) return(NULL)
-  if (length(x@sample@fimldata) > 0) return(NULL)   # missing data -> Phase 2
-  if (!has_WLS_Gamma(x)) return(NULL)
+  if (!is_fiml){
+    if (length(x@sample@fimldata) > 0) return(NULL)   # complete-data path only
+    if (!has_WLS_Gamma(x)) return(NULL)
+  } else {
+    if (length(x@sample@fimldata) == 0) return(NULL)  # FIML path needs patterns
+  }
 
   rawdata <- x@sample@rawdata
   vars <- attr(rawdata, "vars")
@@ -216,14 +367,34 @@ mlr_meat_components <- function(x){
 
   Delta_full <- build_Delta_full(x)
 
-  # Row count per group from the stored Gamma (same ordering as Delta):
-  nrows_per_group <- sapply(x@sample@WLS.Gamma, nrow)
+  # Row count per group (same ordering as Delta). For complete-data ML the
+  # stored Gamma gives the per-group statistic count (which honours
+  # meanstructure / corinput dropping); for FIML there is no Gamma and the
+  # statistics are always the full means then vech(Sigma) per group.
+  if (!is_fiml){
+    nrows_per_group <- sapply(x@sample@WLS.Gamma, nrow)
+  } else {
+    nvar <- length(vars)
+    nrows_per_group <- rep(nvar + nvar * (nvar + 1) / 2, nGroups)
+  }
   if (sum(nrows_per_group) != nrow(Delta_full)) return(NULL)
+
+  # Saturated (EM) moments per group for the FIML tr_h1 term (= lavaan's h1
+  # unstructured moments). Reuses the model's saturated submodel when present,
+  # otherwise fits a saturated varcov FIML to the raw data (e.g. for the baseline
+  # model, which carries no saturated submodel of its own):
+  sat_mm <- NULL
+  if (is_fiml){
+    sat_mm <- fiml_em_saturated_moments(x)
+    if (is.null(sat_mm)) return(NULL)
+  }
 
   Delta_list <- vector("list", nGroups)
   B1_list <- vector("list", nGroups)
   B1u_list <- vector("list", nGroups)
   S_list <- vector("list", nGroups)
+  mu1_list <- if (is_fiml) vector("list", nGroups) else NULL
+  Y_list <- if (is_fiml) vector("list", nGroups) else NULL
 
   row_offset <- 0
   for (g in seq_len(nGroups)){
@@ -233,23 +404,44 @@ mlr_meat_components <- function(x){
     row_offset <- row_offset + ng_stat
 
     Yg <- as.matrix(rawdata[rawdata[[groupcol]] == group_labels[g], vars, drop = FALSE])
-    Yg <- Yg[stats::complete.cases(Yg), , drop = FALSE]
-    ng <- nrow(Yg)
-    if (ng < 2) return(NULL)
 
     muHat <- as.numeric(x@modelmatrices[[g]]$mu)
     SigmaHat <- as.matrix(x@modelmatrices[[g]]$sigma)
 
-    SC1 <- ml_casewise_scores_h1(Yg, muHat, SigmaHat,
-                                 meanstructure = meanstructure, corinput = corinput)
-    B1_list[[g]] <- crossprod(SC1) / ng
+    if (!is_fiml){
+      # Complete data (Phase 1): drop incomplete rows (there are none here, but
+      # keep the listwise guard for robustness) and use the normal-theory scores.
+      Yg <- Yg[stats::complete.cases(Yg), , drop = FALSE]
+      ng <- nrow(Yg)
+      if (ng < 2) return(NULL)
 
-    ybar <- colMeans(Yg)
-    Sg <- crossprod(sweep(Yg, 2, ybar)) / ng
-    S_list[[g]] <- Sg
-    SC1u <- ml_casewise_scores_h1(Yg, ybar, Sg,
-                                  meanstructure = meanstructure, corinput = corinput)
-    B1u_list[[g]] <- crossprod(SC1u) / ng
+      SC1 <- ml_casewise_scores_h1(Yg, muHat, SigmaHat,
+                                   meanstructure = meanstructure, corinput = corinput)
+      B1_list[[g]] <- crossprod(SC1) / ng
+
+      ybar <- colMeans(Yg)
+      Sg <- crossprod(sweep(Yg, 2, ybar)) / ng
+      S_list[[g]] <- Sg
+      SC1u <- ml_casewise_scores_h1(Yg, ybar, Sg,
+                                    meanstructure = meanstructure, corinput = corinput)
+      B1u_list[[g]] <- crossprod(SC1u) / ng
+    } else {
+      # FIML (Phase 2): keep ALL rows (incl. incomplete); pattern-wise scores.
+      ng <- nrow(Yg)
+      if (ng < 2) return(NULL)
+
+      SC1 <- ml_casewise_scores_h1_missing(Yg, muHat, SigmaHat)
+      B1_list[[g]] <- crossprod(SC1) / ng
+
+      # Saturated (EM) moments for the unstructured h1 first-order info:
+      mu1 <- as.numeric(sat_mm[[g]]$mu)
+      Sigma1 <- as.matrix(sat_mm[[g]]$sigma)
+      mu1_list[[g]] <- mu1
+      S_list[[g]] <- Sigma1
+      Y_list[[g]] <- Yg
+      SC1u <- ml_casewise_scores_h1_missing(Yg, mu1, Sigma1)
+      B1u_list[[g]] <- crossprod(SC1u) / ng
+    }
   }
 
   # Full OBSERVED unit information of the model parameters (hessian-based).
@@ -265,6 +457,9 @@ mlr_meat_components <- function(x){
     B1 = B1_list,
     B1u = B1u_list,
     S = S_list,
+    mu1 = mu1_list,    # FIML only (NULL otherwise): EM saturated means per group
+    Y = Y_list,        # FIML only (NULL otherwise): raw data (with NAs) per group
+    missing = is_fiml,
     A = A,
     fg = nobs_per_group / nTotal,
     nGroups = nGroups,
@@ -588,19 +783,23 @@ compute_ml_scaled_test <- function(x, comp = NULL, chisq = NULL) {
 }
 
 # Robust-ML Huber-White (MLR) Yuan-Bentler-Mplus scaled test statistic for
-# estimator = "ML". Complete data only (Phase 1).
+# estimator = "ML" (complete data, Phase 1) or "FIML" (missing data, Phase 2).
 # References: Yuan & Bentler (2000); the "Mplus" variant matches lavaan's
 #   test = "yuan.bentler.mplus" (default for estimator = "MLR").
 #
 # c = (tr_h1 - tr_h0) / df, with
-#   tr_h1 = sum_g tr( B1u_g A1u_g^{-1} )   built at the SAMPLE moments
-#           (A1u_g = normal-theory info at (ybar_g, S_g); B1u_g = crossprod of
-#            casewise saturated scores at the sample moments / n_g),
+#   tr_h1 = sum_g tr( B1u_g A1u_g^{-1} )   built at the SATURATED moments
+#           (B1u_g = crossprod of casewise saturated scores at those moments
+#            / n_g). Complete data: A1u_g = normal-theory expected info at the
+#            sample moments (ybar_g, S_g). FIML: A1u_g = the pattern-based
+#            UNSTRUCTURED observed h1 information at the EM moments (mu1_g,
+#            Sigma1_g), which is the correct unstructured information under
+#            missingness (the complete-data closed form does not apply).
 #   tr_h0 = sum_g f_g tr( B0_g A^{-1} )    with B0_g STRUCTURED (the same meat
 #           that feeds the Huber-White SEs) and A the full hessian-based
 #           OBSERVED information of the model parameters.
 compute_mlr_scaled_test <- function(x, meat = NULL, chisq = NULL) {
-  if (x@estimator != "ML") return(NULL)
+  if (!(x@estimator %in% c("ML", "FIML"))) return(NULL)
   if (is.null(meat)) meat <- mlr_meat_components(x)
   if (is.null(meat)) return(NULL)
   if (is.null(chisq)) chisq <- ml_model_chisq(x)
@@ -609,12 +808,21 @@ compute_mlr_scaled_test <- function(x, meat = NULL, chisq = NULL) {
   df_integer <- model_df_integer(x)
   if (df_integer <= 0) return(NULL)
 
-  # tr_h1: unstructured (saturated) first-order vs expected info at the SAMPLE
-  # moments, accumulated per group.
+  is_fiml <- isTRUE(meat$missing)
+
+  # tr_h1: unstructured (saturated) first-order vs h1 information at the
+  # saturated moments, accumulated per group.
   tr_h1 <- 0
   for (g in seq_len(meat$nGroups)){
-    A1u <- ml_Vmat(meat$S[[g]], meanstructure = meat$meanstructure,
-                   corinput = meat$corinput)
+    if (!is_fiml){
+      # Complete data: normal-theory expected info at the sample moments.
+      A1u <- ml_Vmat(meat$S[[g]], meanstructure = meat$meanstructure,
+                     corinput = meat$corinput)
+    } else {
+      # FIML: pattern-based observed h1 information at the EM moments.
+      A1u <- ml_h1_information_observed_missing(meat$Y[[g]], meat$mu1[[g]],
+                                                meat$S[[g]])
+    }
     B1u <- meat$B1u[[g]]
     A1u_inv <- tryCatch(solve(A1u), error = function(e) NULL)
     if (is.null(A1u_inv)) return(NULL)
@@ -642,6 +850,163 @@ compute_mlr_scaled_test <- function(x, meat = NULL, chisq = NULL) {
     shift.parameter = NA_real_,
     trace.UGamma = trUG
   )
+}
+
+# ML discrepancy (Gaussian) of a model with implied moments (muHat, SigmaHat)
+# against target moments (M, S), times n_g, summed over groups: the
+# "complete-data" chi-square obtained by fitting the structural model (held at
+# its FIML estimates) to the EM-completed sample moments. Used by the FIML-C
+# robust fit indices (XX3 for the model, XX3.null for the baseline).
+#   F_ML = log|Sigma| - log|S| + tr(S Sigma^-1) - p + (M - mu)' Sigma^-1 (M - mu)
+fiml_completed_chisq <- function(implied_list, target_list, nobs_per_group){
+  XX <- 0
+  for (g in seq_along(implied_list)){
+    muHat <- implied_list[[g]]$mu
+    SigmaHat <- implied_list[[g]]$sigma
+    M <- target_list[[g]]$mu
+    S <- target_list[[g]]$sigma
+    p <- ncol(SigmaHat)
+    Si <- solve(SigmaHat)
+    dmu <- M - muHat
+    Fml <- as.numeric(determinant(SigmaHat, logarithm = TRUE)$modulus) -
+      as.numeric(determinant(S, logarithm = TRUE)$modulus) +
+      sum(S * t(Si)) - p + as.numeric(crossprod(dmu, Si %*% dmu))
+    XX <- XX + nobs_per_group[g] * Fml
+  }
+  XX
+}
+
+# Robust FIML fit indices: FIML-Corrected RMSEA / CFI / TLI (Savalei 2010,
+# "FIML-C(V3)"), matching lavaan's defaults for estimator = "MLR",
+# missing = "fiml". The standard (complete-data) robust RMSEA/CFI/TLI formula
+# does NOT hold under missingness; lavaan substitutes a corrected chi-square XX3
+# (the model fit to the EM-completed moments), corrected df3 and a corrected
+# scaling c.hat3 built from the missing-data information.
+#
+# Per group g, with observed set defined by the missingness patterns, EM moments
+# (mu1_g, Sigma1_g), model-implied moments (muHat_g, SigmaHat_g), Jacobian
+# Delta_g = d(mu, vech Sigma)/dtheta, f_g = n_g / n:
+#   Wm_g  = pattern-based OBSERVED h1 information under missingness at (mu1, Sigma1)
+#   Wc_g  = normal-theory (complete-data) information at the EM Sigma1
+#   Jm_g  = first-order (crossprod of casewise FIML scores) at (mu1, Sigma1)
+#   Gamma_g = Wm_g^{-1} Jm_g Wm_g^{-1}
+# Stacked block-diagonal (lavaan weighting: Wc.g = f_g Wc, Wmi.g = f_g^-1 Wm^-1,
+# Jm.g = f_g Jm, Gamma.f = f_g^-1 Gamma), with E.inv = (Delta' (f_g Wm) Delta)^-1
+# the h1-information-based structured information inverse, the correction factor is
+#   k = tr(Wc Gamma) - 2 tr(Delta' Jm Wm^-1 Wc Delta E.inv)
+#         + tr(Delta' Jm Delta E.inv  (Delta' Wc Delta E.inv)')
+#   c.hat3 = k / df3
+# and XX3 = sum_g n_g F_ML(model implied vs EM moments). The baseline (XX3.null,
+# c.hat3.null) uses the same Wc/Jm/Wm but the baseline Jacobian. Returns NULL if
+# any building block is unavailable (so the caller omits the robust indices
+# rather than emitting incorrect values).
+# References: Savalei (2010); Zhang & Savalei (2022, FIML-C).
+compute_mlr_fimlc_robust <- function(x, meat = NULL){
+  if (x@estimator != "FIML") return(NULL)
+  if (is.null(meat)) meat <- mlr_meat_components(x)
+  if (is.null(meat) || !isTRUE(meat$missing)) return(NULL)
+
+  df3 <- model_df_integer(x)
+  if (df3 <= 0) return(NULL)
+
+  nGroups <- meat$nGroups
+  fg <- meat$fg
+  nobs_per_group <- x@sample@groups$nobs
+
+  # Per-group Wm / Wc / Jm and the model/EM implied moments:
+  bdiag_dense <- function(L){
+    n <- sum(vapply(L, nrow, integer(1)))
+    M <- matrix(0, n, n); o <- 0L
+    for (B in L){ nb <- nrow(B); M[o + seq_len(nb), o + seq_len(nb)] <- B; o <- o + nb }
+    M
+  }
+  Wc.g <- Wmi.g <- Jm.g <- Wm.g <- Gamma.g <- vector("list", nGroups)
+  implied_list <- em_list <- vector("list", nGroups)
+  ok <- TRUE
+  for (g in seq_len(nGroups)){
+    mu1 <- meat$mu1[[g]]; Sigma1 <- meat$S[[g]]; Yg <- meat$Y[[g]]
+    Wm <- tryCatch(ml_h1_information_observed_missing(Yg, mu1, Sigma1), error = function(e) NULL)
+    Wc <- tryCatch(ml_Vmat(Sigma1, meanstructure = TRUE, corinput = FALSE), error = function(e) NULL)
+    if (is.null(Wm) || is.null(Wc)){ ok <- FALSE; break }
+    Wmi <- tryCatch(solve(Wm), error = function(e) NULL)
+    if (is.null(Wmi)){ ok <- FALSE; break }
+    Jm <- meat$B1u[[g]]    # crossprod of casewise FIML scores at (mu1, Sigma1) / n_g
+    Wc.g[[g]] <- fg[g] * Wc
+    Wm.g[[g]] <- fg[g] * Wm
+    Wmi.g[[g]] <- (1 / fg[g]) * Wmi
+    Jm.g[[g]] <- fg[g] * Jm
+    Gamma.g[[g]] <- (1 / fg[g]) * (Wmi %*% Jm %*% Wmi)
+    implied_list[[g]] <- list(mu = as.numeric(x@modelmatrices[[g]]$mu),
+                              sigma = as.matrix(x@modelmatrices[[g]]$sigma))
+    em_list[[g]] <- list(mu = mu1, sigma = Sigma1)
+  }
+  if (!ok) return(NULL)
+
+  Wc.all <- bdiag_dense(Wc.g)
+  Wmi.all <- bdiag_dense(Wmi.g)
+  Jm.all <- bdiag_dense(Jm.g)
+  Gamma.all <- bdiag_dense(Gamma.g)
+  Wm.all <- bdiag_dense(Wm.g)
+  Delta.all <- do.call(rbind, meat$Delta)
+
+  E.inv <- tryCatch(solve(t(Delta.all) %*% Wm.all %*% Delta.all), error = function(e) NULL)
+  if (is.null(E.inv)) return(NULL)
+
+  fimlc_k <- function(Delta.all, E.inv){
+    tr11 <- sum(Wc.all * Gamma.all)
+    tr12 <- sum((t(Delta.all) %*% Jm.all %*% Wmi.all %*% Wc.all %*% Delta.all) * E.inv)
+    DWcDE <- t(Delta.all) %*% Wc.all %*% Delta.all %*% E.inv
+    tr22 <- sum((t(Delta.all) %*% Jm.all %*% Delta.all %*% E.inv) * t(DWcDE))
+    tr11 - 2 * tr12 + tr22
+  }
+
+  k <- fimlc_k(Delta.all, E.inv)
+  c.hat3 <- k / df3
+  XX3 <- fiml_completed_chisq(implied_list, em_list, nobs_per_group)
+  if (!is.finite(XX3) || !is.finite(c.hat3)) return(NULL)
+
+  out <- list(XX3 = XX3, df3 = df3, c.hat3 = c.hat3,
+              XX3.null = NA_real_, df3.null = NA_real_, c.hat3.null = NA_real_)
+
+  # Baseline (independence) model: same Wc/Jm/Wm (data-level) but the baseline
+  # Jacobian and implied moments. Needed for cfi.robust / tli.robust.
+  bl <- x@baseline_saturated$baseline
+  if (!is.null(bl) && is(bl, "psychonetrics") && bl@computed &&
+      length(bl@modelmatrices) >= nGroups){
+    DeltaB.all <- tryCatch(do.call(rbind, {
+      DB <- build_Delta_full(bl)
+      # split into the same per-group statistic blocks as the model:
+      nstat <- vapply(meat$Delta, nrow, integer(1))
+      off <- 0L
+      lapply(seq_len(nGroups), function(g){
+        rows <- off + seq_len(nstat[g]); off <<- off + nstat[g]
+        DB[rows, , drop = FALSE]
+      })
+    }), error = function(e) NULL)
+    if (!is.null(DeltaB.all)){
+      E.invB <- tryCatch(solve(t(DeltaB.all) %*% Wm.all %*% DeltaB.all),
+                          error = function(e) NULL)
+      df3.null <- bl@sample@nobs - max(bl@parameters$par)
+      if (!is.null(x@baseline_saturated$saturated)){
+        df3.null <- df3.null - (x@baseline_saturated$saturated@sample@nobs -
+                                  max(x@baseline_saturated$saturated@parameters$par))
+      }
+      bl_implied <- lapply(seq_len(nGroups), function(g)
+        list(mu = as.numeric(bl@modelmatrices[[g]]$mu),
+             sigma = as.matrix(bl@modelmatrices[[g]]$sigma)))
+      if (!is.null(E.invB) && df3.null > 0){
+        kb <- fimlc_k(DeltaB.all, E.invB)
+        XX3.null <- fiml_completed_chisq(bl_implied, em_list, nobs_per_group)
+        if (is.finite(XX3.null) && is.finite(kb)){
+          out$XX3.null <- XX3.null
+          out$df3.null <- df3.null
+          out$c.hat3.null <- kb / df3.null
+        }
+      }
+    }
+  }
+
+  out
 }
 
 # Dispatch the robust-ML scaled test statistic for a fitted model according to
@@ -881,9 +1246,10 @@ addfit <- function(
   }
 
   # Robust ML scaled test statistic (MLM/MLMV/MLMVS = Satorra-Bentler family;
-  # MLR = Yuan-Bentler-Mplus). Stored alongside the unscaled chisq:
+  # MLR = Yuan-Bentler-Mplus). Stored alongside the unscaled chisq. MLR with
+  # within-row missing data maps internally to estimator = "FIML":
   robust_model <- NULL
-  if (x@estimator == "ML" && is_robust_ML(x)) {
+  if (x@estimator %in% c("ML", "FIML") && is_robust_ML(x)) {
     robust_model <- tryCatch(robust_scaled_test(x, chisq = fitMeasures$chisq), error = function(e) NULL)
     if (!is.null(robust_model)) {
       fitMeasures$chisq.scaled <- robust_model$chisq.scaled
@@ -894,6 +1260,19 @@ addfit <- function(
         fitMeasures$chisq.shift.parameters <- robust_model$shift.parameter
       }
     }
+  }
+
+  # FIML-Corrected robust fit indices (Savalei 2010, FIML-C(V3)) for MLR with
+  # missing data. The standard (complete-data) robust RMSEA/CFI/TLI formula does
+  # not apply under missingness; this returns the corrected XX3/df3/c.hat3 (and
+  # the baseline analogues) used by the robust RMSEA/CFI/TLI blocks below. NULL
+  # for complete data or when a building block is unavailable, in which case the
+  # standard robust-index path is used (and, under FIML, the robust indices are
+  # simply omitted rather than computed incorrectly).
+  fimlc_robust <- NULL
+  if (!is.null(robust_model) && x@estimator == "FIML" && is_robust_ML(x) &&
+      identical(get_robust_config(x)$label, "MLR")) {
+    fimlc_robust <- tryCatch(compute_mlr_fimlc_robust(x), error = function(e) NULL)
   }
 
   # Some pars:
@@ -941,7 +1320,7 @@ addfit <- function(
     # Robust ML scaled baseline (same correction as the model; needed for the
     # robust incremental fit indices and the robust RMSEA baseline factor c_B):
     robust_baseline <- NULL
-    if (!is.null(robust_model) && x@estimator == "ML" && is_robust_ML(x)) {
+    if (!is.null(robust_model) && x@estimator %in% c("ML", "FIML") && is_robust_ML(x)) {
       robust_baseline <- tryCatch(
         robust_scaled_test(x@baseline_saturated$baseline, chisq = fitMeasures$baseline.chisq),
         error = function(e) NULL)
@@ -1024,7 +1403,24 @@ addfit <- function(
     # (mean-adjusted) scaling factors c (model) and c_B (baseline):
     #   cfi.robust = 1 - max(Tm - c dfm, 0) / max(Tm - c dfm, Tb - c_B dfb, 0)
     #   tli.robust = 1 - (Tm - c dfm) dfb / ((Tb - c_B dfb) dfm)
-    if (!is.null(robust_model) && !is.null(robust_baseline)) {
+    # Under FIML (MLR + missing data) the corrected FIML-C(V3) chi-squares and
+    # scaling factors (XX3/c.hat3 for the model, XX3.null/c.hat3.null for the
+    # baseline) replace Tm/c and Tb/c_B (Savalei 2010), matching lavaan.
+    if (!is.null(fimlc_robust) && is.finite(fimlc_robust$c.hat3) &&
+        is.finite(fimlc_robust$c.hat3.null)) {
+      Tm_r <- fimlc_robust$XX3;      dfm_r <- fimlc_robust$df3;      c_m <- fimlc_robust$c.hat3
+      Tb_r <- fimlc_robust$XX3.null; dfb_r <- fimlc_robust$df3.null; c_b <- fimlc_robust$c.hat3.null
+      t1r <- max(c(Tm_r - c_m*dfm_r, 0))
+      t2r <- max(c(Tm_r - c_m*dfm_r, Tb_r - c_b*dfb_r, 0))
+      fitMeasures$cfi.robust <- if (t2r <= 0) 1 else 1 - t1r/t2r
+      ttr1 <- (Tm_r - c_m*dfm_r)*dfb_r
+      ttr2 <- (Tb_r - c_b*dfb_r)*dfm_r
+      fitMeasures$tli.robust <- if (dfm_r > 0 && abs(ttr2) > 0) 1 - ttr1/ttr2 else 1
+      fitMeasures$nnfi.robust <- fitMeasures$tli.robust
+    } else if (is.null(fimlc_robust) && x@estimator == "FIML" && is_robust_ML(x)) {
+      # FIML-MLR but the FIML-C correction was unavailable: omit the robust
+      # incremental indices rather than emit the (inapplicable) complete-data form.
+    } else if (!is.null(robust_model) && !is.null(robust_baseline)) {
       c_m <- robust_model$scaling.factor.sb
       c_b <- robust_baseline$scaling.factor.sb
       if (!is.null(c_m) && !is.null(c_b) && is.finite(c_m) && is.finite(c_b)) {
@@ -1143,7 +1539,45 @@ addfit <- function(
   # and matches lavaan's rmsea.robust (which is identical across these variants).
   # The confidence-interval bounds invert pchisq(Tm_scaled, dfm, ncp) for the
   # non-centrality lambda and map it back with sqrt(c lambda / (N dfm)) * sqrt(G).
-  if (!is.null(robust_model) && dfm > 0) {
+  # Under FIML (MLR + missing data) the corrected FIML-C(V3) statistic XX3, df3
+  # and scaling c.hat3 replace Tm, dfm and c (Savalei 2010), and the CI inverts
+  # the noncentral chi-square on XX3.scaled = XX3 / c.hat3.
+  use_fimlc_rmsea <- !is.null(fimlc_robust) && is.finite(fimlc_robust$c.hat3) &&
+    fimlc_robust$df3 > 0
+  if (use_fimlc_rmsea) {
+    Tm_r <- fimlc_robust$XX3; dfm_r <- fimlc_robust$df3; c_rmsea <- fimlc_robust$c.hat3
+    rr <- sqrt( max( c((Tm_r/sampleSize)/dfm_r - c_rmsea/sampleSize, 0) ) )
+    if (!is.finite(rr)) rr <- NA
+    fitMeasures$rmsea.robust <- rr * sqrt(nGroups)
+
+    # CI on the scaled corrected statistic XX3.scaled = XX3 / c.hat3:
+    Tm_sc <- Tm_r / c_rmsea
+    dfm_sc <- dfm_r
+    if (!chisq_too_large && is.finite(Tm_sc) && is.finite(dfm_sc) && dfm_sc >= 1) {
+      low.l <- function(lambda) (pchisq(Tm_sc, df = dfm_sc, ncp = lambda) - 0.95)
+      if (low.l(0) < 0.0){
+        fitMeasures$rmsea.ci.lower.robust <- 0
+      } else {
+        ll <- if (low.l(0) * low.l(Tm_sc) > 0) NA else
+          try(uniroot(low.l, lower = 0, upper = Tm_sc)$root, silent = TRUE)
+        if (inherits(ll, "try-error")) ll <- NA
+        fitMeasures$rmsea.ci.lower.robust <- sqrt(c_rmsea * ll / (sampleSize * dfm_r)) * sqrt(nGroups)
+      }
+      N.RMSEA.r <- max(sampleSize, Tm_sc * 4)
+      up.l <- function(lambda) (pchisq(Tm_sc, df = dfm_sc, ncp = lambda) - 0.05)
+      if (up.l(N.RMSEA.r) > 0 || up.l(0) < 0){
+        fitMeasures$rmsea.ci.upper.robust <- 0
+      } else {
+        lu <- if (up.l(0) * up.l(N.RMSEA.r) > 0) NA else
+          try(uniroot(up.l, lower = 0, upper = N.RMSEA.r)$root, silent = TRUE)
+        if (inherits(lu, "try-error")) lu <- NA
+        fitMeasures$rmsea.ci.upper.robust <- sqrt(c_rmsea * lu / (sampleSize * dfm_r)) * sqrt(nGroups)
+      }
+    }
+  } else if (is.null(fimlc_robust) && x@estimator == "FIML" && is_robust_ML(x)) {
+    # FIML-MLR but the FIML-C correction was unavailable: omit rmsea.robust
+    # rather than emit the (inapplicable) complete-data form.
+  } else if (!is.null(robust_model) && dfm > 0) {
     c_rmsea <- robust_model$scaling.factor.sb
     if (!is.null(c_rmsea) && is.finite(c_rmsea)) {
       rr <- sqrt( max( c((Tm/sampleSize)/dfm - c_rmsea/sampleSize, 0) ) )

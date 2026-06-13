@@ -36,14 +36,17 @@ errors, a scaled test statistic and robust RMSEA/CFI/TLI:
   \item{\code{"MLM"}}{Browne (1984) "robust.sem" sandwich standard errors and the Satorra-Bentler (1994) mean-adjusted scaled chi-square.}
   \item{\code{"MLMV"}}{Robust.sem standard errors and the scaled-and-shifted chi-square (Satorra 2000; Asparouhov & Muthen 2010).}
   \item{\code{"MLMVS"}}{Robust.sem standard errors and the mean-and-variance adjusted (Satterthwaite) scaled chi-square with fractional degrees of freedom.}
-  \item{\code{"MLR"}}{Huber-White (sandwich) standard errors and the Yuan-Bentler (2000) scaled chi-square (the Mplus variant). Requires the raw data to be stored; the model constructors set \code{storedata = TRUE} automatically when \code{estimator = "MLR"}.}
+  \item{\code{"MLR"}}{Huber-White (sandwich) standard errors and the Yuan-Bentler (2000) scaled chi-square (the Mplus variant). Requires the raw data to be stored; the model constructors set \code{storedata = TRUE} automatically when \code{estimator = "MLR"}. \code{"MLR"} also supports \emph{missing} data: when the raw data contain missing values it estimates the point estimates by full-information maximum likelihood (FIML) and computes the Huber-White standard errors, the Yuan-Bentler-Mplus scaled chi-square and the FIML-corrected (Savalei 2010) robust RMSEA/CFI/TLI under missingness.}
 }
-These robust estimators map internally to \code{estimator = "ML"} plus robust
-standard-error and test flags, so the point estimates are identical to plain ML.
-The scaled statistics are stored in the fit measures (\code{chisq.scaled},
-\code{chisq.scaling.factor}, \code{df.scaled}, \code{chisq.shift.parameters},
-\code{rmsea.robust}, \code{cfi.robust}, \code{tli.robust}). Missing data (FIML)
-with robust ML is not yet supported.
+These robust estimators map internally to \code{estimator = "ML"} (or, for
+\code{"MLR"} with missing data, \code{estimator = "FIML"}) plus robust
+standard-error and test flags, so the point estimates are identical to plain ML
+(or FIML). The scaled statistics are stored in the fit measures
+(\code{chisq.scaled}, \code{chisq.scaling.factor}, \code{df.scaled},
+\code{chisq.shift.parameters}, \code{rmsea.robust}, \code{cfi.robust},
+\code{tli.robust}). The Satorra-Bentler family
+(\code{"MLM"}/\code{"MLMV"}/\code{"MLMVS"}) requires complete data; for missing
+data use \code{"MLR"}.
 }
   \item{optimizer}{
 The optimizer to be used. The following optimizers are available:
@@ -139,6 +142,18 @@ fit(mod)
 mod2 <- lvm(HolzingerSwineford1939, lambda = Lambda, vars = vars,
             identification = "variance", estimator = "ML", storedata = TRUE)
 mod2 <- runmodel(setestimator(mod2, "MLM"))
+
+# MLR also handles missing data via FIML. With missing values in the raw data,
+# estimator = "MLR" estimates the point estimates by FIML and reports
+# Huber-White standard errors, the Yuan-Bentler-Mplus scaled chi-square and the
+# FIML-corrected robust RMSEA/CFI/TLI:
+HSmis <- HolzingerSwineford1939
+set.seed(1)
+for (v in vars) HSmis[[v]][runif(nrow(HSmis)) < 0.1] <- NA
+modM <- lvm(HSmis, lambda = Lambda, vars = vars,
+            identification = "variance", estimator = "MLR")
+modM <- runmodel(modM)   # estimator is "FIML" internally, with MLR robust output
+fit(modM)
 }
 }
 

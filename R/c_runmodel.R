@@ -100,8 +100,9 @@ runmodel <- function(
   }
 
   # Experimental warning for robust ML estimators (MLM/MLMV/MLMVS/MLR), gated on
-  # verbose (these map internally to estimator = "ML" with robust SE/test flags):
-  if (x@estimator == "ML" && is_robust_ML(x)){
+  # verbose (these map internally to estimator = "ML", or to "FIML" for MLR with
+  # missing data, with robust SE/test flags):
+  if (x@estimator %in% c("ML", "FIML") && is_robust_ML(x)){
     if (x@verbose){
       experimentalWarning(paste0("robust ML (", get_robust_config(x)$label, ")"))
     }
@@ -1025,8 +1026,9 @@ runmodel <- function(
     # Robust ML (MLM/MLMV/MLMVS/MLR) standard errors are implemented in the R
     # getVCOV() sandwich path; the C++ addSEs_cpp() only delegates to R for
     # ULS/DWLS. Route robust ML through the R addSEs() so its sandwich VCOV is
-    # used (point estimates and all other estimators are unaffected):
-    use_cpp_SEs <- x@cpp && !(x@estimator == "ML" && is_robust_ML(x))
+    # used (point estimates and all other estimators are unaffected). MLR with
+    # within-row missing data maps internally to FIML, so include FIML here:
+    use_cpp_SEs <- x@cpp && !(x@estimator %in% c("ML", "FIML") && is_robust_ML(x))
     if (use_cpp_SEs){
       if (verbose){
         message("Adding standard errors...")

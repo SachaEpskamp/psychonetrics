@@ -43,10 +43,17 @@ setestimator <- function(x, estimator){
 
   # Robust ML estimators map internally to estimator = "ML" plus a robust
   # configuration. Resolve the requested name into the internal estimator and
-  # the robust config now:
+  # the robust config now. MLR additionally supports missing data: when the
+  # model carries FIML data (per-observation missingness patterns), the internal
+  # estimator is "FIML" rather than "ML" (mirroring the constructor, where
+  # estimator = "ML" + missing data auto-switches to "FIML"):
   if (estimator %in% .robustEstimators){
     robust_cfg <- .robust_config_for(estimator)
-    internal_estimator <- "ML"
+    if (estimator == "MLR" && length(x@sample@fimldata) > 0){
+      internal_estimator <- "FIML"
+    } else {
+      internal_estimator <- "ML"
+    }
   } else {
     robust_cfg <- list()
     internal_estimator <- estimator
@@ -71,10 +78,16 @@ setestimator <- function(x, estimator){
     invisible(TRUE)
   }
 
-  # Robust ML (Phase 1) requires raw data: the sandwich corrections need the
-  # asymptotic covariance Gamma (MLM family) or casewise scores (MLR), neither
-  # of which is available from summary statistics alone. FIML (missing data)
-  # support is deferred to Phase 2.
+  # Robust ML requires raw data: the sandwich corrections need the asymptotic
+  # covariance Gamma (MLM family) or casewise scores (MLR), neither of which is
+  # available from summary statistics alone.
+  #   * MLR (Huber-White SEs + Yuan-Bentler-Mplus test) supports BOTH complete
+  #     data (estimator = "ML" internally) and within-row missing data (FIML):
+  #     the pattern-wise casewise scores and the FIML observed information are
+  #     formed from the stored raw data and missingness patterns.
+  #   * The MLM family (robust.sem / Satorra-Bentler) requires the asymptotic
+  #     covariance Gamma of the COMPLETE-data sample statistics, which is not
+  #     defined under missingness; it therefore supports complete data only.
   if (length(robust_cfg) > 0){
     has_raw <- nrow(x@sample@rawdata) > 0 || length(x@sample@fimldata) > 0
     if (!has_raw){
@@ -82,10 +95,19 @@ setestimator <- function(x, estimator){
            "is not stored in this model. Rebuild the model from a raw data frame ",
            "(the `data` argument) before switching to '", robust_cfg$label, "'.")
     }
-    if (length(x@sample@fimldata) > 0 && nrow(x@sample@rawdata) == 0){
-      stop("estimator = '", robust_cfg$label, "' currently supports complete data only ",
-           "(Phase 1). The model contains missing data (FIML). Robust ML with FIML is ",
-           "planned for a future release.")
+    has_missing <- length(x@sample@fimldata) > 0
+    if (has_missing && robust_cfg$label != "MLR"){
+      stop("estimator = '", robust_cfg$label, "' (robust.sem / Satorra-Bentler) ",
+           "supports complete data only: it requires the asymptotic covariance ",
+           "(Gamma) of the complete-data sample statistics, which is not defined ",
+           "under missing data. The model contains missing data. Use estimator = ",
+           "'MLR', which provides robust standard errors and a scaled test ",
+           "statistic under FIML (missing data).")
+    }
+    if (has_missing && robust_cfg$label == "MLR" && nrow(x@sample@rawdata) == 0){
+      # MLR/FIML needs the stored raw data (with NAs) for the casewise scores.
+      stop("estimator = 'MLR' with missing data requires the raw data to be ",
+           "stored (storedata = TRUE). Rebuild the model from a raw data frame.")
     }
   }
 

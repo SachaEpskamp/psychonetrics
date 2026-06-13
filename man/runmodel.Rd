@@ -86,8 +86,13 @@ additionally computes robust (sandwich) standard errors, a scaled test
 statistic (Satorra-Bentler family or Yuan-Bentler) and robust RMSEA/CFI/TLI.
 These are stored in the model fit measures (\code{chisq.scaled},
 \code{chisq.scaling.factor}, \code{df.scaled}, \code{chisq.shift.parameters},
-\code{rmsea.robust}, \code{cfi.robust}, \code{tli.robust}). Robust ML currently
-requires complete (continuous) raw data; missing-data (FIML) support is planned.
+\code{rmsea.robust}, \code{cfi.robust}, \code{tli.robust}). The
+Satorra-Bentler family (\code{"MLM"}/\code{"MLMV"}/\code{"MLMVS"}) requires
+complete (continuous) raw data. \code{"MLR"} additionally supports missing
+data through full-information maximum likelihood (FIML): when the raw data
+contain missing values, point estimation uses FIML and the robust standard
+errors (Huber-White), the Yuan-Bentler-Mplus scaled test statistic and the
+FIML-corrected robust RMSEA/CFI/TLI are computed under missingness.
 }
 \value{
 An object of the class psychonetrics (\link{psychonetrics-class})

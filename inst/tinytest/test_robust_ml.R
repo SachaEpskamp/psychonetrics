@@ -87,6 +87,24 @@ expect_true(nrow(mod_mlr@sample@rawdata) > 0)
 expect_true(all(is.finite(mod_mlr@parameters$se[mod_mlr@parameters$par != 0])))
 expect_true(is.finite(mod_mlr@fitmeasures$chisq.scaled))
 
+# MLR with missing data maps to FIML internally and produces finite robust
+# output (structural sanity; lavaan oracle checks run under at_home below):
+set.seed(7)
+HS_na <- HS
+for (v in X) HS_na[[v]][stats::runif(nrow(HS_na)) < 0.12] <- NA
+HS_na <- HS_na[rowSums(!is.na(HS_na[, X])) > 0, ]
+mod_mlr_fiml <- suppressWarnings(runmodel(lvm(HS_na, lambda = Lambda, vars = X,
+                identification = "variance", estimator = "MLR"), verbose = FALSE))
+expect_equal(mod_mlr_fiml@estimator, "FIML")          # FIML under the hood
+expect_equal(mod_mlr_fiml@robust$label, "MLR")
+expect_true(nrow(mod_mlr_fiml@sample@rawdata) > 0)     # storedata forced TRUE
+expect_true(length(mod_mlr_fiml@sample@fimldata) > 0)  # missingness patterns
+expect_true(all(is.finite(mod_mlr_fiml@parameters$se[mod_mlr_fiml@parameters$par != 0])))
+expect_true(is.finite(mod_mlr_fiml@fitmeasures$chisq.scaled))
+expect_true(is.finite(mod_mlr_fiml@fitmeasures$chisq.scaling.factor))
+expect_true(is.finite(mod_mlr_fiml@fitmeasures$rmsea.robust))
+expect_true(is.finite(mod_mlr_fiml@fitmeasures$cfi.robust))
+
 # setestimator() path is equivalent to the constructor path:
 mod_via_set <- suppressWarnings(runmodel(
   setestimator(lvm(HS, lambda = Lambda, vars = X, identification = "variance",
@@ -252,4 +270,125 @@ if (at_home()) {
   fitPd <- suppressWarnings(runmodel(groupequal(fitP0d, "lambda"), verbose = FALSE))
   expect_equal(as.numeric(lavaan::fitMeasures(fitL_dwls, "chisq.scaling.factor")),
                fitPd@fitmeasures$chisq.scaling.factor, tolerance = 5e-3)
+
+  ## =======================================================================
+  ## MLR with FIML (Phase 2: within-row missing data). Point estimation is
+  ## plain FIML; SEs are Huber-White and the scaled chi-square is the
+  ## Yuan-Bentler-Mplus statistic under missingness. The robust fit indices
+  ## use the FIML-Corrected (FIML-C V3; Savalei 2010) correction. Oracle:
+  ## lavaan sem(..., estimator = "MLR", missing = "fiml").
+  ## =======================================================================
+  ns <- asNamespace("psychonetrics")
+  set.seed(123)
+  HSmis <- HS
+  for (v in X) HSmis[[v]][stats::runif(nrow(HSmis)) < 0.15] <- NA  # ~15% MCAR
+  HSmis <- HSmis[rowSums(!is.na(HSmis[, X])) > 0, ]
+
+  ## ---- End-to-end MLR-FIML (psychonetrics own optimum) vs lavaan ----
+  mfF <- suppressWarnings(runmodel(lvm(HSmis, lambda = Lambda, vars = X,
+                  identification = "variance", estimator = "MLR"), verbose = FALSE))
+  fitF <- lavaan::cfa(mod, HSmis, estimator = "MLR", missing = "fiml",
+                      meanstructure = TRUE, std.lv = TRUE)
+
+  # MLR + missing maps internally to estimator = "FIML" with the MLR robust cfg,
+  # storing both the raw data (with NAs) and the missingness patterns:
+  expect_equal(mfF@estimator, "FIML")
+  expect_equal(mfF@robust$label, "MLR")
+  expect_equal(mfF@robust$se, "robust.huber.white")
+  expect_true(nrow(mfF@sample@rawdata) > 0)
+  expect_true(length(mfF@sample@fimldata) > 0)
+  expect_true(all(is.finite(mfF@parameters$se[mfF@parameters$par != 0])))
+
+  # Unscaled chisq, df, scaled chisq, scaling factor (own optima -> loose tol):
+  expect_equal(mfF@fitmeasures$chisq,
+               as.numeric(lavaan::fitMeasures(fitF, "chisq")), tolerance = 1e-4)
+  expect_equal(mfF@fitmeasures$df, as.numeric(lavaan::fitMeasures(fitF, "df")))
+  expect_equal(mfF@fitmeasures$chisq.scaling.factor,
+               as.numeric(lavaan::fitMeasures(fitF, "chisq.scaling.factor")), tolerance = 1e-3)
+  expect_equal(mfF@fitmeasures$chisq.scaled,
+               as.numeric(lavaan::fitMeasures(fitF, "chisq.scaled")), tolerance = 1e-2)
+  # SEs within 1e-4 relative (psychonetrics vs lavaan, both at own optima):
+  expect_true(se_reldiff(mfF, fitF) < 1e-3)
+  # FIML-Corrected robust fit indices (rmsea/cfi/tli.robust):
+  expect_equal(mfF@fitmeasures$rmsea.robust,
+               as.numeric(lavaan::fitMeasures(fitF, "rmsea.robust")), tolerance = 1e-3)
+  expect_equal(mfF@fitmeasures$cfi.robust,
+               as.numeric(lavaan::fitMeasures(fitF, "cfi.robust")), tolerance = 1e-3)
+  expect_equal(mfF@fitmeasures$tli.robust,
+               as.numeric(lavaan::fitMeasures(fitF, "tli.robust")), tolerance = 1e-3)
+
+  ## ---- EXACT (machine-precision) unit checks at lavaan's FIML solution ----
+  ## These isolate the pattern-wise score / information formulas from the
+  ## (tiny) optimizer difference between psychonetrics and lavaan.
+  Nf  <- lavaan::lavInspect(fitF, "ntotal")
+  Drf <- lavaan::lavTech(fitF, "delta")[[1]]
+  implf <- lavaan::lavTech(fitF, "implied")[[1]]
+  muf <- as.numeric(implf$mean); Sigf <- implf$cov
+  Yf  <- as.matrix(HSmis[, X])
+
+  # Pattern casewise scores vs lavScores (<= 1e-10):
+  SCf <- ns$ml_casewise_scores_h1_missing(Yf, muf, Sigf)
+  expect_equal(as.numeric(SCf %*% Drf), as.numeric(lavaan::lavScores(fitF)),
+               tolerance = 1e-10)
+
+  # First-order information vs lavTech "information.first.order" (<= 1e-10):
+  B0f <- t(Drf) %*% (crossprod(SCf) / Nf) %*% Drf
+  expect_equal(unname(B0f),
+               unname(as.matrix(lavaan::lavTech(fitF, "information.first.order"))),
+               tolerance = 1e-10)
+
+  # Huber-White SEs at lavaan's solution vs lavaan (<= 1e-8):
+  Af  <- lavaan::lavInspect(fitF, "information.observed")
+  Aif <- solve(Af)
+  SEf <- sqrt(diag(Aif %*% B0f %*% Aif / Nf))
+  expect_equal(as.numeric(SEf),
+               as.numeric(sqrt(diag(lavaan::vcov(fitF)))), tolerance = 1e-8)
+
+  # Pattern-based unstructured h1 OBSERVED info under missingness (<= 1e-8):
+  h1f <- lavaan::lavTech(fitF, "h1")[[1]]
+  mu1f <- as.numeric(h1f$mean); Sig1f <- h1f$cov
+  A1uf <- ns$ml_h1_information_observed_missing(Yf, mu1f, Sig1f)
+  A1uf_lav <- lavaan:::lav_model_h1_information_observed(
+    lavmodel = fitF@Model, lavsamplestats = fitF@SampleStats, lavdata = fitF@Data,
+    lavimplied = fitF@implied, lavh1 = fitF@h1,
+    lavoptions = local({o <- fitF@Options; o$h1.information <- "unstructured"; o}))[[1]]
+  expect_equal(unname(A1uf), unname(as.matrix(A1uf_lav)), tolerance = 1e-8)
+
+  # Yuan-Bentler-Mplus scaling factor at lavaan's solution (<= 1e-8):
+  SCuf <- ns$ml_casewise_scores_h1_missing(Yf, mu1f, Sig1f)
+  trh1 <- sum((crossprod(SCuf) / Nf) * t(solve(A1uf)))
+  trh0 <- sum(B0f * t(Aif))
+  c_yb <- (trh1 - trh0) / as.numeric(lavaan::fitMeasures(fitF, "df"))
+  expect_equal(c_yb,
+               as.numeric(lavaan::fitMeasures(fitF, "chisq.scaling.factor")),
+               tolerance = 1e-8)
+
+  ## ---- Multi-group MLR-FIML ----
+  mfF2 <- suppressWarnings(runmodel(lvm(HSmis, lambda = Lambda, vars = X,
+                  identification = "variance", estimator = "MLR", groups = "school"),
+                  verbose = FALSE))
+  fitF2 <- lavaan::cfa(mod, HSmis, estimator = "MLR", missing = "fiml",
+                       group = "school", std.lv = TRUE)
+  expect_true(all(is.finite(mfF2@parameters$se[mfF2@parameters$par != 0])))
+  expect_equal(mfF2@fitmeasures$df, as.numeric(lavaan::fitMeasures(fitF2, "df")))
+  expect_equal(mfF2@fitmeasures$chisq.scaling.factor,
+               as.numeric(lavaan::fitMeasures(fitF2, "chisq.scaling.factor")), tolerance = 1e-3)
+  expect_equal(mfF2@fitmeasures$chisq.scaled,
+               as.numeric(lavaan::fitMeasures(fitF2, "chisq.scaled")), tolerance = 1e-2)
+  expect_equal(mfF2@fitmeasures$rmsea.robust,
+               as.numeric(lavaan::fitMeasures(fitF2, "rmsea.robust")), tolerance = 1e-3)
+
+  ## ---- setestimator() path on a FIML model is equivalent to the constructor ----
+  mfF_set <- suppressWarnings(runmodel(setestimator(
+    lvm(HSmis, lambda = Lambda, vars = X, identification = "variance",
+        estimator = "ML", storedata = TRUE), "MLR"), verbose = FALSE))
+  expect_equal(mfF_set@estimator, "FIML")
+  expect_equal(mfF_set@fitmeasures$chisq.scaling.factor,
+               mfF@fitmeasures$chisq.scaling.factor, tolerance = 1e-6)
+
+  ## ---- The MLM family (robust.sem) still errors on missing data via
+  ##      setestimator() (no asymptotic Gamma under missingness) ----
+  expect_error(setestimator(
+    lvm(HSmis, lambda = Lambda, vars = X, identification = "variance",
+        estimator = "ML", storedata = TRUE), "MLM"))
 }

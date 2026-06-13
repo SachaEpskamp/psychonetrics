@@ -62,10 +62,11 @@ getVCOV_robust <- function(model, information = c("observed","expected")){
 getVCOV <- function(model,approximate_SEs = FALSE){
 
   # Robust ML standard errors (MLM/MLMV/MLMVS/MLR). These map internally to
-  # estimator = "ML"; the point estimates are unchanged but the sampling
+  # estimator = "ML" (complete data) or, for MLR with within-row missing data,
+  # estimator = "FIML"; the point estimates are unchanged but the sampling
   # covariance is a sandwich estimator. Fall through to the naive VCOV below if
   # the robust building blocks are unavailable.
-  if (model@estimator == "ML" && is_robust_ML(model)){
+  if (model@estimator %in% c("ML", "FIML") && is_robust_ML(model)){
     robInfo <- tryCatch(getVCOV_robust(model), error = function(e) NULL)
     if (!is.null(robInfo) && all(is.finite(robInfo))){
       return(robInfo)
