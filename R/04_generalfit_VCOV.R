@@ -80,7 +80,7 @@ getVCOV <- function(model,approximate_SEs = FALSE){
   # unit Fisher information weights group g by n_g/N (see expected_hessian_*),
   # so recomputing it on a copy of the model whose group sizes are reduced to
   # (n_g - 1) yields sum_g ((n_g-1)/(N-G)) I_g; dividing that by (N-G) gives
-  # exactly (sum_g (n_g-1) I_g)^-1 — the Wishart sampling covariance for any
+  # exactly (sum_g (n_g-1) I_g)^-1 -- the Wishart sampling covariance for any
   # number of groups. The point estimates are unaffected (the implied matrices
   # do not depend on nobs).
   if (is_wishart(model) && model@estimator %in% c("ML")){

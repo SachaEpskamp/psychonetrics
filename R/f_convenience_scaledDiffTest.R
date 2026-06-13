@@ -174,7 +174,7 @@ scaled_diff_satorra2000_traces <- function(m1, A){
 #   m1, m0 : the two fitted psychonetrics models (m0 nested in m1; r0 > r1)
 #   method : "satorra.bentler.2001" | "satorra.bentler.2010" | "satorra.2000"
 #   scaled.shifted : (satorra.2000 only) scaled-and-shifted vs mean-scaled
-# Returns list(stat, df, pvalue) — stat = NA (with a warning) when the test
+# Returns list(stat, df, pvalue) -- stat = NA (with a warning) when the test
 # cannot be computed (cd <= 0, m == 0, or a building block is unavailable).
 scaled_diff_test_pair <- function(m1, m0, method = "satorra.bentler.2001",
                                   scaled.shifted = TRUE){

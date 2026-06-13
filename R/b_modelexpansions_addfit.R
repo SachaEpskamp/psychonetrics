@@ -267,7 +267,7 @@ ml_h1_information_observed_missing <- function(Y, mu, Sigma){
 # list(mu, sigma) per group. These are a property of the DATA (not of the
 # structural model) and match lavaan's lavTech(fit, "h1") moments. Source order:
 #   1. the model's own fitted saturated submodel (x@baseline_saturated$saturated)
-#      — available for a fitted structural model;
+#      -- available for a fitted structural model;
 #   2. otherwise (e.g. the baseline model, which carries no saturated submodel),
 #      fit a saturated varcov FIML model to the stored raw data per group.
 # Returns NULL if neither source is available.
@@ -328,7 +328,7 @@ fiml_em_saturated_moments <- function(x){
 #             moments (ybar_g, S_g). FIML: the EM/saturated moments (mu1_g,
 #             Sigma1_g) from the saturated model's modelmatrices (= lavaan's h1).
 #   S_g     : the moments used for the unstructured h1 information. Complete data:
-#             sample covariance (divisor n_g, ML/biased — matches Gamma & lavaan).
+#             sample covariance (divisor n_g, ML/biased -- matches Gamma & lavaan).
 #             FIML: the EM/saturated covariance Sigma1_g.
 #   mu1_g, Y_g : (FIML only) the EM/saturated mean and the raw data matrix (with
 #             NAs) for the group, needed by the pattern-based h1 observed
@@ -644,7 +644,7 @@ ml_model_chisq <- function(x){
 #   Gt_list     : list of GAMMA blocks    Gtilde_g = Gamma_g / f_g
 #   bread       : the matrix E whose inverse projects out the fitted directions
 #                 (DtWD = sum_g Delta_g' Wtilde_g Delta_g for least squares;
-#                  the expected Fisher information x@information for ML — these
+#                  the expected Fisher information x@information for ML -- these
 #                  coincide for ML since E = sum_g f_g Delta_g' V_g Delta_g)
 #   chisq_naive : the (unscaled) chi-square = N * objective (or -2(LL-satLL))
 #   df_integer  : integer degrees of freedom
@@ -707,11 +707,11 @@ compute_scaled_test_core <- function(Delta_list, Wt_list, Gt_list, bread,
   scaling_ss <- 1 / a
 
   list(
-    # Satorra-Bentler (mean adjusted) — used by MLM:
+    # Satorra-Bentler (mean adjusted) -- used by MLM:
     chisq.scaled.sb = chisq_sb,
     df.scaled.sb = df_integer,
     scaling.factor.sb = scaling_sb,
-    # Mean-variance adjusted (fractional df) — used by MLMVS:
+    # Mean-variance adjusted (fractional df) -- used by MLMVS:
     chisq.scaled.mv = chisq_mv,
     df.scaled.mv = df_mv,
     scaling.factor.mv = scaling_mv,
