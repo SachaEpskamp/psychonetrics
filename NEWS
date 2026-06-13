@@ -1,3 +1,81 @@
+Changes in Version 0.15.31
+  o This release adds new modeling functionality validated against lavaan: a
+    fast two-level maximum-likelihood estimator for multi-level latent variable
+    models, robust maximum-likelihood estimators (MLM/MLMV/MLMVS/MLR) with
+    scaled test statistics and robust fit indices, scaled chi-square difference
+    tests, converters to and from lavaan, standardized solutions, the wishart
+    likelihood, and fixed exogenous covariates. All new features are opt-in;
+    existing analyses are unaffected. Several new methods carry an experimental
+    note (shown when verbose = TRUE).
+
+  o MULTI-LEVEL: ml_lvm() gains a sufficient-statistics two-level ML estimator
+    (estimator = "ML"; McDonald & Goldstein, 1989; Muthen, 1990), which
+    optimizes the numerically identical objective as the wide-format FIML
+    estimator but is dramatically faster for large clusters (e.g. a 100-cluster
+    model with cluster sizes 18-25 fits in under a second versus ~90 seconds
+    with FIML). Standard errors and modification indices use an analytic
+    expected Fisher information (verified against lavaan's kernel to ~1e-13),
+    with full C++ implementations. Within-cluster missing data (MCAR/MAR) is
+    supported (matching lavaan::sem(..., missing = "ml"); R-based, numeric
+    information). The estimator argument now defaults to "default", which picks
+    "ML" for complete data with largest cluster > 5 units and "FIML" otherwise;
+    explicit estimator = "FIML" reproduces previous results exactly. Saturated
+    and baseline reference models, chi-square, df, CFI and TLI agree with
+    lavaan's two-level SEM; sample-size-dependent measures (RMSEA, BIC) use the
+    number of clusters J (so RMSEA is larger than lavaan's by a factor
+    sqrt(N/J)).
+
+  o ROBUST ML: added robust maximum-likelihood estimators selectable via the
+    model constructors or setestimator(): "MLM", "MLMV", "MLMVS" (Browne-1984
+    robust.sem sandwich standard errors with the Satorra-Bentler,
+    scaled-and-shifted, and mean-and-variance-adjusted scaled chi-square,
+    respectively) and "MLR" (Huber-White sandwich standard errors with the
+    Yuan-Bentler-Mplus scaled chi-square), plus robust RMSEA/CFI/TLI. Point
+    estimates are unchanged maximum likelihood. "MLR" supports missing data via
+    FIML, with the FIML-corrected (Savalei, 2010) robust fit indices, matching
+    lavaan's estimator = "MLR", missing = "fiml". The Satorra-Bentler family is
+    complete-data only. All quantities were validated against lavaan.
+
+  o The multi-group scaled (WLSMV / Satorra-Bentler) test statistic now
+    accumulates trace((U Gamma)^2) on the global block-diagonal stack rather
+    than per group. The per-group form was only correct without cross-group
+    equality constraints; multi-group equality-constrained scaled chi-squares
+    now match lavaan (the same correction lavaan made in 0.6-13). Single-group
+    output is unchanged.
+
+  o compare() now reports a Satorra-Bentler-family scaled chi-square difference
+    test (columns Chisq_diff_scaled, p_value_scaled) for nested models fitted
+    with a robust or scaled estimator. A new scaled.test.method argument selects
+    "satorra.bentler.2001" (default), "satorra.bentler.2010", or "satorra.2000"
+    (scaled-and-shifted; appropriate for MLMV/WLSMV). Output for non-robust
+    estimators is unchanged. Reproduces lavaan's lavTestLRT().
+
+  o LAVAAN INTEROPERABILITY: added fromlavaan(), which converts a fitted lavaan
+    object (or model syntax + data) into an equivalent psychonetrics lvm
+    (latent = "cov", residual = "cov"), reproducing estimates, standard errors,
+    chi-square, df and log-likelihood for standard ML fits (multi-group,
+    equality constraints, std.lv and FIML supported; unsupported features raise
+    informative errors). Added tolavaan(), which converts a psychonetrics lvm
+    (cov/cov) into a fitted lavaan object or a lavaan parameter table.
+
+  o parameters(x, standardized = TRUE) now returns the completely standardized
+    (std.all) solution with delta-method standard errors for the lvm and varcov
+    families (new std and se_std columns), matching lavaan::standardizedSolution().
+
+  o Added likelihood = "wishart" to lvm() and varcov() (complete-data Gaussian
+    ML): uses the unbiased (n-1) sample covariance with (n-1)-scaled chi-square
+    and standard errors, matching lavaan(likelihood = "wishart"). The default
+    likelihood = "normal" (n denominator) is unchanged.
+
+  o Added fixed_x to lvm() and varcov(): fixes declared exogenous covariates'
+    means and mutual (co)variances to their sample values (conditioning on x),
+    matching lavaan(fixed.x = TRUE); estimates, standard errors, chi-square, df
+    and the conditional log-likelihood match lavaan. Incremental fit indices use
+    psychonetrics' unconditional baseline.
+
+  o usecpp() keeps the two-level ML estimator with missing data on the R path
+    (it has no C++ implementation) instead of failing with a cryptic error.
+
 Changes in Version 0.15.30
   o This release implements the remaining findings of a large internal code
     audit: bug fixes across all model families, robustness and performance
