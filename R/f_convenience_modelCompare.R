@@ -1,8 +1,13 @@
 # Compare function for psychonetrics models:
-compare <- function(...){
+compare <- function(...,
+                    scaled.test.method = c("satorra.bentler.2001",
+                                           "satorra.bentler.2010",
+                                           "satorra.2000")){
   # Obtain dots:
   dots <- list(...)
-  
+
+  scaled.test.method <- match.arg(scaled.test.method)
+
   # if anything is not a psychonetrics object, stop:
   classes <- sapply(dots, class)
   if (!all(classes == "psychonetrics")){
@@ -61,18 +66,64 @@ compare <- function(...){
   if (any(!is.na(Tab$Chisq_diff) & Tab$Chisq_diff < 0)){
     warning("Negative chi-square difference encountered; models may not be nested. Chi-square difference test is not valid.")
   }
-  
+
+  # Satorra-Bentler-family SCALED chi-square difference test. Only added when
+  # ALL compared models are fit with a robust estimator (MLM/MLMV/MLMVS/MLR or
+  # DWLS/WLS/ULS). For ordinary ML/FIML/etc. the scaled columns are absent so
+  # that the output is byte-identical to earlier versions (backward compat).
+  # A model qualifies if it carries a finite scaling factor, OR it is a saturated
+  # robust model (df == 0): a saturated model has no scaling factor of its own
+  # (the scaling divides by df) but can still serve as the less-constrained
+  # reference, where the scaling factor is taken to be 1 (Satorra & Bentler 2001).
+  is_robust_estimator <- function(x){
+    if (x@estimator %in% c("WLS", "DWLS", "ULS")) return(TRUE)
+    cfg <- tryCatch(get_robust_config(x), error = function(e) list())
+    isTRUE(nzchar(cfg$se)) || isTRUE(nzchar(cfg$test))
+  }
+  has_scaling <- function(x){
+    sf <- x@fitmeasures$chisq.scaling.factor
+    if (!is.null(sf) && length(sf) == 1 && is.finite(sf)) return(TRUE)
+    # Saturated robust model (df 0): no scaling factor, still eligible as M1.
+    df_x <- x@fitmeasures$df
+    is_robust_estimator(x) && !is.null(df_x) && length(df_x) == 1 && df_x == 0
+  }
+  if (length(dots) >= 2 && all(vapply(dots, has_scaling, logical(1)))){
+    # The dots, arranged by DF ascending to match the table ordering:
+    dots_sorted <- dots[order(sapply(fits, "[[", "df"))]
+    # The Satorra (2000) test is reported in its scaled-and-shifted form (the
+    # lavaan default for that method, and the appropriate difference test for the
+    # scaled-shifted estimators MLMV / WLSMV). The mean-scaled Satorra-Bentler
+    # 2001 / 2010 tests always work and are the default.
+    scaled.shifted <- identical(scaled.test.method, "satorra.2000")
+
+    Tab$Chisq_diff_scaled <- NA_real_
+    Tab$p_value_scaled <- NA_real_
+    for (i in seq_len(nrow(Tab) - 1L)){
+      m1 <- dots_sorted[[i]]        # less constrained (lower df)
+      m0 <- dots_sorted[[i + 1L]]   # more constrained (higher df), nested in m1
+      # Only a properly ordered, non-equal-df pair is testable:
+      if (is.na(Tab$DF_diff[i + 1L]) || Tab$DF_diff[i + 1L] <= 0) next
+      res <- scaled_diff_test_pair(m1, m0, method = scaled.test.method,
+                                   scaled.shifted = scaled.shifted)
+      Tab$Chisq_diff_scaled[i + 1L] <- res$stat
+      Tab$p_value_scaled[i + 1L] <- res$pvalue
+    }
+    attr(Tab, "scaled.test.method") <- scaled.test.method
+  }
+
   # Set saturated chisquare to NA:
   if (any(Tab$model == "saturated"))
   Tab$Chisq[Tab$model == "saturated"] <- NA
-  
+
   class(Tab) <- c("psychonetrics_compare","data.frame")
-  
+
   return(Tab)
 }
 
 # Nice print function:
 print.psychonetrics_compare <- function(x,...){
+
+  scaled_method <- attr(x, "scaled.test.method")
 
   x$AIC <- goodNum2(x$AIC)
   x$BIC <- goodNum2(x$BIC)
@@ -81,13 +132,15 @@ print.psychonetrics_compare <- function(x,...){
   x$Chisq_diff <- goodNum2(x$Chisq_diff)
   x$DF_diff <- goodNumInt(x$DF_diff)
   x$p_value <- goodNum(x$p_value)
-  
-  
+  if (!is.null(x$Chisq_diff_scaled)) x$Chisq_diff_scaled <- goodNum2(x$Chisq_diff_scaled)
+  if (!is.null(x$p_value_scaled))    x$p_value_scaled    <- goodNum(x$p_value_scaled)
+
+
   # Make all numbers nicer
   # for (i in 5:ncol(x)){
     # x[,i] <- goodNum(x[,i])
   # }
-  
+
   # Output something:
   # cat(
   #   paste0("\t\t####################################\n",
@@ -95,8 +148,18 @@ print.psychonetrics_compare <- function(x,...){
   #          "\t\t####################################\n\n"))
   # psychonetrics_print_logo()
   # No awesome header :(
-  
+
   print.data.frame(x,row.names=FALSE)
-  
+
   cat("\nNote: Chi-square difference test assumes models are nested.")
+
+  if (!is.null(scaled_method)){
+    method_label <- switch(scaled_method,
+      "satorra.bentler.2001" = "Satorra & Bentler (2001)",
+      "satorra.bentler.2010" = "Satorra & Bentler (2010)",
+      "satorra.2000"         = "Satorra (2000), scaled and shifted",
+      scaled_method)
+    cat("\nNote: Chisq_diff_scaled / p_value_scaled use the ",
+        method_label, " scaled chi-square difference test.", sep = "")
+  }
 }
