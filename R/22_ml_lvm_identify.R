@@ -25,8 +25,8 @@ identify_ml_lvm <- function(x){
     for (inds in unique(x@parameters$var1_id[x@parameters$var2_id%in%nIndicators$var2_id[nIndicators$nLats == 1] & x@parameters$matrix == "lambda" & !x@parameters$fixed])){
       # Which to constrain?
       cons <- x@parameters$var1_id == inds & 
-        x@parameters$matrix %in% c("sigma_epsilon_within","omega_epsilon_within","delta_epsilon_within","lowertri_epsilon_within","kappa_epsilon_within",
-                                   "sigma_epsilon_between","omega_epsilon_between","delta_epsilon_between","lowertri_epsilon_between","kappa_epsilon_between")
+        x@parameters$matrix %in% c("sigma_epsilon_within","omega_epsilon_within","delta_epsilon_within","lowertri_epsilon_within","kappa_epsilon_within","rho_epsilon_within","SD_epsilon_within",
+                                   "sigma_epsilon_between","omega_epsilon_between","delta_epsilon_between","lowertri_epsilon_between","kappa_epsilon_between","rho_epsilon_between","SD_epsilon_between")
       
       x@parameters$est[cons] <- 0
       x@parameters$par[cons] <- 0
@@ -59,7 +59,8 @@ identify_ml_lvm <- function(x){
        "cov" = "sigma_zeta_within",
        "prec" = "kappa_zeta_within",
        "ggm" = "delta_zeta_within",
-       "chol" = "lowertri_zeta_within"
+       "chol" = "lowertri_zeta_within",
+       "cor" = "SD_zeta_within"
       )
 
       # Set all latent variances to 1:
@@ -229,7 +230,8 @@ identify_ml_lvm <- function(x){
         "cov" = "sigma_zeta_within",
         "prec" = "kappa_zeta_within",
         "ggm" = "delta_zeta_within",
-        "chol" = "lowertri_zeta_within"
+        "chol" = "lowertri_zeta_within",
+        "cor" = "SD_zeta_within"
       )
       
       if (consPerMat$n[consPerMat$matrix == "lambda"] >= nLat){

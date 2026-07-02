@@ -129,6 +129,11 @@ d_phi_theta_var1_group <- function(beta,P,zeta,...){
     
   } else if (zeta == "ggm"){
     Jac[sigma0Inds,sigmazetaInds] <- Jac[sigma0Inds,sigmazetaInds] %*% d_sigma_zeta_ggm_var1_cpp(L = dots$L, delta_IminOinv_zeta = dots$delta_IminOinv_zeta,A = dots$A, delta_zeta = dots$delta_zeta,Dstar = dots$Dstar,In = dots$In)
+  } else if (zeta == "cor"){
+    Jac[sigma0Inds,sigmazetaInds] <- as.matrix(Jac[sigma0Inds,sigmazetaInds] %*% cbind(
+      d_sigma_rho(L = dots$L, SD = dots$SD_zeta, A = dots$A, Dstar = dots$Dstar),
+      d_sigma_SD(L = dots$L, SD_IplusRho = dots$SD_IplusRho_zeta, In = dots$In, A = dots$A)
+    ))
   }
   
   # Store:

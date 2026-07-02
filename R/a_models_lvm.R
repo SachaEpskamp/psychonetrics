@@ -2,8 +2,8 @@
 lvm <- function(
   data, # Dataset
   lambda, # only required non-missing matrix
-  latent = c("cov","chol","prec","ggm"), # Maybe add cor at some point, but not now
-  residual = c("cov","chol","prec","ggm"),
+  latent = c("cov","chol","prec","ggm","cor"),
+  residual = c("cov","chol","prec","ggm","cor"),
 
   # Latent matrices:
   sigma_zeta = "full",
@@ -63,7 +63,13 @@ lvm <- function(
   # Penalized ML arguments:
   penalty_lambda = NA,  # Penalty strength (NA = auto-select via EBIC grid search)
   penalty_alpha = 1,   # Elastic net mixing: 1 = LASSO, 0 = ridge
-  penalize_matrices  # Character vector of matrix names to penalize. Default: defaultPenalizeMatrices()
+  penalize_matrices,  # Character vector of matrix names to penalize. Default: defaultPenalizeMatrices()
+  # Correlation parameterization (latent/residual = "cor") matrices
+  # (placed at the end of the signature for backward compatibility):
+  rho_zeta = "full",   # Latent correlations
+  SD_zeta = "full",    # Latent standard deviations (diagonal)
+  rho_epsilon = "zero", # Residual correlations
+  SD_epsilon = "diag"  # Residual standard deviations (diagonal)
 ){
   # Standardize input arguments:
   si <- standardize_input(
@@ -309,8 +315,8 @@ lvm <- function(
                                   verbose=verbose)
 
   # Submodel:
-  latentCov <- latent %in% c("cov","chol")
-  residCov <- residual %in% c("cov", "chol")
+  latentCov <- latent %in% c("cov","chol","cor")
+  residCov <- residual %in% c("cov", "chol", "cor")
 
   if (latentCov & residCov){
     model@submodel <- "sem"
@@ -606,16 +612,36 @@ lvm <- function(
   } else if (latent == "prec"){
     
     # Add omega matrix:
-    modMatrices$kappa_zeta <- matrixsetup_kappa(kappa_zeta, 
+    modMatrices$kappa_zeta <- matrixsetup_kappa(kappa_zeta,
                                                    name = "kappa_zeta",
                                                 expcov=expLatSigma,
-                                                nNode = nLatent, 
-                                                nGroup = nGroup, 
+                                                nNode = nLatent,
+                                                nGroup = nGroup,
                                                 labels = latents,
                                            equal = "kappa_zeta" %in% equal, sampletable = sampleStats,
                                            beta = modMatrices$beta[[1]])
+  } else if (latent == "cor"){
+    # Add rho matrix:
+    modMatrices$rho_zeta <- matrixsetup_rho(rho_zeta,
+                                                name = "rho_zeta",
+                                                expcov=expLatSigma,
+                                                nNode = nLatent,
+                                                nGroup = nGroup,
+                                                labels = latents,
+                                           equal = "rho_zeta" %in% equal, sampletable = sampleStats,
+                                           beta = modMatrices$beta[[1]])
+
+    # Add SD matrix:
+    modMatrices$SD_zeta <- matrixsetup_SD(SD_zeta,
+                                                name = "SD_zeta",
+                                                expcov=expLatSigma,
+                                                nNode = nLatent,
+                                                nGroup = nGroup,
+                                                labels = latents,
+                                           equal = "SD_zeta" %in% equal, sampletable = sampleStats,
+                                           beta = modMatrices$beta[[1]])
   }
-  
+
   ### Residual varcov ###
   if (residual == "cov"){
     modMatrices$sigma_epsilon <- matrixsetup_sigma(sigma_epsilon, 
@@ -655,13 +681,31 @@ lvm <- function(
   } else if (residual == "prec"){
     
     # Add omega matrix:
-    modMatrices$kappa_epsilon <- matrixsetup_kappa(kappa_epsilon, 
+    modMatrices$kappa_epsilon <- matrixsetup_kappa(kappa_epsilon,
                                                    name = "kappa_epsilon",
                                                 expcov=expResidSigma,
-                                                nNode = nNode, 
-                                                nGroup = nGroup, 
+                                                nNode = nNode,
+                                                nGroup = nGroup,
                                                 labels = sampleStats@variables$label,
                                                 equal = "kappa_epsilon" %in% equal, sampletable = sampleStats)
+  } else if (residual == "cor"){
+    # Add rho matrix:
+    modMatrices$rho_epsilon <- matrixsetup_rho(rho_epsilon,
+                                                   name = "rho_epsilon",
+                                                expcov=expResidSigma,
+                                                nNode = nNode,
+                                                nGroup = nGroup,
+                                                labels = sampleStats@variables$label,
+                                                equal = "rho_epsilon" %in% equal, sampletable = sampleStats)
+
+    # Add SD matrix:
+    modMatrices$SD_epsilon <- matrixsetup_SD(SD_epsilon,
+                                                   name = "SD_epsilon",
+                                                expcov=expResidSigma,
+                                                nNode = nNode,
+                                                nGroup = nGroup,
+                                                labels = sampleStats@variables$label,
+                                                equal = "SD_epsilon" %in% equal, sampletable = sampleStats)
   }
   
   
@@ -673,7 +717,7 @@ lvm <- function(
   # When corinput=TRUE, fix diagonal elements of sigma_epsilon (they are derived from diag(sigma)=1):
   if (corinput){
     # Find the diagonal parameters of residual matrices:
-    diagFixMatrices <- c("sigma_epsilon", "kappa_epsilon", "lowertri_epsilon", "delta_epsilon")
+    diagFixMatrices <- c("sigma_epsilon", "kappa_epsilon", "lowertri_epsilon", "delta_epsilon", "SD_epsilon")
     for (matName in diagFixMatrices){
       diagRows <- pars$partable$matrix == matName & pars$partable$row == pars$partable$col
       if (any(diagRows)){

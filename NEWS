@@ -1,3 +1,32 @@
+Changes in Version 0.16.1
+  o NEW: the correlation parameterization (type = "cor"; a correlation matrix
+    rho with a diagonal matrix of standard deviations SD, such that
+    sigma = SD (I + rho) SD) is now available for every typed covariance
+    structure in the package, alongside "cov", "chol", "prec" and "ggm":
+    - lvm() latent and residual structures (rho_zeta/SD_zeta and
+      rho_epsilon/SD_epsilon), including lnm()/rnm()/lrnm() and meta_lvm()
+    - var1()/gvar() contemporaneous (innovation) structure (rho_zeta/SD_zeta),
+      including meta_var1()/meta_gvar()
+    - tsdlvm1()/ts_lvgvar() contemporaneous and residual structures
+    - dlvm1() and ml_lvm() within/between latent and residual structures,
+      including panelvar()/panelgvar()/panellvgvar() and ml_lnm()/ml_rnm()/
+      ml_lrnm(), and ri_clpm() (type = "cor")
+    No new derivatives were needed: the existing analytic rho/SD Jacobian
+    blocks (used by varcov(type = "cor") and the meta-analytic random
+    effects) are chained into each family's gradient, in both the R and
+    C++ engines. transmod() can transform saturated/diagonal structures
+    to and from "cor", and CIplot() selects rho matrices for cor-typed
+    models.
+  o With identification = "variance", cor-typed latent structures are
+    identified by fixing the latent standard deviations (the diagonal of
+    the SD matrix) to 1, so the latent covariance structure becomes a
+    correlation matrix (I + rho).
+  o The "cor" parameterization is fit-equivalent to the "cov"
+    parameterization when saturated (verified numerically for all families:
+    identical log-likelihoods, degrees of freedom and implied covariance
+    structures; analytic gradients verified against numeric ones in both
+    the R and C++ engines).
+
 Changes in Version 0.16
   o Version 0.16 is a major feature release that consolidates the 0.15.x
     development series. It bundles a large internal code audit (numerous

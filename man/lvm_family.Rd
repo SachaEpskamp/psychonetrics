@@ -9,11 +9,12 @@
 Continuous latent variable family of psychonetrics models
 }
 \description{
-This is the family of models that models the data as a structural equation model (SEM), allowing the latent and residual variance-covariance matrices to be further modeled as networks. The \code{latent} and \code{residual} arguments can be used to define what latent and residual models are used respectively: \code{"cov"} (default) models a variance-covariance matrix directly, \code{"chol"} models a Cholesky decomposition, \code{"prec"} models a precision matrix, and \code{"ggm"} models a Gaussian graphical model (Epskamp, Rhemtulla and Borsboom, 2017). The wrapper \code{lnm()} sets \code{latent = "ggm"} for the latent network model (LNM), the wrapper  \code{rnm()} sets \code{residual = "ggm"} for the residual network model (RNM), and the wrapper  \code{lrnm()} combines the LNM and RNM.
+This is the family of models that models the data as a structural equation model (SEM), allowing the latent and residual variance-covariance matrices to be further modeled as networks. The \code{latent} and \code{residual} arguments can be used to define what latent and residual models are used respectively: \code{"cov"} (default) models a variance-covariance matrix directly, \code{"chol"} models a Cholesky decomposition, \code{"prec"} models a precision matrix, \code{"ggm"} models a Gaussian graphical model (Epskamp, Rhemtulla and Borsboom, 2017), and \code{"cor"} models a correlation matrix with separate standard deviations. The wrapper \code{lnm()} sets \code{latent = "ggm"} for the latent network model (LNM), the wrapper  \code{rnm()} sets \code{residual = "ggm"} for the residual network model (RNM), and the wrapper  \code{lrnm()} combines the LNM and RNM.
 }
 \usage{
 lvm(data, lambda, latent = c("cov", "chol", "prec",
-                   "ggm"), residual = c("cov", "chol", "prec", "ggm"),
+                   "ggm", "cor"), residual = c("cov", "chol", "prec", "ggm",
+                   "cor"),
                    sigma_zeta = "full", kappa_zeta = "full", omega_zeta =
                    "full", lowertri_zeta = "full", delta_zeta = "full",
                    sigma_epsilon = "diag", kappa_epsilon = "diag",
@@ -32,7 +33,9 @@ lvm(data, lambda, latent = c("cov", "chol", "prec",
                    simplelambdastart = FALSE, start = "default",
                    bootstrap = FALSE,
                    boot_sub, boot_resample, penalty_lambda = NA,
-                   penalty_alpha = 1, penalize_matrices)
+                   penalty_alpha = 1, penalize_matrices,
+                   rho_zeta = "full", SD_zeta = "full",
+                   rho_epsilon = "zero", SD_epsilon = "diag")
 
 lnm(\dots)
 rnm(\dots)
@@ -183,6 +186,18 @@ Logical, should the bootstrap be with replacement (\code{TRUE}) or without repla
 \item{penalty_lambda}{Numeric penalty strength for penalized ML estimation (PML/PFIML). \code{NA} (default) triggers automatic selection via EBIC-based grid search when a penalized estimator is used; set to a specific numeric value to use a fixed penalty strength (0 = no penalty). See \code{\link{find_penalized_lambda}} and \code{\link{penalize}}.}
 \item{penalty_alpha}{Elastic net mixing parameter: 1 = LASSO (default), 0 = ridge.}
 \item{penalize_matrices}{Character vector of matrix names to penalize. If missing, defaults are selected based on the model type.}
+\item{rho_zeta}{
+Only used when \code{latent = "cor"}. Either \code{"full"} or \code{"zero"}, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. Encodes the latent correlations. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+}
+\item{SD_zeta}{
+Only used when \code{latent = "cor"}. Either \code{"full"} or \code{"diag"}, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. Encodes the diagonal matrix of latent standard deviations. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+}
+\item{rho_epsilon}{
+Only used when \code{residual = "cor"}. Either \code{"full"} or \code{"zero"}, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. Encodes the residual correlations. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+}
+\item{SD_epsilon}{
+Only used when \code{residual = "cor"}. Either \code{"full"} or \code{"diag"}, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. Encodes the diagonal matrix of residual standard deviations. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+}
 \item{\dots}{
 Arguments sent to \code{lvm}
 }

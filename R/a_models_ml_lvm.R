@@ -9,10 +9,10 @@ ml_lvm <- function(
   # lambda_between, # May not be missing
   
   # Type:
-  within_latent = c("cov","chol","prec","ggm"), 
-  within_residual = c("cov","chol","prec","ggm"), 
-  between_latent = c("cov","chol","prec","ggm"), 
-  between_residual = c("cov","chol","prec","ggm"), 
+  within_latent = c("cov","chol","prec","ggm","cor"),
+  within_residual = c("cov","chol","prec","ggm","cor"),
+  between_latent = c("cov","chol","prec","ggm","cor"),
+  between_residual = c("cov","chol","prec","ggm","cor"),
   
   # Beta:
   beta_within = "zero",
@@ -71,7 +71,17 @@ ml_lvm <- function(
   sampleStats,
   bootstrap = FALSE,
   boot_sub,
-  boot_resample
+  boot_resample,
+  # Correlation parameterization ("cor" types) matrices
+  # (placed at the end of the signature for backward compatibility):
+  rho_zeta_within = "full",
+  SD_zeta_within = "full",
+  rho_epsilon_within = "zero",
+  SD_epsilon_within = "diag",
+  rho_zeta_between = "full",
+  SD_zeta_between = "full",
+  rho_epsilon_between = "zero",
+  SD_epsilon_between = "diag"
 ){
 
   # CRAN Check workarounds (sorry):
@@ -149,12 +159,16 @@ ml_lvm <- function(
     kappa_epsilon_within <- O
     sigma_epsilon_within <- O
     lowertri_epsilon_within <- O
-    
+    rho_epsilon_within <- O
+    SD_epsilon_within <- O
+
     omega_epsilon_between <- O
     delta_epsilon_between <- O
     kappa_epsilon_between <- O
     sigma_epsilon_between <- O
     lowertri_epsilon_between <- O
+    rho_epsilon_between <- O
+    SD_epsilon_between <- O
   }
   
   # Number of latents:
@@ -425,7 +439,7 @@ ml_lvm <- function(
   
   # Setup latent varcov:
   modMatrices <- c(modMatrices,
-                   matrixsetup_flexcov(sigma = sigma_zeta_within,lowertri = lowertri_zeta_within,omega = omega_zeta_within,delta = delta_zeta_within,kappa = kappa_zeta_within,
+                   matrixsetup_flexcov(sigma = sigma_zeta_within,lowertri = lowertri_zeta_within,omega = omega_zeta_within,delta = delta_zeta_within,kappa = kappa_zeta_within, rho = rho_zeta_within, SD = SD_zeta_within,
                                        type = within_latent,
                                        name= "zeta_within",
                                        sampleStats= sampleStats,
@@ -440,7 +454,7 @@ ml_lvm <- function(
   
   # Setup residuals:
   modMatrices <- c(modMatrices,
-                   matrixsetup_flexcov(sigma_epsilon_within,lowertri_epsilon_within,omega_epsilon_within,delta_epsilon_within,kappa_epsilon_within,
+                   matrixsetup_flexcov(sigma_epsilon_within,lowertri_epsilon_within,omega_epsilon_within,delta_epsilon_within,kappa_epsilon_within, rho = rho_epsilon_within, SD = SD_epsilon_within,
                                        type = within_residual,
                                        name= "epsilon_within",
                                        sampleStats= sampleStats,
@@ -461,7 +475,7 @@ ml_lvm <- function(
   
   # Setup latent varcov:
   modMatrices <- c(modMatrices,
-                   matrixsetup_flexcov(sigma_zeta_between,lowertri_zeta_between,omega_zeta_between,delta_zeta_between,kappa_zeta_between,
+                   matrixsetup_flexcov(sigma_zeta_between,lowertri_zeta_between,omega_zeta_between,delta_zeta_between,kappa_zeta_between, rho = rho_zeta_between, SD = SD_zeta_between,
                                        type = between_latent,
                                        name= "zeta_between",
                                        sampleStats= sampleStats,
@@ -474,7 +488,7 @@ ml_lvm <- function(
   
   # Setup latent residual:
   modMatrices <- c(modMatrices,
-                   matrixsetup_flexcov(sigma_epsilon_between,lowertri_epsilon_between,omega_epsilon_between,delta_epsilon_between,kappa_epsilon_between,
+                   matrixsetup_flexcov(sigma_epsilon_between,lowertri_epsilon_between,omega_epsilon_between,delta_epsilon_between,kappa_epsilon_between, rho = rho_epsilon_between, SD = SD_epsilon_between,
                                        type = between_residual,
                                        name= "epsilon_between",
                                        sampleStats= sampleStats,

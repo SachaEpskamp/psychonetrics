@@ -22,7 +22,7 @@ identify_lvm <- function(x){
     for (inds in unique(x@parameters$var1_id[x@parameters$var2_id%in%nIndicators$var2_id[nIndicators$nLats == 1] & x@parameters$matrix == "lambda" & !x@parameters$fixed])){
       # Which to constrain?
       cons <- x@parameters$var1_id == inds & 
-        x@parameters$matrix %in% c("sigma_epsilon","omega_epsilon","delta_epsilon","lowertri_epsilon","kappa_epsilon")
+        x@parameters$matrix %in% c("sigma_epsilon","omega_epsilon","delta_epsilon","lowertri_epsilon","kappa_epsilon","rho_epsilon","SD_epsilon")
       
       x@parameters$est[cons] <- 0
       x@parameters$par[cons] <- 0
@@ -65,7 +65,8 @@ identify_lvm <- function(x){
        "cov" = "sigma_zeta",
        "prec" = "kappa_zeta",
        "ggm" = "delta_zeta",
-       "chol" = "lowertri_zeta"
+       "chol" = "lowertri_zeta",
+       "cor" = "SD_zeta"
       )
 
       # Set all latent variances to 1:
@@ -172,7 +173,8 @@ identify_lvm <- function(x){
         "cov" = "sigma_zeta",
         "prec" = "kappa_zeta",
         "ggm" = "delta_zeta",
-        "chol" = "lowertri_zeta"
+        "chol" = "lowertri_zeta",
+        "cor" = "SD_zeta"
       )
       
       ### variance ###

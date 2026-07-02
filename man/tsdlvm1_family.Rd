@@ -10,8 +10,8 @@ This is the family of models that models a dynamic factor model on time-series. 
 }
 \usage{
 tsdlvm1(data, lambda, contemporaneous = c("cov", "chol",
-                   "prec", "ggm"), residual = c("cov", "chol", "prec",
-                   "ggm"), beta = "full", omega_zeta = "full", delta_zeta
+                   "prec", "ggm", "cor"), residual = c("cov", "chol", "prec",
+                   "ggm", "cor"), beta = "full", omega_zeta = "full", delta_zeta
                    = "diag", kappa_zeta = "full", sigma_zeta = "full",
                    lowertri_zeta = "full", omega_epsilon = "zero",
                    delta_epsilon = "diag", kappa_epsilon = "diag",
@@ -26,7 +26,9 @@ tsdlvm1(data, lambda, contemporaneous = c("cov", "chol",
                    centerWithin = FALSE, standardize = c("none", "z",
                    "quantile"), verbose = FALSE, bootstrap = FALSE,
                    boot_sub, boot_resample, penalty_lambda = NA,
-                   penalty_alpha = 1, penalize_matrices)
+                   penalty_alpha = 1, penalize_matrices,
+                   rho_zeta = "full", SD_zeta = "diag",
+                   rho_epsilon = "zero", SD_epsilon = "diag")
 
 ts_lvgvar(...)
 }
@@ -170,6 +172,18 @@ Logical, should the bootstrap be with replacement (\code{TRUE}) or without repla
 \item{penalty_lambda}{Numeric penalty strength for penalized ML estimation (PML/PFIML). \code{NA} (default) triggers automatic selection via EBIC-based grid search when a penalized estimator is used; set to a specific numeric value to use a fixed penalty strength (0 = no penalty). See \code{\link{find_penalized_lambda}} and \code{\link{penalize}}.}
 \item{penalty_alpha}{Elastic net mixing parameter: 1 = LASSO (default), 0 = ridge.}
 \item{penalize_matrices}{Character vector of matrix names to penalize. If missing, defaults are selected based on the model type.}
+\item{rho_zeta}{
+Only used when \code{contemporaneous = "cor"}. Either \code{"full"} or \code{"zero"}, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. Encodes the contemporaneous (innovation) correlations. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+}
+\item{SD_zeta}{
+Only used when \code{contemporaneous = "cor"}. Either \code{"full"} or \code{"diag"}, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. Encodes the diagonal matrix of contemporaneous (innovation) standard deviations. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+}
+\item{rho_epsilon}{
+Only used when \code{residual = "cor"}. Either \code{"full"} or \code{"zero"}, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. Encodes the residual correlations. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+}
+\item{SD_epsilon}{
+Only used when \code{residual = "cor"}. Either \code{"full"} or \code{"diag"}, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. Encodes the diagonal matrix of residual standard deviations. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+}
 \item{\dots}{
 Arguments sent to \code{tsdlvm1}
 }

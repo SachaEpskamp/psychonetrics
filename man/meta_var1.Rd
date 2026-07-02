@@ -10,11 +10,12 @@ Single-stage meta-analytic vector autoregressive model (VAR(1)) for time-series 
 \usage{
 meta_var1(data, covs, nobs,
           vars, studyvar, idvar, dayvar, beepvar,
-          contemporaneous = c("cov", "chol", "prec", "ggm"),
+          contemporaneous = c("cov", "chol", "prec", "ggm", "cor"),
           beta = "full",
           omega_zeta = "full", delta_zeta = "full",
           kappa_zeta = "full", sigma_zeta = "full",
           lowertri_zeta = "full",
+          rho_zeta = "full", SD_zeta = "full",
           randomEffects = c("chol", "cov", "prec", "ggm", "cor"),
           sigma_randomEffects = "full",
           kappa_randomEffects = "full",
@@ -59,7 +60,7 @@ Optional string indicating the day variable (passed to \code{tsData} per study).
 Optional string indicating the beep variable within day (passed to \code{tsData} per study).
 }
   \item{contemporaneous}{
-Parameterization of the contemporaneous (residual innovation) covariance structure. One of \code{"cov"}, \code{"chol"}, \code{"prec"}, or \code{"ggm"}.
+Parameterization of the contemporaneous (residual innovation) covariance structure. One of \code{"cov"}, \code{"chol"}, \code{"prec"}, \code{"ggm"}, or \code{"cor"}.
 }
   \item{beta}{
 Temporal lag-1 regression matrix specification. Defaults to \code{"full"} (all elements free, including diagonal autoregressive effects).
@@ -136,6 +137,8 @@ Proportion of cases to subsample for bootstrap.
   \item{boot_resample}{
 Logical, should bootstrap be with replacement?
 }
+  \item{rho_zeta}{Only used when \code{contemporaneous = "cor"}. Contemporaneous (innovation) correlation matrix specification (\code{"full"}, \code{"zero"}, or a pattern matrix).}
+  \item{SD_zeta}{Only used when \code{contemporaneous = "cor"}. Diagonal matrix of contemporaneous (innovation) standard deviations (\code{"full"}, \code{"diag"}, or a pattern matrix).}
   \item{\dots}{
 Arguments sent to \code{meta_var1}.
 }

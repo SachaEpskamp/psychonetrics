@@ -8,8 +8,8 @@ ml_ts_lvgvar <- function(...){
 }
 
 ml_var <- function(...,
-                   contemporaneous = c("cov","chol","prec","ggm"),
-                   between = c("cov","chol","prec","ggm")){
+                   contemporaneous = c("cov","chol","prec","ggm","cor"),
+                   between = c("cov","chol","prec","ggm","cor")){
   .Deprecated("dlvm1")
   contemporaneous <- match.arg(contemporaneous)
   between <- match.arg(between)
@@ -19,8 +19,8 @@ ml_var <- function(...,
 }
 
 ml_gvar <- function(...,
-                   contemporaneous = c("ggm","cov","chol","prec"),
-                   between = c("ggm","cov","chol","prec")){
+                   contemporaneous = c("ggm","cov","chol","prec","cor"),
+                   between = c("ggm","cov","chol","prec","cor")){
   .Deprecated("dlvm1")
   contemporaneous <- match.arg(contemporaneous)
   between <- match.arg(between)

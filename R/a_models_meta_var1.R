@@ -12,7 +12,7 @@ meta_var1 <- function(
   beepvar,        # Beep variable (passed to tsData)
 
   # VAR(1) structure:
-  contemporaneous = c("cov","chol","prec","ggm"),
+  contemporaneous = c("cov","chol","prec","ggm","cor"),
   beta = "full",
 
   # Contemporaneous effects:
@@ -21,6 +21,8 @@ meta_var1 <- function(
   kappa_zeta = "full",
   sigma_zeta = "full",
   lowertri_zeta = "full",
+  rho_zeta = "full",
+  SD_zeta = "full",
 
   # Random effects setup:
   randomEffects = c("chol","cov","prec","ggm","cor"),
@@ -316,7 +318,8 @@ meta_var1 <- function(
                                                     "prec" = "meta_gvar",
                                                     "ggm" = "meta_gvar",
                                                     "chol" = "meta_var",
-                                                    "cov" = "meta_var"),
+                                                    "cov" = "meta_var",
+                                                    "cor" = "meta_var"),
                                   sample = sampleStats,
                                   computed = FALSE,
                                   optimizer = defaultoptimizer(),
@@ -394,6 +397,19 @@ meta_var1 <- function(
                                                  omegaStart = modMatrices$omega_zeta$start)
   } else if (contemporaneous == "prec"){
     modMatrices$kappa_zeta <- matrixsetup_kappa(kappa_zeta, name = "kappa_zeta",
+                                                 expcov = contCovEst,
+                                                 nNode = nNode,
+                                                 nGroup = nGroup,
+                                                 labels = vars,
+                                                 equal = FALSE, sampletable = sampleStats)
+  } else if (contemporaneous == "cor"){
+    modMatrices$rho_zeta <- matrixsetup_rho(rho_zeta, name = "rho_zeta",
+                                                 expcov = contCovEst,
+                                                 nNode = nNode,
+                                                 nGroup = nGroup,
+                                                 labels = vars,
+                                                 equal = FALSE, sampletable = sampleStats)
+    modMatrices$SD_zeta <- matrixsetup_SD(SD_zeta, name = "SD_zeta",
                                                  expcov = contCovEst,
                                                  nNode = nNode,
                                                  nGroup = nGroup,

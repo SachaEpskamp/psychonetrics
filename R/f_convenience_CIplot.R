@@ -19,7 +19,9 @@ covchooser <- function(x,name=""){
     matrices <- "lowertri"
   } else if (x == "cov"){
     matrices <- "sigma"
-  } 
+  } else if (x == "cor"){
+    matrices <- "rho"
+  }
   if (name != ""){
     matrices <- paste0(matrices,"_",name)  
   }

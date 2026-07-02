@@ -3,7 +3,7 @@ var1 <- function(
   data, # Dataset
   
   # Type:
-  contemporaneous = c("cov","chol","prec","ggm"), 
+  contemporaneous = c("cov","chol","prec","ggm","cor"),
   
   # Temporal effects:
   beta = "full",
@@ -46,7 +46,11 @@ var1 <- function(
   # Penalized ML arguments:
   penalty_lambda = NA,  # Penalty strength (NA = auto-select via EBIC grid search)
   penalty_alpha = 1,   # Elastic net mixing: 1 = LASSO, 0 = ridge
-  penalize_matrices  # Character vector of matrix names to penalize. Default: defaultPenalizeMatrices()
+  penalize_matrices,  # Character vector of matrix names to penalize. Default: defaultPenalizeMatrices()
+  # Correlation parameterization (contemporaneous = "cor") matrices
+  # (placed at the end of the signature for backward compatibility):
+  rho_zeta = "full",  # Contemporaneous (innovation) correlations
+  SD_zeta = "full"    # Contemporaneous (innovation) standard deviations (diagonal)
 ){
   contemporaneous <- match.arg(contemporaneous)
 
@@ -157,7 +161,8 @@ var1 <- function(
                                            "prec" = "gvar",
                                            "ggm" = "gvar",
                                            "chol" = "var",
-                                           "cov" = "var"
+                                           "cov" = "var",
+                                           "cor" = "var"
                                     ),types = list(zeta = contemporaneous),
                                   sample = sampleStats,computed = FALSE, 
                                   equal = equal,
@@ -253,14 +258,31 @@ var1 <- function(
                                                 onlyStartSign = FALSE,
                                                 omegaStart =  modMatrices$omega_zeta$start) 
   } else if (contemporaneous == "prec"){
-    
+
     # Add omega matrix:
     modMatrices$kappa_zeta <- matrixsetup_kappa(kappa_zeta, name = "kappa_zeta",
                                                 expcov=contCovEst,
-                                                nNode = nNode, 
-                                                nGroup = nGroup, 
+                                                nNode = nNode,
+                                                nGroup = nGroup,
                                                 labels = sampleStats@variables$label[-(1:nNode)],
                                                 equal = "kappa_zeta" %in% equal, sampletable = sampleStats)
+  } else if (contemporaneous == "cor"){
+
+    # Add rho matrix:
+    modMatrices$rho_zeta <- matrixsetup_rho(rho_zeta, name = "rho_zeta",
+                                                expcov=contCovEst,
+                                                nNode = nNode,
+                                                nGroup = nGroup,
+                                                labels = sampleStats@variables$label[-(1:nNode)],
+                                                equal = "rho_zeta" %in% equal, sampletable = sampleStats)
+
+    # Add SD matrix:
+    modMatrices$SD_zeta <- matrixsetup_SD(SD_zeta, name = "SD_zeta",
+                                                expcov=contCovEst,
+                                                nNode = nNode,
+                                                nGroup = nGroup,
+                                                labels = sampleStats@variables$label[-(1:nNode)],
+                                                equal = "SD_zeta" %in% equal, sampletable = sampleStats)
   }
   
   

@@ -242,14 +242,23 @@ arma::mat d_phi_theta_var1_group_cpp(
     
     
   } else if (zeta == "ggm"){
-    
-    Jac.submat(sigma0Inds_start,sigmazetaInds_start,sigma0Inds_end,sigmazetaInds_end) =  
-      Jac.submat(sigma0Inds_start,sigmazetaInds_start,sigma0Inds_end,sigmazetaInds_end) * 
+
+    Jac.submat(sigma0Inds_start,sigmazetaInds_start,sigma0Inds_end,sigmazetaInds_end) =
+      Jac.submat(sigma0Inds_start,sigmazetaInds_start,sigma0Inds_end,sigmazetaInds_end) *
       d_sigma_zeta_ggm_var1_cpp(
         grouplist["L"], grouplist["delta_IminOinv_zeta"], grouplist["A"],grouplist["delta_zeta"], grouplist["Dstar"], grouplist["In"]
-    
+
       );
-    
+
+  } else if (zeta == "cor"){
+
+    Jac.submat(sigma0Inds_start,sigmazetaInds_start,sigma0Inds_end,sigmazetaInds_end) =
+      Jac.submat(sigma0Inds_start,sigmazetaInds_start,sigma0Inds_end,sigmazetaInds_end) *
+      arma::join_rows(
+        d_sigma_rho_cpp(grouplist["L"], grouplist["SD_zeta"], grouplist["A"], grouplist["Dstar"]),
+        d_sigma_SD_cpp(grouplist["L"], grouplist["SD_IplusRho_zeta"], grouplist["In"], grouplist["A"])
+      );
+
   }
   
   // Store:

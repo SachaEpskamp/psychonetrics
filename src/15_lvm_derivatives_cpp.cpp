@@ -354,6 +354,14 @@ arma::mat d_phi_theta_lvm_group_cpp(
         grouplist["L_eta"],  grouplist["delta_IminOinv_zeta"],  grouplist["Aeta"],
                   grouplist["delta_zeta"],grouplist["Dstar_eta"],grouplist["Inlatent"]
       );
+  } else if (latent == "cor"){
+
+    Jac.submat(sigmaInds(0),sigmazetaInds(0),sigmaInds(1),sigmazetaInds(1)) =
+      Jac.submat(sigmaInds(0),sigmazetaInds(0),sigmaInds(1),sigmazetaInds(1)) *
+      arma::join_rows(
+        d_sigma_rho_cpp(grouplist["L_eta"], grouplist["SD_zeta"], grouplist["Aeta"], grouplist["Dstar_eta"]),
+        d_sigma_SD_cpp(grouplist["L_eta"], grouplist["SD_IplusRho_zeta"], grouplist["Inlatent"], grouplist["Aeta"])
+      );
   }
 
   // Residual variances:
@@ -380,6 +388,13 @@ arma::mat d_phi_theta_lvm_group_cpp(
     Jac.submat(sigmaInds(0),sigmaepsilonInds(0),sigmaInds(1),sigmaepsilonInds(1)) = d_sigma_epsilon_ggm_lvm_cpp(
       grouplist["L"], grouplist["delta_IminOinv_epsilon"], grouplist["A"],
       grouplist["delta_epsilon"], grouplist["Dstar"], grouplist["In"]
+    );
+
+  } else if (residual == "cor"){
+
+    Jac.submat(sigmaInds(0),sigmaepsilonInds(0),sigmaInds(1),sigmaepsilonInds(1)) = arma::join_rows(
+      d_sigma_rho_cpp(grouplist["L"], grouplist["SD_epsilon"], grouplist["A"], grouplist["Dstar"]),
+      d_sigma_SD_cpp(grouplist["L"], grouplist["SD_IplusRho_epsilon"], grouplist["In"], grouplist["A"])
     );
 
   }

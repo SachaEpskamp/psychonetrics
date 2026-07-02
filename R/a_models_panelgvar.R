@@ -1,6 +1,6 @@
 panelvar <- function(data,vars,
-                     within_latent = c("cov","chol","prec","ggm"),
-                     between_latent = c("cov","chol","prec","ggm"),
+                     within_latent = c("cov","chol","prec","ggm","cor"),
+                     between_latent = c("cov","chol","prec","ggm","cor"),
                      ...){
   # Match arg:
   within_latent <- match.arg(within_latent)
@@ -55,8 +55,8 @@ panelvar <- function(data,vars,
 }
 
 panelgvar <- function(data,vars,
-                      within_latent = c("ggm","chol","cov","prec"),
-                      between_latent = c("ggm","chol","cov","prec"),
+                      within_latent = c("ggm","chol","cov","prec","cor"),
+                      between_latent = c("ggm","chol","cov","prec","cor"),
                       ...){
   # Match arg:
   within_latent <- match.arg(within_latent)

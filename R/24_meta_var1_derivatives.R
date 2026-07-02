@@ -34,6 +34,8 @@ d_phi_theta_meta_var1_group <- function(beta, zeta, randomEffects, cpp, ...){
     nSigmaZeta <- nNode * (nNode - 1) / 2 + nNode  # omega (off-diag) + delta (diag)
   } else if (zeta == "prec"){
     nSigmaZeta <- nNode * (nNode + 1) / 2
+  } else if (zeta == "cor"){
+    nSigmaZeta <- nNode * (nNode - 1) / 2 + nNode  # rho (off-diag) + SD (diag)
   }
   nVAR1 <- nBeta + nSigmaZeta
 
@@ -96,6 +98,11 @@ d_phi_theta_meta_var1_group <- function(beta, zeta, randomEffects, cpp, ...){
         L = dots$L, delta_IminOinv_zeta = dots$delta_IminOinv_zeta, A = dots$A,
         delta_zeta = dots$delta_zeta, Dstar = dots$Dstar, In = dots$In
       )
+  } else if (zeta == "cor"){
+    Jac[sigma0Inds, sigmazetaInds_col] <- as.matrix(Jac[sigma0Inds, sigmazetaInds_col] %*% cbind(
+      d_sigma_rho(L = dots$L, SD = dots$SD_zeta, A = dots$A, Dstar = dots$Dstar),
+      d_sigma_SD(L = dots$L, SD_IplusRho = dots$SD_IplusRho_zeta, In = dots$In, A = dots$A)
+    ))
   }
 
   # Store for sigma1 derivatives:

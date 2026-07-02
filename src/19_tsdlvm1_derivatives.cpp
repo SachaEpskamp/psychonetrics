@@ -169,6 +169,11 @@ arma::mat d_phi_theta_tsdlvm1_group_cpp(
     );
   } else if (zeta == "cov"){
     aug_zeta = eye(nLat*(nLat+1)/2, nLat*(nLat+1)/2);
+  } else if (zeta == "cor"){
+    aug_zeta = join_rows(
+      d_sigma_rho_cpp(L_eta, grouplist["SD_zeta"], grouplist["A_eta"], grouplist["Dstar_eta"]),
+      d_sigma_SD_cpp(L_eta, grouplist["SD_IplusRho_zeta"], grouplist["I_eta"], grouplist["A_eta"])
+    );
   }
   
   // Residual
@@ -183,6 +188,11 @@ arma::mat d_phi_theta_tsdlvm1_group_cpp(
     );
   } else if (epsilon == "cov"){
     aug_epsilon = eye(nNode*(nNode+1)/2, nNode*(nNode+1)/2);
+  } else if (epsilon == "cor"){
+    aug_epsilon = join_rows(
+      d_sigma_rho_cpp(L_y, grouplist["SD_epsilon"], grouplist["A_y"], grouplist["Dstar_y"]),
+      d_sigma_SD_cpp(L_y, grouplist["SD_IplusRho_epsilon"], grouplist["I_y"], grouplist["A_y"])
+    );
   }
 
   // Exogenous mean part:

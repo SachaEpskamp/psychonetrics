@@ -16,7 +16,7 @@ ri_clpm(data, vars,
         idvar, beepvar,
         standardize = c("none", "z", "quantile", "z_per_wave"),
         lambda,
-        type = c("cov", "chol", "prec", "ggm"),
+        type = c("cov", "chol", "prec", "ggm", "cor"),
         verbose = FALSE, \dots)
 
 ri_clpm_stationary(x,
@@ -60,7 +60,7 @@ ri_clpm_search(x,
   }
 
   \item{type}{
-  The parameterization used for the latent (innovation and between-person random intercept) covariance structure: \code{"cov"} (covariances), \code{"chol"} (Cholesky), \code{"prec"} (precision), or \code{"ggm"} (Gaussian graphical model / partial correlations). Because the latent covariance matrix is block-diagonal over time, this parameterization is applied to both the within-person (innovation) blocks and the between-person (random intercept) block.
+  The parameterization used for the latent (innovation and between-person random intercept) covariance structure: \code{"cov"} (covariances), \code{"chol"} (Cholesky), \code{"prec"} (precision), \code{"ggm"} (Gaussian graphical model / partial correlations), or \code{"cor"} (correlations with separate standard deviations). Because the latent covariance matrix is block-diagonal over time, this parameterization is applied to both the within-person (innovation) blocks and the between-person (random intercept) block.
   }
 
   \item{verbose}{

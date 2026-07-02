@@ -19,10 +19,10 @@ dlvm1 <- function(
   # lambda_between, # May not be missing
   
   # Type:
-  within_latent = c("cov","chol","prec","ggm"), 
-  within_residual = c("cov","chol","prec","ggm"), 
-  between_latent = c("cov","chol","prec","ggm"), 
-  between_residual = c("cov","chol","prec","ggm"), 
+  within_latent = c("cov","chol","prec","ggm","cor"),
+  within_residual = c("cov","chol","prec","ggm","cor"),
+  between_latent = c("cov","chol","prec","ggm","cor"),
+  between_residual = c("cov","chol","prec","ggm","cor"),
   
     # Temporal effects:
     beta = "full",
@@ -100,7 +100,17 @@ dlvm1 <- function(
   # Penalized ML arguments:
   penalty_lambda = NA,  # Penalty strength (NA = auto-select via EBIC grid search)
   penalty_alpha = 1,   # Elastic net mixing: 1 = LASSO, 0 = ridge
-  penalize_matrices  # Character vector of matrix names to penalize. Default: defaultPenalizeMatrices()
+  penalize_matrices,  # Character vector of matrix names to penalize. Default: defaultPenalizeMatrices()
+  # Correlation parameterization ("cor" types) matrices
+  # (placed at the end of the signature for backward compatibility):
+  rho_zeta_within = "full",
+  SD_zeta_within = "diag",
+  rho_epsilon_within = "zero",
+  SD_epsilon_within = "diag",
+  rho_zeta_between = "full",
+  SD_zeta_between = "diag",
+  rho_epsilon_between = "zero",
+  SD_epsilon_between = "diag"
 ){
 
 
@@ -419,12 +429,16 @@ dlvm1 <- function(
     kappa_epsilon_within <- O
     sigma_epsilon_within <- O
     lowertri_epsilon_within <- O
-    
+    rho_epsilon_within <- O
+    SD_epsilon_within <- O
+
     omega_epsilon_between <- O
     delta_epsilon_between <- O
     kappa_epsilon_between <- O
     sigma_epsilon_between <- O
     lowertri_epsilon_between <- O
+    rho_epsilon_between <- O
+    SD_epsilon_between <- O
   }
   
   # Number of measurements:
@@ -552,7 +566,7 @@ dlvm1 <- function(
                                          lowertri = lowertri_zeta_within,
                                          omega = omega_zeta_within,
                                          delta = delta_zeta_within,
-                                         kappa = kappa_zeta_within,
+                                         kappa = kappa_zeta_within, rho = rho_zeta_within, SD = SD_zeta_within,
                                          type = within_latent,
                                          name= "zeta_within",
                                          sampleStats= sampleStats,
@@ -575,7 +589,7 @@ dlvm1 <- function(
     
     # Setup residuals:
     modMatrices <- c(modMatrices,
-                     matrixsetup_flexcov(sigma_epsilon_within,lowertri_epsilon_within,omega_epsilon_within,delta_epsilon_within,kappa_epsilon_within,
+                     matrixsetup_flexcov(sigma_epsilon_within,lowertri_epsilon_within,omega_epsilon_within,delta_epsilon_within,kappa_epsilon_within, rho = rho_epsilon_within, SD = SD_epsilon_within,
                                          type = within_residual,
                                          name= "epsilon_within",
                                          sampleStats= sampleStats,
@@ -589,7 +603,7 @@ dlvm1 <- function(
     
     # Setup latent varcov:
     modMatrices <- c(modMatrices,
-                     matrixsetup_flexcov(sigma_zeta_between,lowertri_zeta_between,omega_zeta_between,delta_zeta_between,kappa_zeta_between,
+                     matrixsetup_flexcov(sigma_zeta_between,lowertri_zeta_between,omega_zeta_between,delta_zeta_between,kappa_zeta_between, rho = rho_zeta_between, SD = SD_zeta_between,
                                          type = between_latent,
                                          name= "zeta_between",
                                          sampleStats= sampleStats,
@@ -602,7 +616,7 @@ dlvm1 <- function(
     
     # Setup latent residual:
     modMatrices <- c(modMatrices,
-                     matrixsetup_flexcov(sigma_epsilon_between,lowertri_epsilon_between,omega_epsilon_between,delta_epsilon_between,kappa_epsilon_between,
+                     matrixsetup_flexcov(sigma_epsilon_between,lowertri_epsilon_between,omega_epsilon_between,delta_epsilon_between,kappa_epsilon_between, rho = rho_epsilon_between, SD = SD_epsilon_between,
                                          type = between_residual,
                                          name= "epsilon_between",
                                          sampleStats= sampleStats,
@@ -819,7 +833,7 @@ dlvm1 <- function(
                                          lowertri = lowertri_zeta_within,
                                          omega = omega_zeta_within,
                                          delta = delta_zeta_within,
-                                         kappa = kappa_zeta_within,
+                                         kappa = kappa_zeta_within, rho = rho_zeta_within, SD = SD_zeta_within,
                                          type = within_latent,
                                          name= "zeta_within",
                                          sampleStats= sampleStats,
@@ -844,7 +858,7 @@ dlvm1 <- function(
     
     # Setup residuals:
     modMatrices <- c(modMatrices,
-                     matrixsetup_flexcov(sigma_epsilon_within,lowertri_epsilon_within,omega_epsilon_within,delta_epsilon_within,kappa_epsilon_within,
+                     matrixsetup_flexcov(sigma_epsilon_within,lowertri_epsilon_within,omega_epsilon_within,delta_epsilon_within,kappa_epsilon_within, rho = rho_epsilon_within, SD = SD_epsilon_within,
                                          type = within_residual,
                                          name= "epsilon_within",
                                          sampleStats= sampleStats,
@@ -858,7 +872,7 @@ dlvm1 <- function(
     
     # Setup latent varcov:
     modMatrices <- c(modMatrices,
-                     matrixsetup_flexcov(sigma_zeta_between,lowertri_zeta_between,omega_zeta_between,delta_zeta_between,kappa_zeta_between,
+                     matrixsetup_flexcov(sigma_zeta_between,lowertri_zeta_between,omega_zeta_between,delta_zeta_between,kappa_zeta_between, rho = rho_zeta_between, SD = SD_zeta_between,
                                          type = between_latent,
                                          name= "zeta_between",
                                          sampleStats= sampleStats,
@@ -871,7 +885,7 @@ dlvm1 <- function(
     
     # Setup latent residual:
     modMatrices <- c(modMatrices,
-                     matrixsetup_flexcov(sigma_epsilon_between,lowertri_epsilon_between,omega_epsilon_between,delta_epsilon_between,kappa_epsilon_between,
+                     matrixsetup_flexcov(sigma_epsilon_between,lowertri_epsilon_between,omega_epsilon_between,delta_epsilon_between,kappa_epsilon_between, rho = rho_epsilon_between, SD = SD_epsilon_between,
                                          type = between_residual,
                                          name= "epsilon_between",
                                          sampleStats= sampleStats,
@@ -933,7 +947,7 @@ dlvm1 <- function(
     
     # Setup latent varcov:
     modMatrices <- c(modMatrices,
-                     matrixsetup_flexcov(sigma = sigma_zeta_within,lowertri = lowertri_zeta_within,omega = omega_zeta_within,delta = delta_zeta_within,kappa = kappa_zeta_within,
+                     matrixsetup_flexcov(sigma = sigma_zeta_within,lowertri = lowertri_zeta_within,omega = omega_zeta_within,delta = delta_zeta_within,kappa = kappa_zeta_within, rho = rho_zeta_within, SD = SD_zeta_within,
                                          type = within_latent,
                                          name= "zeta_within",
                                          sampleStats= sampleStats,
@@ -955,7 +969,7 @@ dlvm1 <- function(
     
     # Setup residuals:
     modMatrices <- c(modMatrices,
-                     matrixsetup_flexcov(sigma_epsilon_within,lowertri_epsilon_within,omega_epsilon_within,delta_epsilon_within,kappa_epsilon_within,
+                     matrixsetup_flexcov(sigma_epsilon_within,lowertri_epsilon_within,omega_epsilon_within,delta_epsilon_within,kappa_epsilon_within, rho = rho_epsilon_within, SD = SD_epsilon_within,
                                          type = within_residual,
                                          name= "epsilon_within",
                                          sampleStats= sampleStats,
@@ -987,7 +1001,7 @@ dlvm1 <- function(
     
     # Setup latent varcov:
     modMatrices <- c(modMatrices,
-                     matrixsetup_flexcov(sigma_zeta_between,lowertri_zeta_between,omega_zeta_between,delta_zeta_between,kappa_zeta_between,
+                     matrixsetup_flexcov(sigma_zeta_between,lowertri_zeta_between,omega_zeta_between,delta_zeta_between,kappa_zeta_between, rho = rho_zeta_between, SD = SD_zeta_between,
                                          type = between_latent,
                                          name= "zeta_between",
                                          sampleStats= sampleStats,
@@ -1000,7 +1014,7 @@ dlvm1 <- function(
     
     # Setup latent residual:
     modMatrices <- c(modMatrices,
-                     matrixsetup_flexcov(sigma_epsilon_between,lowertri_epsilon_between,omega_epsilon_between,delta_epsilon_between,kappa_epsilon_between,
+                     matrixsetup_flexcov(sigma_epsilon_between,lowertri_epsilon_between,omega_epsilon_between,delta_epsilon_between,kappa_epsilon_between, rho = rho_epsilon_between, SD = SD_epsilon_between,
                                          type = between_residual,
                                          name= "epsilon_between",
                                          sampleStats= sampleStats,
@@ -1032,7 +1046,7 @@ dlvm1 <- function(
                                          lowertri = lowertri_zeta_within,
                                          omega = omega_zeta_within,
                                          delta = delta_zeta_within,
-                                         kappa = kappa_zeta_within,
+                                         kappa = kappa_zeta_within, rho = rho_zeta_within, SD = SD_zeta_within,
                                          type = within_latent,
                                          name= "zeta_within",
                                          sampleStats= sampleStats,
@@ -1055,7 +1069,7 @@ dlvm1 <- function(
     
     # Setup residuals:
     modMatrices <- c(modMatrices,
-                     matrixsetup_flexcov(sigma_epsilon_within,lowertri_epsilon_within,omega_epsilon_within,delta_epsilon_within,kappa_epsilon_within,
+                     matrixsetup_flexcov(sigma_epsilon_within,lowertri_epsilon_within,omega_epsilon_within,delta_epsilon_within,kappa_epsilon_within, rho = rho_epsilon_within, SD = SD_epsilon_within,
                                          type = within_residual,
                                          name= "epsilon_within",
                                          sampleStats= sampleStats,
@@ -1069,7 +1083,7 @@ dlvm1 <- function(
     
     # Setup latent varcov:
     modMatrices <- c(modMatrices,
-                     matrixsetup_flexcov(sigma_zeta_between,lowertri_zeta_between,omega_zeta_between,delta_zeta_between,kappa_zeta_between,
+                     matrixsetup_flexcov(sigma_zeta_between,lowertri_zeta_between,omega_zeta_between,delta_zeta_between,kappa_zeta_between, rho = rho_zeta_between, SD = SD_zeta_between,
                                          type = between_latent,
                                          name= "zeta_between",
                                          sampleStats= sampleStats,
@@ -1082,7 +1096,7 @@ dlvm1 <- function(
     
     # Setup latent residual:
     modMatrices <- c(modMatrices,
-                     matrixsetup_flexcov(sigma_epsilon_between,lowertri_epsilon_between,omega_epsilon_between,delta_epsilon_between,kappa_epsilon_between,
+                     matrixsetup_flexcov(sigma_epsilon_between,lowertri_epsilon_between,omega_epsilon_between,delta_epsilon_between,kappa_epsilon_between, rho = rho_epsilon_between, SD = SD_epsilon_between,
                                          type = between_residual,
                                          name= "epsilon_between",
                                          sampleStats= sampleStats,

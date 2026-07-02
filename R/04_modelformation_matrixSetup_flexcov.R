@@ -8,7 +8,9 @@ matrixsetup_flexcov <- function(
   expCov,
   nGroup,
   labels,
-  lassofix = TRUE
+  lassofix = TRUE,
+  rho = "full",
+  SD = "full"
 ){
   modMatrices <- list()
   
@@ -57,14 +59,35 @@ matrixsetup_flexcov <- function(
   } else if (type == "prec"){
     mat <- paste0("kappa_",name)
     # Add omega matrix:
-    modMatrices[[mat]] <- matrixsetup_kappa(kappa, 
+    modMatrices[[mat]] <- matrixsetup_kappa(kappa,
                                                 name = mat,
                                                 expcov=expCov,
-                                                nNode = nNode, 
-                                                nGroup = nGroup, 
+                                                nNode = nNode,
+                                                nGroup = nGroup,
                                                 labels = labels,
                                                 equal = mat %in% equal, sampletable = sampleStats,
                                             lassofix=lassofix)
+  } else if (type == "cor"){
+
+    mat <- paste0("rho_",name)
+    # Add rho (correlation) matrix:
+    modMatrices[[mat]] <- matrixsetup_rho(rho,
+                                                name = mat,
+                                                expcov=expCov,
+                                                nNode = nNode,
+                                                nGroup = nGroup,
+                                                labels = labels,
+                                                equal = mat %in% equal, sampletable = sampleStats)
+
+    # Add SD (standard deviation) matrix:
+    matSD <- paste0("SD_",name)
+    modMatrices[[matSD]] <- matrixsetup_SD(SD,
+                                                name = matSD,
+                                                expcov=expCov,
+                                                nNode = nNode,
+                                                nGroup = nGroup,
+                                                labels = labels,
+                                                equal = matSD %in% equal, sampletable = sampleStats)
   }
   modMatrices
 }

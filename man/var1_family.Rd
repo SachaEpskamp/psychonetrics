@@ -6,11 +6,11 @@
 Lag-1 vector autoregression family of psychonetrics models
 }
 \description{
-This is the family of models that models time-series data using a lag-1 vector autoregressive model (VAR; Epskamp,Waldorp, Mottus, Borsboom, 2018). The model is fitted to the Toeplitz matrix, but unlike typical SEM software the block of covariances of the lagged variables is not used in estimating the temporal and contemporaneous relationships (the block is modeled completely separately using a cholesky decomposition, and does not enter the model otherwise). The \code{contemporaneous} argument can be used to define what contemporaneous model is used: \code{contemporaneous = "cov"} (default) models a variance-covariance matrix, \code{contemporaneous = "chol"} models a Cholesky decomposition, \code{contemporaneous = "prec"} models a precision matrix, and \code{contemporaneous = "ggm"} (alias: \code{gvar()}) models a Gaussian graphical model, also then known as a graphical VAR model.
+This is the family of models that models time-series data using a lag-1 vector autoregressive model (VAR; Epskamp,Waldorp, Mottus, Borsboom, 2018). The model is fitted to the Toeplitz matrix, but unlike typical SEM software the block of covariances of the lagged variables is not used in estimating the temporal and contemporaneous relationships (the block is modeled completely separately using a cholesky decomposition, and does not enter the model otherwise). The \code{contemporaneous} argument can be used to define what contemporaneous model is used: \code{contemporaneous = "cov"} (default) models a variance-covariance matrix, \code{contemporaneous = "chol"} models a Cholesky decomposition, \code{contemporaneous = "prec"} models a precision matrix, \code{contemporaneous = "ggm"} (alias: \code{gvar()}) models a Gaussian graphical model, also then known as a graphical VAR model, and \code{contemporaneous = "cor"} models a correlation matrix with separate standard deviations.
 }
 \usage{
 var1(data, contemporaneous = c("cov", "chol", "prec",
-                   "ggm"), beta = "full", omega_zeta = "full", delta_zeta
+                   "ggm", "cor"), beta = "full", omega_zeta = "full", delta_zeta
                    = "full", kappa_zeta = "full", sigma_zeta = "full",
                    lowertri_zeta = "full", mu, beepvar, dayvar, idvar,
                    vars, groups, groupvar, covs, cors, means,
@@ -22,7 +22,7 @@ var1(data, contemporaneous = c("cov", "chol", "prec",
                    "quantile"), sampleStats, verbose = FALSE, bootstrap =
                    FALSE, boot_sub, boot_resample,
                    penalty_lambda = NA, penalty_alpha = 1,
-                   penalize_matrices)
+                   penalize_matrices, rho_zeta = "full", SD_zeta = "full")
 
 gvar(...)
 }
@@ -133,12 +133,18 @@ Logical, should the bootstrap be with replacement (\code{TRUE}) or without repla
 \item{penalty_lambda}{Numeric penalty strength for penalized ML estimation (PML/PFIML). \code{NA} (default) triggers automatic selection via EBIC-based grid search when a penalized estimator is used; set to a specific numeric value to use a fixed penalty strength (0 = no penalty). See \code{\link{find_penalized_lambda}} and \code{\link{penalize}}.}
 \item{penalty_alpha}{Elastic net mixing parameter: 1 = LASSO (default), 0 = ridge.}
 \item{penalize_matrices}{Character vector of matrix names to penalize. If missing, defaults are selected based on the model type.}
+\item{rho_zeta}{
+Only used when \code{contemporaneous = "cor"}. Either \code{"full"} or \code{"zero"}, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. Encodes the contemporaneous (innovation) correlations. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+}
+\item{SD_zeta}{
+Only used when \code{contemporaneous = "cor"}. Either \code{"full"} or \code{"diag"}, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. Encodes the diagonal matrix of contemporaneous (innovation) standard deviations. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
+}
 \item{\dots}{
 Arguments sent to \code{var1}
 }
 }
 \details{
-The lag-1 vector autoregression (VAR(1)) model describes a multivariate time series through a lag-0 (contemporaneous) and a lag-1 (temporal) structure. The temporal structure is captured by the regression matrix \code{beta} (whose transpose is the temporal network), relating each observation to the previous measurement occasion. The contemporaneous structure captures the associations among the residuals (innovations) within the same measurement occasion, and can be parameterized in several ways through the \code{contemporaneous} argument: as a covariance matrix (\code{"cov"}), a Cholesky decomposition (\code{"chol"}), a precision matrix (\code{"prec"}), or a Gaussian graphical model (\code{"ggm"}; the partial correlation network of the residuals). The \code{gvar} wrapper fixes \code{contemporaneous = "ggm"} to directly estimate a graphical VAR model. Combined, the temporal and contemporaneous networks imply the lag-0 and lag-1 (block-Toeplitz) covariance structure that is fitted to the data.
+The lag-1 vector autoregression (VAR(1)) model describes a multivariate time series through a lag-0 (contemporaneous) and a lag-1 (temporal) structure. The temporal structure is captured by the regression matrix \code{beta} (whose transpose is the temporal network), relating each observation to the previous measurement occasion. The contemporaneous structure captures the associations among the residuals (innovations) within the same measurement occasion, and can be parameterized in several ways through the \code{contemporaneous} argument: as a covariance matrix (\code{"cov"}), a Cholesky decomposition (\code{"chol"}), a precision matrix (\code{"prec"}), a Gaussian graphical model (\code{"ggm"}; the partial correlation network of the residuals), or a correlation matrix with separate standard deviations (\code{"cor"}). The \code{gvar} wrapper fixes \code{contemporaneous = "ggm"} to directly estimate a graphical VAR model. Combined, the temporal and contemporaneous networks imply the lag-0 and lag-1 (block-Toeplitz) covariance structure that is fitted to the data.
 }
 \value{
 An object of the class psychonetrics

@@ -16,10 +16,10 @@ dlvm1(data, vars, datatype = c("auto", "wide", "long"),
                    idvar, beepvar,
                    standardize = c("none", "z", "quantile", "z_per_wave"),
                    lambda, within_latent = c("cov", "chol",
-                   "prec", "ggm"), within_residual = c("cov", "chol",
-                   "prec", "ggm"), between_latent = c("cov", "chol",
-                   "prec", "ggm"), between_residual = c("cov", "chol",
-                   "prec", "ggm"), beta = "full", omega_zeta_within =
+                   "prec", "ggm", "cor"), within_residual = c("cov", "chol",
+                   "prec", "ggm", "cor"), between_latent = c("cov", "chol",
+                   "prec", "ggm", "cor"), between_residual = c("cov", "chol",
+                   "prec", "ggm", "cor"), beta = "full", omega_zeta_within =
                    "full", delta_zeta_within = "diag", kappa_zeta_within
                    = "full", sigma_zeta_within = "full",
                    lowertri_zeta_within = "full", omega_epsilon_within =
@@ -45,13 +45,17 @@ dlvm1(data, vars, datatype = c("auto", "wide", "long"),
                    "independence", "none"), bootstrap = FALSE, boot_sub,
                    boot_resample, within, between,
                    penalty_lambda = NA, penalty_alpha = 1,
-                   penalize_matrices)
+                   penalize_matrices,
+                   rho_zeta_within = "full", SD_zeta_within = "diag",
+                   rho_epsilon_within = "zero", SD_epsilon_within = "diag",
+                   rho_zeta_between = "full", SD_zeta_between = "diag",
+                   rho_epsilon_between = "zero", SD_epsilon_between = "diag")
 
-panelgvar(data, vars, within_latent = c("ggm","chol","cov","prec"), 
-          between_latent = c("ggm","chol","cov","prec"), ...)
+panelgvar(data, vars, within_latent = c("ggm","chol","cov","prec","cor"), 
+          between_latent = c("ggm","chol","cov","prec","cor"), ...)
 
-panelvar(data, vars, within_latent = c("cov","chol","prec","ggm"), 
-          between_latent = c("cov","chol","prec","ggm"), ...)
+panelvar(data, vars, within_latent = c("cov","chol","prec","ggm","cor"), 
+          between_latent = c("cov","chol","prec","ggm","cor"), ...)
 
 panellvgvar(...)
 
@@ -238,6 +242,14 @@ Optional alias for \code{between_latent}. If both \code{between} and \code{betwe
 \item{penalty_lambda}{Numeric penalty strength for penalized ML estimation (PML/PFIML). \code{NA} (default) triggers automatic selection via EBIC-based grid search when a penalized estimator is used; set to a specific numeric value to use a fixed penalty strength (0 = no penalty). See \code{\link{find_penalized_lambda}} and \code{\link{penalize}}.}
 \item{penalty_alpha}{Elastic net mixing parameter: 1 = LASSO (default), 0 = ridge.}
 \item{penalize_matrices}{Character vector of matrix names to penalize. If missing, defaults are selected based on the model type.}
+\item{rho_zeta_within}{Only used when \code{within_latent = "cor"}. Correlation matrix specification (\code{"full"}, \code{"zero"}, or a pattern matrix; see \code{omega_zeta_within}).}
+\item{SD_zeta_within}{Only used when \code{within_latent = "cor"}. Diagonal standard-deviation matrix specification (\code{"diag"}, \code{"full"}, or a pattern matrix; see \code{delta_zeta_within}).}
+\item{rho_epsilon_within}{Only used when \code{within_residual = "cor"}. Correlation matrix specification (\code{"zero"}, \code{"full"}, or a pattern matrix).}
+\item{SD_epsilon_within}{Only used when \code{within_residual = "cor"}. Diagonal standard-deviation matrix specification (\code{"diag"}, \code{"full"}, or a pattern matrix).}
+\item{rho_zeta_between}{Only used when \code{between_latent = "cor"}. Correlation matrix specification (\code{"full"}, \code{"zero"}, or a pattern matrix).}
+\item{SD_zeta_between}{Only used when \code{between_latent = "cor"}. Diagonal standard-deviation matrix specification (\code{"diag"}, \code{"full"}, or a pattern matrix).}
+\item{rho_epsilon_between}{Only used when \code{between_residual = "cor"}. Correlation matrix specification (\code{"zero"}, \code{"full"}, or a pattern matrix).}
+\item{SD_epsilon_between}{Only used when \code{between_residual = "cor"}. Diagonal standard-deviation matrix specification (\code{"diag"}, \code{"full"}, or a pattern matrix).}
 \item{\dots}{
 Arguments sent to \code{dlvm1}.
 }

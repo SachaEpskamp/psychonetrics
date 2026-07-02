@@ -15,10 +15,10 @@ ml_lnm(...)
 ml_rnm(...)
 ml_lrnm(...)
 ml_lvm(data, lambda, clusters, within_latent = c("cov",
-                   "chol", "prec", "ggm"), within_residual = c("cov",
-                   "chol", "prec", "ggm"), between_latent = c("cov",
-                   "chol", "prec", "ggm"), between_residual = c("cov",
-                   "chol", "prec", "ggm"), beta_within = "zero",
+                   "chol", "prec", "ggm", "cor"), within_residual = c("cov",
+                   "chol", "prec", "ggm", "cor"), between_latent = c("cov",
+                   "chol", "prec", "ggm", "cor"), between_residual = c("cov",
+                   "chol", "prec", "ggm", "cor"), beta_within = "zero",
                    beta_between = "zero", omega_zeta_within = "full",
                    delta_zeta_within = "full", kappa_zeta_within =
                    "full", sigma_zeta_within = "full",
@@ -40,7 +40,11 @@ ml_lvm(data, lambda, clusters, within_latent = c("cov",
                    optimizer, storedata = FALSE, verbose =
                    FALSE, standardize = c("none", "z", "quantile"),
                    sampleStats, bootstrap = FALSE, boot_sub,
-                   boot_resample)
+                   boot_resample,
+                   rho_zeta_within = "full", SD_zeta_within = "full",
+                   rho_epsilon_within = "zero", SD_epsilon_within = "diag",
+                   rho_zeta_between = "full", SD_zeta_between = "full",
+                   rho_epsilon_between = "zero", SD_epsilon_between = "diag")
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -185,6 +189,14 @@ Proportion of cases to be subsampled (\code{round(boot_sub * N)}).
 \item{boot_resample}{
 Logical, should the bootstrap be with replacement (\code{TRUE}) or without replacement (\code{FALSE})
 }
+\item{rho_zeta_within}{Only used when \code{within_latent = "cor"}. Correlation matrix specification (\code{"full"}, \code{"zero"}, or a pattern matrix; see \code{omega_zeta_within}).}
+\item{SD_zeta_within}{Only used when \code{within_latent = "cor"}. Diagonal standard-deviation matrix specification (\code{"full"}, \code{"diag"}, or a pattern matrix; see \code{delta_zeta_within}).}
+\item{rho_epsilon_within}{Only used when \code{within_residual = "cor"}. Correlation matrix specification (\code{"zero"}, \code{"full"}, or a pattern matrix).}
+\item{SD_epsilon_within}{Only used when \code{within_residual = "cor"}. Diagonal standard-deviation matrix specification (\code{"diag"}, \code{"full"}, or a pattern matrix).}
+\item{rho_zeta_between}{Only used when \code{between_latent = "cor"}. Correlation matrix specification (\code{"full"}, \code{"zero"}, or a pattern matrix).}
+\item{SD_zeta_between}{Only used when \code{between_latent = "cor"}. Diagonal standard-deviation matrix specification (\code{"full"}, \code{"diag"}, or a pattern matrix).}
+\item{rho_epsilon_between}{Only used when \code{between_residual = "cor"}. Correlation matrix specification (\code{"zero"}, \code{"full"}, or a pattern matrix).}
+\item{SD_epsilon_between}{Only used when \code{between_residual = "cor"}. Diagonal standard-deviation matrix specification (\code{"diag"}, \code{"full"}, or a pattern matrix).}
 \item{\dots}{
 Arguments sent to 'ml_lvm'
 }

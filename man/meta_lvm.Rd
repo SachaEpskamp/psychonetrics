@@ -12,14 +12,16 @@ meta_lvm(covs, nobs, data, cors, studyvar, groups, groupvar,
                    "metaSEM_individual", "metaSEM_weighted"), Vestimation
                    = c("averaged", "per_study"),
                    lambda, beta = "zero",
-                   latent = c("cov", "chol", "prec", "ggm"),
+                   latent = c("cov", "chol", "prec", "ggm", "cor"),
                    sigma_zeta = "full", kappa_zeta = "full",
                    omega_zeta = "full", lowertri_zeta = "full",
                    delta_zeta = "full",
-                   residual = c("cov", "chol", "prec", "ggm"),
+                   rho_zeta = "full", SD_zeta = "full",
+                   residual = c("cov", "chol", "prec", "ggm", "cor"),
                    sigma_epsilon = "diag", kappa_epsilon = "diag",
                    omega_epsilon = "zero", lowertri_epsilon = "diag",
                    delta_epsilon = "diag",
+                   rho_epsilon = "zero", SD_epsilon = "diag",
                    identify = TRUE,
                    identification = c("loadings", "variance"),
                    randomEffects = c("chol", "cov", "prec", "ggm", "cor"),
@@ -77,7 +79,7 @@ A matrix encoding the factor loading structure. Can be a pattern matrix with \co
 Structural (regression) matrix among latent variables. Defaults to \code{"zero"}.
 }
   \item{latent}{
-Parameterization of the latent covariance structure. One of \code{"cov"}, \code{"chol"}, \code{"prec"}, or \code{"ggm"}.
+Parameterization of the latent covariance structure. One of \code{"cov"}, \code{"chol"}, \code{"prec"}, \code{"ggm"}, or \code{"cor"}.
 }
   \item{sigma_zeta}{
 Latent covariance matrix specification (used when \code{latent = "cov"}).
@@ -95,7 +97,7 @@ Latent Cholesky factor specification (used when \code{latent = "chol"}).
 Latent scaling matrix specification (used when \code{latent = "ggm"}).
 }
   \item{residual}{
-Parameterization of the residual covariance structure. One of \code{"cov"}, \code{"chol"}, \code{"prec"}, or \code{"ggm"}.
+Parameterization of the residual covariance structure. One of \code{"cov"}, \code{"chol"}, \code{"prec"}, \code{"ggm"}, or \code{"cor"}.
 }
   \item{sigma_epsilon}{
 Residual covariance matrix specification (used when \code{residual = "cov"}). Defaults to \code{"diag"}. Diagonal elements are always fixed (derived from the correlation constraint).
@@ -172,6 +174,10 @@ Proportion of cases to subsample for bootstrap.
   \item{boot_resample}{
 Logical, should bootstrap be with replacement?
 }
+  \item{rho_zeta}{Only used when \code{latent = "cor"}. Latent correlation matrix specification (\code{"full"}, \code{"zero"}, or a pattern matrix).}
+  \item{SD_zeta}{Only used when \code{latent = "cor"}. Diagonal matrix of latent standard deviations (\code{"full"}, \code{"diag"}, or a pattern matrix).}
+  \item{rho_epsilon}{Only used when \code{residual = "cor"}. Residual correlation matrix specification (\code{"zero"}, \code{"full"}, or a pattern matrix).}
+  \item{SD_epsilon}{Only used when \code{residual = "cor"}. Diagonal matrix of residual standard deviations (\code{"diag"}, \code{"full"}, or a pattern matrix).}
 }
 \details{
 This function implements a single-stage meta-analytic latent variable model. The model specifies that the mean of the vectorized correlation matrices follows an LVM-implied correlation structure:

@@ -17,7 +17,7 @@ ri_clpm <- function(
     lambda,
 
     # Types:
-    type = c("cov","chol","prec","ggm"),
+    type = c("cov","chol","prec","ggm","cor"),
 
     # Which should be stationary:
     # stationary = "random_intercept", # "none", random_intercept", "contemporaneous", "innovation", "temporal" "intercepts" accepted
@@ -291,7 +291,9 @@ ri_clpm <- function(
     omega_zeta = sigma_zeta,
     kappa_zeta = sigma_zeta,
     lowertri_zeta = ifelse(col(sigma_zeta) > row(sigma_zeta), 0, sigma_zeta),
-    
+    rho_zeta = sigma_zeta,
+    SD_zeta = "diag",
+
     # Residual:
     residual = "cov",
     sigma_epsilon = "zero",

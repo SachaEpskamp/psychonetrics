@@ -275,11 +275,18 @@ arma::mat d_phi_theta_dlvm1_group_cpp(
     );
     
   } else if (within_latent == "cov"){
-    
+
     aug_within_latent = eye(nLat*(nLat+1)/2, nLat*(nLat+1)/2);
-    
+
+  } else if (within_latent == "cor"){
+
+    aug_within_latent = join_rows(
+      d_sigma_rho_cpp(grouplist["L_eta"], grouplist["SD_zeta_within"], grouplist["A_eta"], grouplist["Dstar_eta"]),
+      d_sigma_SD_cpp(grouplist["L_eta"], grouplist["SD_IplusRho_zeta_within"], grouplist["I_eta"], grouplist["A_eta"])
+    );
+
   }
-  
+
   // Between latent
   if (between_latent == "chol"){
     
@@ -303,11 +310,18 @@ arma::mat d_phi_theta_dlvm1_group_cpp(
     );
     
   } else if (between_latent == "cov"){
-    
+
     aug_between_latent = eye(nLat*(nLat+1)/2, nLat*(nLat+1)/2);
-    
+
+  } else if (between_latent == "cor"){
+
+    aug_between_latent = join_rows(
+      d_sigma_rho_cpp(grouplist["L_eta"], grouplist["SD_zeta_between"], grouplist["A_eta"], grouplist["Dstar_eta"]),
+      d_sigma_SD_cpp(grouplist["L_eta"], grouplist["SD_IplusRho_zeta_between"], grouplist["I_eta"], grouplist["A_eta"])
+    );
+
   }
-  
+
   // Within residual
   if (within_residual == "chol"){
     
@@ -331,9 +345,16 @@ arma::mat d_phi_theta_dlvm1_group_cpp(
     );
     
   } else if (within_residual == "cov"){
-    
+
     aug_within_residual = eye(nVar*(nVar+1)/2, nVar*(nVar+1)/2);
-    
+
+  } else if (within_residual == "cor"){
+
+    aug_within_residual = join_rows(
+      d_sigma_rho_cpp(grouplist["L_y"], grouplist["SD_epsilon_within"], grouplist["A_y"], grouplist["Dstar_y"]),
+      d_sigma_SD_cpp(grouplist["L_y"], grouplist["SD_IplusRho_epsilon_within"], grouplist["I_y"], grouplist["A_y"])
+    );
+
   }
   
   
@@ -360,9 +381,16 @@ arma::mat d_phi_theta_dlvm1_group_cpp(
     );
     
   } else if (between_residual == "cov"){
-    
+
     aug_between_residual = eye(nVar*(nVar+1)/2, nVar*(nVar+1)/2);
-    
+
+  } else if (between_residual == "cor"){
+
+    aug_between_residual = join_rows(
+      d_sigma_rho_cpp(grouplist["L_y"], grouplist["SD_epsilon_between"], grouplist["A_y"], grouplist["Dstar_y"]),
+      d_sigma_SD_cpp(grouplist["L_y"], grouplist["SD_IplusRho_epsilon_between"], grouplist["I_y"], grouplist["A_y"])
+    );
+
   }
   
   

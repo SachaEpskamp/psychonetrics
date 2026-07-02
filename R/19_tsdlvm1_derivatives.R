@@ -118,8 +118,13 @@ d_phi_theta_tsdlvm1_group <- function(zeta,epsilon,...){
     )
   } else if (zeta == "cov"){
     aug_zeta <- Diagonal(nLat*(nLat+1)/2)
+  } else if (zeta == "cor"){
+    aug_zeta <- cbind(
+      d_sigma_rho(L = L_eta, SD = dots$SD_zeta, A = dots$A_eta, Dstar = dots$Dstar_eta),
+      d_sigma_SD(L = L_eta, SD_IplusRho = dots$SD_IplusRho_zeta, In = dots$I_eta, A = dots$A_eta)
+    )
   }
-  
+
   # Residual
   if (epsilon == "chol"){
     aug_epsilon <-   d_sigma_cholesky(lowertri=dots$lowertri_epsilon,L=L_y,C=dots$C_y_y,In=dots$I_y)
@@ -132,6 +137,11 @@ d_phi_theta_tsdlvm1_group <- function(zeta,epsilon,...){
     )
   } else if (epsilon == "cov"){
     aug_epsilon <- Diagonal(nNode*(nNode+1)/2)
+  } else if (epsilon == "cor"){
+    aug_epsilon <- cbind(
+      d_sigma_rho(L = L_y, SD = dots$SD_epsilon, A = dots$A_y, Dstar = dots$Dstar_y),
+      d_sigma_SD(L = L_y, SD_IplusRho = dots$SD_IplusRho_epsilon, In = dots$I_y, A = dots$A_y)
+    )
   }
   
   # Exogenous mean part:

@@ -27,7 +27,8 @@ identify_dlvm1 <- function(x){
        "cov" = "sigma_zeta_within",
        "prec" = "kappa_zeta_within",
        "ggm" = "delta_zeta_within",
-       "chol" = "lowertri_zeta_within"
+       "chol" = "lowertri_zeta_within",
+       "cor" = "SD_zeta_within"
       )
 
       # Set all latent variances to 1:
@@ -197,7 +198,8 @@ identify_dlvm1 <- function(x){
         "cov" = "sigma_zeta_within",
         "prec" = "kappa_zeta_within",
         "ggm" = "delta_zeta_within",
-        "chol" = "lowertri_zeta_within"
+        "chol" = "lowertri_zeta_within",
+        "cor" = "SD_zeta_within"
       )
       
       if (consPerMat$n[consPerMat$matrix == "lambda"] >= nLat){

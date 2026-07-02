@@ -20,20 +20,24 @@ meta_lvm <- function(
   beta = "zero", # latent regression matrix
 
   # Latent covariance structure:
-  latent = c("cov","chol","prec","ggm"),
+  latent = c("cov","chol","prec","ggm","cor"),
   sigma_zeta = "full",
   kappa_zeta = "full",
   omega_zeta = "full",
   lowertri_zeta = "full",
   delta_zeta = "full",
+  rho_zeta = "full",
+  SD_zeta = "full",
 
   # Residual covariance structure:
-  residual = c("cov","chol","prec","ggm"),
+  residual = c("cov","chol","prec","ggm","cor"),
   sigma_epsilon = "diag",
   kappa_epsilon = "diag",
   omega_epsilon = "zero",
   lowertri_epsilon = "diag",
   delta_epsilon = "diag",
+  rho_epsilon = "zero",
+  SD_epsilon = "diag",
 
   # Identification:
   identify = TRUE,
@@ -395,6 +399,23 @@ meta_lvm <- function(
                                                 labels = latents,
                                                 equal = FALSE, sampletable = sampleStats,
                                                 beta = modMatrices$beta[[1]])
+  } else if (latent == "cor"){
+    modMatrices$rho_zeta <- matrixsetup_rho(rho_zeta,
+                                                name = "rho_zeta",
+                                                expcov=expLatSigma,
+                                                nNode = nLatent,
+                                                nGroup = nGroup,
+                                                labels = latents,
+                                                equal = FALSE, sampletable = sampleStats,
+                                                beta = modMatrices$beta[[1]])
+    modMatrices$SD_zeta <- matrixsetup_SD(SD_zeta,
+                                                name = "SD_zeta",
+                                                expcov=expLatSigma,
+                                                nNode = nLatent,
+                                                nGroup = nGroup,
+                                                labels = latents,
+                                                equal = FALSE, sampletable = sampleStats,
+                                                beta = modMatrices$beta[[1]])
   }
 
   ### Residual varcov ###
@@ -433,6 +454,21 @@ meta_lvm <- function(
   } else if (residual == "prec"){
     modMatrices$kappa_epsilon <- matrixsetup_kappa(kappa_epsilon,
                                                    name = "kappa_epsilon",
+                                                   expcov=expResidSigma,
+                                                   nNode = nNode,
+                                                   nGroup = nGroup,
+                                                   labels = vars,
+                                                   equal = FALSE, sampletable = sampleStats)
+  } else if (residual == "cor"){
+    modMatrices$rho_epsilon <- matrixsetup_rho(rho_epsilon,
+                                                   name = "rho_epsilon",
+                                                   expcov=expResidSigma,
+                                                   nNode = nNode,
+                                                   nGroup = nGroup,
+                                                   labels = vars,
+                                                   equal = FALSE, sampletable = sampleStats)
+    modMatrices$SD_epsilon <- matrixsetup_SD(SD_epsilon,
+                                                   name = "SD_epsilon",
                                                    expcov=expResidSigma,
                                                    nNode = nNode,
                                                    nGroup = nGroup,

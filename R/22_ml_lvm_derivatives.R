@@ -75,6 +75,11 @@ d_phi_theta_ml_lvm_group <- function(within_latent,within_residual,between_laten
      )
   } else if (within_latent == "cov"){
     aug_within_latent <- Diagonal(nLat*(nLat+1)/2)
+  } else if (within_latent == "cor"){
+    aug_within_latent <- cbind(
+      d_sigma_rho(L = L_eta, SD = dots$SD_zeta_within, A = dots$A_eta, Dstar = dots$Dstar_eta),
+      d_sigma_SD(L = L_eta, SD_IplusRho = dots$SD_IplusRho_zeta_within, In = dots$I_eta, A = dots$A_eta)
+    )
   }
   
   # Between latent
@@ -89,6 +94,11 @@ d_phi_theta_ml_lvm_group <- function(within_latent,within_residual,between_laten
     )
   } else if (between_latent == "cov"){
     aug_between_latent <- Diagonal(nLat*(nLat+1)/2)
+  } else if (between_latent == "cor"){
+    aug_between_latent <- cbind(
+      d_sigma_rho(L = L_eta, SD = dots$SD_zeta_between, A = dots$A_eta, Dstar = dots$Dstar_eta),
+      d_sigma_SD(L = L_eta, SD_IplusRho = dots$SD_IplusRho_zeta_between, In = dots$I_eta, A = dots$A_eta)
+    )
   }
   
   # Within residual
@@ -103,6 +113,11 @@ d_phi_theta_ml_lvm_group <- function(within_latent,within_residual,between_laten
     )
   } else if (within_residual == "cov"){
     aug_within_residual <- Diagonal(nVar*(nVar+1)/2)
+  } else if (within_residual == "cor"){
+    aug_within_residual <- cbind(
+      d_sigma_rho(L = L_y, SD = dots$SD_epsilon_within, A = dots$A_y, Dstar = dots$Dstar_y),
+      d_sigma_SD(L = L_y, SD_IplusRho = dots$SD_IplusRho_epsilon_within, In = dots$I_y, A = dots$A_y)
+    )
   }
   
   # Between residual
@@ -117,6 +132,11 @@ d_phi_theta_ml_lvm_group <- function(within_latent,within_residual,between_laten
     )
   } else if (between_residual == "cov"){
     aug_between_residual <- Diagonal(nVar*(nVar+1)/2)
+  } else if (between_residual == "cor"){
+    aug_between_residual <- cbind(
+      d_sigma_rho(L = L_y, SD = dots$SD_epsilon_between, A = dots$A_y, Dstar = dots$Dstar_y),
+      d_sigma_SD(L = L_y, SD_IplusRho = dots$SD_IplusRho_epsilon_between, In = dots$I_y, A = dots$A_y)
+    )
   }
 
 
@@ -273,6 +293,11 @@ d_phi_theta_ml_lvm2L_group <- function(within_latent,within_residual,between_lat
     )
   } else if (within_latent == "cov"){
     aug_within_latent <- Diagonal(nLat*(nLat+1)/2)
+  } else if (within_latent == "cor"){
+    aug_within_latent <- cbind(
+      d_sigma_rho(L = L_eta, SD = dots$SD_zeta_within, A = dots$A_eta, Dstar = dots$Dstar_eta),
+      d_sigma_SD(L = L_eta, SD_IplusRho = dots$SD_IplusRho_zeta_within, In = dots$I_eta, A = dots$A_eta)
+    )
   }
 
   # Between latent
@@ -287,6 +312,11 @@ d_phi_theta_ml_lvm2L_group <- function(within_latent,within_residual,between_lat
     )
   } else if (between_latent == "cov"){
     aug_between_latent <- Diagonal(nLat*(nLat+1)/2)
+  } else if (between_latent == "cor"){
+    aug_between_latent <- cbind(
+      d_sigma_rho(L = L_eta, SD = dots$SD_zeta_between, A = dots$A_eta, Dstar = dots$Dstar_eta),
+      d_sigma_SD(L = L_eta, SD_IplusRho = dots$SD_IplusRho_zeta_between, In = dots$I_eta, A = dots$A_eta)
+    )
   }
 
   # Within residual
@@ -301,6 +331,11 @@ d_phi_theta_ml_lvm2L_group <- function(within_latent,within_residual,between_lat
     )
   } else if (within_residual == "cov"){
     aug_within_residual <- Diagonal(nVar*(nVar+1)/2)
+  } else if (within_residual == "cor"){
+    aug_within_residual <- cbind(
+      d_sigma_rho(L = L_y, SD = dots$SD_epsilon_within, A = dots$A_y, Dstar = dots$Dstar_y),
+      d_sigma_SD(L = L_y, SD_IplusRho = dots$SD_IplusRho_epsilon_within, In = dots$I_y, A = dots$A_y)
+    )
   }
 
   # Between residual
@@ -315,6 +350,11 @@ d_phi_theta_ml_lvm2L_group <- function(within_latent,within_residual,between_lat
     )
   } else if (between_residual == "cov"){
     aug_between_residual <- Diagonal(nVar*(nVar+1)/2)
+  } else if (between_residual == "cor"){
+    aug_between_residual <- cbind(
+      d_sigma_rho(L = L_y, SD = dots$SD_epsilon_between, A = dots$A_y, Dstar = dots$Dstar_y),
+      d_sigma_SD(L = L_y, SD_IplusRho = dots$SD_IplusRho_epsilon_between, In = dots$I_y, A = dots$A_y)
+    )
   }
 
 

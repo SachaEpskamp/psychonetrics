@@ -58,6 +58,14 @@ d_sigma_zeta_ggm_lvm <- function(L_eta,delta_IminOinv_zeta,Aeta,delta_zeta,Dstar
   )
 }
 
+# Derivative of sigma_zeta to cor (rho_zeta and SD_zeta):
+d_sigma_zeta_cor_lvm <- function(L_eta,SD_zeta,SD_IplusRho_zeta,Aeta,Dstar_eta,Inlatent,...){
+  cbind(
+    d_sigma_rho(L = L_eta, SD = SD_zeta, A = Aeta, Dstar = Dstar_eta),
+    d_sigma_SD(L = L_eta, SD_IplusRho = SD_IplusRho_zeta, In = Inlatent, A = Aeta)
+  )
+}
+
 
 # Residual vars:
 
@@ -76,6 +84,14 @@ d_sigma_epsilon_ggm_lvm <- function(L,delta_IminOinv_epsilon,A,delta_epsilon,Dst
   cbind(
     d_sigma_omega(L = L, delta_IminOinv = delta_IminOinv_epsilon, A = A, delta = delta_epsilon, Dstar = Dstar),
     d_sigma_delta(L = L,  delta_IminOinv = delta_IminOinv_epsilon,In=In,delta=delta_epsilon,A=A)
+  )
+}
+
+# Derivative of sigma_epsilon to cor (rho_epsilon and SD_epsilon):
+d_sigma_epsilon_cor_lvm <- function(L,SD_epsilon,SD_IplusRho_epsilon,A,Dstar,In,...){
+  cbind(
+    d_sigma_rho(L = L, SD = SD_epsilon, A = A, Dstar = Dstar),
+    d_sigma_SD(L = L, SD_IplusRho = SD_IplusRho_epsilon, In = In, A = A)
   )
 }
 
@@ -203,6 +219,8 @@ d_phi_theta_lvm_group <- function(lambda,latent,residual,tau,mu,sigma,corinput =
     Jac[sigmaInds,sigmazetaInds] <-Jac[sigmaInds,sigmazetaInds] %*% d_sigma_zeta_kappa_lvm(...)
   } else if (latent == "ggm"){
     Jac[sigmaInds,sigmazetaInds] <- Jac[sigmaInds,sigmazetaInds] %*% d_sigma_zeta_ggm_lvm(...)
+  } else if (latent == "cor"){
+    Jac[sigmaInds,sigmazetaInds] <- Jac[sigmaInds,sigmazetaInds] %*% d_sigma_zeta_cor_lvm(...)
   }
 
   # Residual variances:
@@ -214,6 +232,8 @@ d_phi_theta_lvm_group <- function(lambda,latent,residual,tau,mu,sigma,corinput =
     Jac[sigmaInds,sigmaepsilonInds] <-  d_sigma_epsilon_kappa_lvm(...)
   } else if (residual == "ggm"){
     Jac[sigmaInds,sigmaepsilonInds] <-  d_sigma_epsilon_ggm_lvm(...)
+  } else if (residual == "cor"){
+    Jac[sigmaInds,sigmaepsilonInds] <-  d_sigma_epsilon_cor_lvm(...)
   }
 
   # Cut out the rows not needed

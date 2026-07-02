@@ -5,8 +5,8 @@ tsdlvm1 <- function(
   lambda, # May not be missing
   
   # Type:
-  contemporaneous = c("cov","chol","prec","ggm"), 
-  residual = c("cov","chol","prec","ggm"), 
+  contemporaneous = c("cov","chol","prec","ggm","cor"),
+  residual = c("cov","chol","prec","ggm","cor"),
   
   # Temporal effects:
   beta = "full",
@@ -68,7 +68,13 @@ tsdlvm1 <- function(
   # Penalized ML arguments:
   penalty_lambda = NA,  # Penalty strength (NA = auto-select via EBIC grid search)
   penalty_alpha = 1,   # Elastic net mixing: 1 = LASSO, 0 = ridge
-  penalize_matrices  # Character vector of matrix names to penalize. Default: defaultPenalizeMatrices()
+  penalize_matrices,  # Character vector of matrix names to penalize. Default: defaultPenalizeMatrices()
+  # Correlation parameterization (contemporaneous/residual = "cor") matrices
+  # (placed at the end of the signature for backward compatibility):
+  rho_zeta = "full",   # Contemporaneous (innovation) correlations
+  SD_zeta = "diag",    # Contemporaneous (innovation) standard deviations (diagonal)
+  rho_epsilon = "zero", # Residual correlations
+  SD_epsilon = "diag"  # Residual standard deviations (diagonal)
 ){
   contemporaneous <- match.arg(contemporaneous)
   residual <- match.arg(residual)
@@ -274,6 +280,7 @@ tsdlvm1 <- function(
   # Setup latent varcov:
   modMatrices <- c(modMatrices,
                    matrixsetup_flexcov(sigma = sigma_zeta,lowertri = lowertri_zeta,omega = omega_zeta,delta = delta_zeta,kappa = kappa_zeta,
+                                       rho = rho_zeta, SD = SD_zeta,
                                        type = contemporaneous,
                                        name= "zeta",
                                        sampleStats= sampleStats,
@@ -300,6 +307,7 @@ tsdlvm1 <- function(
   # Setup residuals:
   modMatrices <- c(modMatrices,
                    matrixsetup_flexcov(sigma_epsilon,lowertri_epsilon,omega_epsilon,delta_epsilon,kappa_epsilon,
+                                       rho = rho_epsilon, SD = SD_epsilon,
                                        type = residual,
                                        name= "epsilon",
                                        sampleStats= sampleStats,
