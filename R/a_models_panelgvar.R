@@ -1,59 +1,7 @@
-panelvar <- function(data,vars,
-                     within_latent = c("cov","chol","prec","ggm","cor"),
-                     between_latent = c("cov","chol","prec","ggm","cor"),
-                     ...){
-  # Match arg:
-  within_latent <- match.arg(within_latent)
-  between_latent <- match.arg(between_latent)
-
-  # Extract var names:
-  if (missing(vars)){
-    stop("'vars' argument may not be missing")
-  }
-
-  # Determine number of variables and set up lambda/residuals:
-  if (is.matrix(vars)){
-    # Wide format: vars is a design matrix
-    nVars <- nrow(vars)
-    if (is.null(rownames(vars))){
-      rownames(vars) <- paste0("Eta_",seq_len(nVars))
-    }
-    latentNames <- rownames(vars)
-  } else if (is.character(vars)){
-    # Long format: vars is a character vector of variable names
-    nVars <- length(vars)
-    latentNames <- vars
-  } else {
-    stop("'vars' must be a design matrix (wide format) or a character vector of variable names (long format).")
-  }
-
-  I <- diag(nVars)
-  O <- matrix(0, nVars, nVars)
-
-  # Conditionally pass data (allows covs-only usage without data):
-  if (missing(data)) {
-    dlvm1(vars = vars,
-          lambda = I,
-          within_latent = within_latent,
-          within_residual = "cov", sigma_epsilon_within = O,
-          between_latent = between_latent,
-          between_residual = "cov", sigma_epsilon_between = O,
-          latents = latentNames,
-          ...
-    )
-  } else {
-    dlvm1(data = data, vars = vars,
-          lambda = I,
-          within_latent = within_latent,
-          within_residual = "cov", sigma_epsilon_within = O,
-          between_latent = between_latent,
-          between_residual = "cov", sigma_epsilon_between = O,
-          latents = latentNames,
-          ...
-    )
-  }
-}
-
+# Panel graphical VAR: the panelvar model with GGM parameterizations for the
+# within- and between-person structures. Since psychonetrics 0.16.2 this uses
+# the dedicated panelvar framework (see a_models_panelvar.R) rather than
+# dlvm1 with dummy matrices:
 panelgvar <- function(data,vars,
                       within_latent = c("ggm","chol","cov","prec","cor"),
                       between_latent = c("ggm","chol","cov","prec","cor"),
@@ -62,56 +10,22 @@ panelgvar <- function(data,vars,
   within_latent <- match.arg(within_latent)
   between_latent <- match.arg(between_latent)
 
-  # Extract var names:
-  if (missing(vars)){
-    stop("'vars' argument may not be missing")
-  }
-
-  # Determine number of variables and set up lambda/residuals:
-  if (is.matrix(vars)){
-    # Wide format: vars is a design matrix
-    nVars <- nrow(vars)
-    if (is.null(rownames(vars))){
-      rownames(vars) <- paste0("Eta_",seq_len(nVars))
-    }
-    latentNames <- rownames(vars)
-  } else if (is.character(vars)){
-    # Long format: vars is a character vector of variable names
-    nVars <- length(vars)
-    latentNames <- vars
-  } else {
-    stop("'vars' must be a design matrix (wide format) or a character vector of variable names (long format).")
-  }
-
-  I <- diag(nVars)
-  O <- matrix(0, nVars, nVars)
-
   # Conditionally pass data (allows covs-only usage without data):
   if (missing(data)) {
-    dlvm1(vars = vars,
-          lambda = I,
-          within_latent = within_latent,
-          within_residual = "cov", sigma_epsilon_within = O,
-          between_latent = between_latent,
-          between_residual = "cov", sigma_epsilon_between = O,
-          latents = latentNames,
-          ...
-    )
+    panelvar(vars = vars,
+             within_latent = within_latent,
+             between_latent = between_latent,
+             ...)
   } else {
-    dlvm1(data = data, vars = vars,
-          lambda = I,
-          within_latent = within_latent,
-          within_residual = "cov", sigma_epsilon_within = O,
-          between_latent = between_latent,
-          between_residual = "cov", sigma_epsilon_between = O,
-          latents = latentNames,
-          ...
-    )
+    panelvar(data = data, vars = vars,
+             within_latent = within_latent,
+             between_latent = between_latent,
+             ...)
   }
 }
 
 
-# Panel latent variable GVAR (new canonical name):
+# Panel latent variable GVAR (latent variables: uses the dlvm1 framework):
 panellvgvar <- function(...){
   dlvm1(..., within_latent = "ggm", between_latent = "ggm")
 }

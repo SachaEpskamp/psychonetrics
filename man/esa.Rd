@@ -12,7 +12,7 @@
 Ergodic Subspace Analysis
 }
 \description{
-These functions implement Ergodic Subspace Analysis by von Oertzen, Schmiedek and Voelkle (2020). The functions can be used on the output of a \code{\link{dlvm1}} model, or manually by supplying a within persons and between persons variance-covariance matrix.
+These functions implement Ergodic Subspace Analysis by von Oertzen, Schmiedek and Voelkle (2020). The functions can be used on the output of a \code{\link{dlvm1}} or \code{\link{panelvar}} model, or manually by supplying a within persons and between persons variance-covariance matrix.
 }
 \usage{
 esa(x, cutoff = 0.1,
@@ -26,7 +26,7 @@ esa_manual(sigma_wp, sigma_bp, cutoff = 0.1)
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x}{
-Output of a \code{\link{dlvm1}} model
+Output of a \code{\link{dlvm1}} or \code{\link{panelvar}} model
 }
 \item{sigma_wp}{
 Manual within-person variance-covariance matrix

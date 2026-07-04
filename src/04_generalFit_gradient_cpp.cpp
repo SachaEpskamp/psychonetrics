@@ -13,6 +13,7 @@
 #include "15_lvm_derivatives_cpp.h"
 #include "16_var1_derivatives_cpp.h"
 #include "18_dlvm1_derivatives_cpp.h"
+#include "25_panelvar_derivatives_cpp.h"
 #include "19_tsdlvm1_derivatives_cpp.h"
 #include "20_meta_varcov_derivatives_cpp.h"
 #include "23_meta_lvm_derivatives_cpp.h"
@@ -161,6 +162,10 @@ void psychonetrics_gradient_cpp_inner(
     
     modelPart = d_phi_theta_dlvm1_cpp(prep);
     
+  }  else  if (usemodel == "panelvar"){
+
+    modelPart = d_phi_theta_panelvar_cpp(prep);
+
   } else  if (usemodel == "tsdlvm1"){
     
     modelPart = d_phi_theta_tsdlvm1_cpp(prep);

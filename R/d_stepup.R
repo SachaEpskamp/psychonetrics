@@ -108,6 +108,20 @@ stepup <- function(
         matrices <- c(matrices,"omega_zeta")
       }
       
+    } else if (x@model == "panelvar"){
+      matrices <- c("beta")
+      if (x@types$within_latent == "prec"){
+        matrices <- c(matrices,"kappa_zeta_within")
+      } else if (x@types$within_latent == "ggm"){
+        matrices <- c(matrices,"omega_zeta_within")
+      }
+
+      if (x@types$between_latent == "prec"){
+        matrices <- c(matrices,"kappa_zeta_between")
+      } else if (x@types$between_latent == "ggm"){
+        matrices <- c(matrices,"omega_zeta_between")
+      }
+
     } else if (x@model == "panelvar1"){
       matrices <- c("beta")
       if (x@types$contemporaneous == "prec"){

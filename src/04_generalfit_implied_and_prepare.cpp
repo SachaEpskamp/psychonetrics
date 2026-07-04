@@ -15,6 +15,8 @@
 #include "16_var1_prepare_cpp.h"
 #include "18_dlvm1_implied_cpp.h"
 #include "18_dlvm1_prepare_cpp.h"
+#include "25_panelvar_implied_cpp.h"
+#include "25_panelvar_prepare_cpp.h"
 #include "19_tsdlvm1_implied_cpp.h"
 #include "19_tsdlvm1_prepare_cpp.h"
 #include "20_meta_varcov_implied_cpp.h"
@@ -93,6 +95,10 @@ Rcpp::List impliedModel_cpp(
     
     imp = implied_dlvm1_cpp(model, all); // = Updated!
     
+  } else if (framework == "panelvar"){
+
+    imp = implied_panelvar_cpp(model, all);
+
   }  else if (framework == "tsdlvm1"){
 
     imp = implied_tsdlvm1_cpp(model, all); // = Updated!
@@ -208,6 +214,10 @@ Rcpp::List prepareModel_cpp(
     prep = prepare_dlvm1_cpp(x, model); // = Updated!
     
     
+  } else if (framework == "panelvar"){
+
+    prep = prepare_panelvar_cpp(x, model);
+
   }  else if (framework == "tsdlvm1"){
     
     prep = prepare_tsdlvm1_cpp(x, model); // = Updated!

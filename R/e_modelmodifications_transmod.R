@@ -30,8 +30,8 @@ transmod <- function(x,...,verbose,keep_computed = FALSE, log=TRUE, identify = T
     stop("Named arguments representing the types to transform are required.")
   }
   
-  # if dlvm1, fix two names:
-  if (model == "dlvm1"){
+  # if dlvm1 or panelvar, fix two names:
+  if (model == "dlvm1" || model == "panelvar"){
     names(dots)[names(dots)=="between"] <- "between_latent"
     names(dots)[names(dots)=="within"] <- "within_latent"
   } else if (model == "varcov"){
@@ -88,6 +88,13 @@ transmod <- function(x,...,verbose,keep_computed = FALSE, log=TRUE, identify = T
       appendix = c("_zeta_within","_epsilon_within","_zeta_between","_epsilon_between")
     ),
     
+    # panelvar:
+    data.frame(
+      family = "panelvar",
+      type = c("within_latent","between_latent"),
+      appendix = c("_zeta_within","_zeta_between")
+    ),
+
     # var1:
     data.frame(
       family = "var1",

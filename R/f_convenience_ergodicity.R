@@ -53,8 +53,8 @@ esa_manual <- function(sigma_wp, sigma_bp, cutoff = 0.1){
 # von Oertzen, T., Schmiedek, F., & Voelkle, M. C. (2020). Ergodic Subspace Analysis. Journal of Intelligence, 8(1), 3.
 esa <- function(x, cutoff = 0.1, between = c("crosssection","between")){
   between <- match.arg(between)
-  if (x@model != "dlvm1"){
-    stop("Only implemented for 'dlvm1' model family")
+  if (!x@model %in% c("dlvm1", "panelvar")){
+    stop("Only implemented for 'dlvm1' and 'panelvar' model families")
   }
   
   # Number of groups:

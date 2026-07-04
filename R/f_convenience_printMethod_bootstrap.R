@@ -47,6 +47,7 @@ definition = function(object){
     # "cholesky" = "Cholesky decomposition (cholesky)",
     "lvm" = "Latent variable model (LVM)",
     "var1" = "Lag-1 vector-autoregression (VAR1)",
+    "panelvar" = "Lag-1 panel vector auto-regression (panelvar)",
     "panelvar1" = "Lag-1 panel vector auto-regression (panelvar1)",
     "dlvm1" = "Lag-1 dynamic latent variable model for panel data (dlvm1)",
     "tsdlvm1" = "Lag-1 dynamic latent variable model for time-series data (tsdlvm1)",

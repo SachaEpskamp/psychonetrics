@@ -63,6 +63,10 @@ rownames(design) <- paste0("V", 1:p2)
 
 mod_pg <- suppressWarnings(runmodel(panelgvar(dpanel, vars = design)))
 expect_inherits(mod_pg, "psychonetrics")
+# Since 0.16.2 panelgvar/panelvar use their own framework (not dlvm1 with
+# dummy matrices); the reference values below were obtained via the dlvm1
+# route and must reproduce exactly:
+expect_equal(mod_pg@model, "panelvar")
 expect_true(abs(mod_pg@fitmeasures$logl - (-4981.73663)) < 0.01)
 expect_equal(mod_pg@fitmeasures$df, 66)
 expect_equal(mod_pg@fitmeasures$npar, 24)
@@ -70,6 +74,28 @@ expect_equal(mod_pg@fitmeasures$npar, 24)
 beta_hat <- getmatrix(mod_pg, "beta")
 expect_equal(dim(beta_hat), c(3L, 3L))
 expect_true(max(abs(beta_hat - B2)) < 0.15)
+# The observed stationary means are now in 'mu' (previously 'nu'):
+expect_true(all(mod_pg@parameters$matrix[mod_pg@parameters$op == "~1"] == "mu"))
+# PDC is available from the implied matrices:
+expect_equal(dim(getmatrix(mod_pg, "PDC")), c(3L, 3L))
+
+## ---- at_home: exact equivalence with the old dlvm1 dummy-matrix route ----
+if (at_home()) {
+  I3 <- diag(p2); O3 <- matrix(0, p2, p2)
+  mod_dlvm1 <- suppressWarnings(runmodel(dlvm1(
+    dpanel, vars = design, lambda = I3,
+    within_latent = "ggm", within_residual = "cov", sigma_epsilon_within = O3,
+    between_latent = "ggm", between_residual = "cov", sigma_epsilon_between = O3
+  )))
+  expect_true(abs(mod_pg@fitmeasures$logl - mod_dlvm1@fitmeasures$logl) < 1e-6)
+  expect_equal(mod_pg@fitmeasures$df, mod_dlvm1@fitmeasures$df)
+  expect_equal(mod_pg@fitmeasures$npar, mod_dlvm1@fitmeasures$npar)
+  expect_true(max(abs(getmatrix(mod_pg, "beta") - getmatrix(mod_dlvm1, "beta"))) < 1e-6)
+  expect_true(max(abs(getmatrix(mod_pg, "omega_zeta_within") -
+                        getmatrix(mod_dlvm1, "omega_zeta_within"))) < 1e-6)
+  expect_true(max(abs(getmatrix(mod_pg, "omega_zeta_between") -
+                        getmatrix(mod_dlvm1, "omega_zeta_between"))) < 1e-6)
+}
 
 ## ---- at_home: panelvar convergence regression (RI-CLPM audit seeds) ----
 if (at_home()) {

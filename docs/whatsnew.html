@@ -55,6 +55,7 @@
   <div class="toc">
     <h4>On this page</h4>
     <ol>
+      <li><a href="#panelvarfw">0.16.2 &mdash; panelvar() / panelgvar(): dedicated, faster model framework</a></li>
       <li><a href="#robust">0.16 &mdash; Robust maximum likelihood (MLM / MLMV / MLMVS / MLR)</a></li>
       <li><a href="#mlml">0.16 &mdash; Fast multilevel SEM: two-level ML for ml_lvm()</a></li>
       <li><a href="#lavaan">0.16 &mdash; Interoperability with lavaan: fromlavaan() &amp; tolavaan()</a></li>
@@ -68,6 +69,22 @@
       <li><a href="#penalized">0.16 &mdash; Penalized (regularized) estimation</a></li>
       <li><a href="#mllvm">0.16 &mdash; Multi-level &amp; meta-analytic frameworks matured</a></li>
     </ol>
+  </div>
+
+  <!-- ===================== 0.16.2 panelvar framework ===================== -->
+  <div class="whatsnew-item" id="panelvarfw">
+    <h2>panelvar() / panelgvar(): dedicated, faster model framework <span class="version-tag">0.16.2</span></h2>
+    <p class="whatsnew-meta">July 2026 &mdash; see the <a href="dlvm1.html">panel data page</a></p>
+    <p>
+      <code>panelvar()</code> and <code>panelgvar()</code> are now implemented as their own model framework rather than as a <code>dlvm1()</code> model with dummy matrices (identity factor loadings and zero residual variances). The model is unchanged &mdash; a within-person stationary VAR(1) process plus a between-person (random intercept) structure &mdash; and results are identical to the previous route: same estimates, standard errors, degrees of freedom and fit measures. Estimation now skips all factor-loading algebra in both the R and C++ engines, making <code>runmodel()</code> roughly 1.3&ndash;2.6&times; faster, with the gain growing in the number of variables and waves.
+    </p>
+    <ul>
+      <li>The model matrices keep their names (<code>beta</code>, <code>sigma_zeta_within</code>, <code>sigma_zeta_between</code> and typed variants), so <code>getmatrix()</code>, <code>prune()</code>, <code>stepup()</code>, <code>transmod()</code>, <code>CIplot()</code>, <code>esa()</code> and <code>modelsearch()</code> keep working unchanged.</li>
+      <li>The mean structure is a single <code>mu</code> matrix of observed stationary means (previously the observed intercepts appeared as <code>nu</code> with latent means <code>mu_eta</code> fixed to zero).</li>
+      <li>Variable names default to the design-matrix rownames instead of <code>Eta_1, Eta_2, ...</code>.</li>
+      <li>Analytic gradients verified against numeric ones for all within/between types (<code>cov</code>, <code>chol</code>, <code>prec</code>, <code>ggm</code>, <code>cor</code>), including multi-group models with equality constraints, FIML, and designs with missing waves.</li>
+      <li><code>panellvgvar()</code> (the latent panel GVAR) is unaffected and still uses the <code>dlvm1()</code> framework.</li>
+    </ul>
   </div>
 
   <!-- ===================== 0.16 robust ML ===================== -->

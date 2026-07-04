@@ -15,6 +15,7 @@ prepareModel <- function(x, model){
                       "var1" = prepare_var1_cpp, # <- Updated!
                       # "panelvar1" = prepare_panelvar1,
                       "dlvm1" = prepare_dlvm1_cpp, # <- Updayed!
+                      "panelvar" = prepare_panelvar_cpp,
                       "tsdlvm1" = prepare_tsdlvm1_cpp, # <- Updated!
                       "meta_varcov" = prepare_meta_varcov_cpp, # <- updated!
                       "Ising" = ,
@@ -35,6 +36,7 @@ prepareModel <- function(x, model){
                       "var1" = prepare_var1,
                       # "panelvar1" = prepare_panelvar1,
                       "dlvm1" = prepare_dlvm1,
+                      "panelvar" = prepare_panelvar,
                       "tsdlvm1" = prepare_tsdlvm1,
                       "meta_varcov" = prepare_meta_varcov,
                       "Ising" = ,

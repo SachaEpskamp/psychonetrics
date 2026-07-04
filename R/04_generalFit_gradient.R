@@ -86,6 +86,7 @@ psychonetrics_gradient <- function(x, model){
       "var1" = d_phi_theta_var1_cpp, # <- updated!
       # "panelvar1" = d_phi_theta_panelvar1,
       "dlvm1" = d_phi_theta_dlvm1_cpp, # <- updated!
+      "panelvar" = d_phi_theta_panelvar_cpp,
       "tsdlvm1" = d_phi_theta_tsdlvm1_cpp, # <- updated!
       "meta_varcov" = d_phi_theta_meta_varcov_cpp, # <- updated!
       "Ising" = ,
@@ -107,6 +108,7 @@ psychonetrics_gradient <- function(x, model){
       "var1" = d_phi_theta_var1,
       # "panelvar1" = d_phi_theta_panelvar1,
       "dlvm1" = d_phi_theta_dlvm1,
+      "panelvar" = d_phi_theta_panelvar,
       "tsdlvm1" = d_phi_theta_tsdlvm1,
       "meta_varcov" = d_phi_theta_meta_varcov,
       "Ising" = ,
