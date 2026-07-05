@@ -55,6 +55,7 @@
   <div class="toc">
     <h4>On this page</h4>
     <ol>
+      <li><a href="#betaepsilon">0.16.3 &mdash; dlvm1(): residual temporal effects (beta_epsilon)</a></li>
       <li><a href="#panelvarfw">0.16.2 &mdash; panelvar() / panelgvar(): dedicated, faster model framework</a></li>
       <li><a href="#robust">0.16 &mdash; Robust maximum likelihood (MLM / MLMV / MLMVS / MLR)</a></li>
       <li><a href="#mlml">0.16 &mdash; Fast multilevel SEM: two-level ML for ml_lvm()</a></li>
@@ -69,6 +70,22 @@
       <li><a href="#penalized">0.16 &mdash; Penalized (regularized) estimation</a></li>
       <li><a href="#mllvm">0.16 &mdash; Multi-level &amp; meta-analytic frameworks matured</a></li>
     </ol>
+  </div>
+
+  <!-- ===================== 0.16.3 beta_epsilon ===================== -->
+  <div class="whatsnew-item" id="betaepsilon">
+    <h2>dlvm1(): residual temporal effects (beta_epsilon) <span class="version-tag">0.16.3</span></h2>
+    <p class="whatsnew-meta">July 2026 &mdash; see the <a href="dlvm1.html">panel data page</a></p>
+    <p>
+      <code>dlvm1()</code> gained a <code>beta_epsilon</code> argument: lag-1 temporal effects at the <em>residual</em> level, <code>epsilon_t = beta_epsilon epsilon_(t-1) + u_t</code>. The default <code>"zero"</code> reproduces the previous white-noise residuals exactly; <code>beta_epsilon = "diag"</code> gives each indicator its own residual autoregression, modeling item-specific carry-over (autocorrelated uniquenesses) with a geometrically decaying structure &mdash; the classic remedy for the bias that arises when repeated items share unique variance over time (Cole, Ciesla &amp; Steiger, 2007).
+    </p>
+    <ul>
+      <li>With a non-zero <code>beta_epsilon</code>, <code>sigma_epsilon_within</code> (any type: cov, chol, prec, ggm, cor) parameterizes the residual <em>innovation</em> covariance; the stationary residual covariance is available as <code>getmatrix(model, "sigma_epsilon_within_stationary")</code>.</li>
+      <li>Together with <code>sigma_epsilon_between</code> (the perfectly stable item component), each indicator gets a STARTS-like decomposition: stable trait + autoregressive part + latent dynamics.</li>
+      <li>The white-noise model is nested (<code>beta_epsilon = 0</code>), so modification indices on the <code>beta_epsilon</code> elements diagnose residual autocorrelation directly, and the likelihood-ratio test against the default model is the natural test.</li>
+      <li>At least three waves are required (a warning is issued with two); four or more are recommended.</li>
+      <li>Implemented in both the R and C++ engines; gradients and implied structures verified against independent implementations and Monte Carlo simulation.</li>
+    </ul>
   </div>
 
   <!-- ===================== 0.16.2 panelvar framework ===================== -->

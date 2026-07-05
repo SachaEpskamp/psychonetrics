@@ -171,6 +171,25 @@ arma::mat d_phi_theta_dlvm1_group_cpp(
 
   // Pre-convert C_y_eta to dense (used in every lambda Jacobian call):
   arma::mat C_y_eta_dense = (arma::mat)C_y_eta;
+
+  // Residual temporal effects (beta_epsilon). The matrix may be absent in
+  // models created before it existed; in that case no columns are added and
+  // the Jacobian is laid out exactly as before:
+  bool has_beta_eps = grouplist.containsElementNamed("beta_epsilon");
+  arma::mat beta_epsilon;
+  bool eps_ar = false;
+  if (has_beta_eps){
+    beta_epsilon = as<arma::mat>(grouplist["beta_epsilon"]);
+    eps_ar = arma::any(arma::vectorise(beta_epsilon) != 0);
+  }
+  arma::mat BetaStarEps;
+  Rcpp::List allSigmas_epsilon;
+  arma::sp_mat IkronBetaEps;
+  if (eps_ar){
+    BetaStarEps = as<arma::mat>(grouplist["BetaStarEps"]);
+    allSigmas_epsilon = as<Rcpp::List>(grouplist["allSigmas_epsilon"]);
+    IkronBetaEps = as<arma::sp_mat>(grouplist["IkronBetaEps"]);
+  }
   
   
   // Number of variables:
@@ -200,6 +219,7 @@ arma::mat d_phi_theta_dlvm1_group_cpp(
     nLat * (nLat+1) / 2 + // within factor variances
     (nLat * nLat) + // temporal effects
     nVar * (nVar + 1) / 2 + // Within residuals
+    (has_beta_eps ? nVar * nVar : 0) + // Residual temporal effects
     // nVar * nLat + // Between-subject factor loadings
     nLat * (nLat + 1) / 2 + // Between-subject factor variances
     nVar * (nVar + 1) / 2; // between residuals
@@ -238,8 +258,15 @@ arma::mat d_phi_theta_dlvm1_group_cpp(
   arma::vec sigma_zeta_within_inds = seq_len_inds(lambda_inds(1) + 1,  nLat * (nLat+1) / 2);
   arma::vec beta_inds = seq_len_inds(sigma_zeta_within_inds(1) + 1, nLat * nLat);
   arma::vec sigma_epsilon_within_inds =  seq_len_inds(beta_inds(1) + 1,  nVar * (nVar + 1) / 2);
-  
-  arma::vec sigma_zeta_between_inds = seq_len_inds(sigma_epsilon_within_inds(1) + 1, nLat * (nLat + 1) / 2);
+
+  arma::vec beta_epsilon_inds;
+  arma::vec sigma_zeta_between_inds;
+  if (has_beta_eps){
+    beta_epsilon_inds = seq_len_inds(sigma_epsilon_within_inds(1) + 1, nVar * nVar);
+    sigma_zeta_between_inds = seq_len_inds(beta_epsilon_inds(1) + 1, nLat * (nLat + 1) / 2);
+  } else {
+    sigma_zeta_between_inds = seq_len_inds(sigma_epsilon_within_inds(1) + 1, nLat * (nLat + 1) / 2);
+  }
   arma::vec sigma_epsilon_between_inds = seq_len_inds(sigma_zeta_between_inds(1) + 1, nVar * (nVar + 1) / 2 );
   
   
@@ -434,8 +461,29 @@ arma::mat d_phi_theta_dlvm1_group_cpp(
   arma::mat J_sigma_beta = d_sigma0_beta_dlvm1_cpp(BetaStar, I_eta, allSigmas_within, C_eta_eta);
   Jac.submat(curSigInds(0),beta_inds(0),curSigInds(1),beta_inds(1)) =  L_y  * lamWkronlamW * J_sigma_beta;
   
-  // Fill s0 to sigma_epsilon_within:
-  Jac.submat(curSigInds(0),sigma_epsilon_within_inds(0),curSigInds(1),sigma_epsilon_within_inds(1)) = aug_within_residual;
+  // Fill s0 to sigma_epsilon_within. With a residual temporal process
+  // (beta_epsilon non-zero), sigma_epsilon_within is the residual innovation
+  // covariance and enters via the stationary residual structure; otherwise
+  // it enters the lag-0 block directly (white noise):
+  arma::mat J_sigma_epsilon_within;
+  if (eps_ar){
+    J_sigma_epsilon_within = (BetaStarEps * D_y) * aug_within_residual;
+    Jac.submat(curSigInds(0),sigma_epsilon_within_inds(0),curSigInds(1),sigma_epsilon_within_inds(1)) = L_y * J_sigma_epsilon_within;
+  } else {
+    Jac.submat(curSigInds(0),sigma_epsilon_within_inds(0),curSigInds(1),sigma_epsilon_within_inds(1)) = aug_within_residual;
+  }
+
+  // Fill s0 to beta_epsilon (residual temporal effects). These columns are
+  // also needed when beta_epsilon is fixed to zero (for modification
+  // indices); at B_eps = 0 the lag-0 derivative is zero and the lag-1
+  // derivative reduces to t(sigma_epsilon_within) kron I (see the lag loop):
+  arma::mat J_beta_epsilon;
+  if (eps_ar){
+    arma::sp_mat C_y_y = grouplist["C_y_y"];
+    arma::mat sigma_eps1 = allSigmas_epsilon[1];
+    J_beta_epsilon = (eye(nVar * nVar, nVar * nVar) + C_y_y) * BetaStarEps * kronecker_X_I(sigma_eps1, nVar);
+    Jac.submat(curSigInds(0),beta_epsilon_inds(0),curSigInds(1),beta_epsilon_inds(1)) = L_y * J_beta_epsilon;
+  }
   
   
   // Fill s0 to sigma_zeta_between, and store for later use:
@@ -466,6 +514,23 @@ arma::mat d_phi_theta_dlvm1_group_cpp(
     // Fill sk to beta part (and store for later use):
     J_sigma_beta = d_sigmak_beta_dlvm1_cpp(J_sigma_beta, IkronBeta, t, allSigmas_within, I_eta);
     Jac.submat(curSigInds(0),beta_inds(0),curSigInds(1),beta_inds(1)) = lamWkronlamW * J_sigma_beta;
+
+    // Fill sk to sigma_epsilon_within and beta_epsilon (residual temporal
+    // process; the residual lag blocks are B_eps^k sigma_eps_0 and follow
+    // the same recursions as the latent part):
+    if (eps_ar){
+      J_sigma_epsilon_within = IkronBetaEps * J_sigma_epsilon_within;
+      Jac.submat(curSigInds(0),sigma_epsilon_within_inds(0),curSigInds(1),sigma_epsilon_within_inds(1)) = J_sigma_epsilon_within;
+
+      arma::mat sigma_eps_prev = allSigmas_epsilon[t-1];
+      J_beta_epsilon = IkronBetaEps * J_beta_epsilon + kronecker_X_I(sigma_eps_prev.t(), nVar);
+      Jac.submat(curSigInds(0),beta_epsilon_inds(0),curSigInds(1),beta_epsilon_inds(1)) = J_beta_epsilon;
+    } else if (has_beta_eps && t == 1){
+      // At B_eps = 0: zero at lag 0 and at lags >= 2; at lag 1 the
+      // derivative reduces to t(sigma_epsilon_within) kron I:
+      arma::mat sigma_epsilon_within_mat = as<arma::mat>(grouplist["sigma_epsilon_within"]);
+      Jac.submat(curSigInds(0),beta_epsilon_inds(0),curSigInds(1),beta_epsilon_inds(1)) = arma::mat(kronecker_X_I(sigma_epsilon_within_mat.t(), nVar));
+    }
 
     // Fill sk to sigma_zeta_between (OPT-C: removed duplicate write):
     Jac.submat(curSigInds(0),sigma_zeta_between_inds(0),curSigInds(1),sigma_zeta_between_inds(1)) = J_sigmak_sigma_zeta_between;

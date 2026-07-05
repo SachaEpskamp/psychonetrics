@@ -1,3 +1,34 @@
+Changes in Version 0.16.3
+  o NEW: dlvm1() gained a 'beta_epsilon' argument: lag-1 temporal effects at
+    the residual level, epsilon_t = beta_epsilon epsilon_(t-1) + u_t. The
+    default "zero" reproduces the previous white-noise residual structure
+    exactly (verified against 0.16.2 reference fits: identical estimates,
+    standard errors, degrees of freedom and likelihoods). "diag" gives each
+    indicator its own residual autoregression, modeling item-specific
+    carry-over (autocorrelated uniquenesses) with a geometrically decaying
+    structure; "full" and custom pattern matrices are also supported, as are
+    cross-group equality constraints (equal = "beta_epsilon" and
+    groupequal("beta_epsilon")).
+  o When beta_epsilon is non-zero, sigma_epsilon_within (and its typed
+    variants: chol, prec, ggm, cor) parameterizes the innovation covariance
+    of the residual process; the implied stationary residual covariance is
+    available via getmatrix(model, "sigma_epsilon_within_stationary").
+    Together with sigma_epsilon_between (the perfectly stable item
+    component), this gives each indicator a STARTS-like decomposition:
+    stable trait + autoregressive part + latent dynamics.
+  o Identification: a non-zero beta_epsilon requires at least three waves
+    (a warning is issued with two); four or more are recommended. Since the
+    white-noise model is nested (beta_epsilon = 0), modification indices for
+    the beta_epsilon elements provide a direct diagnostic for residual
+    autocorrelation, and the LRT against the default model is the natural
+    test.
+  o Implemented in both the R and C++ engines; analytic gradients verified
+    against numeric ones for diag/full beta_epsilon across residual types
+    (cov, chol, ggm, cor), multi-group models with equality constraints,
+    FIML, and missing-wave designs, and the implied covariance structure
+    verified against an independent implementation and a large Monte Carlo
+    simulation of the generating process.
+
 Changes in Version 0.16.2
   o NEW: panelvar() and panelgvar() are now implemented as their own model
     framework ("panelvar") rather than as a dlvm1 model with dummy matrices

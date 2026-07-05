@@ -60,9 +60,31 @@ implied_dlvm1 <- function(model,all = FALSE){
     
     # Create the block Toeplitz:
     fullSigma_within_latent  <- blockToeplitz(lapply(allSigmas_within,as.matrix))
-    
+
+    # Residual part: white noise (I_T kron sigma_epsilon_within), or, when a
+    # residual temporal process is modeled (beta_epsilon non-zero), the block
+    # Toeplitz of the stationary residual AR(1) process
+    # epsilon_t = beta_epsilon epsilon_{t-1} + u_t with innovation covariance
+    # sigma_epsilon_within. Note that beta_epsilon may be absent in models
+    # created before it existed; those keep the white-noise structure:
+    beta_epsilon <- x[[g]]$beta_epsilon
+    eps_ar <- !is.null(beta_epsilon) && any(beta_epsilon != 0)
+    if (eps_ar){
+      BetaStarEps <- as.matrix(solve(Diagonal(nVar^2) - (beta_epsilon %x% beta_epsilon)))
+      allSigmas_epsilon <- list()
+      allSigmas_epsilon[[1]] <- matrix(as.vector(BetaStarEps %*% Vec(x[[g]]$sigma_epsilon_within)), nVar, nVar)
+      if (nTime > 1){
+        for (t in 2:nTime){
+          allSigmas_epsilon[[t]] <- beta_epsilon %*% allSigmas_epsilon[[t-1]]
+        }
+      }
+      fullSigma_epsilon <- blockToeplitz(lapply(allSigmas_epsilon,as.matrix))
+    } else {
+      fullSigma_epsilon <- Diagonal(nTime) %x% x[[g]]$sigma_epsilon_within
+    }
+
     # Full within-subject cov matrix:
-    fullSigma_within <- (Diagonal(nTime) %x% x[[g]]$lambda) %*% fullSigma_within_latent %*% (Diagonal(nTime) %x% t(x[[g]]$lambda)) + (Diagonal(nTime) %x% x[[g]]$sigma_epsilon_within)
+    fullSigma_within <- (Diagonal(nTime) %x% x[[g]]$lambda) %*% fullSigma_within_latent %*% (Diagonal(nTime) %x% t(x[[g]]$lambda)) + fullSigma_epsilon
     
     # Full between-subject cov matrix:
     fullSigma_between <- Matrix(1,nTime,nTime) %x%  (
@@ -99,8 +121,17 @@ implied_dlvm1 <- function(model,all = FALSE){
       x[[g]]$allSigmas_within <- allSigmas_within
       x[[g]]$IkronBeta <- model@extramatrices$I_eta %x% x[[g]]$beta
       x[[g]]$lamWkronlamW <- x[[g]]$lambda %x% x[[g]]$lambda
+      if (eps_ar){
+        x[[g]]$BetaStarEps <- BetaStarEps
+        x[[g]]$allSigmas_epsilon <- allSigmas_epsilon
+        x[[g]]$IkronBetaEps <- model@extramatrices$I_y %x% beta_epsilon
+      }
     } else {
-      x[[g]]$sigma_within <- x[[g]]$lambda %*% allSigmas_within[[1]] %*% t(x[[g]]$lambda) + x[[g]]$sigma_epsilon_within
+      # Stationary within-person residual covariance (equals the innovation
+      # covariance sigma_epsilon_within when beta_epsilon is zero/absent):
+      sigma_epsilon_stationary <- if (eps_ar) as.matrix(allSigmas_epsilon[[1]]) else as.matrix(x[[g]]$sigma_epsilon_within)
+      x[[g]]$sigma_epsilon_within_stationary <- sigma_epsilon_stationary
+      x[[g]]$sigma_within <- x[[g]]$lambda %*% allSigmas_within[[1]] %*% t(x[[g]]$lambda) + sigma_epsilon_stationary
       x[[g]]$sigma_between <- x[[g]]$lambda %*% x[[g]]$sigma_zeta_between %*% t(x[[g]]$lambda) + x[[g]]$sigma_epsilon_between
       x[[g]]$sigma_within_full <- fullSigma_within
       x[[g]]$sigma_eta_within <- allSigmas_within[[1]]

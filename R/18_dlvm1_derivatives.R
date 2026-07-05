@@ -208,11 +208,18 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
   # Number of between latents:
   # nLat <- ncol(lambda)
   
+  # Residual temporal effects (beta_epsilon). The matrix may be absent in
+  # models created before it existed; in that case no columns are added and
+  # the Jacobian is laid out exactly as before:
+  beta_epsilon <- dots$beta_epsilon
+  has_beta_eps <- !is.null(beta_epsilon)
+  eps_ar <- has_beta_eps && any(beta_epsilon != 0)
+
   # I need to construct the Jacobian for the following "observations:"
   nobs <- nVar + # Means
     (nVar * (nVar+1))/2 + # Variances
     nVar^2 * (nTime - 1) # lagged variances
-  
+
   # total number of elements:
   nelement <- nVar + # intercepts in nu
     nLat + # Latent means
@@ -220,35 +227,41 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
     nLat * (nLat+1) / 2 + # within factor variances
     nLat^2 + # temporal effects
     nVar * (nVar + 1) / 2 + # Within residuals
+    has_beta_eps * nVar^2 + # Residual temporal effects
     # nVar * nLat + # Between-subject factor loadings
     nLat * (nLat + 1) / 2 + # Between-subject factor variances
     nVar * (nVar + 1) / 2 # between residuals
-  
+
   # Empty Jacobian:
   Jac <- Matrix(0, nrow = nobs, ncol=nelement, sparse = FALSE)
-  
+
   # Indices:
   meanInds <- 1:nVar
   sigInds <- list(
     nVar + seq_len(nVar*(nVar+1)/2)
   )
-  
+
   # For each lag:
   for (t in 2:nTime){
     sigInds[[t]] <- max(sigInds[[t-1]]) + seq_len(nVar^2)
   }
-  
+
   # Indices model:
   nu_inds <- seq_len(nVar)
   mu_eta_inds <- max(nu_inds) + seq_len(nLat)
   lambda_inds <- max(mu_eta_inds) + seq_len(nVar * nLat)
-  
+
   # lambda_inds <- max(mu_eta_inds) + seq_len(nVar * nLat)
   sigma_zeta_within_inds <- max(lambda_inds) + seq_len(nLat * (nLat+1) / 2)
   beta_inds <- max(sigma_zeta_within_inds) + seq_len(nLat^2)
   sigma_epsilon_within_inds <- max(beta_inds) + seq_len(nVar * (nVar + 1) / 2)
-  
-  sigma_zeta_between_inds <- max(sigma_epsilon_within_inds) + seq_len(nLat * (nLat + 1) / 2)
+
+  if (has_beta_eps){
+    beta_epsilon_inds <- max(sigma_epsilon_within_inds) + seq_len(nVar^2)
+    sigma_zeta_between_inds <- max(beta_epsilon_inds) + seq_len(nLat * (nLat + 1) / 2)
+  } else {
+    sigma_zeta_between_inds <- max(sigma_epsilon_within_inds) + seq_len(nLat * (nLat + 1) / 2)
+  }
   sigma_epsilon_between_inds <- max(sigma_zeta_between_inds) + seq_len(nVar * (nVar + 1) / 2)
   
   ### Augmentation parts ###
@@ -357,18 +370,35 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
   J_sigma_beta <- d_sigma0_beta_dlvm1(...)
   Jac[sigInds[[1]],beta_inds] <- L_y  %*% dots$lamWkronlamW %*% J_sigma_beta
   
-  # Fill s0 to sigma_epsilon_within:
-  Jac[sigInds[[1]],sigma_epsilon_within_inds] <- Diagonal(nVar * (nVar+1) / 2)  %*% aug_within_residual
-  
-  
+  # Fill s0 to sigma_epsilon_within. With a residual temporal process
+  # (beta_epsilon non-zero), sigma_epsilon_within is the residual innovation
+  # covariance and enters via the stationary residual structure
+  # vec(sigma_eps_0) = (I - B_eps kron B_eps)^{-1} vec(sigma_epsilon_within);
+  # otherwise it enters the lag-0 block directly (white noise):
+  if (eps_ar){
+    J_sigma_epsilon_within <- dots$BetaStarEps %*% dots$D_y %*% aug_within_residual
+    Jac[sigInds[[1]],sigma_epsilon_within_inds] <- L_y %*% J_sigma_epsilon_within
+  } else {
+    Jac[sigInds[[1]],sigma_epsilon_within_inds] <- Diagonal(nVar * (nVar+1) / 2)  %*% aug_within_residual
+  }
+
+  # Fill s0 to beta_epsilon (residual temporal effects). These columns are
+  # also needed when beta_epsilon is fixed to zero (for modification
+  # indices); at B_eps = 0 the lag-0 derivative is zero and the lag-1
+  # derivative reduces to t(sigma_epsilon_within) kron I (see below):
+  if (has_beta_eps && eps_ar){
+    J_beta_epsilon <- ((dots$I_y %x% dots$I_y) + dots$C_y_y) %*% dots$BetaStarEps %*% (dots$allSigmas_epsilon[[2]] %x% dots$I_y)
+    Jac[sigInds[[1]],beta_epsilon_inds] <- L_y %*% J_beta_epsilon
+  }
+
   # Fill s0 to lambda part and store for later use
   # J_sigmak_lambda <- d_sigmak_lambda_dlvm1(...)
   # Jac[sigInds[[1]],lambda_inds] <- L_y %*% J_sigmak_lambda
-  
+
   # Fill s0 to sigma_zeta_between, and store for later use:
   J_sigmak_sigma_zeta_between <- d_sigmak_sigma_zeta_between_dlvm1(...)  %*% aug_between_latent
   Jac[sigInds[[1]],sigma_zeta_between_inds] <- L_y %*% J_sigmak_sigma_zeta_between
-   
+
   # Fill sigma_epsilon_between inds:
   Jac[sigInds[[1]],sigma_epsilon_between_inds] <-  aug_between_residual
 
@@ -381,21 +411,32 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
     # Fill sk  to sigma_zeta_within part (and store for later use):
     J_sigma_zeta_within <- dots$IkronBeta %*% J_sigma_zeta_within
     Jac[sigInds[[t]],sigma_zeta_within_inds] <- dots$lamWkronlamW %*% J_sigma_zeta_within
-    
+
     # Fill sk to beta part (and store for later use):
     J_sigma_beta <- d_sigmak_beta_dlvm1(J_sigma_beta=J_sigma_beta,k=t,...)
     Jac[sigInds[[t]],beta_inds] <- dots$lamWkronlamW %*% J_sigma_beta
-    # 
-    # # Fill sk to sigma_epsilon_within:
-    # Jac[sigInds[[1]],sigma_epsilon_within_inds] <- Diagonal(nVar * (nVar+1) / 2)
-    # 
-    
+
+    # Fill sk to sigma_epsilon_within and beta_epsilon (residual temporal
+    # process; the residual lag blocks are B_eps^k sigma_eps_0 and follow the
+    # same recursions as the latent part):
+    if (eps_ar){
+      J_sigma_epsilon_within <- dots$IkronBetaEps %*% J_sigma_epsilon_within
+      Jac[sigInds[[t]],sigma_epsilon_within_inds] <- J_sigma_epsilon_within
+
+      J_beta_epsilon <- dots$IkronBetaEps %*% J_beta_epsilon + (t(dots$allSigmas_epsilon[[t-1]]) %x% dots$I_y)
+      Jac[sigInds[[t]],beta_epsilon_inds] <- J_beta_epsilon
+    } else if (has_beta_eps && t == 2){
+      # At B_eps = 0 the general recursion gives a zero lag-0 derivative,
+      # (t(sigma_epsilon_within) kron I) at lag 1, and zero at higher lags:
+      Jac[sigInds[[t]],beta_epsilon_inds] <- t(dots$sigma_epsilon_within) %x% dots$I_y
+    }
+
     # Fill sk to lambda part and store for later use
     # Jac[sigInds[[t]],lambda_inds] <- J_sigmak_lambda
-    
+
     # Fill s0 to sigma_zeta_between, and store for later use:
     Jac[sigInds[[t]],sigma_zeta_between_inds] <- J_sigmak_sigma_zeta_between
-    
+
     # Fill sigma_epsilon_between inds:
     Jac[sigInds[[t]],sigma_epsilon_between_inds] <- dots$D_y %*% aug_between_residual
   }

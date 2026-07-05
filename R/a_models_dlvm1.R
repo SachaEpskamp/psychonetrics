@@ -110,7 +110,10 @@ dlvm1 <- function(
   rho_zeta_between = "full",
   SD_zeta_between = "diag",
   rho_epsilon_between = "zero",
-  SD_epsilon_between = "diag"
+  SD_epsilon_between = "diag",
+  # Residual temporal effects (within-person AR structure on the residuals;
+  # zero by default, "diag" gives each indicator its own autoregression):
+  beta_epsilon = "zero"
 ){
 
 
@@ -439,6 +442,9 @@ dlvm1 <- function(
     lowertri_epsilon_between <- O
     rho_epsilon_between <- O
     SD_epsilon_between <- O
+
+    # No residuals, so no residual temporal effects either:
+    beta_epsilon <- O
   }
   
   # Number of measurements:
@@ -449,6 +455,23 @@ dlvm1 <- function(
   # at a single wave):
   if (nTime < 2){
     stop("At least two waves/measurements per person are required: the 'vars' design matrix has only one column.")
+  }
+
+  # Residual temporal effects: translate the "diag" shorthand (each
+  # indicator its own residual autoregression) into a pattern matrix:
+  if (is.character(beta_epsilon) && length(beta_epsilon) == 1 && beta_epsilon == "diag"){
+    beta_epsilon <- diag(nVar)
+  }
+
+  # A non-zero beta_epsilon needs at least three waves to be identified:
+  # with two waves, the residual autoregression adds one unknown per element
+  # without adding identifying moment equations (the lag-2 covariance block
+  # is needed to separate the residual decay from the stable between-person
+  # residual variance and the latent dynamics):
+  .beta_eps_nonzero <- !((is.character(beta_epsilon) && length(beta_epsilon) == 1 && beta_epsilon %in% c("zero","empty")) ||
+                           (is.numeric(beta_epsilon) && all(beta_epsilon == 0)))
+  if (.beta_eps_nonzero && nTime < 3){
+    warning("A non-zero 'beta_epsilon' (residual temporal effects) is not identified with only two waves; at least three waves are required.")
   }
 
   # Number of latents:
@@ -599,8 +622,28 @@ dlvm1 <- function(
                                          nGroup = nGroup,
                                          labels = varnames
                      ))
-    
-    
+
+    # Setup beta_epsilon (residual temporal effects; warm-start from the
+    # supplied model when it contains the matrix):
+    if ("beta_epsilon" %in% start_mod@matrices$name){
+      modMatrices$beta_epsilon <- matrixsetup_beta(beta_epsilon,
+                                           name = "beta_epsilon",
+                                           nNode = nVar,
+                                           nGroup = nGroup,
+                                           labels = varnames,
+                                           start = makelist(getmatrix(start_mod, "beta_epsilon")),
+                                           equal = "beta_epsilon" %in% equal,
+                                           sampletable = sampleStats)
+    } else {
+      modMatrices$beta_epsilon <- matrixsetup_beta(beta_epsilon,
+                                           name = "beta_epsilon",
+                                           nNode = nVar,
+                                           nGroup = nGroup,
+                                           labels = varnames,
+                                           equal = "beta_epsilon" %in% equal,
+                                           sampletable = sampleStats)
+    }
+
     # Setup latent varcov:
     modMatrices <- c(modMatrices,
                      matrixsetup_flexcov(sigma_zeta_between,lowertri_zeta_between,omega_zeta_between,delta_zeta_between,kappa_zeta_between, rho = rho_zeta_between, SD = SD_zeta_between,
@@ -868,8 +911,16 @@ dlvm1 <- function(
                                          nGroup = nGroup,
                                          labels = varnames
                      ))
-    
-    
+
+    # Setup beta_epsilon (residual temporal effects; zero by default):
+    modMatrices$beta_epsilon <- matrixsetup_beta(beta_epsilon,
+                                         name = "beta_epsilon",
+                                         nNode = nVar,
+                                         nGroup = nGroup,
+                                         labels = varnames,
+                                         equal = "beta_epsilon" %in% equal,
+                                         sampletable = sampleStats)
+
     # Setup latent varcov:
     modMatrices <- c(modMatrices,
                      matrixsetup_flexcov(sigma_zeta_between,lowertri_zeta_between,omega_zeta_between,delta_zeta_between,kappa_zeta_between, rho = rho_zeta_between, SD = SD_zeta_between,
@@ -979,7 +1030,16 @@ dlvm1 <- function(
                                          nGroup = nGroup,
                                          labels = varnames
                      ))
-    
+
+    # Setup beta_epsilon (residual temporal effects; zero by default):
+    modMatrices$beta_epsilon <- matrixsetup_beta(beta_epsilon,
+                                         name = "beta_epsilon",
+                                         nNode = nVar,
+                                         nGroup = nGroup,
+                                         labels = varnames,
+                                         equal = "beta_epsilon" %in% equal,
+                                         sampletable = sampleStats)
+
     # Between-case effects:
     # Setup lambda_between:
     # modMatrices$lambda_between <- matrixsetup_lambda(lambda_between, expcov=prior_bet_cov, nGroup = nGroup, observednames = sampleStats@variables$label, latentnames = latents,
@@ -1079,8 +1139,16 @@ dlvm1 <- function(
                                          nGroup = nGroup,
                                          labels = varnames
                      ))
-    
-    
+
+    # Setup beta_epsilon (residual temporal effects; zero by default):
+    modMatrices$beta_epsilon <- matrixsetup_beta(beta_epsilon,
+                                         name = "beta_epsilon",
+                                         nNode = nVar,
+                                         nGroup = nGroup,
+                                         labels = varnames,
+                                         equal = "beta_epsilon" %in% equal,
+                                         sampletable = sampleStats)
+
     # Setup latent varcov:
     modMatrices <- c(modMatrices,
                      matrixsetup_flexcov(sigma_zeta_between,lowertri_zeta_between,omega_zeta_between,delta_zeta_between,kappa_zeta_between, rho = rho_zeta_between, SD = SD_zeta_between,

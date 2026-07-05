@@ -64,6 +64,16 @@ Rcpp::List implied_dlvm1_cpp_core(
     arma::mat sigma_zeta_between = grouplist["sigma_zeta_between"];
     arma::mat sigma_epsilon_within = grouplist["sigma_epsilon_within"];
     arma::mat sigma_epsilon_between = grouplist["sigma_epsilon_between"];
+
+    // Residual temporal effects (may be absent in models created before
+    // beta_epsilon existed; those keep the white-noise residual structure):
+    bool has_beta_eps = grouplist.containsElementNamed("beta_epsilon");
+    arma::mat beta_epsilon;
+    bool eps_ar = false;
+    if (has_beta_eps){
+      beta_epsilon = as<arma::mat>(grouplist["beta_epsilon"]);
+      eps_ar = arma::any(arma::vectorise(beta_epsilon) != 0);
+    }
     
     // Matrices I need in every model framework when estimating:
     // Beta star:
@@ -101,8 +111,31 @@ Rcpp::List implied_dlvm1_cpp_core(
     // Create the block Toeplitz:
     arma::mat fullSigma_within_latent  = blockToeplitz_cpp(allSigmas_within);
 
+    // Residual part: white noise (I_T kron sigma_epsilon_within), or, when a
+    // residual temporal process is modeled (beta_epsilon non-zero), the block
+    // Toeplitz of the stationary residual AR(1) process with innovation
+    // covariance sigma_epsilon_within:
+    Rcpp::List allSigmas_epsilon(nTime);
+    arma::mat BetaStarEps;
+    arma::mat fullSigma_epsilon;
+    if (eps_ar){
+      arma::mat I2eps = eye(nVar*nVar, nVar*nVar);
+      BetaStarEps = inv(I2eps - kron(beta_epsilon, beta_epsilon));
+      arma::mat stationary_sigma_epsilon = matrixform(BetaStarEps * vectorise(sigma_epsilon_within));
+      allSigmas_epsilon[0] = stationary_sigma_epsilon;
+      if (nTime > 1){
+        for (t=1;t<nTime;t++){
+          arma::mat lastsigma_eps = allSigmas_epsilon[t-1];
+          allSigmas_epsilon[t] = beta_epsilon * lastsigma_eps;
+        }
+      }
+      fullSigma_epsilon = blockToeplitz_cpp(allSigmas_epsilon);
+    } else {
+      fullSigma_epsilon = arma::mat(kronecker_I_X(sigma_epsilon_within, nTime));
+    }
+
     // Full within-subject cov matrix:
-    arma::mat fullSigma_within = kronecker_I_X(lambda, nTime) * fullSigma_within_latent *  kronecker_I_X(lambda.t(), nTime) +  kronecker_I_X(sigma_epsilon_within, nTime);
+    arma::mat fullSigma_within = kronecker_I_X(lambda, nTime) * fullSigma_within_latent *  kronecker_I_X(lambda.t(), nTime) +  fullSigma_epsilon;
     
     // Full between-subject cov matrix:
     arma::mat fullSigma_between(nTime * nVar, nTime * nVar);
@@ -154,8 +187,22 @@ Rcpp::List implied_dlvm1_cpp_core(
       grouplist["allSigmas_within"] = allSigmas_within;
       grouplist["IkronBeta"] = kronecker_I_X(beta, n_lat);
       grouplist["lamWkronlamW"] = kron(lambda, lambda);
+      if (eps_ar){
+        grouplist["BetaStarEps"] = BetaStarEps;
+        grouplist["allSigmas_epsilon"] = allSigmas_epsilon;
+        grouplist["IkronBetaEps"] = kronecker_I_X(beta_epsilon, nVar);
+      }
     } else {
-      arma::mat sigma_within = lambda * stationary_sigma_within_latent * lambda.t() + sigma_epsilon_within;
+      // Stationary within-person residual covariance (equals the innovation
+      // covariance sigma_epsilon_within when beta_epsilon is zero/absent):
+      arma::mat sigma_epsilon_stationary;
+      if (eps_ar){
+        sigma_epsilon_stationary = as<arma::mat>(allSigmas_epsilon[0]);
+      } else {
+        sigma_epsilon_stationary = sigma_epsilon_within;
+      }
+
+      arma::mat sigma_within = lambda * stationary_sigma_within_latent * lambda.t() + sigma_epsilon_stationary;
       
       
       
@@ -166,6 +213,7 @@ Rcpp::List implied_dlvm1_cpp_core(
       grouplist["sigma_eta_within"] = stationary_sigma_within_latent;
       grouplist["sigma_eta_within_lag1"] = allSigmas_within[1];
       grouplist["sigma_crosssection"] = sigma_within + subSigma_between;
+      grouplist["sigma_epsilon_within_stationary"] = sigma_epsilon_stationary;
       
     }
     
