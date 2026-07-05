@@ -294,6 +294,9 @@ qgraph(contemporaneous, layout = L, theme = "colorblind", cut = 0,
     <p>
       When visualizing the PDC matrix with <code>qgraph()</code>, use <code>directed = TRUE</code> and <code>diag = TRUE</code> to display the directed edges and auto-regressive effects.
     </p>
+    <div class="tip">
+      <strong>New in 0.16.4:</strong> the PDC can also be <em>modeled directly</em> with <code>var1(..., temporal = "PDC")</code> (also available in <code>panelvar()</code>/<code>panelgvar()</code>, <code>tsdlvm1()</code>, and <code>dlvm1()</code> via <code>temporal_latent</code>/<code>temporal_residual</code>). The <code>PDC</code> parameter matrix encodes from = row, to = column; results are fit-equivalent to the raw parameterization, but standard errors, confidence intervals (<code>CIplot()</code>), modification indices, <code>prune()</code>/<code>stepup()</code>, and cross-group equality constraints (<code>groupequal("PDC")</code>) then apply directly on the PDC scale.
+    </div>
 
     <h3>PCC: Partial Contemporaneous Correlations</h3>
     <p>
