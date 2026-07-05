@@ -20,9 +20,13 @@ samplestats_norawts <- function(
   bootstrap = FALSE,
   boot_sub,
   boot_resample,
-  likelihood = c("normal","wishart") # Gaussian likelihood scaling. "wishart" stores the UNBIASED (n-1 denominator) sample covariance per group instead of the ML (n denominator) one (matches lavaan likelihood = "wishart").
+  likelihood = c("normal","wishart"), # Gaussian likelihood scaling. "wishart" stores the UNBIASED (n-1 denominator) sample covariance per group instead of the ML (n denominator) one (matches lavaan likelihood = "wishart").
+  compute_ml_gamma = FALSE, # Compute + store the asymptotic covariance Gamma of the sample statistics for a complete-data ML fit. Only needed by the robust.sem estimators (MLM/MLMV/MLMVS); off by default so plain ML fits do not pay the (potentially large) fourth-order-moment cost. Set TRUE by the constructors when a robust.sem estimator is requested.
+  weights = NULL # Optional numeric vector of SAMPLING weights (pseudo-ML), aligned with the rows of 'data'. When supplied, each group's moments are computed as WEIGHTED means/covariances (weights normalized within group to sum to n_g) and the normalized per-group weights are stored for the robust (MLR) sandwich standard errors. Only for complete-data raw input.
 ){
   likelihood <- match.arg(likelihood)
+  # Per-group normalized sampling weights (filled below when 'weights' is given):
+  sampling_weights_list <- list()
   # bootstrap defaults:
   if (bootstrap == "nonparametric"){
     bootstrap <- TRUE
@@ -421,8 +425,62 @@ samplestats_norawts <- function(
     if (!missing(nobs)){
       warning("'nobs' argument ignored and obtained from data")
     }
-    
+
     nobs <- as.vector(tapply(data[[groups]],data[[groups]],length))
+
+    # Sampling weights (pseudo-ML): recompute each group's moments as WEIGHTED
+    # means / covariances and record the normalized per-group weights (each
+    # summing to n_g, lavaan's sampling.weights.normalization = "total"). Only
+    # the continuous complete-data path is supported (the constructors guard
+    # against ordinal / missing / summary-statistic input).
+    if (!is.null(weights)){
+      weights <- as.numeric(weights)
+      if (length(weights) != nrow(data)){
+        stop("Internal error: sampling weights length does not match the number of data rows.")
+      }
+      if (any(!is.finite(weights)) || any(weights < 0)){
+        stop("Sampling weights must be finite and non-negative.")
+      }
+      if (length(ordered) > 0){
+        stop("Sampling weights are not (yet) supported for ordinal data.")
+      }
+      # Normalize GLOBALLY so the weights over ALL groups sum to the total sample
+      # size (lavaan's default sampling.weights.normalization = "total"). The
+      # moments are ratios and so are invariant to the normalization, but the
+      # sandwich meat depends on the absolute weight values sum_i w_i^2 s_i s_i',
+      # so the absolute scale must match lavaan for multi-group models.
+      Ntot <- nrow(data)
+      wtot <- sum(weights)
+      if (wtot <= 0) stop("Sampling weights sum to zero.")
+      weights <- weights * (Ntot / wtot)
+      grpvec <- data[[groups]]
+      for (g in 1:nGroup){
+        idx <- which(grpvec == g)
+        w <- weights[idx]
+        swg <- sum(w)
+        if (swg <= 0) stop("Sampling weights within a group sum to zero.")
+        Y <- as.matrix(data[idx, vars, drop = FALSE])
+        if (anyNA(Y)){
+          stop("Sampling weights are not (yet) supported with missing data.")
+        }
+        mw <- as.numeric(crossprod(w, Y) / swg)            # weighted mean (divisor = sum of group weights)
+        Yc <- sweep(Y, 2, mw)
+        Sw <- crossprod(Yc * sqrt(w)) / swg                # weighted ML covariance
+        dn <- list(vars, vars)
+        dimnames(Sw) <- dn
+        covs[[g]] <- as(Sw, "matrix")
+        means[[g]] <- stats::setNames(mw, vars)
+        cors[[g]] <- if (!any(is.na(Sw))) as(cov2cor(Sw), "matrix") else matrix(NA, length(vars), length(vars))
+        squares[[g]] <- as(crossprod(Y * sqrt(w)) / swg * length(idx), "matrix")   # weighted raw sums of squares
+        sampling_weights_list[[g]] <- w
+        # The pseudo-log-likelihood weights each group by its total weight sum
+        # (sum_i w_i), not its raw count, so set the group's effective sample
+        # size to swg. This makes the fit function, gradient, expected/observed
+        # information and chi-square (= sum_g swg * F_g) match lavaan; the total
+        # sum_g swg = N (global normalization) keeps n = N for BIC etc.
+        nobs[g] <- swg
+      }
+    }
   } else {
     thresholds <- list()
     
@@ -637,6 +695,9 @@ samplestats_norawts <- function(
                                                groupvar=groups, bootstrap = bootstrap, boot_sub = boot_sub,
                                                boot_resample = boot_resample)
   
+  # Store the per-group normalized sampling weights (empty list if none used):
+  object@weights <- sampling_weights_list
+
   # Fill groups:
   object@groups <- data.frame(
     label = groupNames,
@@ -755,7 +816,13 @@ samplestats_norawts <- function(
   # dropping. Only computed when the default weightsmatrix = "none" path is
   # taken (i.e. not WLS/DWLS/ULS, which fill gammamatrix above) and the data are
   # complete (no missingness); FIML (missing data) robust ML is Phase 2.
-  if (length(gammamatrix) == 0 &&
+  # Gated on compute_ml_gamma so plain (non-robust) ML fits do NOT pay the
+  # fourth-order-moment cost (Gamma is O(p^4) in memory/time -- e.g. ~84 MB and
+  # ~12 s at p = 80); the constructors request it only for MLM/MLMV/MLMVS, and
+  # setestimator() computes it lazily when switching a stored-data model to a
+  # robust.sem estimator.
+  if (isTRUE(compute_ml_gamma) &&
+      length(gammamatrix) == 0 &&
       is.character(weightsmatrix) && length(weightsmatrix) == 1 && weightsmatrix == "none" &&
       !missing(data) && !is.null(data)){
     ml_gamma <- tryCatch({

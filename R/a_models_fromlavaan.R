@@ -194,6 +194,17 @@ fromlavaan <- function(x,
   rs <- P$matrix %in% unname(matmap[lavmats])
   P$par[rs] <- 0; P$fixed[rs] <- TRUE; P$est[rs] <- 0; P$identified[rs] <- FALSE
 
+  # Offset for the reassigned free-parameter indices. When nu is left saturated
+  # (no meanstructure), its free rows KEEP the contiguous par indices that lvm()
+  # assigned them (1..nNode); the surgery below re-frees the managed matrices
+  # with the lavaan free indices cl[f], which also start at 1. Without an offset
+  # the two index ranges overlap and parRelabel() (which merges rows sharing a
+  # par value) would silently equate observed intercepts with loadings/variances
+  # -- corrupting every single-group meanstructure = FALSE model. Shift the
+  # reassigned indices past the largest retained (nu) par so the ranges are
+  # disjoint; parRelabel() then compresses them back to a contiguous 1..K.
+  par_offset <- if (meanstructure) 0L else max(c(0L, P$par[P$matrix == "nu"]))
+
   for (g in 1:nG){
     for (m in lavmats){
       Fm <- FREE[[g]][[m]]; Em <- EST[[g]][[m]]
@@ -213,7 +224,7 @@ fromlavaan <- function(x,
                                (pm == "sigma_zeta" && i == j && v == 1)
         } else {                         # free; par = equality class
           P$fixed[idx] <- FALSE; P$identified[idx] <- FALSE
-          P$par[idx]   <- cl[f]
+          P$par[idx]   <- cl[f] + par_offset
         }
       }
     }

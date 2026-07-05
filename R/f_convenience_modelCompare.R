@@ -1,6 +1,7 @@
 # Compare function for psychonetrics models:
 compare <- function(...,
-                    scaled.test.method = c("satorra.bentler.2001",
+                    scaled.test.method = c("auto",
+                                           "satorra.bentler.2001",
                                            "satorra.bentler.2010",
                                            "satorra.2000")){
   # Obtain dots:
@@ -90,11 +91,40 @@ compare <- function(...,
   if (length(dots) >= 2 && all(vapply(dots, has_scaling, logical(1)))){
     # The dots, arranged by DF ascending to match the table ordering:
     dots_sorted <- dots[order(sapply(fits, "[[", "df"))]
-    # The Satorra (2000) test is reported in its scaled-and-shifted form (the
-    # lavaan default for that method, and the appropriate difference test for the
-    # scaled-shifted estimators MLMV / WLSMV). The mean-scaled Satorra-Bentler
-    # 2001 / 2010 tests always work and are the default.
-    scaled.shifted <- identical(scaled.test.method, "satorra.2000")
+
+    # Resolve scaled.test.method = "auto" to the correct difference test for the
+    # models' scaled test TYPE, exactly as lavaan's lavTestLRT does. The naive
+    # Satorra-Bentler 2001 mean-scaling is only valid for the mean-adjusted tests
+    # (MLM / MLR / WLSM); the scaled-shifted (MLMV / WLSMV) and mean-and-variance
+    # adjusted (MLMVS) estimators require the exact Satorra (2000) trace-based
+    # difference test (scaled-and-shifted, resp. mean-adjusted). Applying SB-2001
+    # to a scaled-shifted fit silently returns a WRONG statistic, so "auto" is
+    # the default:
+    scaled_type <- function(x){
+      if (x@estimator %in% c("WLS", "DWLS", "ULS")) return("scaled.shifted")
+      cfg <- tryCatch(get_robust_config(x), error = function(e) list())
+      tst <- if (is.null(cfg$test) || !nzchar(cfg$test)) "" else cfg$test
+      switch(tst,
+        "scaled.shifted"    = "scaled.shifted",
+        "mean.var.adjusted" = "mean.var",
+        "mean")   # satorra.bentler, yuan.bentler.mplus, or none -> mean adjusted
+    }
+    if (identical(scaled.test.method, "auto")){
+      types <- vapply(dots_sorted, scaled_type, character(1))
+      # lavaan's lavTestLRT default: the exact Satorra (2000) scaled-and-shifted
+      # difference test for BOTH the scaled-shifted (MLMV/WLSMV) and the
+      # mean-and-variance adjusted (MLMVS) estimators, and the Satorra-Bentler
+      # 2001 mean-scaling for the mean-adjusted tests (MLM / MLR / WLSM).
+      if (any(types %in% c("scaled.shifted", "mean.var"))){
+        scaled.test.method <- "satorra.2000"; scaled.shifted <- TRUE
+      } else {
+        scaled.test.method <- "satorra.bentler.2001"; scaled.shifted <- FALSE
+      }
+    } else {
+      # An explicitly requested Satorra (2000) test is reported in its
+      # scaled-and-shifted form (the lavaan default for that method).
+      scaled.shifted <- identical(scaled.test.method, "satorra.2000")
+    }
 
     Tab$Chisq_diff_scaled <- NA_real_
     Tab$p_value_scaled <- NA_real_
@@ -109,6 +139,7 @@ compare <- function(...,
       Tab$p_value_scaled[i + 1L] <- res$pvalue
     }
     attr(Tab, "scaled.test.method") <- scaled.test.method
+    attr(Tab, "scaled.shifted") <- scaled.shifted
   }
 
   # Set saturated chisquare to NA:
@@ -154,10 +185,12 @@ print.psychonetrics_compare <- function(x,...){
   cat("\nNote: Chi-square difference test assumes models are nested.")
 
   if (!is.null(scaled_method)){
+    scaled_shifted <- attr(x, "scaled.shifted")
     method_label <- switch(scaled_method,
       "satorra.bentler.2001" = "Satorra & Bentler (2001)",
       "satorra.bentler.2010" = "Satorra & Bentler (2010)",
-      "satorra.2000"         = "Satorra (2000), scaled and shifted",
+      "satorra.2000"         = if (isTRUE(scaled_shifted)) "Satorra (2000), scaled and shifted"
+                               else "Satorra (2000), mean adjusted",
       scaled_method)
     cat("\nNote: Chisq_diff_scaled / p_value_scaled use the ",
         method_label, " scaled chi-square difference test.", sep = "")

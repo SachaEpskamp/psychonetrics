@@ -16,6 +16,7 @@ generate_psychonetrics_samplestats <- setClass("psychonetrics_samplestats",  slo
   WLS.W = "list", # List with weights matrix per group
   WLS.Gamma = "list", # List with asymptotic covariance matrix (Gamma) per group, for WLSMV correction
   twolevel = "list", # Per-group two-level sufficient statistics (ml_lvm estimator = "ML"); empty list for all other models. Read with .hasSlot guards for objects saved before 0.15.31.
+  weights = "list", # Per-group normalized sampling weights (each sums to n_g); empty list when no sampling weights are used. Read with .hasSlot guards for objects saved before 0.16.1.
   rawdata = "data.frame", # For bootstrapping!
   groupvar = "character",
   bootstrap = "logical",

@@ -179,24 +179,53 @@ scaled_diff_satorra2000_traces <- function(m1, A){
 scaled_diff_test_pair <- function(m1, m0, method = "satorra.bentler.2001",
                                   scaled.shifted = TRUE){
   T1 <- m1@fitmeasures$chisq; r1 <- m1@fitmeasures$df
-  c1 <- m1@fitmeasures$chisq.scaling.factor
   T0 <- m0@fitmeasures$chisq; r0 <- m0@fitmeasures$df
-  c0 <- m0@fitmeasures$chisq.scaling.factor
   m <- r0 - r1
+
+  # The Satorra-Bentler 2001/2010 mean-scaling cd = (r0 c0 - r1 c1)/m requires
+  # the MEAN-ADJUSTED scaling factor c = trace(UG)/df. For MLM / MLR / WLSM that
+  # equals chisq.scaling.factor, but for the scaled-shifted (MLMV / WLSMV) and
+  # mean-and-variance adjusted (MLMVS) tests chisq.scaling.factor is a DIFFERENT
+  # quantity (1/a resp. trUG2/trUG). Prefer the separately-stored
+  # chisq.scaling.factor.sb (added in 0.16); fall back to chisq.scaling.factor
+  # with a warning for objects computed before it existed. The Satorra (2000)
+  # method below does not use c0/c1 (it recomputes the traces), so this only
+  # affects the SB 2001/2010 branches.
+  sb_factor <- function(mm){
+    sf <- mm@fitmeasures$chisq.scaling.factor.sb
+    if (!is.null(sf) && length(sf) == 1 && is.finite(sf)) return(sf)
+    sf2 <- mm@fitmeasures$chisq.scaling.factor
+    if (!is.null(sf2) && length(sf2) == 1 && is.finite(sf2) &&
+        !is.null(mm@fitmeasures$df) && mm@fitmeasures$df > 0){
+      warning("This model was computed before the mean-adjusted scaling factor ",
+              "(chisq.scaling.factor.sb) was stored; the Satorra-Bentler ",
+              "difference test may be inaccurate for scaled-shifted / ",
+              "mean-and-variance adjusted estimators. Re-run the model, or use ",
+              "scaled.test.method = 'satorra.2000'.")
+    }
+    sf2
+  }
+  c1 <- sb_factor(m1)
+  c0 <- sb_factor(m0)
   na_out <- list(stat = NA_real_, df = m, pvalue = NA_real_)
 
   if (!is.finite(m) || m <= 0) return(na_out)
-  if (is.null(c0) || is.null(c1) || !is.finite(T0) || !is.finite(T1)) return(na_out)
 
-  # Edge cases on the scaling factors (Satorra-Bentler 2001/2010):
+  # Edge cases on the scaling factors (Satorra-Bentler 2001/2010) MUST be
+  # applied before validating c0/c1: a saturated reference model (df 0) has no
+  # scaling factor of its own (compute_ml_scaled_test returns NULL when df 0),
+  # so its c is legitimately absent and is replaced by the convention below.
   #   r1 == 0 (M1 saturated): c1 is undefined -> use c1 = 1
-  #   T1 ~ 0 with r1 > 0     : a perfect fit -> use c1 = 0
+  #   T1 ~ 0 with r1 > 0     : a perfect fit  -> use c1 = 0
   if (r1 == 0){
     c1 <- 1
-  } else if (abs(T1) < sqrt(.Machine$double.eps)){
+  } else if (is.finite(T1) && abs(T1) < sqrt(.Machine$double.eps)){
     c1 <- 0
   }
   if (r0 == 0) c0 <- 1   # cannot happen for the larger-df model, but guard anyway
+
+  if (is.null(c0) || is.null(c1) || !is.finite(c0) || !is.finite(c1) ||
+      !is.finite(T0) || !is.finite(T1)) return(na_out)
 
   if (method == "satorra.2000"){
     A <- scaled_diff_A(m1, m0)

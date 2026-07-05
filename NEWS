@@ -1,3 +1,48 @@
+Changes in Version 0.16.1
+  o NEW: sampling weights (pseudo-maximum-likelihood) via the sampling_weights
+    argument of varcov()/lvm() (and the ggm/precision/... wrappers). The moments
+    are computed as weighted means/covariances and the model is fit with robust
+    (MLR) Huber-White sandwich standard errors and a Yuan-Bentler-Mplus scaled
+    test statistic, matching lavaan's sampling.weights= to numerical precision
+    (single- and multi-group; estimates, SEs, scaled chi-square and robust fit
+    indices). Complete-data continuous input only.
+  o Documented that, unlike lavaan (auto.cov.lv.y = TRUE), psychonetrics does not
+    free the residual covariances among endogenous latent variables by default;
+    free them via sigma_zeta to reproduce a lavaan SEM (this also makes fixed_x
+    models with latent regressions match lavaan exactly). Removed a now-obsolete
+    caveat in the fixed_x documentation (the baseline is conditioned on x since
+    this release).
+  o Fixed fromlavaan(): a single-group lavaan fit WITHOUT a mean structure
+    (the default for cfa()/sem()) was converted with colliding parameter
+    indices, silently equating observed intercepts with loadings/variances
+    (chi-square Inf, wrong df). Meanstructure = TRUE fits were unaffected.
+  o Fixed fixed_x: the baseline (and saturated) reference models are now
+    conditioned on the exogenous block, matching lavaan. Previously the
+    baseline was an unconditioned independence model over all variables,
+    producing a negative baseline.df, an inflated baseline chi-square, NaN
+    TLI and incorrect CFI/TLI for every fixed_x model.
+  o Fixed the scaled chi-square difference test in compare() for the
+    scaled-shifted (MLMV/WLSMV) and mean-and-variance-adjusted (MLMVS)
+    estimators. compare() now auto-selects the appropriate difference test
+    (the exact Satorra (2000) test for those estimators, Satorra-Bentler
+    (2001) for MLM/MLR), matching lavaan's lavTestLRT; previously the default
+    Satorra-Bentler-2001 test used the wrong (test-specific) scaling factor
+    for scaled-shifted/mean-var fits and returned an incorrect statistic. The
+    mean-adjusted scaling factor is now also stored as
+    chisq.scaling.factor.sb. A latent bug that returned NA for any scaled
+    difference test against a saturated (df 0) reference model was also fixed.
+  o Performance: the asymptotic covariance Gamma of the sample statistics is no
+    longer computed for plain (non-robust) maximum-likelihood fits; it is
+    computed only for the robust ML estimators that need it (and lazily by
+    setestimator()). This removes a large constructor-time and memory cost for
+    high-dimensional models (e.g. ~12 s and ~84 MB at p = 80).
+  o Performance: the robust-ML sandwich building blocks (including the
+    expensive numeric observed-information Jacobian for MLR) are now computed
+    once per addfit() call and reused for the scaled test and the FIML-C robust
+    fit indices, instead of being rebuilt several times.
+  o Added a df <= 0 guard to the robust-ML scaled test (compute_ml_scaled_test)
+    for consistency with the MLR path.
+
 Changes in Version 0.16
   o Version 0.16 is a major feature release that consolidates the 0.15.x
     development series. It bundles a large internal code audit (numerous

@@ -33,6 +33,8 @@
           <li><a href="ising.html" class="nav-link">Ising &amp; Blume-Capel</a></li>
           <li><a href="mllvm.html" class="nav-link">Multi-level (ml_lvm)</a></li>
           <li><a href="meta.html" class="nav-link">Meta-analysis</a></li>
+          <li class="dropdown-divider"><a href="robust.html" class="nav-link">Robust &amp; scaled estimation</a></li>
+          <li><a href="lavaan.html" class="nav-link">lavaan interoperability</a></li>
         </ul>
       </li>
       <li><a href="examples.html" class="nav-link">Examples</a></li>
@@ -73,7 +75,7 @@
   <!-- ===================== 0.16 robust ML ===================== -->
   <div class="whatsnew-item" id="robust">
     <h2>Robust maximum likelihood (MLM / MLMV / MLMVS / MLR) <span class="version-tag">0.16</span></h2>
-    <p class="whatsnew-meta">June 2026 &mdash; see the new <a href="robust.html">robust &amp; scaled estimation page</a></p>
+    <p class="whatsnew-meta">June 2026 &mdash; <strong>experimental</strong> &mdash; see the new <a href="robust.html">robust &amp; scaled estimation page</a></p>
     <p>
       psychonetrics now offers the full family of robust maximum-likelihood estimators, selectable through the model constructors or with <code>setestimator()</code>. The point estimates are ordinary maximum likelihood, but the inference is corrected for non-normality:
     </p>
@@ -117,7 +119,7 @@ mod_mlr %>% fit</code></pre>
   <!-- ===================== 0.16 two-level ML ===================== -->
   <div class="whatsnew-item" id="mlml">
     <h2>Fast multilevel SEM: two-level ML for ml_lvm() <span class="version-tag">0.16</span></h2>
-    <p class="whatsnew-meta">June 2026 &mdash; see the <a href="mllvm.html#estimator">multi-level page</a></p>
+    <p class="whatsnew-meta">June 2026 &mdash; <strong>experimental</strong> &mdash; see the <a href="mllvm.html#estimator">multi-level page</a></p>
     <p>
       <code>ml_lvm()</code> gains a sufficient-statistics <strong>two-level ML estimator</strong> (<code>estimator = "ML"</code>; McDonald &amp; Goldstein, 1989; Muthen, 1990). It optimizes the numerically identical objective as the wide-format FIML estimator but is dramatically faster for models with large clusters, with full C++ standard errors and modification indices. The two are the same exact likelihood computed two ways (not an approximation, and not the pseudo-balanced &ldquo;MUML&rdquo;); the <code>"ML"</code>/<code>"FIML"</code> labels denote the computational route &mdash; summary statistics versus row by row, as elsewhere in psychonetrics &mdash; and both can handle within-cluster missing data (MCAR/MAR). The <code>estimator</code> argument now defaults to <code>"default"</code>, which selects <code>"ML"</code> for complete data with the largest cluster &gt; 5 units and <code>"FIML"</code> otherwise; explicit <code>estimator = "FIML"</code> reproduces previous results exactly.
     </p>
@@ -138,7 +140,7 @@ logl(ML) - logl(FIML) = -1.3e-11    # numerically identical objective</div>
   <!-- ===================== 0.16 lavaan interop ===================== -->
   <div class="whatsnew-item" id="lavaan">
     <h2>Interoperability with lavaan: fromlavaan() &amp; tolavaan() <span class="version-tag">0.16</span></h2>
-    <p class="whatsnew-meta">June 2026 &mdash; see the <a href="lavaan.html">lavaan interoperability page</a></p>
+    <p class="whatsnew-meta">June 2026 &mdash; <strong>experimental</strong> &mdash; see the <a href="lavaan.html">lavaan interoperability page</a></p>
     <p>
       Two new converters bridge psychonetrics and <strong>lavaan</strong>. <code>fromlavaan()</code> turns a fitted lavaan object (or model syntax + data) into an equivalent psychonetrics <code>lvm</code>, reproducing estimates, standard errors, chi-square, df and log-likelihood for standard ML fits (multi-group, equality constraints, <code>std.lv</code> and FIML are supported). <code>tolavaan()</code> goes the other way, converting a psychonetrics <code>lvm</code> into a fitted lavaan object or parameter table &mdash; so you can specify in one framework and prune, search, or report in the other.
     </p>
@@ -169,7 +171,7 @@ tolavaan() -> class  : "lavaan"  (logl -3737.745)</div>
   <!-- ===================== 0.16 std / wishart / fixed_x ===================== -->
   <div class="whatsnew-item" id="stdwishart">
     <h2>Standardized solutions, the Wishart likelihood &amp; fixed exogenous covariates <span class="version-tag">0.16</span></h2>
-    <p class="whatsnew-meta">June 2026 &mdash; see the <a href="lvm.html#std">LVM</a> and <a href="varcov.html#fixedx">varcov</a> pages</p>
+    <p class="whatsnew-meta">June 2026 &mdash; <strong>experimental</strong> &mdash; see the <a href="lvm.html#std">LVM</a> and <a href="varcov.html#fixedx">varcov</a> pages</p>
     <p>
       Three smaller additions to the <code>lvm</code> and <code>varcov</code> families round out the release.
     </p>
@@ -218,7 +220,7 @@ fixed_x x3,x4 : npar =  8   df = 1     # x3,x4 means + (co)variances dropped</di
   <!-- ===================== 0.16 scaled diff test ===================== -->
   <div class="whatsnew-item" id="scaleddiff">
     <h2>Scaled chi-square difference tests <span class="version-tag">0.16</span></h2>
-    <p class="whatsnew-meta">June 2026 &mdash; see the <a href="robust.html#difftest">robust estimation page</a></p>
+    <p class="whatsnew-meta">June 2026 &mdash; <strong>experimental</strong> &mdash; see the <a href="robust.html#difftest">robust estimation page</a></p>
     <p>
       For nested models fitted with a robust or scaled estimator, <code>compare()</code> now reports a Satorra&ndash;Bentler-family <strong>scaled chi-square difference test</strong> (new <code>Chisq_diff_scaled</code> and <code>p_value_scaled</code> columns). A new <code>scaled.test.method</code> argument selects <code>"satorra.bentler.2001"</code> (default), <code>"satorra.bentler.2010"</code>, or <code>"satorra.2000"</code> (scaled-and-shifted; appropriate for MLMV/WLSMV). Output for non-robust estimators is unchanged. This reproduces lavaan's <code>lavTestLRT()</code>.
     </p>
