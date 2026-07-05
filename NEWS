@@ -36,6 +36,17 @@ Changes in Version 0.16.4
     PDC matrix by default for PDC-parameterized models. transmod() does not
     transform temporal parameterizations (re-specify the model instead; a
     saturated PDC model is fit-equivalent to the saturated raw model).
+  o checkFisher() is now exact for FIML models: the expected-model reference
+    (expectedmodel()) also replaces the scatter matrices of single-row
+    missingness patterns (previously stored as zero and skipped) by their
+    implied expectations. Before this fix, FIML models containing
+    single-row patterns - notably var1()/tsdlvm1(), whose lag-augmented
+    data always contain one boundary row - showed a spurious O(1/n)
+    deviation (about 0.5 percent) between the analytic and numeric Fisher
+    information in checkFisher(), even though the analytic information was
+    correct. Estimation, standard errors and fit measures are unaffected
+    (expectedmodel() is only used by the numeric Fisher verification
+    tooling).
 
 Changes in Version 0.16.3
   o NEW: dlvm1() gained a 'beta_epsilon' argument: lag-1 temporal effects at

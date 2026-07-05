@@ -10,9 +10,17 @@ expectedmodel <- function(x){
         nPat <- length(x@sample@fimldata[[g]])
         for (i in seq_len(nPat)){
           x@sample@fimldata[[g]][[i]]$means <- as.matrix(prep$groupModels[[g]]$mu[!x@sample@fimldata[[g]][[i]]$pattern,drop=FALSE])
-          if (!all(x@sample@fimldata[[g]][[i]]$S == 0)){
-            x@sample@fimldata[[g]][[i]]$S <- as.matrix(prep$groupModels[[g]]$sigma[!x@sample@fimldata[[g]][[i]]$pattern,!x@sample@fimldata[[g]][[i]]$pattern, drop = FALSE])
-          }
+          # Replace every pattern's scatter matrix by its expectation, the
+          # implied covariance of the observed subset. This includes
+          # single-row patterns, which store S = 0 as their sufficient
+          # statistic (the single row's likelihood is carried by the mean
+          # term): E[(y - mu)(y - mu)'] = Sigma_i regardless of n_i. Skipping
+          # these (as done previously) left a residual (n_i/n) * kappa_i
+          # gradient at the expected model, so numeric_FisherInformation()
+          # picked up second-order terms and checkFisher() showed a spurious
+          # O(1/n) deviation for FIML models with single-row patterns (e.g.
+          # the lag-boundary row that var1/tsdlvm1 always produce):
+          x@sample@fimldata[[g]][[i]]$S <- as.matrix(prep$groupModels[[g]]$sigma[!x@sample@fimldata[[g]][[i]]$pattern,!x@sample@fimldata[[g]][[i]]$pattern, drop = FALSE])
         }
       }
     }
