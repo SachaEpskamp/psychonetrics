@@ -111,12 +111,45 @@ setestimator <- function(x, estimator){
     }
   }
 
+  # Ensure the asymptotic covariance Gamma of the sample statistics is present,
+  # computing it from the stored raw data if missing. Needed by the robust.sem
+  # estimators (MLM/MLMV/MLMVS); since 0.16.5 Gamma is no longer computed for
+  # plain ML fits (V2-3), so switching such a model to a robust.sem estimator
+  # must (re)compute it here -- otherwise the robust sandwich SEs would silently
+  # fall back to the naive VCOV.
+  ensure_ml_gamma <- function(model){
+    if (has_WLS_Gamma(model)) return(model)
+    if (!.hasSlot(model@sample, "rawdata")) return(model)
+    rd <- model@sample@rawdata
+    vars <- attr(rd, "vars"); groupcol <- attr(rd, "groups")
+    if (is.null(vars) || is.null(groupcol) || nrow(rd) == 0) return(model)
+    nG <- nrow(model@sample@groups); labs <- model@sample@groups$label
+    gm <- vector("list", nG); ok <- TRUE
+    for (g in seq_len(nG)){
+      sub <- as.matrix(rd[rd[[groupcol]] == labs[g], vars, drop = FALSE])
+      sub <- sub[stats::complete.cases(sub), , drop = FALSE]
+      if (nrow(sub) < 2){ ok <- FALSE; break }
+      gm[[g]] <- tryCatch(LS_Gamma(sub, meanstructure = model@meanstructure,
+                                   corinput = isTRUE(model@sample@corinput)),
+                          error = function(e){ ok <<- FALSE; NULL })
+    }
+    if (ok) model@sample@WLS.Gamma <- gm
+    model
+  }
+
   # Recursively set the estimator on a model and its baseline/saturated:
   .set_one <- function(model, estimator, robust_cfg){
     .check_estimator_requirements(model, estimator)
     model@estimator <- estimator
     if (.hasSlot(model, "robust")){
       model@robust <- robust_cfg
+    }
+    # Robust ML estimators need Gamma present (robust.sem uses its values;
+    # complete-data MLR uses its dimensions). Compute it lazily if a plain-ML
+    # model (which since 0.16.5 stores no Gamma, V2-3) is switched to a robust
+    # estimator. Skipped for FIML/MLR-missing (no complete-data Gamma):
+    if (isTRUE(nzchar(robust_cfg$se)) && estimator != "FIML"){
+      model <- ensure_ml_gamma(model)
     }
     model@computed <- FALSE
     # Propagate to baseline and saturated (themselves psychonetrics models):

@@ -22,7 +22,8 @@
 #            m_s cluster means (divide by m_s; zero matrix when m_s == 1)
 #
 # The missing-data list ($missing == TRUE) has:
-#  - N:      total number of (level-1) units that have at least one observed value
+#  - N:      total number of (level-1) unit rows (= nrow(Y); fully-missing rows
+#            are KEPT so the cluster index stays aligned -- see below)
 #  - J:      number of clusters
 #  - nel:    total number of observed (non-NA) scalar values (for the log(2*pi)
 #            constant in the log-likelihood)
@@ -93,7 +94,9 @@ twolevel_sufficient_statistics <- function(Y, cluster){
 # Per-pattern / raw structures for the two-level Gaussian ML estimator with
 # within-cluster missing data (MCAR/MAR). See the missing-data likelihood in
 # 05_MLestimator_fit_Gauss2L.R (minustwo_logl_Gauss2L_missing). Rows that are
-# entirely missing carry no information and are dropped.
+# entirely missing carry no information (their observed set is empty, so their
+# within precision is the 0x0 matrix); they are KEPT rather than dropped, so the
+# cluster index stays aligned with the original 1..J cluster numbering.
 twolevel_missing_statistics <- function(Y, cluster){
   Y <- as.matrix(Y)
   p <- ncol(Y)

@@ -342,7 +342,7 @@ fiml_em_saturated_moments <- function(x){
 #             (do NOT pre-apply expectedmodel(): that yields the EXPECTED info).
 #             This is the observed information of the ML (complete) or FIML
 #             (missing) fit function, which forms the Huber-White sandwich bread.
-mlr_meat_components <- function(x){
+mlr_meat_components <- function(x, compute_A = TRUE){
   is_fiml <- x@estimator == "FIML"
   if (!is_fiml && x@estimator != "ML") return(NULL)
   if (length(x@modelmatrices) == 0) return(NULL)
@@ -398,6 +398,13 @@ mlr_meat_components <- function(x){
   mu1_list <- if (is_fiml) vector("list", nGroups) else NULL
   Y_list <- if (is_fiml) vector("list", nGroups) else NULL
 
+  # Per-group normalized sampling weights (empty list if not a weighted fit).
+  # With sampling weights the score meat is the weighted first-order information
+  # sum_i (w_i s_i)(w_i s_i)' / n_g (each case contributes w_i s_i to the score
+  # of the weighted pseudo-log-likelihood), and the h1 moments are the weighted
+  # sample moments. Without weights w_i == 1 and this reduces to the ordinary meat.
+  sw <- get_sample_weights(x@sample)
+
   row_offset <- 0
   for (g in seq_len(nGroups)){
     ng_stat <- nrows_per_group[g]
@@ -406,6 +413,7 @@ mlr_meat_components <- function(x){
     row_offset <- row_offset + ng_stat
 
     Yg <- as.matrix(rawdata[rawdata[[groupcol]] == group_labels[g], vars, drop = FALSE])
+    w_g <- if (length(sw) >= g && length(sw[[g]]) == nrow(Yg)) as.numeric(sw[[g]]) else rep(1, nrow(Yg))
 
     muHat <- as.numeric(x@modelmatrices[[g]]$mu)
     SigmaHat <- as.matrix(x@modelmatrices[[g]]$sigma)
@@ -413,20 +421,28 @@ mlr_meat_components <- function(x){
     if (!is_fiml){
       # Complete data (Phase 1): drop incomplete rows (there are none here, but
       # keep the listwise guard for robustness) and use the normal-theory scores.
-      Yg <- Yg[stats::complete.cases(Yg), , drop = FALSE]
+      cc <- stats::complete.cases(Yg)
+      Yg <- Yg[cc, , drop = FALSE]; w_g <- w_g[cc]
       ng <- nrow(Yg)
       if (ng < 2) return(NULL)
+      # Denominator for the group's first-order information. Without weights this
+      # is the case count n_g; with sampling weights it is the group weight sum
+      # sum_i w_i (= the group's effective sample size groups$nobs), so that the
+      # group-weighted meat sum_g f_g B1_g = (1/N) sum_i w_i^2 s_i s_i' matches
+      # lavaan (f_g = swg/N).
+      denom <- sum(w_g)
 
       SC1 <- ml_casewise_scores_h1(Yg, muHat, SigmaHat,
                                    meanstructure = meanstructure, corinput = corinput)
-      B1_list[[g]] <- crossprod(SC1) / ng
+      B1_list[[g]] <- crossprod(w_g * SC1) / denom        # sum_i (w_i s_i)(w_i s_i)'/swg
 
-      ybar <- colMeans(Yg)
-      Sg <- crossprod(sweep(Yg, 2, ybar)) / ng
+      # Weighted sample moments (= the moments the model targets):
+      ybar <- as.numeric(crossprod(w_g, Yg) / denom)
+      Sg <- crossprod(sweep(Yg, 2, ybar) * sqrt(w_g)) / denom
       S_list[[g]] <- Sg
       SC1u <- ml_casewise_scores_h1(Yg, ybar, Sg,
                                     meanstructure = meanstructure, corinput = corinput)
-      B1u_list[[g]] <- crossprod(SC1u) / ng
+      B1u_list[[g]] <- crossprod(w_g * SC1u) / denom
     } else {
       # FIML (Phase 2): keep ALL rows (incl. incomplete); pattern-wise scores.
       ng <- nrow(Yg)
@@ -449,10 +465,17 @@ mlr_meat_components <- function(x){
   # Full OBSERVED unit information of the model parameters (hessian-based).
   # numeric_FisherInformation() applies expectedmodel() first (giving the
   # EXPECTED information); here we deliberately do NOT, to obtain the observed
-  # information that forms the Huber-White sandwich bread.
-  G <- function(par) as.numeric(psychonetrics_gradient(par, x))
-  A <- 0.5 * numDeriv::jacobian(G, parVector(x))
-  A <- 0.5 * (A + t(A))
+  # information that forms the Huber-White sandwich bread. This is the single
+  # most expensive part (an O(npar) numeric Jacobian of the gradient), so it is
+  # skipped when the caller does not need the bread A (e.g. the FIML-C robust
+  # fit indices use only B1u/mu1/S/Y/Delta):
+  if (isTRUE(compute_A)){
+    G <- function(par) as.numeric(psychonetrics_gradient(par, x))
+    A <- 0.5 * numDeriv::jacobian(G, parVector(x))
+    A <- 0.5 * (A + t(A))
+  } else {
+    A <- NULL
+  }
 
   list(
     Delta = Delta_list,
@@ -764,6 +787,11 @@ compute_ml_scaled_test <- function(x, comp = NULL, chisq = NULL) {
   if (is.null(chisq)) chisq <- ml_model_chisq(x)
   if (is.null(chisq) || !is.finite(chisq)) return(NULL)
 
+  # Guard against a just/near-identified model (df 0): the scaling factors
+  # divide by df, so return NULL (no scaled test) rather than Inf/NaN. Mirrors
+  # the same guard in compute_mlr_scaled_test (V2-L1).
+  if (model_df_integer(x) <= 0) return(NULL)
+
   fg <- comp$fg
   nGroups <- comp$nGroups
   Wt_list <- vector("list", nGroups)
@@ -907,7 +935,10 @@ fiml_completed_chisq <- function(implied_list, target_list, nobs_per_group){
 # References: Savalei (2010); Zhang & Savalei (2022, FIML-C).
 compute_mlr_fimlc_robust <- function(x, meat = NULL){
   if (x@estimator != "FIML") return(NULL)
-  if (is.null(meat)) meat <- mlr_meat_components(x)
+  # The FIML-C correction uses only B1u / mu1 / S / Y / Delta, never the
+  # observed-information bread A, so skip the expensive Jacobian when building
+  # its own meat:
+  if (is.null(meat)) meat <- mlr_meat_components(x, compute_A = FALSE)
   if (is.null(meat) || !isTRUE(meat$missing)) return(NULL)
 
   df3 <- model_df_integer(x)
@@ -1023,20 +1054,22 @@ compute_mlr_fimlc_robust <- function(x, meat = NULL){
 #   MLMV  -> scaled-and-shifted
 #   MLMVS -> mean-and-variance adjusted (Satterthwaite, fractional df)
 #   MLR   -> Yuan-Bentler-Mplus
-robust_scaled_test <- function(x, chisq = NULL){
+robust_scaled_test <- function(x, chisq = NULL, meat = NULL, comp = NULL){
   cfg <- get_robust_config(x)
   test <- cfg$test
   if (is.null(test) || !nzchar(test)) return(NULL)
 
   if (test == "yuan.bentler.mplus"){
-    res <- compute_mlr_scaled_test(x, chisq = chisq)
+    # meat is reused (computed once by the caller) to avoid recomputing the
+    # expensive observed-information numeric Jacobian:
+    res <- compute_mlr_scaled_test(x, meat = meat, chisq = chisq)
     if (is.null(res)) return(NULL)
     res$scaling.factor.sb <- res$scaling.factor   # YB scaling is already "mean adjusted"
     return(res)
   }
 
   # MLM family (robust.sem): compute all three scalings, then select.
-  full <- compute_ml_scaled_test(x, chisq = chisq)
+  full <- compute_ml_scaled_test(x, comp = comp, chisq = chisq)
   if (is.null(full)) return(NULL)
 
   if (test == "satorra.bentler"){
@@ -1311,6 +1344,11 @@ addfit <- function(
       fitMeasures$df.scaled <- wlsmv_model$df.scaled
       fitMeasures$pvalue.scaled <- pchisq(wlsmv_model$chisq.scaled, wlsmv_model$df.scaled, lower.tail = FALSE)
       fitMeasures$chisq.scaling.factor <- wlsmv_model$scaling.factor
+      # Also store the mean-adjusted (Satorra-Bentler) scaling factor c = trUG/df
+      # separately: the reported chisq.scaling.factor is the scaled-shifted 1/a
+      # for WLSMV, but the Satorra-Bentler 2001/2010 DIFFERENCE test needs the
+      # mean-adjusted c (see compare() / scaled_diff_test_pair).
+      fitMeasures$chisq.scaling.factor.sb <- wlsmv_model$scaling.factor.sb
     }
   }
 
@@ -1318,13 +1356,35 @@ addfit <- function(
   # MLR = Yuan-Bentler-Mplus). Stored alongside the unscaled chisq. MLR with
   # within-row missing data maps internally to estimator = "FIML":
   robust_model <- NULL
+  # Compute the robust building blocks ONCE and reuse them for the scaled test
+  # AND (for MLR/FIML) the FIML-C robust fit indices below, instead of letting
+  # each helper rebuild them (the MLR meat carries an expensive numeric-Jacobian
+  # observed information). robust.sem (MLM family) uses ml_robust_components;
+  # MLR uses mlr_meat_components.
+  robust_meat <- NULL
+  robust_comp <- NULL
   if (x@estimator %in% c("ML", "FIML") && is_robust_ML(x)) {
-    robust_model <- tryCatch(robust_scaled_test(x, chisq = fitMeasures$chisq), error = function(e) NULL)
+    rcfg_se <- get_robust_config(x)$se
+    if (identical(rcfg_se, "robust.huber.white")){
+      robust_meat <- tryCatch(mlr_meat_components(x), error = function(e) NULL)
+    } else if (identical(rcfg_se, "robust.sem")){
+      robust_comp <- tryCatch(ml_robust_components(x), error = function(e) NULL)
+    }
+    robust_model <- tryCatch(robust_scaled_test(x, chisq = fitMeasures$chisq,
+                                                meat = robust_meat, comp = robust_comp),
+                             error = function(e) NULL)
     if (!is.null(robust_model)) {
       fitMeasures$chisq.scaled <- robust_model$chisq.scaled
       fitMeasures$df.scaled <- robust_model$df.scaled
       fitMeasures$pvalue.scaled <- pchisq(robust_model$chisq.scaled, robust_model$df.scaled, lower.tail = FALSE)
       fitMeasures$chisq.scaling.factor <- robust_model$scaling.factor
+      # Mean-adjusted (Satorra-Bentler) scaling factor c = trUG/df, needed by the
+      # SB 2001/2010 difference test in compare() (the reported
+      # chisq.scaling.factor is the test-specific one: 1/a for MLMV,
+      # trUG2/trUG for MLMVS, and already mean-adjusted for MLM/MLR):
+      if (!is.null(robust_model$scaling.factor.sb)){
+        fitMeasures$chisq.scaling.factor.sb <- robust_model$scaling.factor.sb
+      }
       if (!is.null(robust_model$shift.parameter) && is.finite(robust_model$shift.parameter)){
         fitMeasures$chisq.shift.parameters <- robust_model$shift.parameter
       }
@@ -1341,7 +1401,9 @@ addfit <- function(
   fimlc_robust <- NULL
   if (!is.null(robust_model) && x@estimator == "FIML" && is_robust_ML(x) &&
       identical(get_robust_config(x)$label, "MLR")) {
-    fimlc_robust <- tryCatch(compute_mlr_fimlc_robust(x), error = function(e) NULL)
+    # Reuse the meat computed above (the FIML-C indices use only B1u/mu1/S/Y/
+    # Delta, never the observed-information bread A):
+    fimlc_robust <- tryCatch(compute_mlr_fimlc_robust(x, meat = robust_meat), error = function(e) NULL)
   }
 
   # Some pars:

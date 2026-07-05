@@ -123,7 +123,9 @@ std_one_value <- function(est, mat, row, col, sds, mat_diag = NULL){
 # of a fitted lvm / varcov model, from a free-parameter vector 'theta'. Used both
 # for the point estimates (theta = parVector(x)) and as the map differentiated by
 # the delta method. Returns a numeric vector with one entry per parameter-table
-# row (NA for rows whose matrix has no standardization rule, e.g. unused).
+# row. Rows whose matrix has no standardization rule keep their raw estimate
+# (std_one_value() returns 'est' unchanged); only rows not covered by any group
+# stay NA (should not occur in practice).
 std_values_per_row <- function(x, theta){
   partable <- x@parameters
   # Insert theta into the (first-row) free parameters and propagate to all rows

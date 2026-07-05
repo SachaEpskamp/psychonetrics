@@ -42,7 +42,9 @@ varcov <- function(
   # Penalized ML arguments:
   penalty_lambda = NA,  # Penalty strength (NA = auto-select via EBIC grid search)
   penalty_alpha = 1,   # Elastic net mixing: 1 = LASSO, 0 = ridge
-  penalize_matrices  # Character vector of matrix names to penalize. Default: defaultPenalizeMatrices()
+  penalize_matrices,  # Character vector of matrix names to penalize. Default: defaultPenalizeMatrices()
+  # Placed at the very end of the signature for positional backward compatibility:
+  sampling_weights # Optional single column name in 'data' giving SAMPLING weights (pseudo-ML). When supplied, moments are weighted and the model is fit with robust (MLR) sandwich SEs + Yuan-Bentler scaled test, matching lavaan sampling.weights=. Complete-data continuous input only.
 ){
   # Standardize input arguments:
   si <- standardize_input(
@@ -85,6 +87,44 @@ varcov <- function(
   robust_cfg <- .robust_resolved$robust
   if (isTRUE(nzchar(robust_cfg$se)) && robust_cfg$label == "MLR"){
     storedata <- TRUE
+  }
+
+  # Sampling weights (pseudo-ML): mirror lavaan, which forces the robust MLR
+  # configuration (Huber-White SEs + Yuan-Bentler-Mplus scaled test) whenever
+  # sampling.weights is supplied. Extract the weights vector now; it is passed to
+  # samplestats(), which computes the WEIGHTED moments and stores the normalized
+  # per-group weights for the sandwich.
+  sampling_weights_vec <- NULL
+  if (!missing(sampling_weights) && !is.null(sampling_weights)){
+    if (!is.character(sampling_weights) || length(sampling_weights) != 1){
+      stop("'sampling_weights' must be a single column name in 'data' giving the sampling weights.")
+    }
+    if (missing(data) || is.null(data)){
+      stop("Sampling weights (sampling_weights=) require raw 'data' (not summary statistics).")
+    }
+    if (!sampling_weights %in% colnames(data)){
+      stop("The sampling-weights column '", sampling_weights, "' was not found in 'data'.")
+    }
+    if (length(ordered) > 0){
+      stop("Sampling weights are not (yet) supported for ordinal data.")
+    }
+    if (estimator %in% c("FIML","PFIML")){
+      stop("Sampling weights are not (yet) supported with missing-data FIML estimation.")
+    }
+    if (identical(likelihood, "wishart")){
+      stop("Sampling weights require likelihood = 'normal'.")
+    }
+    sampling_weights_vec <- as.numeric(data[[sampling_weights]])
+    # Force the robust MLR configuration and stored data (needed for the
+    # weighted casewise scores):
+    robust_cfg <- .robust_config_for("MLR")
+    estimator <- "ML"
+    storedata <- TRUE
+    # Exclude the weights column from auto-detected variables:
+    if (missing(vars)){
+      vars <- setdiff(colnames(data), c(sampling_weights,
+                                        if (!missing(groups) && is.character(groups)) groups))
+    }
   }
 
   if (estimator == "default"){
@@ -237,7 +277,14 @@ varcov <- function(
                                bootstrap=bootstrap,
                                boot_sub = boot_sub,
                                boot_resample = boot_resample,
-                               likelihood = likelihood)
+                               likelihood = likelihood,
+                               # Robust ML estimators need the asymptotic
+                               # covariance Gamma of the sample statistics
+                               # (robust.sem uses its values; complete-data MLR
+                               # uses its dimensions for per-group bookkeeping).
+                               # Plain ML does NOT -- so gate it off there (V2-3):
+                               compute_ml_gamma = isTRUE(nzchar(robust_cfg$se)),
+                               weights = sampling_weights_vec)
   }
 
   # Overwrite corinput:
@@ -468,11 +515,69 @@ varcov <- function(
   
   ### Baseline model ###
   if (baseline_saturated){
-    
+
     # Form baseline model:
     if ("omega" %in% equal | "sigma" %in% equal | "kappa" %in% equal){
       equal <- c(equal,"lowertri")
     }
+
+    # fixed.x: the baseline and saturated reference models must ALSO be
+    # conditioned on the exogenous block, exactly as lavaan does. Otherwise the
+    # baseline is a full independence model over all variables (its chi-square
+    # counts the x-x correlations' misfit) while the target/df bookkeeping uses
+    # the x-reduced statistic count -- giving a negative baseline.df and NaN
+    # TLI. Build both reference models with type = "cov" and fixed_x passed
+    # through: the saturated is fully free with the x-block fixed; the baseline
+    # keeps the x-block saturated (full) but sets all y-y and y-x covariances to
+    # zero (diagonal y-block), so baseline.df = p_y*p_x + p_y*(p_y-1)/2 per
+    # group, matching lavaan's conditional independence baseline.
+    if (length(fixed_x) > 0 && !corinput){
+      x_idx_bs <- match(fixed_x, sampleStats@variables$label)
+      sigma_baseline <- diag(1, nNode)
+      sigma_baseline[x_idx_bs, x_idx_bs] <- 1
+
+      model@baseline_saturated$baseline <- varcov(data,
+                                                  type = "cov",
+                                                  sigma = sigma_baseline,
+                                                  fixed_x = fixed_x,
+                                                  vars = vars,
+                                                  groups = groups,
+                                                  covs = covs,
+                                                  means = means,
+                                                  nobs = nobs,
+                                                  missing = missing,
+                                                  equal = equal,
+                                                  estimator = estimator,
+                                                  meanstructure = meanstructure,
+                                                  corinput = corinput,
+                                                  ordered = ordered,
+                                                  baseline_saturated = FALSE,
+                                                  sampleStats = sampleStats,
+                                                  likelihood = likelihood)
+
+      model@baseline_saturated$saturated <- varcov(data,
+                                                   type = "cov",
+                                                   sigma = "full",
+                                                   fixed_x = fixed_x,
+                                                   vars = vars,
+                                                   groups = groups,
+                                                   covs = covs,
+                                                   means = means,
+                                                   nobs = nobs,
+                                                   missing = missing,
+                                                   estimator = estimator,
+                                                   meanstructure = meanstructure,
+                                                   corinput = corinput,
+                                                   ordered = ordered,
+                                                   baseline_saturated = FALSE,
+                                                   sampleStats = sampleStats,
+                                                   likelihood = likelihood)
+
+      if (!estimator %in% c("FIML", "PFIML")){
+        model@baseline_saturated$saturated@computed <- TRUE
+        model@baseline_saturated$saturated@objective <- psychonetrics_fitfunction(parVector(model@baseline_saturated$saturated), model@baseline_saturated$saturated)
+      }
+    } else
     if (!corinput){
       model@baseline_saturated$baseline <- varcov(data,
                                                   type = "chol",
@@ -518,6 +623,10 @@ varcov <- function(
     # model in which each group's covariance/threshold structure is fully
     # free. Cross-group equality is a property of the target/baseline,
     # not the saturated. (Was a long-standing bug pre-0.15.10.)
+    # NOTE: for fixed.x models the saturated (and baseline) were already built
+    # above conditioned on the exogenous block; skip the standard build here so
+    # it is not overwritten with an unconditioned one.
+    if (!(length(fixed_x) > 0 && !corinput)){
     if (!corinput){
       model@baseline_saturated$saturated <- varcov(data,
                                                    type = "chol",
@@ -550,13 +659,14 @@ varcov <- function(
                                                    baseline_saturated = FALSE,sampleStats=sampleStats, likelihood = likelihood)
     }
 
-    
+
     # if not FIML/PFIML, Treat as computed:
     if (!estimator %in% c("FIML", "PFIML")){
       model@baseline_saturated$saturated@computed <- TRUE
-      
+
       # FIXME: TODO
-      model@baseline_saturated$saturated@objective <- psychonetrics_fitfunction(parVector(model@baseline_saturated$saturated),model@baseline_saturated$saturated)      
+      model@baseline_saturated$saturated@objective <- psychonetrics_fitfunction(parVector(model@baseline_saturated$saturated),model@baseline_saturated$saturated)
+    }
     }
   }
   

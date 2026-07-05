@@ -161,3 +161,28 @@ if (at_home()){
                tolerance = 0.1)
   expect_equal(cmpd$DF_diff[2], as.numeric(ltd[2, "Df diff"]))
 }
+
+## =========================================================================
+## Regression (0.16.5): compare() must auto-select the correct scaled
+## difference test for scaled-shifted (MLMV) and mean-var (MLMVS) fits.
+## Previously the default SB-2001 used the wrong scaling factor.
+## =========================================================================
+if (at_home() && requireNamespace("lavaan", quietly = TRUE)){
+  HS2 <- lavaan::HolzingerSwineford1939
+  Lam9 <- matrix(0, 9, 3); Lam9[1:3,1] <- Lam9[4:6,2] <- Lam9[7:9,3] <- 1
+  lmod <- "f1 =~ x1+x2+x3\nf2 =~ x4+x5+x6\nf3 =~ x7+x8+x9"
+  for (est in c("MLMV","MLMVS")){
+    mf <- suppressWarnings(runmodel(lvm(HS2, lambda = Lam9, vars = paste0("x",1:9),
+      estimator = est, identification = "loadings"), verbose = FALSE))
+    mo <- suppressWarnings(runmodel(lvm(HS2, lambda = Lam9, vars = paste0("x",1:9),
+      estimator = est, identification = "loadings", sigma_zeta = diag(1,3)), verbose = FALSE))
+    cp <- suppressWarnings(compare(mf, mo))                       # auto
+    lt <- lavaan::lavTestLRT(lavaan::cfa(lmod, HS2, estimator = est, meanstructure = TRUE),
+                             lavaan::cfa(lmod, HS2, estimator = est, meanstructure = TRUE, orthogonal = TRUE))
+    expect_true(abs(cp$Chisq_diff_scaled[2] - lt$`Chisq diff`[2]) < 0.05)
+  }
+  # chisq.scaling.factor.sb is stored for a scaled-shifted fit:
+  mfv <- suppressWarnings(runmodel(lvm(HS2, lambda = Lam9, vars = paste0("x",1:9),
+    estimator = "MLMV", identification = "loadings"), verbose = FALSE))
+  expect_true(is.finite(mfv@fitmeasures$chisq.scaling.factor.sb))
+}

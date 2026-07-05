@@ -9,7 +9,7 @@ Model comparison
 This function will print a table comparing multiple models on chi-square, AIC and BIC. When all compared models are fitted with a robust estimator, a Satorra-Bentler-family scaled chi-square difference test is added.
 }
 \usage{
-compare(\dots, scaled.test.method = c("satorra.bentler.2001",
+compare(\dots, scaled.test.method = c("auto", "satorra.bentler.2001",
         "satorra.bentler.2010", "satorra.2000"))
 
 \method{print}{psychonetrics_compare}(x, \dots)
@@ -20,7 +20,7 @@ compare(\dots, scaled.test.method = c("satorra.bentler.2001",
 Any number of \code{psychonetrics} models. Can be named to change the rownames of the output.
 }
 \item{scaled.test.method}{
-The scaled chi-square difference test to use when all compared models carry a robust scaling factor (see Details). One of \code{"satorra.bentler.2001"} (the default; a mean-scaled test that always works), \code{"satorra.bentler.2010"} (a strictly positive mean-scaled variant), or \code{"satorra.2000"} (an exact, scaled-and-shifted test, appropriate for the scaled-shifted estimators such as \code{MLMV} and \code{WLSMV}).
+The scaled chi-square difference test to use when all compared models carry a robust scaling factor (see Details). \code{"auto"} (the default) selects the appropriate test from the models' scaled-test type, matching \pkg{lavaan}'s \code{lavTestLRT}: the exact Satorra (2000) scaled-and-shifted test for the scaled-shifted (\code{MLMV}, \code{WLSMV}) and mean-and-variance-adjusted (\code{MLMVS}) estimators, and the Satorra-Bentler (2001) mean-scaled test for \code{MLM} / \code{MLR}. The remaining options force a specific test: \code{"satorra.bentler.2001"} (a mean-scaled test), \code{"satorra.bentler.2010"} (a strictly positive mean-scaled variant), or \code{"satorra.2000"} (an exact, scaled-and-shifted test, appropriate for the scaled-shifted estimators such as \code{MLMV} and \code{WLSMV}).
 }
 \item{x}{Output of the \code{compare} function.}
 }

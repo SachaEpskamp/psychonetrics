@@ -231,3 +231,37 @@ if (at_home()) {
   lavRT <- tolavaan(suppressMessages(runmodel(fromlavaan(f1))))
   expect_true(abs(as.numeric(logLik(f1)) - as.numeric(logLik(lavRT))) < 1e-4)
 }
+
+## =========================================================================
+## Regression (0.16.5): fromlavaan() on a DEFAULT (meanstructure = FALSE)
+## single-group fit must not collide nu with the covariance-structure
+## parameters. Previously chi-square was Inf and df was wrong.
+## =========================================================================
+if (at_home()){
+  hsmod <- "visual =~ x1+x2+x3\ntextual =~ x4+x5+x6\nspeed =~ x7+x8+x9"
+
+  # (a) default cfa() (no mean structure):
+  f_nom <- lavaan::cfa(hsmod, HolzingerSwineford1939)
+  p_nom <- suppressMessages(fromlavaan(f_nom, run = TRUE))
+  expect_equal(p_nom@fitmeasures$df, as.integer(lavaan::fitMeasures(f_nom)["df"]))
+  expect_true(abs(p_nom@fitmeasures$chisq -
+                    as.numeric(lavaan::fitMeasures(f_nom)["chisq"])) < 1e-3)
+  # no par collision: nu indices disjoint from lambda indices
+  pt <- p_nom@parameters
+  expect_true(length(intersect(pt$par[pt$matrix == "nu" & !pt$fixed],
+                               pt$par[pt$matrix == "lambda" & !pt$fixed])) == 0)
+
+  # (b) std.lv default:
+  f_std <- lavaan::cfa("f =~ x1+x2+x3+x4", HolzingerSwineford1939, std.lv = TRUE)
+  p_std <- suppressMessages(fromlavaan(f_std, run = TRUE))
+  expect_true(abs(p_std@fitmeasures$chisq -
+                    as.numeric(lavaan::fitMeasures(f_std)["chisq"])) < 1e-3)
+
+  # (c) default sem() with a regression:
+  f_sem <- lavaan::sem("ind60 =~ x1+x2+x3\ndem60 =~ y1+y2+y3+y4\ndem60 ~ ind60",
+                       lavaan::PoliticalDemocracy)
+  p_sem <- suppressMessages(fromlavaan(f_sem, run = TRUE))
+  expect_equal(p_sem@fitmeasures$df, as.integer(lavaan::fitMeasures(f_sem)["df"]))
+  expect_true(abs(p_sem@fitmeasures$chisq -
+                    as.numeric(lavaan::fitMeasures(f_sem)["chisq"])) < 1e-3)
+}

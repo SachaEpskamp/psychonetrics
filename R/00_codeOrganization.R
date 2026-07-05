@@ -48,6 +48,22 @@ get_twolevel_stats <- function(samplestats){
   }
 }
 
+# Safe reader for the per-group normalized sampling weights (added in 0.16.5);
+# objects saved earlier lack the slot, so guard with .hasSlot:
+get_sample_weights <- function(samplestats){
+  if (methods::.hasSlot(samplestats, "weights")){
+    samplestats@weights
+  } else {
+    list()
+  }
+}
+
+# TRUE if a model was fit with sampling weights (so robust/MLR SEs and the
+# scaled test must use the weighted casewise scores):
+has_sampling_weights <- function(model){
+  length(get_sample_weights(model@sample)) > 0
+}
+
 # TRUE if a model uses the two-level ML estimator (distribution
 # "TwoLevelGaussian") AND its data carry within-cluster missingness (so the
 # per-pattern missing-data likelihood is used). Such models use the R fit/

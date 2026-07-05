@@ -69,7 +69,9 @@ lvm <- function(
   rho_zeta = "full",   # Latent correlations
   SD_zeta = "full",    # Latent standard deviations (diagonal)
   rho_epsilon = "zero", # Residual correlations
-  SD_epsilon = "diag"  # Residual standard deviations (diagonal)
+  SD_epsilon = "diag",  # Residual standard deviations (diagonal)
+  # Placed at the very end of the signature for positional backward compatibility:
+  sampling_weights # Optional single column name in 'data' giving SAMPLING weights (pseudo-ML). Fits with weighted moments + robust (MLR) SEs and scaled test, matching lavaan sampling.weights=. Complete-data continuous input only.
 ){
   # Standardize input arguments:
   si <- standardize_input(
@@ -129,6 +131,40 @@ lvm <- function(
   # needs Gamma, which is stored in the sample stats):
   if (isTRUE(nzchar(robust_cfg$se)) && robust_cfg$label == "MLR"){
     storedata <- TRUE
+  }
+
+  # Sampling weights (pseudo-ML): as in varcov()/lavaan, force the robust MLR
+  # configuration and stored data. The weights vector is passed to samplestats(),
+  # which computes the weighted moments and stores the normalized per-group
+  # weights for the sandwich.
+  sampling_weights_vec <- NULL
+  if (!missing(sampling_weights) && !is.null(sampling_weights)){
+    if (!is.character(sampling_weights) || length(sampling_weights) != 1){
+      stop("'sampling_weights' must be a single column name in 'data' giving the sampling weights.")
+    }
+    if (missing(data) || is.null(data)){
+      stop("Sampling weights (sampling_weights=) require raw 'data' (not summary statistics).")
+    }
+    if (!sampling_weights %in% colnames(data)){
+      stop("The sampling-weights column '", sampling_weights, "' was not found in 'data'.")
+    }
+    if (length(ordered) > 0){
+      stop("Sampling weights are not (yet) supported for ordinal data.")
+    }
+    if (estimator %in% c("FIML","PFIML")){
+      stop("Sampling weights are not (yet) supported with missing-data FIML estimation.")
+    }
+    if (identical(likelihood, "wishart")){
+      stop("Sampling weights require likelihood = 'normal'.")
+    }
+    sampling_weights_vec <- as.numeric(data[[sampling_weights]])
+    robust_cfg <- .robust_config_for("MLR")
+    estimator <- "ML"
+    storedata <- TRUE
+    if (missing(vars)){
+      vars <- setdiff(colnames(data), c(sampling_weights,
+                                        if (!missing(groups) && is.character(groups)) groups))
+    }
   }
 
   if (estimator == "default"){
@@ -280,7 +316,12 @@ lvm <- function(
                                  bootstrap = bootstrap,
                                  boot_sub = boot_sub,
                                  boot_resample = boot_resample,
-                                 likelihood = likelihood)
+                                 likelihood = likelihood,
+                                 # Robust ML estimators need Gamma (robust.sem
+                                 # its values; complete-data MLR its dimensions);
+                                 # plain ML does not (V2-3):
+                                 compute_ml_gamma = isTRUE(nzchar(robust_cfg$se)),
+                                 weights = sampling_weights_vec)
     }
   }
 
@@ -802,6 +843,58 @@ lvm <- function(
   ### Baseline model ###
   if (baseline_saturated){
 
+    # fixed.x: build the baseline and saturated reference models conditioned on
+    # the exogenous observed indicators, matching lavaan (see the varcov()
+    # equivalent). The exogenous latents map to observed indicators obs_idx
+    # (computed above); the reference models are varcov models over the OBSERVED
+    # variables with those indicators declared fixed_x. Baseline keeps the
+    # x-block saturated but sets all y-y / y-x covariances to zero; saturated is
+    # fully free with the x-block fixed. Without this the baseline is an
+    # unconditioned independence model -> negative baseline.df / NaN TLI.
+    fixed_x_bs <- length(fixed_x) > 0 && !corinput
+    if (fixed_x_bs){
+      fixed_x_obs_names <- model@sample@variables$label[obs_idx]
+      sigma_baseline_lvm <- diag(1, nNode)
+      sigma_baseline_lvm[obs_idx, obs_idx] <- 1
+
+      model@baseline_saturated$baseline <- varcov(data,
+                                                  type = "cov",
+                                                  sigma = sigma_baseline_lvm,
+                                                  fixed_x = fixed_x_obs_names,
+                                                  vars = vars,
+                                                  groups = groups,
+                                                  covs = covs,
+                                                  means = means,
+                                                  nobs = nobs,
+                                                  missing = missing,
+                                                  equal = equal,
+                                                  estimator = estimator,
+                                                  meanstructure = meanstructure,
+                                                  corinput = corinput,
+                                                  ordered = ordered,
+                                                  baseline_saturated = FALSE, sampleStats = sampleStats, likelihood = likelihood)
+
+      model@baseline_saturated$saturated <- varcov(data,
+                                                   type = "cov",
+                                                   sigma = "full",
+                                                   fixed_x = fixed_x_obs_names,
+                                                   vars = vars,
+                                                   groups = groups,
+                                                   covs = covs,
+                                                   means = means,
+                                                   nobs = nobs,
+                                                   missing = missing,
+                                                   estimator = estimator,
+                                                   meanstructure = meanstructure,
+                                                   corinput = corinput,
+                                                   ordered = ordered,
+                                                   baseline_saturated = FALSE, sampleStats = sampleStats, likelihood = likelihood)
+
+      if (!estimator %in% c("FIML", "PFIML")){
+        model@baseline_saturated$saturated@computed <- TRUE
+        model@baseline_saturated$saturated@objective <- psychonetrics_fitfunction(parVector(model@baseline_saturated$saturated), model@baseline_saturated$saturated)
+      }
+    } else
     if (!corinput){
       # Form baseline model:
       model@baseline_saturated$baseline <- varcov(data,
@@ -844,6 +937,9 @@ lvm <- function(
     ### Saturated model ###
     # No `equal = equal`: the saturated reference is unconstrained per
     # group; cross-group equality belongs to the target/baseline only.
+    # (For fixed.x models both reference models were already built above
+    # conditioned on the exogenous block; skip the standard build.)
+    if (!fixed_x_bs){
     if (!corinput){
       model@baseline_saturated$saturated <- varcov(data,
              type = "chol",
@@ -883,8 +979,9 @@ lvm <- function(
       # FIXME: TODO
       model@baseline_saturated$saturated@objective <- psychonetrics_fitfunction(parVector(model@baseline_saturated$saturated),model@baseline_saturated$saturated)
     }
+    }
   }
-  
+
   # Identify model:
   if (identify){
     model <- identify(model)

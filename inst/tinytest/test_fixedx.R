@@ -118,3 +118,48 @@ if (at_home()){
     }
   }
 }
+
+## =========================================================================
+## Regression (0.16.5): the baseline model of a fixed_x fit must be
+## conditioned on x (matching lavaan). Previously baseline.df was negative
+## and TLI was NaN.
+## =========================================================================
+if (at_home() && requireNamespace("lavaan", quietly = TRUE)){
+  PD <- lavaan::PoliticalDemocracy
+  m_fxb <- suppressWarnings(runmodel(
+    varcov(PD, vars = c("y1","x1","x2","x3"), type = "cov",
+           fixed_x = c("x1","x2","x3")), verbose = FALSE))
+  l_fxb <- lavaan::sem("y1 ~ x1 + x2 + x3", PD, fixed.x = TRUE, meanstructure = TRUE)
+  lfm <- lavaan::fitMeasures(l_fxb)
+  expect_equal(m_fxb@fitmeasures$baseline.df, as.integer(lfm["baseline.df"]))
+  expect_true(m_fxb@fitmeasures$baseline.df > 0)
+  expect_true(abs(m_fxb@fitmeasures$baseline.chisq -
+                    as.numeric(lfm["baseline.chisq"])) < 1e-2)
+  expect_true(is.finite(m_fxb@fitmeasures$cfi))
+}
+
+## =========================================================================
+## Regression (0.16.5, V2-5): an lvm fixed_x model with regressions among
+## endogenous latents matches lavaan sem(fixed.x=TRUE) EXACTLY once the
+## endogenous residual covariance is freed via sigma_zeta (psychonetrics,
+## unlike lavaan's auto.cov.lv.y, does not free it by default).
+## =========================================================================
+if (at_home() && requireNamespace("lavaan", quietly = TRUE)){
+  HS <- lavaan::HolzingerSwineford1939
+  Lam <- matrix(0,8,4); Lam[1:3,1]<-1; Lam[4:6,2]<-1; Lam[7,3]<-1; Lam[8,4]<-1
+  Bet <- matrix(0,4,4); Bet[1,3]<-Bet[1,4]<-Bet[2,3]<-Bet[2,4]<-1
+  Se  <- diag(8); Se[7,7]<-0; Se[8,8]<-0
+  Sz  <- matrix(0,4,4); Sz[1,1]<-Sz[2,2]<-1; Sz[2,1]<-Sz[1,2]<-1; Sz[3,3]<-Sz[4,4]<-1; Sz[4,3]<-Sz[3,4]<-1
+  m <- suppressWarnings(runmodel(lvm(HS, lambda=Lam, vars=paste0("x",1:8), beta=Bet,
+        latents=c("f1","f2","x7l","x8l"), sigma_epsilon=Se, sigma_zeta=Sz,
+        identification="loadings", fixed_x=c("x7l","x8l")), verbose=FALSE))
+  l <- lavaan::sem("f1 =~ x1+x2+x3\nf2 =~ x4+x5+x6\nf1 ~ x7+x8\nf2 ~ x7+x8",
+                   HS, fixed.x=TRUE, meanstructure=TRUE)
+  lfm <- lavaan::fitMeasures(l)
+  expect_equal(m@fitmeasures$df, as.integer(lfm["df"]))
+  expect_true(abs(m@fitmeasures$chisq - as.numeric(lfm["chisq"])) < 1e-2)
+  expect_true(abs(m@fitmeasures$cfi   - as.numeric(lfm["cfi"]))   < 1e-3)
+  pb <- sort(m@parameters$est[m@parameters$matrix=="beta" & !m@parameters$fixed])
+  lb <- sort(lavaan::parameterEstimates(l)$est[lavaan::parameterEstimates(l)$op=="~"])
+  expect_true(max(abs(pb - lb)) < 1e-3)
+}
