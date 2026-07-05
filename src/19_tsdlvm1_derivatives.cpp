@@ -6,6 +6,7 @@
 #include "02_algebragelpers_kronecker.h"
 #include "14_varcov_derivatives_cpp.h"
 #include "02_algebrahelpers_RcppHelpers.h"
+#include "03_modelformation_PDC_cpp.h"
 
 
 // [[Rcpp::depends(RcppArmadillo)]]
@@ -250,6 +251,24 @@ arma::mat d_phi_theta_tsdlvm1_group_cpp(
     Jac.submat(sigma1Inds(0),betaInds(0),sigma1Inds(1),betaInds(1)) = lamWkronlamW * J_sigma_beta;
     
     
+    // PDC temporal parameterization: post-multiply the beta block by
+    // T = d vec(beta)/d vec(PDC) and route the innovation-dependence of beta
+    // into the sigma_zeta columns (see 03_modelformation_PDC_cpp.cpp):
+    if (grouplist.containsElementNamed("temporal")){
+      std::string temporal = as<std::string>(grouplist["temporal"]);
+      if (temporal == "PDC"){
+        arma::mat PDCmat = grouplist["PDC"];
+        arma::mat beta_mat = grouplist["beta"];
+        arma::mat sigma_zeta_mat = grouplist["sigma_zeta"];
+        arma::sp_mat D_eta_pdc = grouplist["D_eta"];
+        arma::sp_mat C_eta_eta_pdc = grouplist["C_eta_eta"];
+        arma::mat Tm, Xm;
+        PDC_reparam_cpp(PDCmat, beta_mat, sigma_zeta_mat, aug_zeta, D_eta_pdc, C_eta_eta_pdc, Tm, Xm);
+        Jac.cols(contInds(0), contInds(1)) = Jac.cols(contInds(0), contInds(1)) + Jac.cols(betaInds(0), betaInds(1)) * Xm;
+        Jac.cols(betaInds(0), betaInds(1)) = Jac.cols(betaInds(0), betaInds(1)) * Tm;
+      }
+    }
+
     // Permute:
     Jac = P * Jac;
   

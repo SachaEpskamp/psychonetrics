@@ -1,3 +1,42 @@
+Changes in Version 0.16.4
+  o NEW: the temporal effects of all lag-1 frameworks can now be
+    parameterized directly in terms of partial directed correlations (PDC),
+    the standardized temporal network that is usually interpreted in
+    graphical VAR analyses: temporal = "PDC" in var1()/gvar(),
+    panelvar()/panelgvar() and tsdlvm1()/ts_lvgvar(), and
+    temporal_latent = "PDC" / temporal_residual = "PDC" in dlvm1() (the
+    latter for the residual autoregression beta_epsilon, giving a
+    PDC_epsilon matrix). The PDC parameter matrix encodes from = row and
+    to = column (the transposed orientation relative to beta, matching
+    getmatrix(..., "PDC")), and its elements are bounded in (-1, 1).
+  o The PDC parameterization is a smooth, zero- and sign-preserving
+    reparameterization of beta given the innovation structure
+    (beta[j,i] = PDC[i,j] * sqrt(kappa_ii * sigma_jj) / sqrt(1 - PDC[i,j]^2)),
+    so any pattern-constrained PDC model is fit-equivalent to the
+    corresponding raw model: same likelihood, degrees of freedom and implied
+    covariance structure, and the fitted PDC parameters equal
+    computePDC()/getmatrix(raw fit, "PDC") exactly at the optimum (verified
+    numerically per family). The gain is inference on the interpreted
+    scale: Wald standard errors, confidence intervals (CIplot()),
+    modification indices, prune()/stepup(), and cross-group equality
+    constraints (groupequal("PDC")) all apply directly to the PDC elements
+    - e.g. testing whether the standardized temporal network is equal
+    across groups while innovation variances differ.
+  o Implemented in both the R and C++ engines via a block-triangular
+    reparameterization of the model Jacobian (the beta column block is
+    post-multiplied by d vec(beta)/d vec(PDC), and the dependence of beta on
+    the innovation (co)variances is routed into the innovation columns).
+    Analytic gradients verified against numeric ones for all innovation
+    types (cov, chol, prec, ggm, cor) in every family, and the PDC standard
+    errors verified against delta-method standard errors from the raw
+    parameterization.
+  o CIplot() displays PDC edges in the correct direction (from = row ->
+    to = column); prune(), stepup(), modelsearch(), unionmodel(),
+    intersectionmodel(), partialprune() and penalized estimation select the
+    PDC matrix by default for PDC-parameterized models. transmod() does not
+    transform temporal parameterizations (re-specify the model instead; a
+    saturated PDC model is fit-equivalent to the saturated raw model).
+
 Changes in Version 0.16.3
   o NEW: dlvm1() gained a 'beta_epsilon' argument: lag-1 temporal effects at
     the residual level, epsilon_t = beta_epsilon epsilon_(t-1) + u_t. The

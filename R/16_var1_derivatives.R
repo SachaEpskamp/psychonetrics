@@ -150,6 +150,27 @@ d_phi_theta_var1_group <- function(beta,P,zeta,...){
 
   # Fill sigma1 to sigma_zeta part:
   Jac[sigma1Inds,sigmazetaInds] <- d_sigma1_sigma_zeta_var1_cpp(Js=Js,IkronBeta = dots$IkronBeta, D2 = dots$D2)
+
+  ### PDC temporal parameterization: post-multiply the beta block by
+  ### T = d vec(beta)/d vec(PDC) and route the innovation-dependence of beta
+  ### into the sigma_zeta columns (see 03_modelformation_PDC.R):
+  if (!is.null(dots$temporal) && dots$temporal == "PDC"){
+    # Augmentation of the innovation block (identity for "cov"):
+    aug_zeta <- switch(zeta,
+      "chol" = d_sigma_zeta_cholesky_var1_cpp(lowertri_zeta = dots$lowertri_zeta,L = dots$L,C = dots$C,In = dots$In),
+      "prec" = d_sigma_zeta_kappa_var1_cpp(L = dots$L,D2 = dots$D2,sigma_zeta = dots$sigma_zeta),
+      "ggm" = d_sigma_zeta_ggm_var1_cpp(L = dots$L, delta_IminOinv_zeta = dots$delta_IminOinv_zeta,A = dots$A, delta_zeta = dots$delta_zeta,Dstar = dots$Dstar,In = dots$In),
+      "cor" = as.matrix(cbind(
+        d_sigma_rho(L = dots$L, SD = dots$SD_zeta, A = dots$A, Dstar = dots$Dstar),
+        d_sigma_SD(L = dots$L, SD_IplusRho = dots$SD_IplusRho_zeta, In = dots$In, A = dots$A)
+      )),
+      "cov" = diag(nNode*(nNode+1)/2)
+    )
+    reparam <- PDC_reparam(PDC = dots$PDC, beta = beta, sigma = dots$sigma_zeta,
+                           aug = aug_zeta, D = dots$D2, C = dots$C)
+    Jac[,sigmazetaInds] <- Jac[,sigmazetaInds] + as.matrix(Jac[,betaInds] %*% reparam$X)
+    Jac[,betaInds] <- as.matrix(Jac[,betaInds] %*% reparam$T)
+  }
   # 
   # Augment:
   # if (zeta == "chol"){

@@ -35,6 +35,16 @@ implied_dlvm1 <- function(model,all = FALSE){
   I_eta <- model@extramatrices$I_eta
   
   for (g in 1:nGroup){
+    # PDC temporal parameterizations: compute beta (latent) and/or
+    # beta_epsilon (residual) from the PDC matrices and the corresponding
+    # innovation covariances:
+    if (!is.null(model@types$temporal_latent) && model@types$temporal_latent == "PDC"){
+      x[[g]]$beta <- PDC_to_beta(x[[g]]$PDC, x[[g]]$sigma_zeta_within)
+    }
+    if (!is.null(model@types$temporal_residual) && model@types$temporal_residual == "PDC"){
+      x[[g]]$beta_epsilon <- PDC_to_beta(x[[g]]$PDC_epsilon, x[[g]]$sigma_epsilon_within)
+    }
+
     # Beta star:
     BetaStar <- as.matrix(solve(I_eta %x% I_eta - (x[[g]]$beta %x% x[[g]]$beta)))
     
@@ -146,6 +156,12 @@ implied_dlvm1 <- function(model,all = FALSE){
       } else {
         x[[g]]$PDC <- t(x[[g]]$beta)
         x[[g]]$PDC[] <- 0
+      }
+
+      # Add residual PDC (standardization of beta_epsilon with respect to
+      # the residual innovation covariance):
+      if (!is.null(beta_epsilon)){
+        x[[g]]$PDC_epsilon <- beta_to_PDC(beta_epsilon, as.matrix(x[[g]]$sigma_epsilon_within))
       }
       
     }

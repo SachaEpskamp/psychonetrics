@@ -55,6 +55,7 @@
   <div class="toc">
     <h4>On this page</h4>
     <ol>
+      <li><a href="#pdctemporal">0.16.4 &mdash; Model the PDC (standardized temporal network) directly</a></li>
       <li><a href="#betaepsilon">0.16.3 &mdash; dlvm1(): residual temporal effects (beta_epsilon)</a></li>
       <li><a href="#panelvarfw">0.16.2 &mdash; panelvar() / panelgvar(): dedicated, faster model framework</a></li>
       <li><a href="#robust">0.16 &mdash; Robust maximum likelihood (MLM / MLMV / MLMVS / MLR)</a></li>
@@ -70,6 +71,20 @@
       <li><a href="#penalized">0.16 &mdash; Penalized (regularized) estimation</a></li>
       <li><a href="#mllvm">0.16 &mdash; Multi-level &amp; meta-analytic frameworks matured</a></li>
     </ol>
+  </div>
+
+  <!-- ===================== 0.16.4 PDC temporal ===================== -->
+  <div class="whatsnew-item" id="pdctemporal">
+    <h2>Model the PDC (standardized temporal network) directly <span class="version-tag">0.16.4</span></h2>
+    <p class="whatsnew-meta">July 2026</p>
+    <p>
+      The temporal effects of all lag-1 frameworks can now be parameterized directly in terms of <strong>partial directed correlations</strong> (PDC) &mdash; the standardized temporal network usually interpreted in graphical VAR analyses: <code>temporal = "PDC"</code> in <code>var1()</code>/<code>gvar()</code>, <code>panelvar()</code>/<code>panelgvar()</code> and <code>tsdlvm1()</code>, and <code>temporal_latent = "PDC"</code> / <code>temporal_residual = "PDC"</code> in <code>dlvm1()</code>. The PDC parameter matrix encodes <em>from = row, to = column</em> (matching <code>getmatrix(..., "PDC")</code>), with elements bounded in (&minus;1, 1).
+    </p>
+    <ul>
+      <li>Fit-equivalent to the raw parameterization for any zero pattern (the map is smooth, zero- and sign-preserving); the fitted PDC parameters equal <code>computePDC()</code> of the raw fit exactly at the optimum.</li>
+      <li>Inference on the interpreted scale: Wald standard errors and CIs (<code>CIplot()</code>, arrows drawn from &rarr; to), modification indices, <code>prune()</code>/<code>stepup()</code> defaults, and cross-group equality constraints (<code>groupequal("PDC")</code>) &mdash; e.g. testing whether the standardized temporal network is invariant across groups while innovation variances differ.</li>
+      <li>Both engines (R and C++); gradients verified against numeric derivatives for all innovation types (cov, chol, prec, ggm, cor) in every family, and PDC standard errors verified against delta-method standard errors from the raw parameterization.</li>
+    </ul>
   </div>
 
   <!-- ===================== 0.16.3 beta_epsilon ===================== -->

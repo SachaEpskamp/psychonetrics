@@ -6,6 +6,7 @@
 #include "02_algebragelpers_kronecker.h"
 #include "14_varcov_derivatives_cpp.h"
 #include "02_algebrahelpers_RcppHelpers.h"
+#include "03_modelformation_PDC_cpp.h"
 
 
 // [[Rcpp::depends(RcppArmadillo)]]
@@ -540,6 +541,39 @@ arma::mat d_phi_theta_dlvm1_group_cpp(
 
   }
   
+  // PDC temporal parameterizations: post-multiply the temporal blocks by
+  // T = d vec(beta)/d vec(PDC) and route the innovation-dependence of the
+  // temporal matrices into the corresponding innovation columns (see
+  // 03_modelformation_PDC_cpp.cpp):
+  if (grouplist.containsElementNamed("temporal_latent")){
+    std::string temporal_latent = as<std::string>(grouplist["temporal_latent"]);
+    if (temporal_latent == "PDC"){
+      arma::mat PDCmat = grouplist["PDC"];
+      arma::mat beta_mat = grouplist["beta"];
+      arma::mat sigma_zw_mat = grouplist["sigma_zeta_within"];
+      arma::mat Tm, Xm;
+      PDC_reparam_cpp(PDCmat, beta_mat, sigma_zw_mat, aug_within_latent, D_eta, C_eta_eta, Tm, Xm);
+      Jac.cols(sigma_zeta_within_inds(0), sigma_zeta_within_inds(1)) =
+        Jac.cols(sigma_zeta_within_inds(0), sigma_zeta_within_inds(1)) +
+        Jac.cols(beta_inds(0), beta_inds(1)) * Xm;
+      Jac.cols(beta_inds(0), beta_inds(1)) = Jac.cols(beta_inds(0), beta_inds(1)) * Tm;
+    }
+  }
+  if (has_beta_eps && grouplist.containsElementNamed("temporal_residual")){
+    std::string temporal_residual = as<std::string>(grouplist["temporal_residual"]);
+    if (temporal_residual == "PDC"){
+      arma::mat PDCeps = grouplist["PDC_epsilon"];
+      arma::mat sigma_ew_mat = grouplist["sigma_epsilon_within"];
+      arma::sp_mat C_y_y_pdc = grouplist["C_y_y"];
+      arma::mat Tm, Xm;
+      PDC_reparam_cpp(PDCeps, beta_epsilon, sigma_ew_mat, aug_within_residual, D_y, C_y_y_pdc, Tm, Xm);
+      Jac.cols(sigma_epsilon_within_inds(0), sigma_epsilon_within_inds(1)) =
+        Jac.cols(sigma_epsilon_within_inds(0), sigma_epsilon_within_inds(1)) +
+        Jac.cols(beta_epsilon_inds(0), beta_epsilon_inds(1)) * Xm;
+      Jac.cols(beta_epsilon_inds(0), beta_epsilon_inds(1)) = Jac.cols(beta_epsilon_inds(0), beta_epsilon_inds(1)) * Tm;
+    }
+  }
+
   // Permute:
   Jac = P * Jac;
   

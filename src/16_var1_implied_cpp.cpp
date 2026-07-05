@@ -5,6 +5,7 @@
 #include <math.h>
 #include "02_algebragelpers_kronecker.h"
 #include "02_algebrahelpers_RcppHelpers.h"
+#include "03_modelformation_PDC_cpp.h"
 #include "03_modelformation_formModelMatrices_cpp.h"
 #include "03_modelformation_impliedcovstructures.h"
 #include "04_generalfit_optimWorkspace.h"
@@ -28,6 +29,8 @@ Rcpp::List implied_var1_cpp_core(
 
   const Rcpp::List& types = ws.types;
   std::string zeta = types["zeta"];
+  std::string temporal = "raw";
+  if (types.containsElementNamed("temporal")) temporal = as<std::string>(types["temporal"]);
   
   // Add implied cov structure:
   x = impliedcovstructures_cpp(x, "zeta", zeta, all);
@@ -40,6 +43,14 @@ Rcpp::List implied_var1_cpp_core(
     bool proper = true;
     
     // Model matrices:
+    // PDC temporal parameterization: compute beta from PDC and the
+    // innovation covariance:
+    if (temporal == "PDC"){
+      arma::mat PDCmat = grouplist["PDC"];
+      arma::mat sigma_zeta_tmp = grouplist["sigma_zeta"];
+      grouplist["beta"] = PDC_to_beta_cpp(PDCmat, sigma_zeta_tmp);
+    }
+
     arma::mat beta = grouplist["beta"];
     arma::mat sigma_zeta = grouplist["sigma_zeta"];
     arma::mat exo_cholesky = grouplist["exo_cholesky"];

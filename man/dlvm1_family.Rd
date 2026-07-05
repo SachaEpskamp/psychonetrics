@@ -48,7 +48,10 @@ dlvm1(data, vars, datatype = c("auto", "wide", "long"),
                    rho_epsilon_within = "zero", SD_epsilon_within = "diag",
                    rho_zeta_between = "full", SD_zeta_between = "diag",
                    rho_epsilon_between = "zero", SD_epsilon_between = "diag",
-                   beta_epsilon = "zero")
+                   beta_epsilon = "zero",
+                   temporal_latent = c("raw","PDC"),
+                   temporal_residual = c("raw","PDC"),
+                   PDC = "full", PDC_epsilon = "zero")
 
 panellvgvar(...)
 
@@ -244,6 +247,10 @@ Optional alias for \code{between_latent}. If both \code{between} and \code{betwe
 \item{rho_epsilon_between}{Only used when \code{between_residual = "cor"}. Correlation matrix specification (\code{"zero"}, \code{"full"}, or a pattern matrix).}
 \item{SD_epsilon_between}{Only used when \code{between_residual = "cor"}. Diagonal standard-deviation matrix specification (\code{"diag"}, \code{"full"}, or a pattern matrix).}
 \item{beta_epsilon}{Residual (within-person) temporal effects: a model matrix for the lag-1 autoregression of the residuals, \code{epsilon_t = beta_epsilon epsilon_(t-1) + u_t}. \code{"zero"} (default) gives white-noise residuals (the model as it was before this argument existed). \code{"diag"} gives each indicator its own residual autoregression, which models item-specific carry-over (autocorrelated uniquenesses) with a geometrically decaying structure; \code{"full"} or a pattern matrix are also allowed. When \code{beta_epsilon} is non-zero, \code{sigma_epsilon_within} (and its typed variants) parameterizes the \emph{innovation} covariance of the residual process, and the stationary residual covariance is available as the \code{"sigma_epsilon_within_stationary"} matrix in \code{\link{getmatrix}}. At least three waves are required for a non-zero \code{beta_epsilon} to be identified, and at least four are recommended (the residual autoregression, the stable between-person residual variance in \code{sigma_epsilon_between}, and the latent dynamics compete for the same lagged covariance information).}
+\item{temporal_latent}{Parameterization of the latent temporal effects: \code{"raw"} (default) models \code{beta} directly; \code{"PDC"} models the latent partial directed correlations directly, with the \code{PDC} matrix encoding from = row and to = column (the transposed orientation relative to \code{beta}). A (pattern-constrained) PDC model is fit-equivalent to the corresponding raw model, but standard errors, confidence intervals, equality constraints and modification indices then apply directly on the PDC scale.}
+\item{temporal_residual}{Parameterization of the residual temporal effects (\code{beta_epsilon}): \code{"raw"} (default) or \code{"PDC"} (models the residual partial directed correlations \code{PDC_epsilon}, standardized with respect to the residual innovation covariance, directly).}
+\item{PDC}{Only used when \code{temporal_latent = "PDC"}. Model matrix for the latent partial directed correlations (from = row, to = column): \code{"full"}, \code{"zero"}, \code{"diag"}, or a pattern matrix.}
+\item{PDC_epsilon}{Only used when \code{temporal_residual = "PDC"}. Model matrix for the residual partial directed correlations (from = row, to = column): \code{"zero"} (default), \code{"diag"}, \code{"full"}, or a pattern matrix.}
 \item{\dots}{
 Arguments sent to \code{dlvm1}.
 }

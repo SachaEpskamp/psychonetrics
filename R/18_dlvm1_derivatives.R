@@ -441,6 +441,23 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
     Jac[sigInds[[t]],sigma_epsilon_between_inds] <- dots$D_y %*% aug_between_residual
   }
   
+  ### PDC temporal parameterizations: post-multiply the temporal blocks by
+  ### T = d vec(beta)/d vec(PDC) and route the innovation-dependence of the
+  ### temporal matrices into the corresponding innovation columns (see
+  ### 03_modelformation_PDC.R):
+  if (!is.null(dots$temporal_latent) && dots$temporal_latent == "PDC"){
+    reparam <- PDC_reparam(PDC = dots$PDC, beta = dots$beta, sigma = dots$sigma_zeta_within,
+                           aug = aug_within_latent, D = dots$D_eta, C = dots$C_eta_eta)
+    Jac[,sigma_zeta_within_inds] <- Jac[,sigma_zeta_within_inds] + as.matrix(Jac[,beta_inds] %*% reparam$X)
+    Jac[,beta_inds] <- as.matrix(Jac[,beta_inds] %*% reparam$T)
+  }
+  if (has_beta_eps && !is.null(dots$temporal_residual) && dots$temporal_residual == "PDC"){
+    reparam_eps <- PDC_reparam(PDC = dots$PDC_epsilon, beta = beta_epsilon, sigma = dots$sigma_epsilon_within,
+                               aug = aug_within_residual, D = dots$D_y, C = dots$C_y_y)
+    Jac[,sigma_epsilon_within_inds] <- Jac[,sigma_epsilon_within_inds] + as.matrix(Jac[,beta_epsilon_inds] %*% reparam_eps$X)
+    Jac[,beta_epsilon_inds] <- as.matrix(Jac[,beta_epsilon_inds] %*% reparam_eps$T)
+  }
+
   # Permute the matrix:
   Jac <- P %*% Jac
   

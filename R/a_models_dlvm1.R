@@ -113,7 +113,14 @@ dlvm1 <- function(
   SD_epsilon_between = "diag",
   # Residual temporal effects (within-person AR structure on the residuals;
   # zero by default, "diag" gives each indicator its own autoregression):
-  beta_epsilon = "zero"
+  beta_epsilon = "zero",
+  # Temporal parameterizations: "raw" models beta / beta_epsilon directly;
+  # "PDC" models the partial directed correlations (from = row, to = column)
+  # directly:
+  temporal_latent = c("raw","PDC"),
+  temporal_residual = c("raw","PDC"),
+  PDC = "full",        # Only used when temporal_latent = "PDC"
+  PDC_epsilon = "zero" # Only used when temporal_residual = "PDC"
 ){
 
 
@@ -182,6 +189,8 @@ dlvm1 <- function(
   within_residual <- match.arg(within_residual)
   between_residual <- match.arg(between_residual)
   identification <- match.arg(identification)
+  temporal_latent <- match.arg(temporal_latent)
+  temporal_residual <- match.arg(temporal_residual)
 
   # Warn for variance identification:
   if (identification == "variance"){
@@ -445,6 +454,7 @@ dlvm1 <- function(
 
     # No residuals, so no residual temporal effects either:
     beta_epsilon <- O
+    PDC_epsilon <- O
   }
   
   # Number of measurements:
@@ -468,8 +478,9 @@ dlvm1 <- function(
   # without adding identifying moment equations (the lag-2 covariance block
   # is needed to separate the residual decay from the stable between-person
   # residual variance and the latent dynamics):
-  .beta_eps_nonzero <- !((is.character(beta_epsilon) && length(beta_epsilon) == 1 && beta_epsilon %in% c("zero","empty")) ||
-                           (is.numeric(beta_epsilon) && all(beta_epsilon == 0)))
+  .res_temporal_arg <- if (temporal_residual == "PDC") PDC_epsilon else beta_epsilon
+  .beta_eps_nonzero <- !((is.character(.res_temporal_arg) && length(.res_temporal_arg) == 1 && .res_temporal_arg %in% c("zero","empty")) ||
+                           (is.numeric(.res_temporal_arg) && all(.res_temporal_arg == 0)))
   if (.beta_eps_nonzero && nTime < 3){
     warning("A non-zero 'beta_epsilon' (residual temporal effects) is not identified with only two waves; at least three waves are required.")
   }
@@ -524,7 +535,8 @@ dlvm1 <- function(
   model <- generate_psychonetrics(model = "dlvm1", 
                                   types = list(
                                     within_latent = within_latent, between_latent = between_latent,
-                                    within_residual = within_residual, between_residual = between_residual
+                                    within_residual = within_residual, between_residual = between_residual,
+                                    temporal_latent = temporal_latent, temporal_residual = temporal_residual
                                   ),
                                   sample = sampleStats,computed = FALSE, 
                                   equal = equal,
@@ -600,14 +612,25 @@ dlvm1 <- function(
                                          labels = latents
                      ))
     
-    # Setup Beta:
-    modMatrices$beta <- matrixsetup_beta(beta, 
-                                         name = "beta",
-                                         nNode = nLat, 
-                                         nGroup = nGroup, 
+    # Setup Beta (raw or PDC parameterization):
+    if (temporal_latent == "raw"){
+      modMatrices$beta <- matrixsetup_beta(beta, 
+                                           name = "beta",
+                                           nNode = nLat, 
+                                           nGroup = nGroup, 
+                                           labels = latents,
+                                           start = makelist(getmatrix(start_mod, "beta")),
+                                           equal = "beta" %in% equal, sampletable = sampleStats)
+    } else {
+      modMatrices$PDC <- matrixsetup_PDC(PDC,
+                                         name = "PDC",
+                                         nNode = nLat,
+                                         nGroup = nGroup,
                                          labels = latents,
-                                         start = makelist(getmatrix(start_mod, "beta")),
-                                         equal = "beta" %in% equal, sampletable = sampleStats)
+                                         equal = "PDC" %in% equal, sampletable = sampleStats,
+                                         betastart = makelist(getmatrix(start_mod, "beta")),
+                                         expcov = makelist(getmatrix(start_mod, "sigma_zeta_within")))
+    }
     
     
     # Setup residuals:
@@ -624,8 +647,17 @@ dlvm1 <- function(
                      ))
 
     # Setup beta_epsilon (residual temporal effects; warm-start from the
-    # supplied model when it contains the matrix):
-    if ("beta_epsilon" %in% start_mod@matrices$name){
+    # supplied model when it contains the matrix; raw or PDC
+    # parameterization):
+    if (temporal_residual == "PDC"){
+      modMatrices$PDC_epsilon <- matrixsetup_PDC(PDC_epsilon,
+                                           name = "PDC_epsilon",
+                                           nNode = nVar,
+                                           nGroup = nGroup,
+                                           labels = varnames,
+                                           equal = "PDC_epsilon" %in% equal,
+                                           sampletable = sampleStats)
+    } else if ("beta_epsilon" %in% start_mod@matrices$name){
       modMatrices$beta_epsilon <- matrixsetup_beta(beta_epsilon,
                                            name = "beta_epsilon",
                                            nNode = nVar,
@@ -888,15 +920,26 @@ dlvm1 <- function(
                      ))
     
     
-    # Setup Beta:
-    modMatrices$beta <- matrixsetup_beta(beta, 
-                                         name = "beta",
-                                         nNode = nLat, 
-                                         nGroup = nGroup, 
+    # Setup Beta (raw or PDC parameterization):
+    if (temporal_latent == "raw"){
+      modMatrices$beta <- matrixsetup_beta(beta, 
+                                           name = "beta",
+                                           nNode = nLat, 
+                                           nGroup = nGroup, 
+                                           labels = latents,
+                                           equal = "beta" %in% equal, 
+                                           start = lapply(prior_estimates,"[[","beta_estimate"),
+                                           sampletable = sampleStats)
+    } else {
+      modMatrices$PDC <- matrixsetup_PDC(PDC,
+                                         name = "PDC",
+                                         nNode = nLat,
+                                         nGroup = nGroup,
                                          labels = latents,
-                                         equal = "beta" %in% equal, 
-                                         start = lapply(prior_estimates,"[[","beta_estimate"),
-                                         sampletable = sampleStats)
+                                         equal = "PDC" %in% equal, sampletable = sampleStats,
+                                         betastart = lapply(prior_estimates,"[[","beta_estimate"),
+                                         expcov = lapply(prior_estimates,"[[","within_latent_cov_estimate"))
+    }
     
     
     # Setup residuals:
@@ -912,14 +955,25 @@ dlvm1 <- function(
                                          labels = varnames
                      ))
 
-    # Setup beta_epsilon (residual temporal effects; zero by default):
-    modMatrices$beta_epsilon <- matrixsetup_beta(beta_epsilon,
-                                         name = "beta_epsilon",
-                                         nNode = nVar,
-                                         nGroup = nGroup,
-                                         labels = varnames,
-                                         equal = "beta_epsilon" %in% equal,
-                                         sampletable = sampleStats)
+    # Setup beta_epsilon (residual temporal effects; zero by default; raw
+    # or PDC parameterization):
+    if (temporal_residual == "raw"){
+      modMatrices$beta_epsilon <- matrixsetup_beta(beta_epsilon,
+                                           name = "beta_epsilon",
+                                           nNode = nVar,
+                                           nGroup = nGroup,
+                                           labels = varnames,
+                                           equal = "beta_epsilon" %in% equal,
+                                           sampletable = sampleStats)
+    } else {
+      modMatrices$PDC_epsilon <- matrixsetup_PDC(PDC_epsilon,
+                                           name = "PDC_epsilon",
+                                           nNode = nVar,
+                                           nGroup = nGroup,
+                                           labels = varnames,
+                                           equal = "PDC_epsilon" %in% equal,
+                                           sampletable = sampleStats)
+    }
 
     # Setup latent varcov:
     modMatrices <- c(modMatrices,
@@ -1009,13 +1063,22 @@ dlvm1 <- function(
                                          labels = latents
                      ))
     
-    # Setup Beta:
-    modMatrices$beta <- matrixsetup_beta(beta, 
-                                         name = "beta",
-                                         nNode = nLat, 
-                                         nGroup = nGroup, 
+    # Setup Beta (raw or PDC parameterization):
+    if (temporal_latent == "raw"){
+      modMatrices$beta <- matrixsetup_beta(beta, 
+                                           name = "beta",
+                                           nNode = nLat, 
+                                           nGroup = nGroup, 
+                                           labels = latents,
+                                           equal = "beta" %in% equal, sampletable = sampleStats)
+    } else {
+      modMatrices$PDC <- matrixsetup_PDC(PDC,
+                                         name = "PDC",
+                                         nNode = nLat,
+                                         nGroup = nGroup,
                                          labels = latents,
-                                         equal = "beta" %in% equal, sampletable = sampleStats)
+                                         equal = "PDC" %in% equal, sampletable = sampleStats)
+    }
     
     
     # Setup residuals:
@@ -1031,14 +1094,25 @@ dlvm1 <- function(
                                          labels = varnames
                      ))
 
-    # Setup beta_epsilon (residual temporal effects; zero by default):
-    modMatrices$beta_epsilon <- matrixsetup_beta(beta_epsilon,
-                                         name = "beta_epsilon",
-                                         nNode = nVar,
-                                         nGroup = nGroup,
-                                         labels = varnames,
-                                         equal = "beta_epsilon" %in% equal,
-                                         sampletable = sampleStats)
+    # Setup beta_epsilon (residual temporal effects; zero by default; raw
+    # or PDC parameterization):
+    if (temporal_residual == "raw"){
+      modMatrices$beta_epsilon <- matrixsetup_beta(beta_epsilon,
+                                           name = "beta_epsilon",
+                                           nNode = nVar,
+                                           nGroup = nGroup,
+                                           labels = varnames,
+                                           equal = "beta_epsilon" %in% equal,
+                                           sampletable = sampleStats)
+    } else {
+      modMatrices$PDC_epsilon <- matrixsetup_PDC(PDC_epsilon,
+                                           name = "PDC_epsilon",
+                                           nNode = nVar,
+                                           nGroup = nGroup,
+                                           labels = varnames,
+                                           equal = "PDC_epsilon" %in% equal,
+                                           sampletable = sampleStats)
+    }
 
     # Between-case effects:
     # Setup lambda_between:
@@ -1117,14 +1191,25 @@ dlvm1 <- function(
                                          labels = latents
                      ))
     
-    # Setup Beta:
-    modMatrices$beta <- matrixsetup_beta(beta, 
-                                         name = "beta",
-                                         nNode = nLat, 
-                                         nGroup = nGroup, 
+    # Setup Beta (raw or PDC parameterization):
+    if (temporal_latent == "raw"){
+      modMatrices$beta <- matrixsetup_beta(beta, 
+                                           name = "beta",
+                                           nNode = nLat, 
+                                           nGroup = nGroup, 
+                                           labels = latents,
+                                           start = lapply(1:nGroup,function(x)diag(0.1,nLat)),
+                                           equal = "beta" %in% equal, sampletable = sampleStats)
+    } else {
+      modMatrices$PDC <- matrixsetup_PDC(PDC,
+                                         name = "PDC",
+                                         nNode = nLat,
+                                         nGroup = nGroup,
                                          labels = latents,
-                                         start = lapply(1:nGroup,function(x)diag(0.1,nLat)),
-                                         equal = "beta" %in% equal, sampletable = sampleStats)
+                                         equal = "PDC" %in% equal, sampletable = sampleStats,
+                                         betastart = lapply(1:nGroup,function(x)diag(0.1,nLat)),
+                                         expcov = lapply(1:nGroup,function(x)diag(0.5,nLat)))
+    }
     
     
     # Setup residuals:
@@ -1140,14 +1225,25 @@ dlvm1 <- function(
                                          labels = varnames
                      ))
 
-    # Setup beta_epsilon (residual temporal effects; zero by default):
-    modMatrices$beta_epsilon <- matrixsetup_beta(beta_epsilon,
-                                         name = "beta_epsilon",
-                                         nNode = nVar,
-                                         nGroup = nGroup,
-                                         labels = varnames,
-                                         equal = "beta_epsilon" %in% equal,
-                                         sampletable = sampleStats)
+    # Setup beta_epsilon (residual temporal effects; zero by default; raw
+    # or PDC parameterization):
+    if (temporal_residual == "raw"){
+      modMatrices$beta_epsilon <- matrixsetup_beta(beta_epsilon,
+                                           name = "beta_epsilon",
+                                           nNode = nVar,
+                                           nGroup = nGroup,
+                                           labels = varnames,
+                                           equal = "beta_epsilon" %in% equal,
+                                           sampletable = sampleStats)
+    } else {
+      modMatrices$PDC_epsilon <- matrixsetup_PDC(PDC_epsilon,
+                                           name = "PDC_epsilon",
+                                           nNode = nVar,
+                                           nGroup = nGroup,
+                                           labels = varnames,
+                                           equal = "PDC_epsilon" %in% equal,
+                                           sampletable = sampleStats)
+    }
 
     # Setup latent varcov:
     modMatrices <- c(modMatrices,

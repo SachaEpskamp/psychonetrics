@@ -161,6 +161,12 @@ modelsearch <- function(x,
       matrices <- c("omega")
       
     }  else stop("No default argument for 'matrices' for current model.")
+
+    # PDC temporal parameterization: the temporal matrix is "PDC", not "beta":
+    if ((!is.null(x@types$temporal) && x@types$temporal == "PDC") ||
+        (!is.null(x@types$temporal_latent) && x@types$temporal_latent == "PDC")){
+      matrices[matrices == "beta"] <- "PDC"
+    }
   }
   
   # Check if MIs are added:

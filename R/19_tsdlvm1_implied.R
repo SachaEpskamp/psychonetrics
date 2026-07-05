@@ -34,6 +34,12 @@ implied_tsdlvm1 <- function(model,all = FALSE){
   I_eta <- model@extramatrices$I_eta
   
   for (g in 1:nGroup){
+    # PDC temporal parameterization: compute beta from PDC and the
+    # innovation covariance:
+    if (!is.null(model@types$temporal) && model@types$temporal == "PDC"){
+      x[[g]]$beta <- PDC_to_beta(x[[g]]$PDC, x[[g]]$sigma_zeta)
+    }
+
     # Beta star:
     BetaStar <- as.matrix(solve(I_eta %x% I_eta - (x[[g]]$beta %x% x[[g]]$beta)))
     

@@ -135,6 +135,16 @@ d_phi_theta_panelvar_group <- function(within_latent,between_latent,...){
     Jac[sigInds[[t]],sigma_zeta_between_inds] <- J_sigma_zeta_between
   }
 
+  ### PDC temporal parameterization: post-multiply the beta block by
+  ### T = d vec(beta)/d vec(PDC) and route the innovation-dependence of beta
+  ### into the sigma_zeta_within columns (see 03_modelformation_PDC.R):
+  if (!is.null(dots$temporal) && dots$temporal == "PDC"){
+    reparam <- PDC_reparam(PDC = dots$PDC, beta = dots$beta, sigma = dots$sigma_zeta_within,
+                           aug = aug_within_latent, D = dots$D2, C = dots$C)
+    Jac[,sigma_zeta_within_inds] <- Jac[,sigma_zeta_within_inds] + as.matrix(Jac[,beta_inds] %*% reparam$X)
+    Jac[,beta_inds] <- as.matrix(Jac[,beta_inds] %*% reparam$T)
+  }
+
   # Permute the matrix:
   Jac <- P %*% Jac
 

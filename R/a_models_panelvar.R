@@ -82,7 +82,11 @@ panelvar <- function(
   rho_zeta_within = "full",
   SD_zeta_within = "diag",
   rho_zeta_between = "full",
-  SD_zeta_between = "diag"
+  SD_zeta_between = "diag",
+  # Temporal parameterization: "raw" models beta directly; "PDC" models the
+  # partial directed correlations (from = row, to = column) directly:
+  temporal = c("raw","PDC"),
+  PDC = "full" # Only used when temporal = "PDC"
 ){
 
   covtype <- match.arg(covtype)
@@ -145,6 +149,7 @@ panelvar <- function(
   # Match args:
   within_latent <- match.arg(within_latent)
   between_latent <- match.arg(between_latent)
+  temporal <- match.arg(temporal)
 
   # Backward compatibility: models formed via the old dlvm1-based panelvar
   # used 'nu' for the observed intercepts. Treat an equality constraint on
@@ -412,7 +417,8 @@ panelvar <- function(
                                                     "panelvar"
                                   ),
                                   types = list(
-                                    within_latent = within_latent, between_latent = between_latent
+                                    within_latent = within_latent, between_latent = between_latent,
+                                    temporal = temporal
                                   ),
                                   sample = sampleStats,computed = FALSE,
                                   equal = equal,
@@ -470,14 +476,25 @@ panelvar <- function(
                                          labels = varnames
                      ))
 
-    # Setup Beta:
-    modMatrices$beta <- matrixsetup_beta(beta,
-                                         name = "beta",
+    # Setup Beta (raw or PDC parameterization):
+    if (temporal == "raw"){
+      modMatrices$beta <- matrixsetup_beta(beta,
+                                           name = "beta",
+                                           nNode = nVar,
+                                           nGroup = nGroup,
+                                           labels = varnames,
+                                           start = makelist(getmatrix(start_mod, "beta")),
+                                           equal = "beta" %in% equal, sampletable = sampleStats)
+    } else {
+      modMatrices$PDC <- matrixsetup_PDC(PDC,
+                                         name = "PDC",
                                          nNode = nVar,
                                          nGroup = nGroup,
                                          labels = varnames,
-                                         start = makelist(getmatrix(start_mod, "beta")),
-                                         equal = "beta" %in% equal, sampletable = sampleStats)
+                                         equal = "PDC" %in% equal, sampletable = sampleStats,
+                                         betastart = makelist(getmatrix(start_mod, "beta")),
+                                         expcov = makelist(getmatrix(start_mod, "sigma_zeta_within")))
+    }
 
     # Setup between-person varcov:
     modMatrices <- c(modMatrices,
@@ -605,15 +622,26 @@ panelvar <- function(
                                          labels = varnames
                      ))
 
-    # Setup Beta:
-    modMatrices$beta <- matrixsetup_beta(beta,
-                                         name = "beta",
+    # Setup Beta (raw or PDC parameterization):
+    if (temporal == "raw"){
+      modMatrices$beta <- matrixsetup_beta(beta,
+                                           name = "beta",
+                                           nNode = nVar,
+                                           nGroup = nGroup,
+                                           labels = varnames,
+                                           equal = "beta" %in% equal,
+                                           start = lapply(prior_estimates,"[[","beta_estimate"),
+                                           sampletable = sampleStats)
+    } else {
+      modMatrices$PDC <- matrixsetup_PDC(PDC,
+                                         name = "PDC",
                                          nNode = nVar,
                                          nGroup = nGroup,
                                          labels = varnames,
-                                         equal = "beta" %in% equal,
-                                         start = lapply(prior_estimates,"[[","beta_estimate"),
-                                         sampletable = sampleStats)
+                                         equal = "PDC" %in% equal, sampletable = sampleStats,
+                                         betastart = lapply(prior_estimates,"[[","beta_estimate"),
+                                         expcov = lapply(prior_estimates,"[[","within_cov_estimate"))
+    }
 
     # Setup between-person varcov:
     modMatrices <- c(modMatrices,
@@ -654,13 +682,22 @@ panelvar <- function(
                                          labels = varnames
                      ))
 
-    # Setup Beta:
-    modMatrices$beta <- matrixsetup_beta(beta,
-                                         name = "beta",
+    # Setup Beta (raw or PDC parameterization):
+    if (temporal == "raw"){
+      modMatrices$beta <- matrixsetup_beta(beta,
+                                           name = "beta",
+                                           nNode = nVar,
+                                           nGroup = nGroup,
+                                           labels = varnames,
+                                           equal = "beta" %in% equal, sampletable = sampleStats)
+    } else {
+      modMatrices$PDC <- matrixsetup_PDC(PDC,
+                                         name = "PDC",
                                          nNode = nVar,
                                          nGroup = nGroup,
                                          labels = varnames,
-                                         equal = "beta" %in% equal, sampletable = sampleStats)
+                                         equal = "PDC" %in% equal, sampletable = sampleStats)
+    }
 
     # Setup between-person varcov:
     modMatrices <- c(modMatrices,
@@ -696,14 +733,25 @@ panelvar <- function(
                                          labels = varnames
                      ))
 
-    # Setup Beta:
-    modMatrices$beta <- matrixsetup_beta(beta,
-                                         name = "beta",
+    # Setup Beta (raw or PDC parameterization):
+    if (temporal == "raw"){
+      modMatrices$beta <- matrixsetup_beta(beta,
+                                           name = "beta",
+                                           nNode = nVar,
+                                           nGroup = nGroup,
+                                           labels = varnames,
+                                           start = lapply(1:nGroup,function(x)diag(0.1,nVar)),
+                                           equal = "beta" %in% equal, sampletable = sampleStats)
+    } else {
+      modMatrices$PDC <- matrixsetup_PDC(PDC,
+                                         name = "PDC",
                                          nNode = nVar,
                                          nGroup = nGroup,
                                          labels = varnames,
-                                         start = lapply(1:nGroup,function(x)diag(0.1,nVar)),
-                                         equal = "beta" %in% equal, sampletable = sampleStats)
+                                         equal = "PDC" %in% equal, sampletable = sampleStats,
+                                         betastart = lapply(1:nGroup,function(x)diag(0.1,nVar)),
+                                         expcov = lapply(1:nGroup,function(x)diag(0.5,nVar)))
+    }
 
     # Setup between-person varcov:
     modMatrices <- c(modMatrices,

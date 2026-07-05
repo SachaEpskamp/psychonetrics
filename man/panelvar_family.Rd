@@ -8,7 +8,7 @@ Lag-1 panel vector autoregression family of psychonetrics models
 \description{
 This is the family of models that models a lag-1 vector autoregression (VAR) process with random intercepts on panel data of observed variables: a within-person stationary VAR(1) process (temporal matrix \code{beta} and contemporaneous structure \code{sigma_zeta_within}) combined with a between-person (random intercept) structure (\code{sigma_zeta_between}). The \code{panelvar} function models the contemporaneous and between-person structures as variance--covariance matrices by default, and the \code{panelgvar} wrapper models them as Gaussian graphical models (GGMs), yielding the panel graphical VAR model.
 
-This model family is the observed-variable special case of \code{\link{dlvm1}} (a factor loading matrix fixed to identity, zero residual variances and observed means). Since psychonetrics 0.17 it is implemented as its own model framework: results are identical to routing through \code{dlvm1} with dummy matrices, but estimation skips all factor-loading algebra and is faster. The mean structure is a single \code{mu} matrix of observed stationary means (in older versions these appeared as \code{nu}). Latent panel models (\code{lambda} not identity) are still handled by \code{\link{dlvm1}} and its wrapper \code{panellvgvar}.
+This model family is the observed-variable special case of \code{\link{dlvm1}} (a factor loading matrix fixed to identity, zero residual variances and observed means). Since psychonetrics 0.16.2 it is implemented as its own model framework: results are identical to routing through \code{dlvm1} with dummy matrices, but estimation skips all factor-loading algebra and is faster. The mean structure is a single \code{mu} matrix of observed stationary means (in older versions these appeared as \code{nu}). Latent panel models (\code{lambda} not identity) are still handled by \code{\link{dlvm1}} and its wrapper \code{panellvgvar}.
 
 All functions accept both wide-format data (with a design matrix for \code{vars}) and long-format data (with a character vector for \code{vars} plus \code{idvar} and optionally \code{beepvar}). The format is auto-detected from the type of \code{vars}.
 }
@@ -37,7 +37,8 @@ panelvar(data, vars, within_latent = c("cov", "chol", "prec",
                    penalty_lambda = NA, penalty_alpha = 1,
                    penalize_matrices,
                    rho_zeta_within = "full", SD_zeta_within = "diag",
-                   rho_zeta_between = "full", SD_zeta_between = "diag")
+                   rho_zeta_between = "full", SD_zeta_between = "diag",
+                   temporal = c("raw","PDC"), PDC = "full")
 
 panelgvar(data, vars, within_latent = c("ggm","chol","cov","prec","cor"),
           between_latent = c("ggm","chol","cov","prec","cor"), ...)
@@ -176,6 +177,8 @@ Optional alias for \code{between_latent}. If both \code{between} and \code{betwe
 \item{SD_zeta_within}{Only used when \code{within_latent = "cor"}. Diagonal standard-deviation matrix specification (\code{"diag"}, \code{"full"}, or a pattern matrix; see \code{delta_zeta_within}).}
 \item{rho_zeta_between}{Only used when \code{between_latent = "cor"}. Correlation matrix specification (\code{"full"}, \code{"zero"}, or a pattern matrix).}
 \item{SD_zeta_between}{Only used when \code{between_latent = "cor"}. Diagonal standard-deviation matrix specification (\code{"diag"}, \code{"full"}, or a pattern matrix).}
+\item{temporal}{Parameterization of the temporal effects: \code{"raw"} (default) models \code{beta} directly; \code{"PDC"} models the partial directed correlations directly, with the \code{PDC} matrix encoding from = row and to = column (the transposed orientation relative to \code{beta}, matching \code{getmatrix(..., "PDC")}). A (pattern-constrained) PDC model is fit-equivalent to the corresponding raw model, but standard errors, confidence intervals, equality constraints and modification indices then apply directly on the PDC scale.}
+\item{PDC}{Only used when \code{temporal = "PDC"}. Model matrix for the partial directed correlations (from = row, to = column): \code{"full"}, \code{"zero"}, \code{"diag"}, or a pattern matrix with 0s indicating elements fixed to zero, 1s indicating free elements, and higher integers indicating equality constraints.}
 \item{\dots}{
 Arguments sent to \code{panelvar}.
 }

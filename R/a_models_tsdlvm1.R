@@ -74,11 +74,16 @@ tsdlvm1 <- function(
   rho_zeta = "full",   # Contemporaneous (innovation) correlations
   SD_zeta = "diag",    # Contemporaneous (innovation) standard deviations (diagonal)
   rho_epsilon = "zero", # Residual correlations
-  SD_epsilon = "diag"  # Residual standard deviations (diagonal)
+  SD_epsilon = "diag",  # Residual standard deviations (diagonal)
+  # Temporal parameterization: "raw" models beta directly; "PDC" models the
+  # partial directed correlations (from = row, to = column) directly:
+  temporal = c("raw","PDC"),
+  PDC = "full" # Only used when temporal = "PDC"
 ){
   contemporaneous <- match.arg(contemporaneous)
   residual <- match.arg(residual)
   identification <- match.arg(identification)
+  temporal <- match.arg(temporal)
 
   # Standardize input arguments:
   si <- standardize_input(
@@ -200,7 +205,8 @@ tsdlvm1 <- function(
   model <- generate_psychonetrics(model = "tsdlvm1",
                                   identification = identification,
                                   types = list(zeta = contemporaneous,
-                                               epsilon = residual),
+                                               epsilon = residual,
+                                               temporal = temporal),
                                   sample = sampleStats,computed = FALSE, 
                                   equal = equal,
                                   optimizer =  defaultoptimizer(), estimator = estimator, distribution = "Gaussian",
@@ -292,12 +298,22 @@ tsdlvm1 <- function(
                    ))
   
   # Setup Beta:
-  modMatrices$beta <- matrixsetup_beta(beta, 
-                                       name = "beta",
-                                       nNode = nLat, 
-                                       nGroup = nGroup, 
+  # Setup Beta (raw or PDC parameterization):
+  if (temporal == "raw"){
+    modMatrices$beta <- matrixsetup_beta(beta, 
+                                         name = "beta",
+                                         nNode = nLat, 
+                                         nGroup = nGroup, 
+                                         labels = latents,
+                                         equal = "beta" %in% equal, sampletable = sampleStats)
+  } else {
+    modMatrices$PDC <- matrixsetup_PDC(PDC,
+                                       name = "PDC",
+                                       nNode = nLat,
+                                       nGroup = nGroup,
                                        labels = latents,
-                                       equal = "beta" %in% equal, sampletable = sampleStats)
+                                       equal = "PDC" %in% equal, sampletable = sampleStats)
+  }
   
   
   prior_sig_epsilon <- lapply(seq_len(nGroup),function(g){

@@ -6,6 +6,7 @@
 #include "02_algebragelpers_kronecker.h"
 #include "14_varcov_derivatives_cpp.h"
 #include "02_algebrahelpers_RcppHelpers.h"
+#include "03_modelformation_PDC_cpp.h"
 
 
 // [[Rcpp::depends(RcppArmadillo)]]
@@ -273,9 +274,38 @@ arma::mat d_phi_theta_var1_group_cpp(
   Jac.submat(sigma1Inds_start,sigmazetaInds_start,sigma1Inds_end,sigmazetaInds_end) = d_sigma1_sigma_zeta_var1_cpp(
     grouplist["IkronBeta"],  grouplist["D2"],  Js
   );
-  
-  
-  
+
+  // PDC temporal parameterization: post-multiply the beta block by
+  // T = d vec(beta)/d vec(PDC) and route the innovation-dependence of beta
+  // into the sigma_zeta columns (see 03_modelformation_PDC_cpp.cpp):
+  if (grouplist.containsElementNamed("temporal")){
+    std::string temporal = as<std::string>(grouplist["temporal"]);
+    if (temporal == "PDC"){
+      int nvech = nNode * (nNode + 1) / 2;
+      arma::mat aug_zeta;
+      if (zeta == "chol"){
+        aug_zeta = d_sigma_zeta_cholesky_var1_cpp(grouplist["lowertri_zeta"], grouplist["L"], grouplist["C"], grouplist["In"]);
+      } else if (zeta == "prec"){
+        aug_zeta = d_sigma_zeta_kappa_var1_cpp(grouplist["L"], grouplist["D2"], grouplist["sigma_zeta"]);
+      } else if (zeta == "ggm"){
+        aug_zeta = d_sigma_zeta_ggm_var1_cpp(grouplist["L"], grouplist["delta_IminOinv_zeta"], grouplist["A"], grouplist["delta_zeta"], grouplist["Dstar"], grouplist["In"]);
+      } else if (zeta == "cor"){
+        aug_zeta = join_rows(
+          d_sigma_rho_cpp(grouplist["L"], grouplist["SD_zeta"], grouplist["A"], grouplist["Dstar"]),
+          d_sigma_SD_cpp(grouplist["L"], grouplist["SD_IplusRho_zeta"], grouplist["In"], grouplist["A"])
+        );
+      } else {
+        aug_zeta = eye(nvech, nvech);
+      }
+      arma::mat PDCmat = grouplist["PDC"];
+      arma::mat sigma_zeta_mat = grouplist["sigma_zeta"];
+      arma::mat Tm, Xm;
+      PDC_reparam_cpp(PDCmat, beta, sigma_zeta_mat, aug_zeta, grouplist["D2"], grouplist["C"], Tm, Xm);
+      Jac.cols(sigmazetaInds_start, sigmazetaInds_end) = Jac.cols(sigmazetaInds_start, sigmazetaInds_end) + Jac.cols(betaInds_start, betaInds_end) * Xm;
+      Jac.cols(betaInds_start, betaInds_end) = Jac.cols(betaInds_start, betaInds_end) * Tm;
+    }
+  }
+
   // Permute:
   Jac = P * Jac;
   

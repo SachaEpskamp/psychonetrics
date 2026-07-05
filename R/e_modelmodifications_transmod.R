@@ -38,6 +38,13 @@ transmod <- function(x,...,verbose,keep_computed = FALSE, log=TRUE, identify = T
     names(dots)[names(dots)=="type"] <- "y"
   }
   
+  # Transforming the temporal parameterization (raw <-> PDC) is different
+  # machinery (a smooth reparameterization of beta, not a covariance-block
+  # type) and is not supported by transmod:
+  if (any(names(dots) %in% c("temporal","temporal_latent","temporal_residual"))){
+    stop("Transforming the temporal parameterization (raw <-> PDC) with transmod() is not supported. Re-specify the model with the desired 'temporal' argument instead (a saturated PDC model is fit-equivalent to the saturated raw model).")
+  }
+
   # Check if all names in types:
   if (any(!names(dots)%in%names(types))){
     stop(paste0("Not all types are valid types of the model ",model))

@@ -196,6 +196,16 @@ d_phi_theta_tsdlvm1_group <- function(zeta,epsilon,...){
   
   
   
+  ### PDC temporal parameterization: post-multiply the beta block by
+  ### T = d vec(beta)/d vec(PDC) and route the innovation-dependence of beta
+  ### into the sigma_zeta columns (see 03_modelformation_PDC.R):
+  if (!is.null(dots$temporal) && dots$temporal == "PDC"){
+    reparam <- PDC_reparam(PDC = dots$PDC, beta = dots$beta, sigma = dots$sigma_zeta,
+                           aug = aug_zeta, D = dots$D_eta, C = dots$C_eta_eta)
+    Jac[,contInds] <- Jac[,contInds] + as.matrix(Jac[,betaInds] %*% reparam$X)
+    Jac[,betaInds] <- as.matrix(Jac[,betaInds] %*% reparam$T)
+  }
+
   # Permute the matrix:
   Jac <- P %*% Jac
 

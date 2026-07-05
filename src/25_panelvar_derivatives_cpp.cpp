@@ -6,6 +6,7 @@
 #include "02_algebragelpers_kronecker.h"
 #include "14_varcov_derivatives_cpp.h"
 #include "02_algebrahelpers_RcppHelpers.h"
+#include "03_modelformation_PDC_cpp.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -177,6 +178,24 @@ arma::mat d_phi_theta_panelvar_group_cpp(
 
     // Fill sk to sigma_zeta_between part:
     Jac.submat(curSigInds(0),sigma_zeta_between_inds(0),curSigInds(1),sigma_zeta_between_inds(1)) = J_sigma_zeta_between;
+  }
+
+  // PDC temporal parameterization: post-multiply the beta block by
+  // T = d vec(beta)/d vec(PDC) and route the innovation-dependence of beta
+  // into the sigma_zeta_within columns (see 03_modelformation_PDC_cpp.cpp):
+  if (grouplist.containsElementNamed("temporal")){
+    std::string temporal = as<std::string>(grouplist["temporal"]);
+    if (temporal == "PDC"){
+      arma::mat PDCmat = grouplist["PDC"];
+      arma::mat beta_mat = grouplist["beta"];
+      arma::mat sigma_zw_mat = grouplist["sigma_zeta_within"];
+      arma::mat Tm, Xm;
+      PDC_reparam_cpp(PDCmat, beta_mat, sigma_zw_mat, aug_within_latent, D2, C, Tm, Xm);
+      Jac.cols(sigma_zeta_within_inds(0), sigma_zeta_within_inds(1)) =
+        Jac.cols(sigma_zeta_within_inds(0), sigma_zeta_within_inds(1)) +
+        Jac.cols(beta_inds(0), beta_inds(1)) * Xm;
+      Jac.cols(beta_inds(0), beta_inds(1)) = Jac.cols(beta_inds(0), beta_inds(1)) * Tm;
+    }
   }
 
   // Permute:

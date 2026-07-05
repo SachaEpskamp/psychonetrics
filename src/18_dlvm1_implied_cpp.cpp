@@ -8,6 +8,7 @@
 #include "03_modelformation_formModelMatrices_cpp.h"
 #include "03_modelformation_impliedcovstructures.h"
 #include "04_generalfit_optimWorkspace.h"
+#include "03_modelformation_PDC_cpp.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -29,6 +30,10 @@ Rcpp::List implied_dlvm1_cpp_core(
   std::string within_residual = types["within_residual"];
   std::string between_latent = types["between_latent"];
   std::string between_residual = types["between_residual"];
+  std::string temporal_latent = "raw";
+  if (types.containsElementNamed("temporal_latent")) temporal_latent = as<std::string>(types["temporal_latent"]);
+  std::string temporal_residual = "raw";
+  if (types.containsElementNamed("temporal_residual")) temporal_residual = as<std::string>(types["temporal_residual"]);
 
   // Add implied cov structure:
   x = impliedcovstructures_cpp(x, "zeta_within", within_latent, all);
@@ -54,6 +59,20 @@ Rcpp::List implied_dlvm1_cpp_core(
     
     Rcpp::List grouplist = x[g];
     
+    // PDC temporal parameterizations: compute beta (latent) and/or
+    // beta_epsilon (residual) from the PDC matrices and the corresponding
+    // innovation covariances:
+    if (temporal_latent == "PDC"){
+      arma::mat PDCmat = grouplist["PDC"];
+      arma::mat sigma_zw_tmp = grouplist["sigma_zeta_within"];
+      grouplist["beta"] = PDC_to_beta_cpp(PDCmat, sigma_zw_tmp);
+    }
+    if (temporal_residual == "PDC"){
+      arma::mat PDCeps = grouplist["PDC_epsilon"];
+      arma::mat sigma_ew_tmp = grouplist["sigma_epsilon_within"];
+      grouplist["beta_epsilon"] = PDC_to_beta_cpp(PDCeps, sigma_ew_tmp);
+    }
+
     // Model matrices:
     arma::mat nu = grouplist["nu"];
     arma::mat mu_eta = grouplist["mu_eta"];
@@ -229,6 +248,14 @@ Rcpp::List implied_dlvm1_cpp_core(
     }
     
     grouplist["PDC"] = computePDC_cpp(grouplist["beta"], kappa_zeta_within, grouplist["sigma_zeta_within"]);
+
+    // Residual PDC (standardization of beta_epsilon with respect to the
+    // residual innovation covariance):
+    if (has_beta_eps){
+      bool proper_eps = true;
+      arma::mat kappa_eps = solve_symmetric_cpp_matrixonly_withcheck(sigma_epsilon_within, proper_eps);
+      grouplist["PDC_epsilon"] = computePDC_cpp(beta_epsilon, kappa_eps, sigma_epsilon_within);
+    }
     // } else {
     //   grouplist["PDC = t(grouplist["beta)
     //   grouplist["PDC[] = 0

@@ -32,6 +32,12 @@ implied_panelvar <- function(model,all = FALSE){
   In <- model@extramatrices$In
 
   for (g in 1:nGroup){
+    # PDC temporal parameterization: compute beta from PDC and the
+    # innovation covariance:
+    if (!is.null(model@types$temporal) && model@types$temporal == "PDC"){
+      x[[g]]$beta <- PDC_to_beta(x[[g]]$PDC, x[[g]]$sigma_zeta_within)
+    }
+
     # Beta star:
     BetaStar <- as.matrix(solve(In %x% In - (x[[g]]$beta %x% x[[g]]$beta)))
 

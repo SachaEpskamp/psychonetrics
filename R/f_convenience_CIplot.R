@@ -138,6 +138,12 @@ CIplot <- function(
       matrices <- c("omega")
       
     }  else stop("No default argument for 'matrices' for current model.")
+
+    # PDC temporal parameterization: the temporal matrix is "PDC", not "beta":
+    if ((!is.null(x@types$temporal) && x@types$temporal == "PDC") ||
+        (!is.null(x@types$temporal_latent) && x@types$temporal_latent == "PDC")){
+      matrices[matrices == "beta"] <- "PDC"
+    }
   }
   if (any(matrices == "none")){
     stop("No default matrix could be selected")
@@ -155,6 +161,11 @@ CIplot <- function(
     if (grepl("lambda",mat)){
       edge <- "->"
     } else if (grepl("beta",mat)){
+      edge <- "->"
+    } else if (grepl("PDC",mat)){
+      # PDC matrices encode from = row (var1) and to = column (var2), so the
+      # arrow direction follows the default var1 -> var2 node order (no flip
+      # as for beta/lambda):
       edge <- "->"
     } else if (grepl("sigma",mat)){
       edge <- "<->"

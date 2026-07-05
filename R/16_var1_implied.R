@@ -17,7 +17,12 @@ implied_var1 <- function(model,all = FALSE){
   # For each group:
   nGroup <- length(x)
   for (g in seq_len(nGroup)){
-  
+
+    # PDC temporal parameterization: compute beta from PDC and the
+    # innovation covariance:
+    if (!is.null(model@types$temporal) && model@types$temporal == "PDC"){
+      x[[g]]$beta <- PDC_to_beta(x[[g]]$PDC, x[[g]]$sigma_zeta)
+    }
 
     # Some stuff needed now:
     BetaStar <- as.matrix(solve(Diagonal(nrow(x[[g]]$beta)^2) - (x[[g]]$beta %x% x[[g]]$beta)))

@@ -28,7 +28,8 @@ tsdlvm1(data, lambda, contemporaneous = c("cov", "chol",
                    boot_sub, boot_resample, penalty_lambda = NA,
                    penalty_alpha = 1, penalize_matrices,
                    rho_zeta = "full", SD_zeta = "diag",
-                   rho_epsilon = "zero", SD_epsilon = "diag")
+                   rho_epsilon = "zero", SD_epsilon = "diag",
+                   temporal = c("raw","PDC"), PDC = "full")
 
 ts_lvgvar(...)
 }
@@ -184,6 +185,8 @@ Only used when \code{residual = "cor"}. Either \code{"full"} or \code{"zero"}, o
 \item{SD_epsilon}{
 Only used when \code{residual = "cor"}. Either \code{"full"} or \code{"diag"}, or a matrix of the dimensions node x node with 0 encoding a fixed to zero element, 1 encoding a free to estimate element, and higher integers encoding equality constraints. Encodes the diagonal matrix of residual standard deviations. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
+\item{temporal}{Parameterization of the temporal effects: \code{"raw"} (default) models \code{beta} directly; \code{"PDC"} models the partial directed correlations directly, with the \code{PDC} matrix encoding from = row and to = column (the transposed orientation relative to \code{beta}, matching \code{getmatrix(..., "PDC")}). A (pattern-constrained) PDC model is fit-equivalent to the corresponding raw model, but standard errors, confidence intervals, equality constraints and modification indices then apply directly on the PDC scale.}
+\item{PDC}{Only used when \code{temporal = "PDC"}. Model matrix for the partial directed correlations (from = row, to = column): \code{"full"}, \code{"zero"}, \code{"diag"}, or a pattern matrix with 0s indicating elements fixed to zero, 1s indicating free elements, and higher integers indicating equality constraints.}
 \item{\dots}{
 Arguments sent to \code{tsdlvm1}
 }

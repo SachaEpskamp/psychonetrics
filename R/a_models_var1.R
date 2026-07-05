@@ -50,9 +50,14 @@ var1 <- function(
   # Correlation parameterization (contemporaneous = "cor") matrices
   # (placed at the end of the signature for backward compatibility):
   rho_zeta = "full",  # Contemporaneous (innovation) correlations
-  SD_zeta = "full"    # Contemporaneous (innovation) standard deviations (diagonal)
+  SD_zeta = "full",   # Contemporaneous (innovation) standard deviations (diagonal)
+  # Temporal parameterization: "raw" models beta directly; "PDC" models the
+  # partial directed correlations (from = row, to = column) directly:
+  temporal = c("raw","PDC"),
+  PDC = "full"        # Only used when temporal = "PDC"
 ){
   contemporaneous <- match.arg(contemporaneous)
+  temporal <- match.arg(temporal)
 
   # Standardize input arguments:
   si <- standardize_input(
@@ -163,7 +168,7 @@ var1 <- function(
                                            "chol" = "var",
                                            "cov" = "var",
                                            "cor" = "var"
-                                    ),types = list(zeta = contemporaneous),
+                                    ),types = list(zeta = contemporaneous, temporal = temporal),
                                   sample = sampleStats,computed = FALSE, 
                                   equal = equal,
                                   optimizer =  defaultoptimizer(), estimator = estimator, distribution = "Gaussian",verbose=verbose)
@@ -208,19 +213,29 @@ var1 <- function(
   # Prior estimate for beta:
   betaEst <- lapply(1:nGroup, function(g) as.matrix(S1est[[g]] %*% S0inv[[g]]))
   
-  modMatrices$beta <- matrixsetup_beta(beta, 
-                                       name = "beta",
-                                       nNode = nNode, 
-                                       nGroup = nGroup, 
-                                       labels = sampleStats@variables$label[nNode + (1:nNode)],
-                                       equal = "beta" %in% equal, sampletable = sampleStats, start = betaEst,
-                                       onlyStartSign = FALSE)
-  
-  
   # A prior guess for the contemporaneous covariances is (Schur complement):
   # contCovEst <- lapply(1:nGroup, function(g) spectralshift(S0est[[g]] - t(S1est[[g]]) %*% S0inv[[g]] %*% S1est[[g]]))
   contCovEst <- lapply(1:nGroup, function(g) spectralshift(S0est[[g]] - S1est[[g]] %*% S0inv[[g]] %*% t(S1est[[g]])))
   # contCovEst <- lapply(1:nGroup, function(g) spectralshift(exoCovs[[g]] - t(S1est[[g]]) %*% S0inv[[g]] %*% S1est[[g]]))
+
+  # Temporal effects: raw beta, or the PDC parameterization:
+  if (temporal == "raw"){
+    modMatrices$beta <- matrixsetup_beta(beta, 
+                                         name = "beta",
+                                         nNode = nNode, 
+                                         nGroup = nGroup, 
+                                         labels = sampleStats@variables$label[nNode + (1:nNode)],
+                                         equal = "beta" %in% equal, sampletable = sampleStats, start = betaEst,
+                                         onlyStartSign = FALSE)
+  } else {
+    modMatrices$PDC <- matrixsetup_PDC(PDC,
+                                       name = "PDC",
+                                       nNode = nNode,
+                                       nGroup = nGroup,
+                                       labels = sampleStats@variables$label[nNode + (1:nNode)],
+                                       equal = "PDC" %in% equal, sampletable = sampleStats,
+                                       betastart = betaEst, expcov = contCovEst)
+  }
   
 
   # Fill in:

@@ -8,6 +8,7 @@
 #include "03_modelformation_formModelMatrices_cpp.h"
 #include "03_modelformation_impliedcovstructures.h"
 #include "04_generalfit_optimWorkspace.h"
+#include "03_modelformation_PDC_cpp.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -29,6 +30,8 @@ Rcpp::List implied_panelvar_cpp_core(
 
   std::string within_latent = types["within_latent"];
   std::string between_latent = types["between_latent"];
+  std::string temporal = "raw";
+  if (types.containsElementNamed("temporal")) temporal = as<std::string>(types["temporal"]);
 
   // Add implied cov structure:
   x = impliedcovstructures_cpp(x, "zeta_within", within_latent, all);
@@ -48,6 +51,14 @@ Rcpp::List implied_panelvar_cpp_core(
     bool proper = true;
 
     Rcpp::List grouplist = x[g];
+
+    // PDC temporal parameterization: compute beta from PDC and the
+    // innovation covariance:
+    if (temporal == "PDC"){
+      arma::mat PDCmat = grouplist["PDC"];
+      arma::mat sigma_zw_tmp = grouplist["sigma_zeta_within"];
+      grouplist["beta"] = PDC_to_beta_cpp(PDCmat, sigma_zw_tmp);
+    }
 
     // Model matrices:
     arma::mat mu = grouplist["mu"];
