@@ -37,6 +37,7 @@ prepareModel <- function(x, model){
                       # "panelvar1" = prepare_panelvar1,
                       "dlvm1" = prepare_dlvm1,
                       "panelvar" = prepare_panelvar,
+                      "ml_var1" = prepare_ml_var1,
                       "tsdlvm1" = prepare_tsdlvm1,
                       "meta_varcov" = prepare_meta_varcov,
                       "Ising" = ,

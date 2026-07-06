@@ -224,6 +224,7 @@ write_psychonetrics <- function(x, file = "psychonetrics_output.txt",
     "Ising" = "Ising model",
     "BlumeCapel" = "Blume-Capel model",
     "ml_lvm" = "Multi-level latent variable model",
+    "ml_var1" = "Multi-level lag-1 vector auto-regression (ml_var1)",
     x@model
   )
 

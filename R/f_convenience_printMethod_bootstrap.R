@@ -54,7 +54,8 @@ definition = function(object){
     "meta_varcov" = "Variance-covariance matrix meta analysis",
     "Ising" = "Ising model",
     "BlumeCapel" = "Blume-Capel model",
-    "ml_lvm" = "Multi-level latent variable model"
+    "ml_lvm" = "Multi-level latent variable model",
+    "ml_var1" = "Multi-level lag-1 vector auto-regression (ml_var1)"
   )
   
   submod <- switch(

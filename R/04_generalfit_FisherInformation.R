@@ -123,6 +123,7 @@ psychonetrics_FisherInformation <- function(model, analytic = TRUE){
       # "panelvar1" = d_phi_theta_panelvar1,
       "dlvm1" = d_phi_theta_dlvm1,
       "panelvar" = d_phi_theta_panelvar,
+      "ml_var1" = d_phi_theta_ml_var1,
       "tsdlvm1" = d_phi_theta_tsdlvm1,
       "meta_varcov" = d_phi_theta_meta_varcov,
       "Ising" = ,

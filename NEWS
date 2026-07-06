@@ -1,3 +1,31 @@
+Changes in Version 0.16.6
+  o NEW (experimental): ml_var1() and its GGM-defaults wrapper ml_gvar1() add a
+    multi-level (random intercept) lag-1 vector autoregression / graphical VAR
+    for intensive longitudinal (ESM) data. A within-person stationary VAR(1)
+    process (temporal network beta, contemporaneous network omega_zeta_within)
+    is combined with a between-person random-intercept structure (network
+    omega_zeta_between) - the three multi-level GVAR networks. The model targets
+    the same estimand as panelvar()/panelgvar() but is estimated by applying the
+    two-level sufficient-statistics ML machinery (ml_lvm) to the lag-embedded
+    ("Toeplitz") data, so its per-evaluation cost is independent of the number of
+    time points (2p x 2p matrices only) where the full-likelihood panelvar route
+    becomes infeasible. This is a working-independence pseudo-likelihood (as in
+    var1): use panelvar()/panelgvar() for few-waves panel data. Estimates of beta
+    and omega_zeta_within are consistent and track the full-likelihood estimates
+    closely; the between-person variances carry a small O(1/T) upward finite-length
+    bias and the pseudo-likelihood standard errors are somewhat anti-conservative
+    for the contemporaneous network (see ?ml_var1). Validated against lavaan
+    two-level models (the saturated model, and the structured model in the
+    saturated-innovations cov/cov case, which admits an exact lavaan
+    reparameterization; the GGM/typed cases rest on numeric-derivative checks
+    and the panelgvar benchmark) and against panelgvar. Complete-pairs
+    (listwise) handling of incomplete lag pairs in this first version. The model
+    layer is implemented in R only for now (no C++ acceleration).
+  o Internal: tsData() gained an includeID argument (default FALSE) that attaches
+    the subject id to each augmented lag-pair row; used by ml_var1() to define
+    clusters. With includeID = FALSE the output is byte-identical to before, so
+    var1()/gvar()/tsdlvm1() are unaffected.
+
 Changes in Version 0.16.5
   o NEW: sampling weights (pseudo-maximum-likelihood) via the sampling_weights
     argument of varcov()/lvm() (and the ggm/precision/... wrappers). The moments

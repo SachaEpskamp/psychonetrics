@@ -15,7 +15,10 @@ tsData <- function(data,
                    lags = 1,
                      scale = FALSE,
                    center = FALSE,
-                     centerWithin = FALSE # False if idvar is missing, true otherwise
+                     centerWithin = FALSE, # False if idvar is missing, true otherwise
+                   includeID = FALSE # If TRUE, attach the subject id column to the
+                                     # augmented output (used by ml_var1 to define
+                                     # clusters); backward compatible (FALSE default)
                    ){
   # If not missing groupvar, just do this per group:
 
@@ -27,7 +30,8 @@ tsData <- function(data,
       # lags, scale, center and centerWithin for grouped data):
       dat <- tsData(dat, vars = vars, beepvar = beepvar, dayvar = dayvar,
                     idvar = idvar, lags = lags, scale = scale,
-                    center = center, centerWithin = centerWithin)
+                    center = center, centerWithin = centerWithin,
+                    includeID = includeID)
       dat[[groupvar]] <- groups[g]
       dat
     })
@@ -149,6 +153,14 @@ tsData <- function(data,
   
   # Combine them:
   fulldata <- as.data.frame(cbind(data_l,data_c))
+
+  # Optionally attach the subject id column (same row filter as data_c/data_l),
+  # so that ml_var1 can define clusters from the augmented lag pairs:
+  if (includeID){
+    idcol <- dplyr::ungroup(augData)[[idvar]]
+    fulldata[[idvar]] <- idcol[!isNA]
+  }
+
   return(fulldata)
   
 

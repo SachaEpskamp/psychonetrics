@@ -113,7 +113,7 @@ CIplot <- function(
       
       matrices <- c("beta",covchooser(x@types$zeta,"zeta"))
       
-    } else if (x@model == "panelvar"){
+    } else if (x@model %in% c("panelvar","ml_var1")){
       matrices <- c(
         "beta",
         covchooser(x@types$within_latent,"zeta_within"),

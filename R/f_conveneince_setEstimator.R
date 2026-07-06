@@ -41,6 +41,11 @@ setestimator <- function(x, estimator){
     stop("The estimator of an ml_lvm model cannot be switched between 'FIML' and the two-level 'ML' estimator after the model is created. Rebuild the model with ml_lvm(..., estimator = '", estimator, "').")
   }
 
+  # ml_var1 supports only the two-level 'ML' estimator (v1):
+  if (x@model == "ml_var1" && estimator != "ML"){
+    stop("ml_var1 models only support estimator = 'ML' (the two-level pseudo-ML estimator). For full-information ML use panelvar()/dlvm1().")
+  }
+
   # Robust ML estimators map internally to estimator = "ML" plus a robust
   # configuration. Resolve the requested name into the internal estimator and
   # the robust config now. MLR additionally supports missing data: when the

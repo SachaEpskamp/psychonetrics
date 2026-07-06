@@ -44,6 +44,7 @@ definition = function(object){
     "lvm" = "Latent variable model (LVM)",
     "var1" = "Lag-1 vector-autoregression (VAR1)",
     "panelvar" = "Lag-1 panel vector auto-regression (panelvar)",
+    "ml_var1" = "Multi-level lag-1 vector auto-regression (ml_var1)",
     "panelvar1" = "Lag-1 panel vector auto-regression (panelvar1)",
     "dlvm1" = "Lag-1 dynamic latent variable model for panel data (dlvm1)",
     "tsdlvm1" = "Lag-1 dynamic latent variable model for time-series data (tsdlvm1)",
@@ -71,6 +72,8 @@ definition = function(object){
     "ml_rnm" = "Multi-level residual network model",
     "panelgvar" = "Panel graphical vector-autoregression (panelgvar)",
     "panelvar" = "Panel vector-autoregression (panelvar)",
+    "ml_var1" = "Multi-level vector-autoregression (ml_var1)",
+    "ml_gvar1" = "Multi-level graphical vector-autoregression (ml_gvar1)",
     "meta_gvar" = "Meta-analytic graphical VAR (meta_gvar)",
     "meta_var" = "Meta-analytic VAR (meta_var)"
   )
