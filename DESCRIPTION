@@ -11,7 +11,7 @@ LinkingTo: Rcpp (>= 0.11.3), RcppArmadillo, RcppEigen, pbv, roptim
 Depends: R (>= 4.3.0)
 Imports: methods, qgraph, numDeriv, dplyr, Matrix (>= 1.6-5), lavaan,
         corpcor, glasso, mgcv, optimx, nloptr, pbapply, parallel,
-        magrittr, IsingSampler, tidyr, psych, rlang, MASS
+        magrittr, IsingSampler (>= 0.5), tidyr, psych, rlang, MASS
 Suggests: psychTools, semPlot, graphicalVAR, metaSEM, mvtnorm, ggplot2,
         tinytest
 ByteCompile: true
