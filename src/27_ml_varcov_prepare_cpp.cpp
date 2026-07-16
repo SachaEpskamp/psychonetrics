@@ -37,9 +37,14 @@ Rcpp::List prepare_ml_varcov_cpp(
   const Rcpp::List& S = ws.sampleCovs;
   const Rcpp::List& means = ws.sampleMeans;
 
-  // Two-level sufficient statistics per group:
+  // Two-level sufficient-statistics ML estimator? (The FIML estimator uses the
+  // wide-format matrices from the implied function and the per-pattern FIML
+  // data added by the generic prepare wrapper instead.)
+  const bool twolevel_ML = (ws.estimator == "ML");
+
+  // Two-level sufficient statistics per group (ML estimator only):
   const Rcpp::List& twolevelStats = ws.sampleTwolevel;
-  if (twolevelStats.length() != nGroup){
+  if (twolevel_ML && twolevelStats.length() != nGroup){
     Rcpp::stop("estimator = 'ML' for ml_varcov requires two-level sufficient statistics, which are missing from the model. Rebuild the model with ml_varcov(...).");
   }
 
@@ -52,7 +57,9 @@ Rcpp::List prepare_ml_varcov_cpp(
 
     grouplist["S"] = S[g];
     grouplist["means"] = means[g];
-    grouplist["twolevel"] = twolevelStats[g];
+    if (twolevel_ML){
+      grouplist["twolevel"] = twolevelStats[g];
+    }
 
     groupModels[g] = grouplist;
   }
@@ -62,6 +69,9 @@ Rcpp::List prepare_ml_varcov_cpp(
   result["nTotal"] = nTotal;
   result["nGroup"] = nGroup;
   result["groupModels"] = groupModels;
+  // Flag so that the model Jacobian dispatch picks the two-level variant
+  // rather than the wide FIML variant:
+  result["twolevel_ML"] = twolevel_ML;
 
   return(result);
 }

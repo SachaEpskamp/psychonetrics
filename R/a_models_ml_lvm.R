@@ -187,16 +187,20 @@ ml_lvm <- function(
   
   # Number of clusters:
   nCluster <- length(unique(data[[clusters]]))
-  
-  # Add a column with ID in cluster:
-  data[['CLUSTERID']] <- unlist(tapply(data[[clusters]],data[[clusters]],seq_along))
-  
-  # Add group:
+
+  # Add group (before the cluster IDs, so that cluster labels reused across
+  # groups denote different clusters):
   if (missing(groups)){
     groups <- "GROUPID"
     data[[groups]] <- "fullsample"
   }
-  
+
+  # Add a column with ID in cluster. ave() assigns in the original row order:
+  # the previous unlist(tapply(...)) construction assigned the IDs in cluster-
+  # sorted order, which scrambled them (and made the wide format fail) whenever
+  # the rows were not already sorted by cluster:
+  data[['CLUSTERID']] <- ave(seq_len(nrow(data)), data[[groups]], data[[clusters]], FUN = seq_along)
+
   # Max in cluster:
   maxInCluster <- max(data[['CLUSTERID']])
 

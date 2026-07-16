@@ -46,9 +46,11 @@ setestimator <- function(x, estimator){
     stop("ml_var1 models only support estimator = 'ML' (the two-level pseudo-ML estimator). For full-information ML use panelvar()/dlvm1().")
   }
 
-  # ml_varcov supports only the two-level sufficient-statistics 'ML' estimator:
-  if (x@model == "ml_varcov" && estimator != "ML"){
-    stop("ml_varcov models only support estimator = 'ML' (the two-level sufficient-statistics ML estimator).")
+  # ml_varcov supports 'ML' (two-level sufficient statistics) and 'FIML'
+  # (wide format), chosen at model creation; the two use different sample
+  # statistics, so switching afterwards is not possible (mirrors ml_lvm):
+  if (x@model == "ml_varcov" && estimator != x@estimator){
+    stop("The estimator of an ml_varcov model cannot be changed after the model is created (the 'ML' and 'FIML' estimators use different sample statistics). Rebuild the model with ml_varcov(..., estimator = '", estimator, "').")
   }
 
   # Robust ML estimators map internally to estimator = "ML" plus a robust

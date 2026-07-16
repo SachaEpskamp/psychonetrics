@@ -676,13 +676,16 @@ samplestats_norawts <- function(
   names(covs) <- groupNames
   names(means) <- groupNames
   
-  # Determine corinput (will also detect if standardized data was used as input):
+  # Determine corinput (will also detect if standardized data was used as
+  # input). isTRUE(): with heavy missingness a (pairwise) covariance can carry
+  # NA diagonal elements, which must read as "not correlation input" rather
+  # than crash the check (the NA-covariance warning above already flags them):
   if (missing(corinput)){
-    if (all(
+    if (isTRUE(all(
       sapply(covs,function(x){
         all(abs(diag(x) - 1) < sqrt(.Machine$double.eps))
       })
-    )){
+    ))){
       corinput <- TRUE
     } else {
       corinput <- FALSE

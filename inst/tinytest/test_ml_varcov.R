@@ -94,22 +94,90 @@ if (isTRUE(mod_cpp@cpp)){
 }
 
 # ---------------------------------------------------------------------------
-# Heavier checks (all type combinations; ml_lvm cross-validation):
+# (5) FIML estimator: construction, gradient, and exact equivalence with
+#     ml_lvm-FIML at identical parameter vectors
+# ---------------------------------------------------------------------------
+modF <- ml_ggm(dat, vars = paste0("V", 1:p), clusters = "cluster",
+               estimator = "FIML", baseline_saturated = FALSE)
+expect_equal(modF@estimator, "FIML")
+expect_equal(modF@distribution, "Gaussian")
+expect_true(grad_check(modF))
+
+# The decisive equivalence check: ml_varcov-FIML and ml_lvm-FIML (with lambda
+# missing, i.e. the identity) are the SAME model with aligned parameter
+# vectors, so their fit functions and gradients must agree to machine
+# precision at any theta:
+modL <- usecpp(suppressMessages(ml_lvm(dat, vars = paste0("V", 1:p), clusters = "cluster",
+                     within_latent = "ggm", between_latent = "ggm",
+                     estimator = "FIML", baseline_saturated = FALSE)), FALSE)
+modF_R <- usecpp(modF, FALSE)
+xs <- psychonetrics:::parVector(modF_R)
+expect_equal(length(xs), length(psychonetrics:::parVector(modL)))
+set.seed(3); xr <- xs + rnorm(length(xs), 0, 0.04)
+fF <- psychonetrics:::psychonetrics_fitfunction(xr, modF_R)
+fL <- psychonetrics:::psychonetrics_fitfunction(xr, modL)
+expect_true(abs(fF - fL) < 1e-10)
+gF <- psychonetrics:::psychonetrics_gradient(xr, modF_R)
+gL <- psychonetrics:::psychonetrics_gradient(xr, modL)
+expect_true(max(abs(gF - gL)) < 1e-10)
+
+# ---------------------------------------------------------------------------
+# (6) Row order and cluster labels: CLUSTERID regression tests. Shuffling the
+#     rows must not change the model (this crashed before the ave() fix), and
+#     cluster labels reused across groups must denote different clusters:
+# ---------------------------------------------------------------------------
+set.seed(4); dat_shuf <- dat[sample(nrow(dat)), ]
+modS <- ml_ggm(dat_shuf, vars = paste0("V", 1:p), clusters = "cluster",
+               estimator = "FIML", baseline_saturated = FALSE)
+fS <- psychonetrics:::psychonetrics_fitfunction(xr, usecpp(modS, FALSE))
+expect_true(abs(fS - fF) < 1e-10)
+
+dat2g <- rbind(cbind(dat, g = "A"), cbind(dat, g = "B"))  # reused cluster labels
+mod2g <- ml_ggm(dat2g, vars = paste0("V", 1:p), clusters = "cluster",
+                groupvar = "g", estimator = "FIML", baseline_saturated = FALSE)
+expect_equal(nrow(mod2g@sample@groups), 2L)
+expect_equal(mod2g@sample@groups$nobs, c(J, J))  # J clusters per group, not shared
+
+# ---------------------------------------------------------------------------
+# Heavier checks (all type combinations; ml_lvm cross-validation; FIML
+# missing data; ML/FIML agreement):
 # ---------------------------------------------------------------------------
 if (at_home()){
   types <- c("cov", "chol", "prec", "ggm", "cor")
   for (w in types) for (b_ in types){
-    m <- ml_varcov(dat, vars = paste0("V", 1:p), clusters = "cluster",
+    m <- ml_varcov(dat, vars = paste0("V", 1:p), clusters = "cluster", estimator = "ML",
                    within = w, between = b_, baseline_saturated = FALSE)
-    expect_true(grad_check(m), info = paste0("gradient within=", w, " between=", b_))
+    expect_true(grad_check(m), info = paste0("ML gradient within=", w, " between=", b_))
+    mf <- ml_varcov(dat, vars = paste0("V", 1:p), clusters = "cluster", estimator = "FIML",
+                    within = w, between = b_, baseline_saturated = FALSE)
+    expect_true(grad_check(mf), info = paste0("FIML gradient within=", w, " between=", b_))
   }
 
   # ml_ggm equals ml_lvm with lambda missing (same model, different framework):
-  m_vc <- runmodel(ml_ggm(dat, vars = paste0("V", 1:p), clusters = "cluster"), verbose = FALSE)
+  m_vc <- runmodel(ml_ggm(dat, vars = paste0("V", 1:p), clusters = "cluster", estimator = "ML"), verbose = FALSE)
   m_lv <- runmodel(suppressMessages(ml_lvm(dat, vars = paste0("V", 1:p), clusters = "cluster",
-                          within_latent = "ggm", between_latent = "ggm")), verbose = FALSE)
+                          within_latent = "ggm", between_latent = "ggm", estimator = "ML")), verbose = FALSE)
   expect_equal(max(abs(getmatrix(m_vc, "sigma_within")  - getmatrix(m_lv, "sigma_within"))),  0, tolerance = 1e-3)
   expect_equal(max(abs(getmatrix(m_vc, "sigma_between") - getmatrix(m_lv, "sigma_between"))), 0, tolerance = 1e-3)
+
+  # ML and FIML land on the same optimum on complete data (same likelihood):
+  m_fi <- runmodel(ml_ggm(dat, vars = paste0("V", 1:p), clusters = "cluster", estimator = "FIML"), verbose = FALSE)
+  expect_equal(m_vc@fitmeasures$logl, m_fi@fitmeasures$logl, tolerance = 1e-4)
+  expect_equal(max(abs(psychonetrics:::parVector(m_vc) - psychonetrics:::parVector(m_fi))), 0, tolerance = 1e-3)
+
+  # FIML with missing data: gradient correct and equal to ml_lvm-FIML:
+  datm <- dat
+  set.seed(5); datm[sample(nrow(datm), round(0.07 * nrow(datm))), sample(p, 1)] <- NA
+  mm <- suppressWarnings(ml_ggm(datm, vars = paste0("V", 1:p), clusters = "cluster",
+                                estimator = "FIML", baseline_saturated = FALSE))
+  expect_true(grad_check(mm))
+  mmL <- usecpp(suppressWarnings(suppressMessages(ml_lvm(datm, vars = paste0("V", 1:p), clusters = "cluster",
+              within_latent = "ggm", between_latent = "ggm",
+              estimator = "FIML", baseline_saturated = FALSE))), FALSE)
+  xm <- psychonetrics:::parVector(mm)
+  set.seed(6); xmr <- xm + rnorm(length(xm), 0, 0.04)
+  expect_true(abs(psychonetrics:::psychonetrics_fitfunction(xmr, usecpp(mm, FALSE)) -
+                  psychonetrics:::psychonetrics_fitfunction(xmr, mmL)) < 1e-10)
 
   # prune() and stepup() run and return a psychonetrics object:
   expect_inherits(prune(m_vc, alpha = 0.01, verbose = FALSE), "psychonetrics")

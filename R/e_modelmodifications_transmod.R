@@ -94,6 +94,13 @@ transmod <- function(x,...,verbose,keep_computed = FALSE, log=TRUE, identify = T
       type = c("within_latent","within_residual","between_latent","between_residual"),
       appendix = c("_zeta_within","_epsilon_within","_zeta_between","_epsilon_between")
     ),
+
+    # ml_varcov:
+    data.frame(
+      family = "ml_varcov",
+      type = c("within","between"),
+      appendix = c("_within","_between")
+    ),
     
     # panelvar:
     data.frame(

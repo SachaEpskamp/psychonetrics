@@ -9,7 +9,7 @@ Multi-level variance-covariance family of psychonetrics models
 \description{
 This is the multi-level (two-level) analogue of the \code{\link{varcov}} family: it models the within-cluster and between-cluster variance-covariance matrices of clustered data directly, without a latent-variable layer. Each level can be parameterized independently through the \code{within} and \code{between} arguments: \code{"cov"} models a covariance matrix directly, \code{"chol"} a Cholesky decomposition, \code{"prec"} a precision matrix, \code{"ggm"} a Gaussian graphical model (the multi-level GGM; alias \code{ml_ggm()} sets both levels to \code{"ggm"}) and \code{"cor"} a correlation matrix (alias \code{ml_corr()} sets both levels to \code{"cor"}).
 
-The model is estimated with the two-level sufficient-statistics Gaussian maximum-likelihood estimator (the same estimator used by \code{\link{ml_lvm}} with \code{estimator = "ML"}), so the computational cost does not depend on the number of units per cluster.
+Two estimators are supported, exactly as in \code{\link{ml_lvm}}: \code{"ML"}, the two-level sufficient-statistics Gaussian maximum-likelihood estimator (its computational cost does not depend on the number of units per cluster), and \code{"FIML"}, wide-format full-information maximum likelihood (the natural choice with missing data). Both maximize the same likelihood and give identical estimates on complete data. The default picks \code{"ML"} for complete data with more than five units per cluster and \code{"FIML"} otherwise.
 
 The multi-level GGM (\code{ml_ggm}) is also implemented, using a different (nodewise multilevel regression) estimator, in the \code{mlGGM} function of the \code{mlVAR} package. The \code{psychonetrics} implementation here estimates the full two-level covariance structure by maximum likelihood instead.
 
@@ -27,7 +27,8 @@ ml_varcov(data, clusters, vars,
           omega_between = "full", delta_between = "diag",
           kappa_between = "full", rho_between = "full", SD_between = "full",
           mu, equal = "none", baseline_saturated = TRUE,
-          estimator = "ML", optimizer, storedata = FALSE,
+          estimator = c("default", "ML", "FIML"),
+          optimizer, storedata = FALSE,
           standardize = c("none", "z", "quantile"), sampleStats,
           verbose = FALSE)
 
@@ -60,7 +61,7 @@ ml_corr(...)
   \item{mu}{Optional vector encoding the mean structure. Set elements to 0 to indicate fixed zeroes.}
   \item{equal}{A character vector indicating which matrices should be constrained equal across groups.}
   \item{baseline_saturated}{A logical indicating whether the baseline and saturated models should be included. Mostly used internally and should be kept to \code{TRUE}.}
-  \item{estimator}{Only \code{"ML"} (the two-level sufficient-statistics ML estimator) is supported.}
+  \item{estimator}{\code{"ML"} (two-level sufficient-statistics ML), \code{"FIML"} (wide-format full-information ML) or \code{"default"} (\code{"ML"} for complete data with more than five units per cluster, \code{"FIML"} otherwise). The estimator is fixed at model creation and cannot be switched afterwards. Note that the EBIC fit measures under \code{"FIML"} inherit the wide-format variable count from the sample statistics (as in \code{ml_lvm}), whereas under \code{"ML"} they use the number of modelled variables.}
   \item{optimizer}{The optimizer to be used. Usually left missing to use the default.}
   \item{storedata}{Logical, should the raw data be stored? Needed for bootstrapping.}
   \item{standardize}{Optional grand standardization of the raw variables before estimation: \code{"none"}, \code{"z"} (z-scores) or \code{"quantile"}.}

@@ -249,7 +249,7 @@ mod_mlnm %>% prune(alpha = 0.05)</code></pre>
       with a partial-correlation network $\boldsymbol{\Omega}$ (<code>omega_within</code> / <code>omega_between</code>) and diagonal scaling $\boldsymbol{\Delta}$ (<code>delta_within</code> / <code>delta_between</code>). The remaining parameterizations expose their usual matrices with <code>_within</code> / <code>_between</code> suffixes (<code>lowertri_*</code>, <code>kappa_*</code>, <code>rho_*</code>, <code>SD_*</code>), and the mean structure is the single vector <code>mu</code>.
     </p>
     <p>
-      Estimation uses the same fast <a href="#estimator">two-level sufficient-statistics Gaussian ML estimator</a> that <code>ml_lvm</code> uses with <code>estimator = "ML"</code>, so its cost is independent of cluster size and unbalanced clusters are handled exactly. The analytic gradient was verified against numeric differentiation and against an independent C++ implementation.
+      Both <code>ml_lvm</code> estimators are supported and behave identically to their <code>ml_lvm</code> equivalents: the fast <a href="#estimator">two-level sufficient-statistics Gaussian ML estimator</a> (<code>estimator = "ML"</code>; cost independent of cluster size, unbalanced clusters handled exactly) and wide-format full-information ML (<code>estimator = "FIML"</code>; the natural choice with missing data). The two maximize the same likelihood and give identical estimates on complete data. The analytic gradients of both were verified against numeric differentiation, against an independent C++ implementation, and against <code>ml_lvm</code> itself (identical fit function and gradient at identical parameter values, to machine precision).
     </p>
 
     <h3>Wrapper Functions</h3>

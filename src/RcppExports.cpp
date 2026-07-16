@@ -2450,6 +2450,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// d_phi_theta_ml_varcov_wide_group_cpp
+arma::mat d_phi_theta_ml_varcov_wide_group_cpp(const Rcpp::List& grouplist);
+RcppExport SEXP _psychonetrics_d_phi_theta_ml_varcov_wide_group_cpp(SEXP grouplistSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type grouplist(grouplistSEXP);
+    rcpp_result_gen = Rcpp::wrap(d_phi_theta_ml_varcov_wide_group_cpp(grouplist));
+    return rcpp_result_gen;
+END_RCPP
+}
 // d_phi_theta_ml_varcov_cpp
 arma::mat d_phi_theta_ml_varcov_cpp(const Rcpp::List& prep);
 RcppExport SEXP _psychonetrics_d_phi_theta_ml_varcov_cpp(SEXP prepSEXP) {
@@ -2706,6 +2717,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_psychonetrics_implied_panelvar_cpp", (DL_FUNC) &_psychonetrics_implied_panelvar_cpp, 2},
     {"_psychonetrics_prepare_panelvar_cpp", (DL_FUNC) &_psychonetrics_prepare_panelvar_cpp, 2},
     {"_psychonetrics_d_phi_theta_ml_varcov_group_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_ml_varcov_group_cpp, 1},
+    {"_psychonetrics_d_phi_theta_ml_varcov_wide_group_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_ml_varcov_wide_group_cpp, 1},
     {"_psychonetrics_d_phi_theta_ml_varcov_cpp", (DL_FUNC) &_psychonetrics_d_phi_theta_ml_varcov_cpp, 1},
     {"_psychonetrics_implied_ml_varcov_cpp", (DL_FUNC) &_psychonetrics_implied_ml_varcov_cpp, 2},
     {"_psychonetrics_prepare_ml_varcov_cpp", (DL_FUNC) &_psychonetrics_prepare_ml_varcov_cpp, 2},

@@ -84,7 +84,56 @@ arma::mat d_phi_theta_ml_varcov_group_cpp(
   return(Jac);
 }
 
-// Full Jacobian across groups (block-diagonal), twin of d_phi_theta_ml_varcov:
+// Wide-format (estimator "FIML") group Jacobian, twin of
+// d_phi_theta_ml_varcov_wide_group (R). The compact rows are
+//   [ mu (p) ; vech(within-position block) (kp) ; vec(between-positions block)
+//     (p^2) ]
+// where the within-position (diagonal) block of the wide covariance matrix is
+// Sigma_within + Sigma_between and every between-positions (off-diagonal)
+// block is Sigma_between. P (from the constructor's extra matrices) maps these
+// compact rows to the wide distribution parameters [wide mu; vech(wide Sigma)]:
+// [[Rcpp::export]]
+arma::mat d_phi_theta_ml_varcov_wide_group_cpp(
+    const Rcpp::List& grouplist
+){
+  std::string within = grouplist["within"];
+  std::string between = grouplist["between"];
+
+  arma::mat sigma_within = grouplist["sigma_within"];
+  int nVar = sigma_within.n_rows;
+  int kp = nVar * (nVar + 1) / 2;
+
+  arma::mat aug_within = aug_ml_varcov(within, "within", grouplist, kp);
+  arma::mat aug_between = aug_ml_varcov(between, "between", grouplist, kp);
+
+  arma::sp_mat P = grouplist["P"];
+  arma::sp_mat D = grouplist["D"];   // p-dimensional duplication matrix
+
+  int nobs = nVar + kp + nVar * nVar;
+  int nelement = nVar + kp + kp;
+  arma::mat Jac = zeros(nobs, nelement);
+
+  // Mean part:
+  Jac.submat(0, 0, nVar - 1, nVar - 1) = eye(nVar, nVar);
+
+  // Within-position (diagonal) blocks equal Sigma_within + Sigma_between, so
+  // both parameter blocks contribute:
+  Jac.submat(nVar, nVar, nVar + kp - 1, nVar + kp - 1) = aug_within;
+  Jac.submat(nVar, nVar + kp, nVar + kp - 1, nVar + 2 * kp - 1) = aug_between;
+
+  // Between-positions (off-diagonal) blocks equal Sigma_between; the compact
+  // rows are the full vec, so map vech -> vec with the duplication matrix:
+  Jac.submat(nVar + kp, nVar + kp, nVar + kp + nVar * nVar - 1, nVar + 2 * kp - 1) = D * aug_between;
+
+  // Map the compact rows to the wide distribution parameters:
+  arma::mat res = P * Jac;
+  return(res);
+}
+
+// Full Jacobian across groups (block-diagonal), twin of d_phi_theta_ml_varcov.
+// The prepare function flags which estimator variant applies; if the flag is
+// absent, the wide variant is recognized by the P permutation matrix, which
+// only FIML models carry:
 // [[Rcpp::export]]
 arma::mat d_phi_theta_ml_varcov_cpp(
     const Rcpp::List& prep
@@ -92,9 +141,21 @@ arma::mat d_phi_theta_ml_varcov_cpp(
   Rcpp::List groupmodels = prep["groupModels"];
   int nGroup = groupmodels.length();
 
+  bool twolevel_ML;
+  if (prep.containsElementNamed("twolevel_ML")){
+    twolevel_ML = Rcpp::as<bool>(prep["twolevel_ML"]);
+  } else {
+    Rcpp::List g0 = groupmodels[0];
+    twolevel_ML = !g0.containsElementNamed("P");
+  }
+
   Rcpp::List groupgradients(nGroup);
   for (int i = 0; i < nGroup; i++){
-    groupgradients[i] = d_phi_theta_ml_varcov_group_cpp(groupmodels[i]);
+    if (twolevel_ML){
+      groupgradients[i] = d_phi_theta_ml_varcov_group_cpp(groupmodels[i]);
+    } else {
+      groupgradients[i] = d_phi_theta_ml_varcov_wide_group_cpp(groupmodels[i]);
+    }
   }
 
   arma::mat res = bdiag_psychonetrics(groupgradients);

@@ -7,16 +7,32 @@ Changes in Version 0.16.7
     its headline use case. Each level is parameterized independently through the
     'within' and 'between' arguments (each "cov", "chol", "prec", "ggm" or
     "cor"), with native matrix names sigma_within / sigma_between,
-    omega_within / omega_between, and so on. Estimation uses the same two-level
-    sufficient-statistics Gaussian ML estimator as ml_lvm(), so the cost is
-    independent of the number of units per cluster. It is the special case of
-    ml_lvm() with loadings equal to the identity and no residual variance, but
-    is implemented as its own framework with its own (simpler) analytic
-    derivatives in both R and C++ (verified against numeric differentiation and
-    against each other to machine precision, and validated in a parameter-
-    recovery / coverage simulation study). The multi-level GGM is also available,
-    via a different (nodewise multilevel regression) estimator, as mlGGM() in the
-    mlVAR package.
+    omega_within / omega_between, and so on. Both estimators of ml_lvm() are
+    supported and behave identically to their ml_lvm() equivalents: the
+    two-level sufficient-statistics ML estimator (estimator = "ML"; cost
+    independent of the number of units per cluster) and wide-format
+    full-information ML (estimator = "FIML"; supports missing data). It is the
+    special case of ml_lvm() with loadings equal to the identity and no residual
+    variance, but is implemented as its own framework with its own (simpler)
+    analytic derivatives in both R and C++. Verification: analytic gradients
+    match numeric differentiation for all 25 within x between type combinations
+    under both estimators; the fit function and gradient agree with
+    ml_lvm's to machine precision at identical parameter values; R and C++
+    agree to machine precision; and parameter recovery / confidence-interval
+    coverage were validated in a simulation study. The multi-level GGM is also
+    available, via a different (nodewise multilevel regression) estimator, as
+    mlGGM() in the mlVAR package.
+  o Fixed ml_lvm() (and ml_varcov()) failing -- or, for exchangeable cluster
+    positions, silently permuting observations -- when the data rows were not
+    sorted by cluster: the internal within-cluster ID was assigned in
+    cluster-sorted order rather than row order. Cluster labels reused across
+    different groups of a multi-group analysis now also correctly denote
+    different clusters.
+  o Fixed samplestats() crashing with "missing value where TRUE/FALSE needed"
+    when heavy missingness left some pairwise covariances undefined (e.g. a
+    wide-format FIML analysis with sparsely observed cluster positions); the
+    correlation-input auto-detection now treats undefined diagonals as
+    "not correlation input" (the NA-covariance warning is still given).
 
 Changes in Version 0.16.6
   o NEW (experimental): ml_var1() and its GGM-defaults wrapper ml_gvar1() add a

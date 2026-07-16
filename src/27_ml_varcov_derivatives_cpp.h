@@ -12,6 +12,10 @@ arma::mat d_phi_theta_ml_varcov_group_cpp(
     const Rcpp::List& grouplist
 );
 
+arma::mat d_phi_theta_ml_varcov_wide_group_cpp(
+    const Rcpp::List& grouplist
+);
+
 arma::mat d_phi_theta_ml_varcov_cpp(
     const Rcpp::List& prep
 );

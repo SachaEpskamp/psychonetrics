@@ -1,7 +1,10 @@
 # Prepare all matrices for the fit, gradient and Hessian of ml_varcov models.
-# The framework is always two-level ML (distribution "TwoLevelGaussian"); the
-# estimator layer consumes mu, sigma_within, sigma_between, twolevel and D_y.
-# Mirrors prepare_ml_var1.
+# Two estimators are supported (mirroring prepare_ml_lvm):
+# - "ML" (distribution "TwoLevelGaussian"): the Gauss2L estimator layer
+#   consumes mu, sigma_within, sigma_between, twolevel and D_y.
+# - "FIML" (distribution "Gaussian"): the per-pattern FIML estimator layer
+#   consumes the wide-format mu, sigma and kappa produced by the implied
+#   function; fimldata and fulln are added by the generic prepareModel.
 prepare_ml_varcov <- function(x, model){
 
   # New model:
@@ -16,7 +19,11 @@ prepare_ml_varcov <- function(x, model){
   # Sample per group (= number of clusters J_g):
   nPerGroup <- model@sample@groups$nobs
 
-  # Implied model (per-level covariance structures + derivative helpers):
+  # Two-level sufficient-statistics ML estimator?
+  twolevel_ML <- model@estimator == "ML"
+
+  # Implied model (per-level covariance structures + derivative helpers; for
+  # FIML additionally the wide-format mu / sigma / kappa):
   imp <- implied_ml_varcov(newMod, all = FALSE)
 
   # Sample stats (unused by the two-level estimator, but kept parallel to the
@@ -27,10 +34,12 @@ prepare_ml_varcov <- function(x, model){
   # Model matrix (maps free parameters to the model-matrix vec's):
   mMat <- list(M = Mmatrix(model@parameters))
 
-  # Two-level sufficient statistics per group:
-  twolevelStats <- get_twolevel_stats(model@sample)
-  if (length(twolevelStats) != nGroup){
-    stop("ml_varcov requires two-level sufficient statistics, which are missing from the model. Rebuild the model with ml_varcov(...).")
+  # Two-level sufficient statistics per group (ML estimator only):
+  if (twolevel_ML){
+    twolevelStats <- get_twolevel_stats(model@sample)
+    if (length(twolevelStats) != nGroup){
+      stop("estimator = 'ML' for ml_varcov requires two-level sufficient statistics, which are missing from the model. Rebuild the model with ml_varcov(...).")
+    }
   }
 
   # Fill per group:
@@ -39,7 +48,9 @@ prepare_ml_varcov <- function(x, model){
     groupModels[[g]] <- c(imp[[g]], mMat, model@extramatrices, model@types)
     groupModels[[g]]$S <- S[[g]]
     groupModels[[g]]$means <- means[[g]]
-    groupModels[[g]]$twolevel <- twolevelStats[[g]]
+    if (twolevel_ML){
+      groupModels[[g]]$twolevel <- twolevelStats[[g]]
+    }
   }
 
   # Return:
@@ -47,6 +58,9 @@ prepare_ml_varcov <- function(x, model){
     nPerGroup = nPerGroup,
     nTotal = nTotal,
     nGroup = nGroup,
-    groupModels = groupModels
+    groupModels = groupModels,
+    # Flag so that the model Jacobian dispatch (d_phi_theta_ml_varcov) picks
+    # the two-level variant rather than the wide FIML variant:
+    twolevel_ML = twolevel_ML
   ))
 }

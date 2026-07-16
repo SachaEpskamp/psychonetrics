@@ -1,5 +1,5 @@
 # Multi-level variance-covariance family (ml_varcov) and its GGM / correlation
-# wrappers (ml_ggm / ml_corr, in their own files).
+# wrappers (ml_ggm / ml_corr).
 #
 # ml_varcov is the multi-level analogue of the single-level varcov family: it
 # models the within-cluster and between-cluster variance-covariance matrices of
@@ -9,30 +9,17 @@
 # model ("ggm"; the multi-level GGM) or a correlation matrix ("cor"), exactly as
 # the single-level varcov 'type' argument does.
 #
-# The model is estimated with the two-level sufficient-statistics Gaussian ML
-# estimator (distribution "TwoLevelGaussian"), the same estimator ml_lvm /
-# ml_var1 use: the cost is independent of the number of units per cluster. The
-# model layer (implied + derivatives) is implemented natively for ml_varcov and
-# carries only mu, sigma_within and sigma_between -- there is no lambda, beta,
-# residual or latent-mean parameter. The single-level varcov covariance-
+# Two estimators are supported, mirroring ml_lvm:
+# - "ML": the two-level sufficient-statistics Gaussian ML estimator
+#   (distribution "TwoLevelGaussian"); the cost is independent of the number of
+#   units per cluster.
+# - "FIML": wide-format full-information ML (distribution "Gaussian" with
+#   per-pattern FIML data), the same likelihood evaluated on the one-row-per-
+#   cluster wide format. Supports missing data through the FIML patterns.
+# The model layer (implied + derivatives) is implemented natively for ml_varcov
+# and carries only mu, sigma_within and sigma_between -- there is no lambda,
+# beta, residual or latent-mean parameter. The single-level varcov covariance-
 # structure derivatives (d_sigma_omega, d_sigma_delta, ...) are reused per level.
-
-# Helper: pooled covariance of the cluster means from complete-data two-level
-# sufficient statistics (used only for the between-level start values):
-.ml_varcov_covMeans <- function(ts){
-  J <- ts$J
-  sizes <- ts$sizes
-  p <- length(ts$mean_d[[1]])
-  grand <- numeric(p)
-  for (s in seq_len(nrow(sizes))) grand <- grand + sizes$m[s] * ts$mean_d[[s]]
-  grand <- grand / J
-  BB <- matrix(0, p, p)
-  for (s in seq_len(nrow(sizes))){
-    d <- ts$mean_d[[s]] - grand
-    BB <- BB + sizes$m[s] * (as.matrix(ts$cov_d[[s]]) + outer(d, d))
-  }
-  BB / J
-}
 
 ml_varcov <- function(
   data,
@@ -51,7 +38,7 @@ ml_varcov <- function(
   mu,
   equal = "none",
   baseline_saturated = TRUE,
-  estimator = "ML",
+  estimator = c("default","ML","FIML"),
   optimizer,
   storedata = FALSE,
   standardize = c("none","z","quantile"),
@@ -65,107 +52,179 @@ ml_varcov <- function(
   within  <- match.arg(within)
   between <- match.arg(between)
   standardize <- match.arg(standardize)
+  estimator <- match.arg(estimator)
 
   # CRAN check workaround:
   . <- NULL
-
-  # Estimator: only the two-level ML estimator is supported:
-  if (!identical(estimator, "ML")){
-    stop("ml_varcov only supports estimator = 'ML' (the two-level sufficient-statistics ML estimator).")
-  }
 
   # groups/groupvar: accept either; standardize to a single 'groups' column name:
   if (missing(groups)) groups <- NULL
   if (!missing(groupvar) && !is.null(groupvar)) groups <- groupvar
 
   # -----------------------------------------------------------------------
-  # Data + sample statistics (skipped when sampleStats supplied, i.e. for the
-  # recursive baseline/saturated calls):
+  # Data processing (always; the recursive baseline/saturated calls pass the
+  # already-processed data plus 'sampleStats', in which case only the sample-
+  # statistics computation below is skipped):
   # -----------------------------------------------------------------------
-  if (missing(sampleStats)){
+  if (missing(clusters) || is.null(clusters)){
+    stop("'clusters' may not be missing for ml_varcov (use the varcov() family for single-level models).")
+  }
 
-    if (missing(clusters) || is.null(clusters)){
-      stop("'clusters' may not be missing for ml_varcov (use the varcov() family for single-level models).")
+  if (is.matrix(data)) data <- as.data.frame(data)
+  if (!is.data.frame(data)) stop("'data' must be a data frame")
+  if (is.null(names(data))) stop("Dataset contains no column names.")
+
+  # Resolve variable names:
+  if (missing(vars) || is.null(vars)){
+    vars <- setdiff(names(data), c(clusters, groups, "CLUSTERID"))
+  }
+  nVar <- length(vars)
+  kp <- nVar * (nVar + 1) / 2
+
+  if (!clusters %in% names(data)){
+    stop("'clusters' argument does not correspond to a column name of 'data'")
+  }
+
+  # Remove rows with NA cluster:
+  if (any(is.na(data[[clusters]]))){
+    warning("Rows with NA cluster removed.")
+    data <- data[!is.na(data[[clusters]]), , drop = FALSE]
+  }
+
+  # Grouping column (single-group default; resolved before the cluster IDs so
+  # that cluster labels reused across groups denote different clusters):
+  if (is.null(groups)){
+    groups <- "GROUPID"
+    data[[groups]] <- "fullsample"
+  }
+  groupLabels <- unique(data[[groups]])
+
+  # Add a column with ID in cluster (used by the wide format). ave() assigns
+  # in the original row order, so the data need not be sorted by cluster:
+  data[['CLUSTERID']] <- ave(seq_len(nrow(data)), data[[groups]], data[[clusters]], FUN = seq_along)
+  maxInCluster <- max(data[['CLUSTERID']])
+  anyMissing <- anyNA(data[, vars])
+
+  # Resolve the estimator (mirrors ml_lvm):
+  if (estimator == "default"){
+    if (!anyMissing && maxInCluster > 5){
+      estimator <- "ML"
+    } else {
+      estimator <- "FIML"
     }
-
-    if (is.matrix(data)) data <- as.data.frame(data)
-    if (!is.data.frame(data)) stop("'data' must be a data frame")
-    if (is.null(names(data))) stop("Dataset contains no column names.")
-
-    # Resolve variable names:
-    if (missing(vars) || is.null(vars)){
-      vars <- setdiff(names(data), c(clusters, groups))
+    if (verbose){
+      message("Using estimator = '", estimator, "' (set the 'estimator' argument to overwrite).")
     }
+  }
+  if (!estimator %in% c("ML","FIML")){
+    stop("ml_varcov only supports estimator = 'ML' (two-level sufficient-statistics ML) or estimator = 'FIML' (wide-format full-information ML).")
+  }
+  if (estimator == "ML" && anyMissing && verbose){
+    experimentalWarning("ml_varcov two-level ML estimator with within-cluster missing data")
+  }
 
-    if (!clusters %in% names(data)){
-      stop("'clusters' argument does not correspond to a column name of 'data'")
-    }
-
-    # Remove rows with NA cluster:
-    if (any(is.na(data[[clusters]]))){
-      warning("Rows with NA cluster removed.")
-      data <- data[!is.na(data[[clusters]]), , drop = FALSE]
-    }
-
-    # Grand (not within-cluster) standardization of the raw columns before
-    # forming statistics, so the between variance survives:
-    if (standardize == "z"){
-      for (v in vars) data[[v]] <- as.numeric(scale(data[[v]], TRUE, TRUE))
-    } else if (standardize == "quantile"){
-      for (v in vars) data[[v]] <- quantiletransform(data[[v]])
-    }
-
-    # Grouping column (single-group default):
-    if (is.null(groups)){
-      groups <- "GROUPID"
-      data[[groups]] <- "fullsample"
-    }
-
-    # Sample statistics on the raw long data (used for group/variable
-    # bookkeeping and start values only; estimation uses the two-level
-    # statistics below). Muffle the harmless NA-covariance warning that very
-    # small groups can trigger:
-    sampleStats <- withCallingHandlers(
-      samplestats(data = data,
-                  vars = vars,
-                  groups = groups,
-                  missing = "listwise",
-                  fimldata = FALSE,
-                  storedata = storedata,
-                  verbose = verbose),
-      warning = function(w){
-        if (grepl("NA sample covariances", conditionMessage(w))){
-          invokeRestart("muffleWarning")
-        }
-      })
-
-    # Two-level sufficient statistics per group (cluster = clusters):
-    twolevelStats <- list()
-    for (g in seq_len(nrow(sampleStats@groups))){
-      subData <- data[data[[groups]] == sampleStats@groups$label[g], , drop = FALSE]
-      ts <- twolevel_sufficient_statistics(
-        Y = as.matrix(subData[, vars, drop = FALSE]),
-        cluster = subData[[clusters]]
-      )
-      if (isTRUE(ts$missing)){
-        stop("ml_varcov does not yet support missing data; please supply complete cases.")
-      }
-      twolevelStats[[g]] <- ts
-    }
-    sampleStats@twolevel <- twolevelStats
-
-    # The number of independent observations equals the number of clusters:
-    for (g in seq_len(nrow(sampleStats@groups))){
-      sampleStats@groups$nobs[g] <- twolevelStats[[g]]$J
-    }
+  # Grand (not within-cluster) standardization of the raw columns before
+  # forming statistics, so the between variance survives. The recursive
+  # baseline/saturated calls receive the already-standardized data and the
+  # default standardize = "none", so no double transformation occurs:
+  if (standardize == "z"){
+    for (v in vars) data[[v]] <- as.numeric(scale(data[[v]], TRUE, TRUE))
+  } else if (standardize == "quantile"){
+    for (v in vars) data[[v]] <- quantiletransform(data[[v]])
   }
 
   # -----------------------------------------------------------------------
-  # Dimensions:
+  # Start values per group (missing-data proof): the within start is the
+  # covariance of the cluster-centered data, the between start the covariance
+  # of the cluster means minus the within-mean sampling variance:
   # -----------------------------------------------------------------------
-  nVar <- nrow(sampleStats@variables)
-  kp <- nVar * (nVar + 1) / 2
-  labels <- sampleStats@variables$label
+  withinStart <- list(); betweenStart <- list()
+  for (g in seq_along(groupLabels)){
+    subData <- data[data[[groups]] == groupLabels[g], , drop = FALSE]
+    Y <- as.matrix(subData[, vars, drop = FALSE])
+    cl <- as.character(subData[[clusters]])
+    cm <- do.call(cbind, lapply(seq_len(nVar), function(i) tapply(Y[, i], cl, mean, na.rm = TRUE)))
+    Yc <- Y - cm[match(cl, rownames(cm)), , drop = FALSE]
+    SW_s <- spectralshift(cov(Yc, use = "pairwise.complete.obs"))
+    nbar <- nrow(Y) / nrow(cm)
+    SB_s <- spectralshift(cov(cm, use = "pairwise.complete.obs") - SW_s / nbar)
+    withinStart[[g]] <- SW_s
+    betweenStart[[g]] <- SB_s
+  }
+
+  # -----------------------------------------------------------------------
+  # Wide format (FIML only): one row per cluster, columns var_position:
+  # -----------------------------------------------------------------------
+  if (estimator == "FIML"){
+    datalong <- tidyr::gather(data[, c(vars, clusters, groups, "CLUSTERID")], "variable", "value", vars)
+    datawide <- tidyr::pivot_wider(datalong, id_cols = c(clusters, groups),
+                                   values_from = "value", names_from = c("variable", "CLUSTERID"))
+
+    # Design matrix (exact matching: variable names may contain regex
+    # metacharacters, mirroring ml_lvm):
+    design <- matrix(NA_character_, nVar, maxInCluster)
+    for (i in seq_len(nVar)){
+      for (j in seq_len(maxInCluster)){
+        varName <- paste0(vars[i], "_", j)
+        if (sum(names(datawide) == varName) == 1){
+          design[i, j] <- varName
+        }
+      }
+    }
+    allVars <- na.omit(as.vector(design))
+    nAllVar <- length(allVars)
+    designPattern <- as(1 * (!is.na(design)), "matrix")
+    casesPerVar <- as.vector(designPattern * row(designPattern))
+    casesPerVar <- casesPerVar[casesPerVar != 0]
+  }
+
+  # -----------------------------------------------------------------------
+  # Sample statistics (skipped for the recursive baseline/saturated calls):
+  # -----------------------------------------------------------------------
+  if (missing(sampleStats)){
+    if (estimator == "FIML"){
+      # Wide-format sample statistics with per-pattern FIML data:
+      sampleStats <- samplestats(data = datawide,
+                                 vars = allVars,
+                                 groups = groups,
+                                 fimldata = TRUE,
+                                 storedata = storedata,
+                                 verbose = verbose)
+    } else {
+      # Long-format sample statistics (bookkeeping and start values only;
+      # estimation uses the two-level sufficient statistics below). Muffle the
+      # harmless NA-covariance warning that small groups can trigger:
+      sampleStats <- withCallingHandlers(
+        samplestats(data = data,
+                    vars = vars,
+                    groups = groups,
+                    missing = "pairwise",
+                    fimldata = FALSE,
+                    storedata = storedata,
+                    verbose = verbose),
+        warning = function(w){
+          if (grepl("NA sample covariances", conditionMessage(w))){
+            invokeRestart("muffleWarning")
+          }
+        })
+
+      # Two-level sufficient statistics per group:
+      twolevelStats <- list()
+      for (g in seq_len(nrow(sampleStats@groups))){
+        subData <- data[data[[groups]] == sampleStats@groups$label[g], , drop = FALSE]
+        twolevelStats[[g]] <- twolevel_sufficient_statistics(
+          Y = as.matrix(subData[, vars, drop = FALSE]),
+          cluster = subData[[clusters]]
+        )
+      }
+      sampleStats@twolevel <- twolevelStats
+
+      # The number of independent observations equals the number of clusters:
+      for (g in seq_len(nrow(sampleStats@groups))){
+        sampleStats@groups$nobs[g] <- twolevelStats[[g]]$J
+      }
+    }
+  }
 
   # -----------------------------------------------------------------------
   # Model object:
@@ -184,28 +243,21 @@ ml_varcov <- function(
     types = list(within = within, between = between),
     sample = sampleStats, computed = FALSE,
     equal = equal,
-    optimizer = defaultoptimizer(), estimator = "ML", distribution = "TwoLevelGaussian",
+    optimizer = defaultoptimizer(), estimator = estimator,
+    distribution = ifelse(estimator == "ML", "TwoLevelGaussian", "Gaussian"),
     verbose = verbose)
 
   nGroup <- nrow(model@sample@groups)
 
-  # Number of "observations" = distribution parameters [mu; vech SW; vech SB]
-  # per group (so the saturated model has exactly 0 df):
-  model@sample@nobs <- nGroup * (nVar + 2 * kp)
-
-  # -----------------------------------------------------------------------
-  # Start values (within = pooled-within covariance; between = pooled cov of
-  # cluster means minus the within sampling variance):
-  # -----------------------------------------------------------------------
-  withinStart <- list(); betweenStart <- list()
-  twolevelStats <- get_twolevel_stats(sampleStats)
-  for (g in seq_len(nGroup)){
-    ts <- twolevelStats[[g]]
-    S_PW <- spectralshift(as.matrix(ts$S_PW))
-    nbar <- ts$N / ts$J
-    BB <- .ml_varcov_covMeans(ts)
-    withinStart[[g]]  <- S_PW
-    betweenStart[[g]] <- spectralshift(BB - S_PW / nbar)
+  # Number of "observations":
+  if (estimator == "ML"){
+    # Distribution parameters [mu; vech SW; vech SB] per group (so the
+    # saturated model has exactly 0 df):
+    model@sample@nobs <- nGroup * (nVar + 2 * kp)
+  } else {
+    # Wide-format means and covariances per group (mirrors ml_lvm; the wide
+    # saturated correction cancels in the df computation):
+    model@sample@nobs <- nAllVar * (nAllVar + 1) / 2 * nGroup + nAllVar * nGroup
   }
 
   # -----------------------------------------------------------------------
@@ -213,9 +265,15 @@ ml_varcov <- function(
   # -----------------------------------------------------------------------
   modMatrices <- list()
 
+  # Expected means (per group, p-variate):
+  if (estimator == "FIML"){
+    expMeans <- lapply(model@sample@means, function(x) as.numeric(tapply(as.numeric(x), casesPerVar, mean, na.rm = TRUE)))
+  } else {
+    expMeans <- lapply(model@sample@means, function(x) as.numeric(x))
+  }
+
   # mu (p-variate):
-  expMeans <- lapply(model@sample@means, function(x) as.numeric(x))
-  modMatrices$mu <- matrixsetup_mu(mu, nNode = nVar, nGroup = nGroup, labels = labels,
+  modMatrices$mu <- matrixsetup_mu(mu, nNode = nVar, nGroup = nGroup, labels = vars,
                                    equal = "mu" %in% equal, expmeans = expMeans,
                                    sampletable = sampleStats, name = "mu")
 
@@ -227,7 +285,7 @@ ml_varcov <- function(
                                        type = within, name = "within",
                                        sampleStats = sampleStats, equal = equal,
                                        nNode = nVar, expCov = withinStart, nGroup = nGroup,
-                                       labels = labels))
+                                       labels = vars))
 
   # Between-cluster covariance block:
   modMatrices <- c(modMatrices,
@@ -237,7 +295,7 @@ ml_varcov <- function(
                                        type = between, name = "between",
                                        sampleStats = sampleStats, equal = equal,
                                        nNode = nVar, expCov = betweenStart, nGroup = nGroup,
-                                       labels = labels))
+                                       labels = vars))
 
   # Generate the full parameter table:
   pars <- do.call(generateAllParameterTables, modMatrices)
@@ -258,11 +316,44 @@ ml_varcov <- function(
     D_y   = psychonetrics::duplicationMatrix(nVar)
   )
 
+  if (estimator == "FIML"){
+    # Design pattern and the permutation P mapping the compact model rows
+    # [mu (p); vech within-position block (kp); vec between-positions block
+    # (p^2)] to the wide-format distribution parameters [wide mu; vech wide
+    # Sigma] (mirrors the ml_lvm construction):
+    model@extramatrices$designPattern <- designPattern
+
+    muDummy <- matrix(rep(seq_len(nVar), maxInCluster))
+    sigDummy <- matrix(0, nVar, nVar)
+    sigDummy[lower.tri(sigDummy, diag = TRUE)] <- max(muDummy) + seq_len(kp)
+    sigDummy[upper.tri(sigDummy)] <- t(sigDummy)[upper.tri(sigDummy)]
+
+    U <- list(sigDummy)
+    if (maxInCluster > 1){
+      U <- c(U, lapply(seq_len(maxInCluster - 1), function(x) matrix(max(sigDummy) + seq_len(nVar^2), nVar, nVar)))
+    }
+    allSigmas <- blockToeplitz(U)
+    totElements <- max(allSigmas)
+
+    subMu <- muDummy[as.vector(designPattern == 1), , drop = FALSE]
+    subSigmas <- allSigmas[as.vector(designPattern == 1), as.vector(designPattern == 1)]
+
+    distVec <- c(as.vector(subMu), subSigmas[lower.tri(subSigmas, diag = TRUE)])
+    nTotal <- length(distVec)
+    distVecrawts <- seq_along(distVec)[distVec != 0]
+    distVec <- distVec[distVec != 0]
+
+    model@extramatrices$P <- as(sparseMatrix(
+      i = distVecrawts, j = distVec, dims = c(nTotal, totElements)
+    ), "dMatrix")
+  }
+
   # Form the model matrices:
   model@modelmatrices <- formModelMatrices(model)
 
   # -----------------------------------------------------------------------
-  # Baseline / saturated models:
+  # Baseline / saturated models (recursive calls; the processed data are
+  # passed along with the sample statistics):
   # -----------------------------------------------------------------------
   if (is.list(baseline_saturated)){
     model@baseline_saturated <- baseline_saturated
@@ -270,23 +361,26 @@ ml_varcov <- function(
 
     # Baseline (independence): diagonal within and between covariance blocks:
     model@baseline_saturated$baseline <- ml_varcov(
+      data = data, clusters = clusters, vars = vars, groupvar = groups,
       within = "chol", lowertri_within = "diag",
       between = "chol", lowertri_between = "diag",
       equal = equal,
-      estimator = "ML",
+      estimator = estimator,
       baseline_saturated = FALSE,
       sampleStats = sampleStats)
 
     # Saturated: free within and between covariance blocks (Cholesky
-    # parameterization; the derivatives/implied dispatch on the types):
+    # parameterization; the derivatives/implied dispatch on the types). No
+    # 'equal': the saturated reference is unconstrained per group:
     model@baseline_saturated$saturated <- ml_varcov(
+      data = data, clusters = clusters, vars = vars, groupvar = groups,
       within = "chol", between = "chol",
-      estimator = "ML",
+      estimator = estimator,
       baseline_saturated = FALSE,
       sampleStats = sampleStats)
 
-    # For estimator "ML" the saturated model has no closed form: leave it
-    # computed = FALSE so runmodel() optimizes it (mirrors ml_lvm / ml_var1).
+    # For estimators "ML" and "FIML" the saturated model has no closed form:
+    # leave it computed = FALSE so runmodel() optimizes it (mirrors ml_lvm).
   }
 
   # Identify (no-op for ml_varcov -- no latent scales to fix):
@@ -300,8 +394,15 @@ ml_varcov <- function(
   }
 
   # The model layer is implemented in both R and C++ (the C++ twin is verified
-  # against the R path). usecpp() selects the C++ path where available:
-  model <- usecpp(model)
+  # against the R path); usecpp() selects the C++ path where available. The
+  # two-level ML estimator with within-cluster missing data uses the R path
+  # (the per-pattern missing-data likelihood has no C++ twin) and numeric
+  # Fisher information, mirroring ml_lvm:
+  if (estimator == "ML" && anyMissing){
+    model <- usecpp(model, FALSE)
+  } else {
+    model <- usecpp(model)
+  }
 
   return(model)
 }

@@ -773,6 +773,10 @@ d_phi_theta_ml_varcov_group_cpp <- function(grouplist) {
     .Call(`_psychonetrics_d_phi_theta_ml_varcov_group_cpp`, grouplist)
 }
 
+d_phi_theta_ml_varcov_wide_group_cpp <- function(grouplist) {
+    .Call(`_psychonetrics_d_phi_theta_ml_varcov_wide_group_cpp`, grouplist)
+}
+
 d_phi_theta_ml_varcov_cpp <- function(prep) {
     .Call(`_psychonetrics_d_phi_theta_ml_varcov_cpp`, prep)
 }
