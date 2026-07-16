@@ -1,3 +1,10 @@
+Changes in Version 0.16.9
+  o The ordinal-data regression tests (GitHub issue #54) now probe whether the
+    'pbv' package's C++ API is usable and are skipped when it is not. On some
+    check setups (e.g. win-builder R-devel) a stale 'pbv' binary lacks the
+    Rcpp validation hook, which made every ordinal-data call error and halted
+    the whole test suite.
+
 Changes in Version 0.16.8
   o The saturated log-likelihood method that was ultimately used is now
     recorded in the fitted object (GitHub issue #53):

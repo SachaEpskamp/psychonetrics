@@ -164,6 +164,18 @@ expect_error(
 # trapped the optimizer on the 1e20 penalty plateau; stepup() then crashed
 # with "missing value where TRUE/FALSE needed" (NA BIC under DWLS) or
 # silently rejected genuinely improving parameters.)
+# The ordinal machinery calls the pbv package's C++ API; on some check setups
+# (e.g. win-builder R-devel) the installed pbv binary lacks the Rcpp validation
+# hook ("_pbv_RcppExport_validate not provided by package 'pbv'"), so any
+# ordinal-data call errors. Probe the linkage first and skip if unusable:
+pbv_usable <- tryCatch({
+  psychonetrics:::covPrepare_cpp(
+    cbind(c(1, 1, 2, 2, 1, 2, 2, 1), c(1, 2, 2, 1, 1, 2, 1, 2)),
+    c(TRUE, TRUE), WLSweights = FALSE, verbose = FALSE)
+  TRUE
+}, error = function(e) FALSE)
+
+if (pbv_usable) {
 set.seed(1)
 n_ord <- 500
 eta_ord <- cbind(rnorm(n_ord), rnorm(n_ord))
@@ -199,6 +211,7 @@ expect_false(edge15$fixed)
 # improper-region penalty plateau):
 expect_true(m_ord_su@objective < 1e10)
 expect_true(m_ord_su@fitmeasures$chisq < m_ord@fitmeasures$chisq)
+}
 
 ## ---- satMethodUsed / satLL_analytic tracking (GitHub issue #53) ----
 # (0.16.8: the saturated-LL method ultimately used is recorded in
