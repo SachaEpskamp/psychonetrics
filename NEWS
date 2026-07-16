@@ -1,4 +1,18 @@
 Changes in Version 0.16.8
+  o The saturated log-likelihood method that was ultimately used is now
+    recorded in the fitted object (GitHub issue #53):
+    x@baseline_saturated$satMethodUsed is "numeric", "analytic", or
+    "analytic_fallback" (the latter when saturated = "default" fell back to
+    the analytic formula because the saturated model optimization failed),
+    and the new 0/1 fit measure 'satLL_analytic' indicates whether the
+    analytic formula was used. Being numeric, satLL_analytic is retained by
+    aggregate_bootstraps(): its bootstrap average is the proportion of
+    (converged) bootstrap samples in which the analytic saturated
+    log-likelihood was used.
+  o Consistent with its documentation, saturated = "model" no longer silently
+    falls back to the analytic saturated log-likelihood when the saturated
+    model optimization fails; the fallback only applies to
+    saturated = "default".
   o Fixed a stepup() failure with ordinal data (GitHub issue #54): freeing a
     parameter using its expected parameter change (EPC) as starting value
     could place the model in an improper (non-positive definite) region,

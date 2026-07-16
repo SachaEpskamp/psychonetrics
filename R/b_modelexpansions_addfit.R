@@ -1248,6 +1248,13 @@ addfit <- function(
   
   # log likelihoods:
   # Saturated:
+  # sat_method_used records which method ULTIMATELY produced the saturated
+  # log-likelihood ("numeric", "analytic", or "analytic_fallback"), which can
+  # differ from the requested satMethod when saturated = "default" falls back
+  # to the analytic formula (GitHub issue #53). Stored in
+  # x@baseline_saturated$satMethodUsed and, as a 0/1 indicator, in
+  # fitmeasures$satLL_analytic (numeric, so it survives aggregate_bootstraps).
+  sat_method_used <- NA_character_
   if (x@estimator %in% c("FIML","ML")){
     sat_method <- x@baseline_saturated$satMethod
     if (is.null(sat_method)) sat_method <- "default"
@@ -1255,8 +1262,10 @@ addfit <- function(
     if (sat_method == "analytic" && length(x@sample@fimldata) > 0) {
       # Forced analytical saturated LL:
       satLL <- fiml_saturated_loglikelihood(x)
+      sat_method_used <- "analytic"
     } else if (!is.null(x@baseline_saturated$saturated)){
       satLL <- psychonetrics_logLikelihood(x@baseline_saturated$saturated)
+      sat_method_used <- "numeric"
     } else {
       satLL <- NA
     }
@@ -1266,20 +1275,23 @@ addfit <- function(
     } else {
       basLL <- NA
     }
-    
+
     # Model:
     LL <-  psychonetrics_logLikelihood(x)
 
     # Fallback: if model-based saturated LL < model LL (optimizer failed),
-    # use analytical saturated LL for FIML and warn:
+    # use analytical saturated LL for FIML and warn. Only for
+    # saturated = "default": "analytic" is already analytic, and "model" is
+    # documented as numeric with no fallback:
     if (!is.na(satLL) && !is.na(LL) && satLL < LL &&
-        sat_method != "analytic" &&
+        sat_method == "default" &&
         x@estimator == "FIML" && length(x@sample@fimldata) > 0) {
       satLL_fallback <- fiml_saturated_loglikelihood(x)
       if (satLL_fallback >= LL) {
         warning("Saturated model optimization did not converge properly (saturated LL < model LL). ",
                 "Using analytical saturated LL instead. Consider using saturated = 'analytic' in runmodel().")
         satLL <- satLL_fallback
+        sat_method_used <- "analytic_fallback"
       }
     }
   } else {
@@ -1287,6 +1299,7 @@ addfit <- function(
     basLL <- NA
     LL <- NA
   }
+  x@baseline_saturated$satMethodUsed <- sat_method_used
 
   # fixed.x: the x-block is conditioned on rather than modelled, so the reported
   # log-likelihoods are the CONDITIONAL log-likelihoods (likelihood of the
@@ -1305,6 +1318,13 @@ addfit <- function(
   fitMeasures$logl <- LL - fx_marg
   fitMeasures$unrestricted.logl <- satLL - fx_marg
   fitMeasures$baseline.logl <- basLL - fx_marg
+
+  # 0/1 indicator: was the saturated LL computed analytically (forced or as
+  # fallback) rather than from the numerically optimized saturated model?
+  # Numeric so that aggregate_bootstraps() can aggregate it (the average is
+  # the proportion of bootstrap samples using the analytic saturated LL):
+  fitMeasures$satLL_analytic <- if (is.na(sat_method_used)) NA_real_ else
+    as.numeric(sat_method_used %in% c("analytic", "analytic_fallback"))
 
   # Number of variables:
   fitMeasures$nvar <- nVar <- nrow(x@sample@variables)

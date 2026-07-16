@@ -199,3 +199,38 @@ expect_false(edge15$fixed)
 # improper-region penalty plateau):
 expect_true(m_ord_su@objective < 1e10)
 expect_true(m_ord_su@fitmeasures$chisq < m_ord@fitmeasures$chisq)
+
+## ---- satMethodUsed / satLL_analytic tracking (GitHub issue #53) ----
+# (0.16.8: the saturated-LL method ultimately used is recorded in
+# @baseline_saturated$satMethodUsed and as the numeric fit measure
+# satLL_analytic; saturated = "model" no longer silently falls back.)
+bfi_53 <- psych::bfi[1:200, 1:5]
+m_53 <- suppressWarnings(runmodel(ggm(bfi_53, estimator = "FIML")))
+expect_equal(m_53@baseline_saturated$satMethodUsed, "numeric")
+expect_equal(m_53@fitmeasures$satLL_analytic, 0)
+m_53a <- suppressWarnings(
+  runmodel(ggm(bfi_53, estimator = "FIML"), saturated = "analytic")
+)
+expect_equal(m_53a@baseline_saturated$satMethodUsed, "analytic")
+expect_equal(m_53a@fitmeasures$satLL_analytic, 1)
+# Force the fallback by sabotaging the numerically fitted saturated model:
+sat_53 <- m_53@baseline_saturated$saturated
+sel_off <- sat_53@parameters$matrix == "omega" &
+  sat_53@parameters$row != sat_53@parameters$col
+sel_dia <- sat_53@parameters$matrix == "delta" &
+  sat_53@parameters$row == sat_53@parameters$col
+sat_53@parameters$est[sel_off] <- 0
+sat_53@parameters$est[sel_dia] <- 100
+m_53f <- m_53
+m_53f@baseline_saturated$saturated <- sat_53
+m_53f@baseline_saturated$satMethod <- "default"
+expect_warning(m_53f <- addfit(m_53f), pattern = "analytical saturated LL")
+expect_equal(m_53f@baseline_saturated$satMethodUsed, "analytic_fallback")
+expect_equal(m_53f@fitmeasures$satLL_analytic, 1)
+# saturated = "model": documented as numeric with NO fallback:
+m_53m <- m_53
+m_53m@baseline_saturated$saturated <- sat_53
+m_53m@baseline_saturated$satMethod <- "model"
+m_53m <- suppressWarnings(addfit(m_53m))
+expect_equal(m_53m@baseline_saturated$satMethodUsed, "numeric")
+expect_equal(m_53m@fitmeasures$satLL_analytic, 0)
