@@ -75,13 +75,15 @@ freepar <- function(
   x@computed <- FALSE
   
   # Fix the parameters:
+  usedEPC <- FALSE
   if (!missing(start)){
-    x@parameters$est[whichFree] <- start  
+    x@parameters$est[whichFree] <- start
   } else {
-    expected <-  x@parameters$est[whichFree][!is.na(x@parameters$epc[whichFree])]      +  x@parameters$epc[whichFree][!is.na(x@parameters$epc[whichFree])]    
+    expected <-  x@parameters$est[whichFree][!is.na(x@parameters$epc[whichFree])]      +  x@parameters$epc[whichFree][!is.na(x@parameters$epc[whichFree])]
     if (startEPC){
       # Set to EPC:
       x@parameters$est[whichFree][!is.na(x@parameters$epc[whichFree])] <-   expected
+      usedEPC <- any(!is.na(x@parameters$epc[whichFree]))
     } else {
       # Set to EPC:
       x@parameters$est[whichFree][!is.na(x@parameters$epc[whichFree])] <- 0.0001*sign(expected)
@@ -110,7 +112,37 @@ freepar <- function(
 
   # Relabel:
   x@parameters   <- parRelabel(x@parameters)
-  
+
+  # If EPC-based starting values were used, verify that they leave the
+  # implied model matrices proper (positive definite). An EPC can overshoot
+  # into an improper region, where the fit functions return a constant 1e20
+  # penalty with a flat gradient and gradient-based optimizers stall on the
+  # plateau (e.g. large EPCs for (partial) correlation matrices under the
+  # DWLS estimator used with ordinal data). In that case fall back to small
+  # starting values for the freed parameters instead:
+  if (usedEPC){
+    xtest <- x
+    if (x@cpp){
+      xtest@extramatrices$M <- Mmatrix_cpp(xtest@parameters)
+    } else {
+      xtest@extramatrices$M <- Mmatrix(xtest@parameters)
+    }
+    f0 <- tryCatch({
+      if (x@cpp){
+        psychonetrics_fitfunction_cpp(parVector(xtest), xtest)
+      } else {
+        psychonetrics_fitfunction(parVector(xtest), xtest)
+      }
+    }, error = function(e) NA_real_)
+    if (!is.finite(f0) || f0 >= 1e20){
+      if (verbose){
+        message("EPC-based starting values lead to improper implied matrices; falling back to small starting values.")
+      }
+      x@parameters$est[whichFree] <- 0.0001 * sign(x@parameters$est[whichFree])
+    }
+  }
+
+
   # Output:
   if (verbose){
     message(paste0("Freed ",max(x@parameters$par) - curMax," parameters!"))

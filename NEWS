@@ -1,3 +1,22 @@
+Changes in Version 0.16.8
+  o Fixed a stepup() failure with ordinal data (GitHub issue #54): freeing a
+    parameter using its expected parameter change (EPC) as starting value
+    could place the model in an improper (non-positive definite) region,
+    where the fit functions return a constant penalty with a flat gradient.
+    The optimizer then stalled on that plateau, which surfaced as
+    "missing value where TRUE/FALSE needed" or as spurious "model did not
+    improve" results in stepup(). Three fixes:
+    - freepar() now checks that EPC-based starting values leave the implied
+      matrices proper, and falls back to small starting values otherwise.
+    - runmodel() detects an optimizer that "converged" on the improper-region
+      penalty plateau and retries once from emergency starting values.
+    - stepup() now handles an NA chi-square difference test gracefully
+      (returning the previous model with a message) and, when the requested
+      criterion (e.g. the default "bic") is not available for the estimator
+      (information criteria are not defined for the (D)WLS estimators used
+      with ordinal data), skips the criterion check with a single informative
+      warning instead of erroring.
+
 Changes in Version 0.16.7
   o Fixes for R-devel (found via win-builder): the example covariance matrices
     in the dlvm1, panelvar, and latentgrowth help pages no longer use the

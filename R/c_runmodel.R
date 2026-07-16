@@ -559,6 +559,24 @@ runmodel <- function(
           stop(paste("Model estimation resulted in an error that could not be recovered. Try using a different optimizer with setoptimizer(...) or using different starting values. Error:\n\n",errormsg))
         }
 
+      } else if (!is.finite(x@optim$value) || x@optim$value >= 1e20){
+        # Optimizer "converged" on the constant 1e20 penalty plateau that the
+        # fit functions return for improper (non-PD) implied matrices (e.g.
+        # after starting values overshoot into the improper region). Retry
+        # once from emergency starting values:
+        suppressWarnings({
+          tryres2 <- try({
+            x2 <- psychonetrics_optimizer(emergencystart(updateModel(oldstart, x)), lower, upper, gsub("cpp_","",optimizer), bounded)
+          }, silent = TRUE)
+        })
+
+        if (!is(tryres2,"try-error") && !any(is.na(parVector(x2))) &&
+            is.finite(x2@optim$value) && x2@optim$value < 1e20){
+          x <- x2
+        } else {
+          warning("Optimizer converged on the penalty plateau for improper (non-positive definite) implied matrices, and retrying with emergency starting values did not help. Estimates are not interpretable. Try different starting values or a different optimizer with setoptimizer(...).")
+        }
+
       }
     } # end else (roptim-based)
 
@@ -733,21 +751,44 @@ runmodel <- function(
       # Try with emergencystart:
       x <- updateModel(oldstart, x)
       optim.control$par <- parVector(emergencystart(x))
-      
+
       suppressWarnings({
         tryres2 <- try({
           optim.out <- do.call(optimr_fake,optim.control)
-        }, silent = TRUE)    
+        }, silent = TRUE)
       })
-      
+
       # If still an error, break:
       if (is(tryres2,"try-error") || any(is.na(optim.out$par))){
         stop(paste("Model estimation resulted in an error that could not be recovered. Try using a different optimizer with setoptimizer(...) or using different starting values. Error:\n\n",tryres2))
-        
+
       }
-      
+
+    } else if (!is.finite(optim.out$value) || optim.out$value >= 1e20){
+      # The fit functions return a constant penalty (1e20) with a flat
+      # gradient whenever the implied matrices are improper (not positive
+      # definite). If the starting values land in that region (e.g. an EPC
+      # start value that overshoots), gradient-based optimizers "converge"
+      # on the plateau without ever entering the proper region. Detect this
+      # degenerate result and retry once from emergency starting values:
+      x <- updateModel(oldstart, x)
+      optim.control$par <- parVector(emergencystart(x))
+
+      suppressWarnings({
+        tryres2 <- try({
+          optim.out2 <- do.call(optimr_fake,optim.control)
+        }, silent = TRUE)
+      })
+
+      if (!is(tryres2,"try-error") && !any(is.na(optim.out2$par)) &&
+          is.finite(optim.out2$value) && optim.out2$value < 1e20){
+        optim.out <- optim.out2
+      } else {
+        warning("Optimizer converged on the penalty plateau for improper (non-positive definite) implied matrices, and retrying with emergency starting values did not help. Estimates are not interpretable. Try different starting values or a different optimizer with setoptimizer(...).")
+      }
+
     }
-    
+
     
     optimresults <- optim.out
     optimresults$optimizer <- optimizer

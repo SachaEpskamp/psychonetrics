@@ -158,3 +158,44 @@ expect_error(
   )),
   pattern = "corinput"
 )
+
+## ---- stepup() with ordinal data (GitHub issue #54) ----
+# (0.16.8 fix: an EPC starting value overshooting into an improper region
+# trapped the optimizer on the 1e20 penalty plateau; stepup() then crashed
+# with "missing value where TRUE/FALSE needed" (NA BIC under DWLS) or
+# silently rejected genuinely improving parameters.)
+set.seed(1)
+n_ord <- 500
+eta_ord <- cbind(rnorm(n_ord), rnorm(n_ord))
+eta_ord[, 2] <- 0.5 * eta_ord[, 1] + sqrt(1 - 0.25) * eta_ord[, 2]
+lam_ord <- matrix(0, 8, 2)
+lam_ord[1:4, 1] <- runif(4, .6, .9)
+lam_ord[5:8, 2] <- runif(4, .6, .9)
+err_ord <- matrix(rnorm(n_ord * 8), n_ord, 8) * sqrt(.5)
+# Strong residual dependence between items 1 and 5:
+shared <- rnorm(n_ord)
+err_ord[, 1] <- err_ord[, 1] + sqrt(.3) * shared
+err_ord[, 5] <- err_ord[, 5] + sqrt(.3) * shared
+y_ord <- eta_ord %*% t(lam_ord) + err_ord
+dat_ord <- as.data.frame(apply(y_ord, 2, function(x)
+  as.numeric(cut(x, breaks = c(-Inf, quantile(x, c(.3, .6, .85)), Inf)))))
+names(dat_ord) <- paste0("item", 1:8)
+Lam_ord <- matrix(0, 8, 2)
+Lam_ord[1:4, 1] <- 1
+Lam_ord[5:8, 2] <- 1
+
+m_ord <- suppressWarnings(suppressMessages(
+  runmodel(rnm(dat_ord, lambda = Lam_ord, ordered = TRUE))
+))
+# stepup() must not error, and must recover the true residual edge:
+m_ord_su <- suppressWarnings(suppressMessages(
+  stepup(m_ord, criterion = "bic")
+))
+pt_ord <- m_ord_su@parameters
+edge15 <- pt_ord[pt_ord$matrix == "omega_epsilon" &
+                 pt_ord$row == 5 & pt_ord$col == 1, ]
+expect_false(edge15$fixed)
+# The refit from the EPC start must reach the proper optimum (not the
+# improper-region penalty plateau):
+expect_true(m_ord_su@objective < 1e10)
+expect_true(m_ord_su@fitmeasures$chisq < m_ord@fitmeasures$chisq)

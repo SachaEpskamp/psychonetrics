@@ -41,6 +41,7 @@ stepup <- function(
   maxtry <- 1
   singularinformation <- match.arg(singularinformation)
   triedfixing <- FALSE
+  criterion_warned <- FALSE
   
   # If not run, run model:
   if (!x@computed){
@@ -360,6 +361,16 @@ stepup <- function(
         
         # Check if fit actually improved:
         compare <- compare(old = oldMod, new = x)
+        if (is.na(compare$p_value[2])){
+          # The chi-square difference test could not be computed (e.g. a
+          # degenerate refit with a non-finite test statistic). Do not
+          # accept the new parameter:
+          if (verbose){
+            message(paste("Chi-square difference test could not be computed (NA), returning previous model."))
+          }
+          x <- oldMod
+          break
+        }
         if (!compare$p_value[2] < alpha){
           if (verbose){
             message(paste("Model did not improve at given alpha, returning previous model."))
@@ -367,7 +378,7 @@ stepup <- function(
           x <- oldMod
           break
         }
-        
+
         # Check criterion:
         if (criterion != "none"){
           if (!criterion %in% names(oldMod@fitmeasures)){
@@ -375,8 +386,16 @@ stepup <- function(
           }
           oldCrit <- oldMod@fitmeasures[[criterion]]
           newCrit <- x@fitmeasures[[criterion]]
-          
-          if (oldCrit < newCrit){
+
+          if (is.null(oldCrit) || is.null(newCrit) || is.na(oldCrit) || is.na(newCrit)){
+            # The criterion is not available for this model/estimator (e.g.
+            # BIC is not defined for the (D)WLS estimators used with ordinal
+            # data). Skip the criterion check but warn once:
+            if (!criterion_warned){
+              warning(paste0("Criterion '",criterion,"' is not available (NA) for this model (e.g., information criteria are not defined for the (D)WLS estimators). The criterion check is skipped; use criterion = \"none\" to silence this warning."), call. = FALSE)
+              criterion_warned <- TRUE
+            }
+          } else if (oldCrit < newCrit){
             if (verbose){
               message(paste("Model did not improve criterion, returning previous model."))
             }
@@ -384,7 +403,7 @@ stepup <- function(
             break
           }
         }
-        
+
       } else {
         # If any searched matrix has equality constraints across groups, fall
         # back to the non-greedy path. The greedy branch assigns unique par
@@ -467,6 +486,16 @@ stepup <- function(
         
         # Check if fit actually improved:
         compare <- compare(old = oldMod, new = x)
+        if (is.na(compare$p_value[2])){
+          # The chi-square difference test could not be computed (e.g. a
+          # degenerate refit with a non-finite test statistic). Do not
+          # accept the new parameters:
+          if (verbose){
+            message(paste("Chi-square difference test could not be computed (NA), returning previous model."))
+          }
+          x <- oldMod
+          break
+        }
         if (!compare$p_value[2] < alpha){
           if (verbose){
             message(paste("Model did not improve at given alpha, returning previous model."))
@@ -474,8 +503,8 @@ stepup <- function(
           x <- oldMod
           break
         }
-      
-      
+
+
         # Check criterion:
         if (criterion != "none"){
           if (!criterion %in% names(oldMod@fitmeasures)){
@@ -483,15 +512,23 @@ stepup <- function(
           }
           oldCrit <- oldMod@fitmeasures[[criterion]]
           newCrit <- x@fitmeasures[[criterion]]
-          
-          if (oldCrit < newCrit){
+
+          if (is.null(oldCrit) || is.null(newCrit) || is.na(oldCrit) || is.na(newCrit)){
+            # The criterion is not available for this model/estimator (e.g.
+            # BIC is not defined for the (D)WLS estimators used with ordinal
+            # data). Skip the criterion check but warn once:
+            if (!criterion_warned){
+              warning(paste0("Criterion '",criterion,"' is not available (NA) for this model (e.g., information criteria are not defined for the (D)WLS estimators). The criterion check is skipped; use criterion = \"none\" to silence this warning."), call. = FALSE)
+              criterion_warned <- TRUE
+            }
+          } else if (oldCrit < newCrit){
             if (verbose){
               message(paste("Model did not improve criterion, continuing with previous model."))
             }
             x <- oldMod
           }
         }
-        
+
       }
       
     } else {
