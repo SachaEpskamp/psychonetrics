@@ -1,4 +1,12 @@
 Changes in Version 0.16.7
+  o Fixes for R-devel (found via win-builder): the example covariance matrices
+    in the dlvm1, panelvar, and latentgrowth help pages no longer use the
+    deprecated structure(.Dim=, .Dimnames=) names (now dim= and dimnames=),
+    and the unit tests that cross-validate against internal lavaan kernels
+    (lav_mvnorm_cluster_information_expected, lav_model_h1_information_observed)
+    now skip gracefully when those internals are absent, as in lavaan >= 0.7
+    where they were renamed with changed interfaces. The same quantities remain
+    covered by internal analytic-vs-numeric checks.
   o Naming cleanup: the plain names are now the primary names of several model
     families, with the historical *1 names (the "1" referred to the lag order;
     no lag-2 frameworks are planned) remaining fully supported aliases:

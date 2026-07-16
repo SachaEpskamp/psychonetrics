@@ -348,11 +348,17 @@ if (at_home()) {
   h1f <- lavaan::lavTech(fitF, "h1")[[1]]
   mu1f <- as.numeric(h1f$mean); Sig1f <- h1f$cov
   A1uf <- ns$ml_h1_information_observed_missing(Yf, mu1f, Sig1f)
-  A1uf_lav <- lavaan:::lav_model_h1_information_observed(
-    lavmodel = fitF@Model, lavsamplestats = fitF@SampleStats, lavdata = fitF@Data,
-    lavimplied = fitF@implied, lavh1 = fitF@h1,
-    lavoptions = local({o <- fitF@Options; o$h1.information <- "unstructured"; o}))[[1]]
-  expect_equal(unname(A1uf), unname(as.matrix(A1uf_lav)), tolerance = 1e-8)
+  # lavaan >= 0.7 renamed this internal and changed its interface; the
+  # cross-check only runs where the 0.6 version is available:
+  lav_h1_obs <- get0("lav_model_h1_information_observed",
+                     envir = asNamespace("lavaan"), inherits = FALSE)
+  if (!is.null(lav_h1_obs)) {
+    A1uf_lav <- lav_h1_obs(
+      lavmodel = fitF@Model, lavsamplestats = fitF@SampleStats, lavdata = fitF@Data,
+      lavimplied = fitF@implied, lavh1 = fitF@h1,
+      lavoptions = local({o <- fitF@Options; o$h1.information <- "unstructured"; o}))[[1]]
+    expect_equal(unname(A1uf), unname(as.matrix(A1uf_lav)), tolerance = 1e-8)
+  }
 
   # Yuan-Bentler-Mplus scaling factor at lavaan's solution (<= 1e-8):
   SCuf <- ns$ml_casewise_scores_h1_missing(Yf, mu1f, Sig1f)
