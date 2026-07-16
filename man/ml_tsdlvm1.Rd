@@ -1,8 +1,6 @@
 \name{ml_tsdlvm1}
 \alias{ml_tsdlvm1}
 \alias{ml_ts_lvgvar}
-\alias{ml_gvar}
-\alias{ml_var}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 Multi-level Lag-1 dynamic latent variable model family of psychonetrics models for time-series data
@@ -10,7 +8,7 @@ Multi-level Lag-1 dynamic latent variable model family of psychonetrics models f
 \description{
 \bold{Deprecated.} Use \code{\link{dlvm1}} directly with long-format data instead (set \code{vars} to a character vector and provide \code{idvar}).
 
-This function is a deprecated wrapper around \code{\link{dlvm1}} that allows for specifying the model using a long format data and similar input as the \code{mlVAR} package. The \code{ml_ts_lvgvar} simply sets \code{within_latent = "ggm"} and \code{between_latent = "ggm"} by default. The \code{ml_gvar} and \code{ml_var} are simple wrappers with different named defaults for contemporaneous and between-person effects. All these functions now call \code{dlvm1()} directly and emit deprecation warnings.
+This function is a deprecated wrapper around \code{\link{dlvm1}} that allows for specifying the model using a long format data and similar input as the \code{mlVAR} package. The \code{ml_ts_lvgvar} simply sets \code{within_latent = "ggm"} and \code{between_latent = "ggm"} by default. These functions now call \code{dlvm1()} directly and emit deprecation warnings. (The observed-variable wrappers \code{ml_var} and \code{ml_gvar} are now aliases for \code{\link{ml_var1}} and \code{ml_gvar1}, and are documented there.)
 }
 \usage{
 ml_tsdlvm1(data, beepvar, idvar, vars, groups, estimator = "FIML", 
@@ -18,11 +16,6 @@ ml_tsdlvm1(data, beepvar, idvar, vars, groups, estimator = "FIML",
 
 ml_ts_lvgvar(...)
 
-ml_gvar(..., contemporaneous = c("ggm", "cov", "chol", "prec", "cor"), 
-        between = c("ggm", "cov", "chol", "prec", "cor"))
-             
-ml_var(..., contemporaneous = c("cov", "chol", "prec", "ggm", "cor"), 
-        between = c("cov", "chol", "prec", "ggm", "cor"))
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -49,12 +42,6 @@ Estimator to be used. Must be \code{"FIML"}.
 Which standardization method should be used? \code{"none"} (default) for no standardization, \code{"z"} for z-scores, and \code{"quantile"} for a non-parametric transformation to the quantiles of the marginal standard normal distribution.
 }
 
-  \item{contemporaneous}{
-The type of within-person latent contemporaneous model to be used.
-}
-  \item{between}{
-The type of between-person latent model to be used.
-}
   \item{\dots}{
 Arguments sent to \code{\link{dlvm1}}
 }

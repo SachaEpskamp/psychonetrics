@@ -1,6 +1,8 @@
 \name{ml_var1}
 \alias{ml_var1}
 \alias{ml_gvar1}
+\alias{ml_var}
+\alias{ml_gvar}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 Multi-level lag-1 vector auto-regression family (random intercepts)
@@ -25,6 +27,14 @@ intensive longitudinal / experience-sampling (ESM) data, where the number of rep
 measures per subject is large and the full-likelihood \code{panelvar} route is
 infeasible. See Details for the estimator and its statistical caveats.
 
+The legacy names \code{ml_var} and \code{ml_gvar} (which in earlier versions of
+psychonetrics were wrappers around \code{\link{dlvm1}} with
+\code{estimator = "FIML"}) are now aliases for \code{ml_var1} and \code{ml_gvar1},
+with the old argument names \code{contemporaneous} and \code{between} mapped to
+\code{within_latent} and \code{between_latent}. Note that their default estimator
+therefore changed to the (much faster) summary-statistics estimator; the previous
+full-information behavior is available with \code{estimator = "FIML"}.
+
 \strong{This estimator is experimental} (a message is shown once per session).
 }
 \usage{
@@ -46,6 +56,12 @@ ml_var1(data, idvar, vars, dayvar, beepvar, groups, groupvar,
         sampleStats, verbose = FALSE, toeplitz = TRUE)
 
 ml_gvar1(..., within_latent = "ggm", between_latent = "ggm")
+
+ml_var(..., contemporaneous = c("cov", "chol", "prec", "ggm", "cor"),
+       between = c("cov", "chol", "prec", "ggm", "cor"))
+
+ml_gvar(..., contemporaneous = c("ggm", "cov", "chol", "prec", "cor"),
+        between = c("ggm", "cov", "chol", "prec", "cor"))
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -131,7 +147,7 @@ A character vector indicating which matrices should be constrained equal across 
 A logical indicating if the baseline and saturated model should be included. Mostly used internally and NOT recommended to be used manually.
 }
   \item{estimator}{
-The estimator to be used. Only \code{"ML"} (the two-level summary-statistics pseudo maximum likelihood) is supported in this version. For full-information maximum likelihood on the same estimand use \code{\link{panelvar}} / \code{\link{dlvm1}}.
+The estimator to be used. \code{"ML"} (default) uses the two-level summary-statistics pseudo maximum likelihood described in Details. \code{"FIML"} dispatches to the \code{\link{panelvar}} framework: the measurement occasions become the waves of a panel model that is estimated with full-information maximum likelihood (missing responses and missed beeps are handled by FIML; a night break, when \code{dayvar} is used, is bridged by one structurally missing occasion, so the model links the last beep of a day to the first beep of the next day through two VAR steps). The FIML route is exact but its cost grows with the number of measurement occasions, so it is only feasible for a modest number of occasions per subject.
 }
   \item{optimizer}{
 The optimizer to be used. Can be one of \code{"nlminb"} (the default R \code{nlminb} function), \code{"ucminf"}, \code{"nloptr_TNEWTON"}, and \code{"LBFGS++"}.
@@ -152,7 +168,13 @@ Logical, should progress be printed to the console?
 Internal. If \code{TRUE} (default) the stationary Toeplitz VAR(1) within structure is imposed; \code{FALSE} selects the free-within (saturated) mode used internally to build the reference model. Not intended for direct use.
 }
 \item{\dots}{
-Arguments sent to \code{ml_var1} (used by \code{ml_gvar1}).
+Arguments sent to \code{ml_var1} (used by \code{ml_gvar1}, \code{ml_var} and \code{ml_gvar}).
+}
+  \item{contemporaneous}{
+Alias for \code{within_latent}, used by the legacy names \code{ml_var} and \code{ml_gvar}.
+}
+  \item{between}{
+Alias for \code{between_latent}, used by the legacy names \code{ml_var} and \code{ml_gvar}.
 }
 }
 \details{

@@ -78,14 +78,96 @@ ml_var1 <- function(
   # CRAN check workarounds:
   . <- NULL
 
-  # Estimator: only "ML" is supported in v1:
-  if (!identical(estimator, "ML")){
-    stop("ml_var1 only supports estimator = 'ML' (the two-level pseudo-ML estimator). For full-information ML use panelvar()/dlvm1().")
-  }
-
   # groups/groupvar: accept either; standardize to a single 'groups' column name:
   if (missing(groups)) groups <- NULL
   if (!missing(groupvar) && !is.null(groupvar)) groups <- groupvar
+
+  # -----------------------------------------------------------------------
+  # estimator = "FIML": dispatch to the panelvar framework. The measurement
+  # occasions (day/beep) become the waves of a panel model, so the exact
+  # multi-level VAR(1) likelihood is optimized with full-information ML
+  # (missing responses and missed beeps are handled by FIML; a night gap is
+  # bridged by an all-missing occasion between days). This is exact but much
+  # slower than the default two-level pseudo-ML estimator ("ML"):
+  # -----------------------------------------------------------------------
+  if (identical(estimator, "FIML")){
+    if (!missing(sampleStats)){
+      stop("Internal error: estimator = 'FIML' cannot be combined with 'sampleStats' in ml_var1.")
+    }
+    if (missing(idvar) || is.null(idvar)){
+      stop("'idvar' may not be missing for ml_var1 (use var1() for single-level time-series models).")
+    }
+    if (is.matrix(data)) data <- as.data.frame(data)
+    if (!is.data.frame(data)) stop("'data' must be a data frame")
+
+    if (missing(dayvar)) dayvar <- NULL
+    if (missing(beepvar)) beepvar <- NULL
+    if (missing(vars) || is.null(vars)){
+      vars <- setdiff(names(data), c(idvar, dayvar, beepvar, groups))
+    }
+
+    # Combined measurement-occasion index (>= 1, integer). Consecutive beeps
+    # within a day are consecutive occasions; days are separated by one
+    # all-missing occasion so no lag-1 pair directly crosses a night:
+    if (!is.null(beepvar)){
+      beep <- data[[beepvar]]
+      if (any(is.na(beep))) stop("'beepvar' may not contain missing values.")
+      beep <- beep - min(beep) + 1
+    } else if (!is.null(dayvar)){
+      # Order of rows within (id, day) encodes time:
+      beep <- ave(seq_len(nrow(data)), data[[idvar]], data[[dayvar]], FUN = seq_along)
+    } else {
+      # Order of rows within id encodes time:
+      beep <- ave(seq_len(nrow(data)), data[[idvar]], FUN = seq_along)
+    }
+    if (!is.null(dayvar)){
+      day <- data[[dayvar]]
+      if (any(is.na(day))) stop("'dayvar' may not contain missing values.")
+      day <- day - min(day) + 1
+      nBeep <- max(beep)
+      occasion <- (day - 1) * (nBeep + 1) + beep
+    } else {
+      occasion <- beep
+    }
+    data[[".occasion_ml_var1"]] <- occasion
+
+    pv_args <- list(
+      data = data,
+      vars = vars,
+      datatype = "long",
+      idvar = idvar,
+      beepvar = ".occasion_ml_var1",
+      groupvar = groups,
+      within_latent = within_latent,
+      between_latent = between_latent,
+      beta = beta,
+      omega_zeta_within = omega_zeta_within, delta_zeta_within = delta_zeta_within,
+      kappa_zeta_within = kappa_zeta_within, sigma_zeta_within = sigma_zeta_within,
+      lowertri_zeta_within = lowertri_zeta_within,
+      rho_zeta_within = rho_zeta_within, SD_zeta_within = SD_zeta_within,
+      omega_zeta_between = omega_zeta_between, delta_zeta_between = delta_zeta_between,
+      kappa_zeta_between = kappa_zeta_between, sigma_zeta_between = sigma_zeta_between,
+      lowertri_zeta_between = lowertri_zeta_between,
+      rho_zeta_between = rho_zeta_between, SD_zeta_between = SD_zeta_between,
+      equal = equal,
+      baseline_saturated = baseline_saturated,
+      estimator = "FIML",
+      standardize = standardize,
+      storedata = storedata,
+      verbose = verbose
+    )
+    if (!missing(mu)) pv_args$mu <- mu
+    mod <- do.call(panelvar, pv_args)
+    if (!missing(optimizer)){
+      mod <- setoptimizer(mod, optimizer)
+    }
+    return(mod)
+  }
+
+  # Other estimators are not supported:
+  if (!identical(estimator, "ML")){
+    stop("ml_var1 only supports estimator = 'ML' (the two-level pseudo-ML estimator) or estimator = 'FIML' (full-information ML through the panelvar framework).")
+  }
 
   # -----------------------------------------------------------------------
   # Data augmentation + sample statistics (skipped when sampleStats supplied,

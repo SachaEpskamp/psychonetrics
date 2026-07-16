@@ -1,4 +1,33 @@
 Changes in Version 0.16.7
+  o ml_var1()/ml_gvar1() now support estimator = "FIML": the model is dispatched
+    to the panelvar() framework, with the measurement occasions (idvar / dayvar /
+    beepvar) mapped to the waves of a panel model, so the exact multi-level
+    VAR(1) likelihood is optimized with full-information ML (missing responses
+    and missed beeps handled by FIML; a night break is bridged by one
+    structurally missing occasion). This is exact but much slower than the
+    default two-level summary-statistics estimator; it replaces the historical
+    dlvm1-based FIML route of ml_var()/ml_gvar().
+  o ml_var() and ml_gvar() are now aliases for ml_var1() and ml_gvar1() (their
+    'contemporaneous' and 'between' arguments map to 'within_latent' and
+    'between_latent'). They were deprecated wrappers around dlvm1() with
+    estimator = "FIML"; note that their default estimator hence changed to the
+    much faster summary-statistics estimator ("ML"). The previous behavior is
+    available with estimator = "FIML". ml_tsdlvm1() and ml_ts_lvgvar() (the
+    latent versions) remain deprecated wrappers for dlvm1().
+  o Added a summary() method for psychonetrics models: the print output extended
+    with the main fit measures (log-likelihood, number of parameters, AIC, BIC,
+    RMSEA, CFI, TLI). Previously summary() silently fell through to the default
+    method and showed nothing useful.
+  o meta_var1()/meta_gvar() now fail early with an informative error when more
+    than 11 variables are used (the p(p+1)/2 + p^2 meta-level outcomes then
+    exceed internal 32-bit sparse-matrix limits; estimation previously aborted
+    mid-way with a cryptic "SpMat::init(): requested size is too large" error),
+    and warn when the number of studies is smaller than the number of meta-level
+    outcomes while a full random-effects structure is estimated (heavily
+    overparameterized; results may be unstable). For subjects of a single
+    intensive longitudinal study, ml_var1()/ml_gvar1() is recommended instead.
+    The meta_var1 estimator itself was verified by simulation to recover the
+    generating temporal and contemporaneous networks (see extra/).
   o NEW (experimental): ml_varcov() and its wrappers ml_ggm() and ml_corr() add
     a multi-level (two-level) variance-covariance family: the within-cluster and
     between-cluster (co)variance matrices of clustered data are modelled

@@ -1,7 +1,16 @@
-# Deprecated wrappers: use dlvm1() or panellvgvar() directly instead.
+# ml_var / ml_gvar: multi-level VAR / graphical VAR wrappers.
+#
+# Historically these were wrappers around dlvm1() (full-information ML with
+# every measurement occasion treated as a wave). As of 0.16.7 they are aliases
+# for the dedicated multi-level VAR framework ml_var1() / ml_gvar1(), which
+# estimates the same model much faster through two-level sufficient statistics
+# (estimator = "ML", the default). The previous full-information behavior is
+# available with estimator = "FIML", which routes to the panelvar framework.
+#
+# ml_ts_lvgvar (latent version) remains a deprecated wrapper for dlvm1().
 
 ml_ts_lvgvar <- function(...){
-  .Deprecated("panellvgvar")
+  .Deprecated("dlvm1")
   dots <- list(...)
   if (!"estimator" %in% names(dots)) dots$estimator <- "FIML"
   do.call(dlvm1, c(dots, list(within_latent = "ggm", between_latent = "ggm")))
@@ -10,21 +19,15 @@ ml_ts_lvgvar <- function(...){
 ml_var <- function(...,
                    contemporaneous = c("cov","chol","prec","ggm","cor"),
                    between = c("cov","chol","prec","ggm","cor")){
-  .Deprecated("dlvm1")
   contemporaneous <- match.arg(contemporaneous)
   between <- match.arg(between)
-  dots <- list(...)
-  if (!"estimator" %in% names(dots)) dots$estimator <- "FIML"
-  do.call(dlvm1, c(dots, list(within_latent = contemporaneous, between_latent = between)))
+  ml_var1(..., within_latent = contemporaneous, between_latent = between)
 }
 
 ml_gvar <- function(...,
                    contemporaneous = c("ggm","cov","chol","prec","cor"),
                    between = c("ggm","cov","chol","prec","cor")){
-  .Deprecated("dlvm1")
   contemporaneous <- match.arg(contemporaneous)
   between <- match.arg(between)
-  dots <- list(...)
-  if (!"estimator" %in% names(dots)) dots$estimator <- "FIML"
-  do.call(dlvm1, c(dots, list(within_latent = contemporaneous, between_latent = between)))
+  ml_var1(..., within_latent = contemporaneous, between_latent = between)
 }

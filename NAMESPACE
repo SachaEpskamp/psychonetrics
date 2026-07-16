@@ -12,7 +12,7 @@ export(tolavaan)
 export(logbook)
 
 importFrom("grDevices", "rgb")
-    importFrom("stats", "quantile")
+    importFrom("stats", "quantile", "ave")
     importFrom("utils", "capture.output")
 
 importFrom(rlang, .data)
@@ -187,7 +187,7 @@ exportClasses("psychonetrics","psychonetrics_log","psychonetrics_bootstrap")
 #exportClasses("psychonetrics_samplestats","psychonetrics_log","psychonetrics" )
 
 # export Methods
-exportMethods("show", "resid", "residuals")
+exportMethods("show", "resid", "residuals", "summary")
 
 
 ### Imports ###

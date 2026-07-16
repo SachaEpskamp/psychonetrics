@@ -165,5 +165,32 @@ definition = function(object){
   }
   # Newline to end:
   cat("\n")
-  
+
+})
+
+# summary method: the print output, extended with the main fit measures
+# (users coming from lavaan/mlVAR expect summary() to show AIC/BIC):
+setMethod(f = "summary",
+  signature = "psychonetrics",
+  definition = function(object, ...){
+
+  # Regular print output first:
+  show(object)
+
+  # Fit measures (if computed):
+  if (object@computed && !is.null(object@fitmeasures) &&
+      !(object@estimator %in% c("PML","PFIML"))){
+    fm <- object@fitmeasures
+    cat("\nFit measures:",
+        "\n\t- Log-likelihood:", goodNum2(fm$logl),
+        "\n\t- Number of parameters:", fm$npar,
+        "\n\t- AIC:", goodNum2(fm$aic.ll),
+        "\n\t- BIC:", goodNum2(fm$bic),
+        "\n\t- RMSEA:", goodNum(fm$rmsea),
+        "\n\t- CFI:", goodNum(fm$cfi),
+        "\n\t- TLI:", goodNum(fm$tli),
+        "\n\nUse 'psychonetrics::fit' for the complete list of fit measures and 'psychonetrics::parameters' for the parameter estimates.\n")
+  }
+
+  invisible(object)
 })

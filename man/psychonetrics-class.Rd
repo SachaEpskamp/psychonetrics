@@ -5,6 +5,7 @@
 \alias{resid,psychonetrics-method}
 \alias{residuals,psychonetrics-method}
 \alias{show,psychonetrics-method}
+\alias{summary,psychonetrics-method}
 \alias{psychonetrics_samplestats-class}
 \alias{sessionInfo-class}
 
@@ -53,6 +54,7 @@ Objects can be created by calls of the form \code{new("psychonetrics", ...)}.
     \item{resid}{\code{signature(object = "psychonetrics")}: ... }
     \item{residuals}{\code{signature(object = "psychonetrics")}: ... }
     \item{show}{\code{signature(object = "psychonetrics")}: ... }
+    \item{summary}{\code{signature(object = "psychonetrics")}: The print output extended with the main fit measures (log-likelihood, number of parameters, AIC, BIC, RMSEA, CFI, TLI). Use \code{\link{fit}} for the complete list of fit measures. }
 	 }
 }
 \author{

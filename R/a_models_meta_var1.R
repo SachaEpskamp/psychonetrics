@@ -183,6 +183,30 @@ meta_var1 <- function(
   covvars <- c(sigma0Labels, sigma1Labels)
   nCov <- length(covvars)
 
+  # Feasibility guard: the model treats the nCov = p(p+1)/2 + p^2 VAR summary
+  # statistics as a multivariate meta-level outcome, so internal matrices grow
+  # with nCov^2 x nCov^2. Beyond nCov = 215 (p = 11 nodes) sparse kernel
+  # matrices exceed the 32-bit Armadillo index limit and estimation aborts with
+  # "SpMat::init(): requested size is too large". Fail early and informatively:
+  if (nCov > 215){
+    stop(paste0(
+      "meta_var1/meta_gvar model the p*(p+1)/2 + p^2 VAR summary statistics of all studies as a multivariate meta-level outcome. ",
+      "With p = ", nNode, " variables this gives ", nCov, " meta-level outcomes, which exceeds the current computational limit ",
+      "(215 outcomes, i.e. at most 11 variables). Reduce the number of variables, or - if the 'studies' are subjects of a single ",
+      "intensive longitudinal study - consider the multi-level VAR model ml_var1()/ml_gvar1() instead, which does not have this limit."))
+  }
+
+  # The default full random-effects structure has nCov*(nCov+1)/2 parameters;
+  # with few studies this is heavily overparameterized and both slow and
+  # unstable. Warn (do not error - the Cholesky keeps it computable):
+  if (randomEffects %in% c("chol","cov","prec") && nStudy < nCov){
+    warning(paste0(
+      "The number of studies (", nStudy, ") is smaller than the number of meta-level outcomes (", nCov, "), while a full ",
+      "random-effects covariance structure with ", nCov * (nCov + 1) / 2, " parameters is estimated. Results may be unstable ",
+      "and slow to compute. Consider fewer variables, a diagonal random-effects structure (randomEffects = 'chol', ",
+      "lowertri_randomEffects = 'diag'), or - for subjects of a single intensive longitudinal study - ml_var1()/ml_gvar1()."))
+  }
+
   metaData <- do.call(rbind, lapply(seq_along(covs), function(i){
     c(Vech(Sigma0_list[[i]], diag = TRUE), as.vector(Sigma1_list[[i]]))
   }))
