@@ -30,9 +30,10 @@
           <li><a href="varcov.html" class="nav-link">Varcov (GGM)</a></li>
           <li><a href="lvm.html" class="nav-link">LVM (CFA / SEM)</a></li>
           <li><a href="var1.html" class="nav-link">Var1 (time series)</a></li>
-          <li><a href="dlvm1.html" class="nav-link">DLVM1 (panel / RI-CLPM)</a></li>
+          <li><a href="ml_var.html" class="nav-link">Multi-level VAR (ml_var / ml_gvar)</a></li>
+          <li><a href="dlvm1.html" class="nav-link">DLVM (panel / RI-CLPM)</a></li>
           <li><a href="ising.html" class="nav-link">Ising &amp; Blume-Capel</a></li>
-          <li><a href="mllvm.html" class="nav-link">Multi-level (ml_lvm / ml_varcov)</a></li>
+          <li><a href="ml_lvm.html" class="nav-link">Multi-level SEM (ml_lvm / ml_varcov)</a></li>
           <li><a href="meta.html" class="nav-link">Meta-analysis</a></li>
           <li class="dropdown-divider"><a href="robust.html" class="nav-link">Robust &amp; scaled estimation</a></li>
           <li><a href="lavaan.html" class="nav-link">lavaan interoperability</a></li>
@@ -207,7 +208,7 @@ compare(saturated = mod_meta, pruned = mod_meta_pruned)</code></pre>
     <h2>Related Functions: meta_lvm, meta_gvar</h2>
     <ul>
       <li><strong><code>meta_lvm()</code></strong>: single-stage meta-analytic <em>latent variable</em> models &mdash; a CFA/SEM for the pooled correlation/covariance structure combined with a random-effects model for between-study heterogeneity. Supports all standard parameterizations for the latent, residual, and random-effects structures.</li>
-      <li><strong><code>meta_var1()</code> / <code>meta_gvar()</code></strong>: meta-analytic VAR(1) models pooling <em>temporal</em> and <em>contemporaneous</em> network structures across multiple time-series studies. Accepts raw time-series data (<code>data</code> + <code>studyvar</code>) or pre-computed Toeplitz covariance matrices (<code>covs</code> + <code>nobs</code>).</li>
+      <li><strong><code>meta_var()</code> / <code>meta_gvar()</code></strong> (alias <code>meta_var1()</code>): meta-analytic VAR(1) models pooling <em>temporal</em> and <em>contemporaneous</em> network structures across multiple time-series studies. Accepts raw time-series data (<code>data</code> + <code>studyvar</code>) or pre-computed Toeplitz covariance matrices (<code>covs</code> + <code>nobs</code>). Practical limits: the meta-level outcome dimension grows as p(p+1)/2 + p&sup2;, so at most 11 variables are supported (an informative error is given beyond that), and many studies are needed for the default full random-effects structure. When the &ldquo;studies&rdquo; are subjects of a <em>single</em> intensive longitudinal study, use the <a href="ml_var.html">multi-level VAR family</a> (<code>ml_var()</code> / <code>ml_gvar()</code>) instead.</li>
       <li><strong><code>meta_ggm()</code></strong> is shorthand for <code>meta_varcov(..., type = "ggm")</code>.</li>
     </ul>
   </section>

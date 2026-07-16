@@ -32,9 +32,10 @@
           <li><a href="varcov.html" class="nav-link">Varcov (GGM)</a></li>
           <li><a href="lvm.html" class="nav-link">LVM (CFA / SEM)</a></li>
           <li><a href="var1.html" class="nav-link">Var1 (time series)</a></li>
-          <li><a href="dlvm1.html" class="nav-link">DLVM1 (panel / RI-CLPM)</a></li>
+          <li><a href="ml_var.html" class="nav-link">Multi-level VAR (ml_var / ml_gvar)</a></li>
+          <li><a href="dlvm1.html" class="nav-link">DLVM (panel / RI-CLPM)</a></li>
           <li><a href="ising.html" class="nav-link">Ising &amp; Blume-Capel</a></li>
-          <li><a href="mllvm.html" class="nav-link">Multi-level (ml_lvm / ml_varcov)</a></li>
+          <li><a href="ml_lvm.html" class="nav-link">Multi-level SEM (ml_lvm / ml_varcov)</a></li>
           <li><a href="meta.html" class="nav-link">Meta-analysis</a></li>
           <li class="dropdown-divider"><a href="robust.html" class="nav-link">Robust &amp; scaled estimation</a></li>
           <li><a href="lavaan.html" class="nav-link">lavaan interoperability</a></li>
@@ -51,6 +52,8 @@
   <a class="ticker-label" href="whatsnew.html">What&#39;s&nbsp;New</a>
   <div class="ticker-viewport">
     <ul class="ticker-track">
+      <li><a href="whatsnew.html#mlvar"><span class="ticker-version">0.16.7</span> Multi-level VAR &amp; GVAR for ESM data: ml_var() &amp; ml_gvar()</a></li>
+      <li><a href="whatsnew.html#naming"><span class="ticker-version">0.16.7</span> Naming cleanup: dlvm(), tsdlvm(), meta_var() &amp; a new summary() method</a></li>
       <li><a href="whatsnew.html#mlvarcov"><span class="ticker-version">0.16</span> Multi-level variance-covariance &amp; GGM: ml_varcov(), ml_ggm() &amp; ml_corr()</a></li>
       <li><a href="whatsnew.html#robust"><span class="ticker-version">0.16</span> Robust ML: MLM / MLMV / MLMVS / MLR with scaled tests &amp; robust fit indices</a></li>
       <li><a href="whatsnew.html#lavaan"><span class="ticker-version">0.16</span> Interoperability with lavaan: fromlavaan() &amp; tolavaan() converters</a></li>
@@ -66,6 +69,8 @@
       <li><a href="whatsnew.html#mllvm"><span class="ticker-version">0.16</span> Multi-level latent variable models &amp; meta-analytic SEM matured</a></li>
     </ul>
     <ul class="ticker-track" aria-hidden="true">
+      <li><a href="whatsnew.html#mlvar" tabindex="-1"><span class="ticker-version">0.16.7</span> Multi-level VAR &amp; GVAR for ESM data: ml_var() &amp; ml_gvar()</a></li>
+      <li><a href="whatsnew.html#naming" tabindex="-1"><span class="ticker-version">0.16.7</span> Naming cleanup: dlvm(), tsdlvm(), meta_var() &amp; a new summary() method</a></li>
       <li><a href="whatsnew.html#mlvarcov" tabindex="-1"><span class="ticker-version">0.16</span> Multi-level variance-covariance &amp; GGM: ml_varcov(), ml_ggm() &amp; ml_corr()</a></li>
       <li><a href="whatsnew.html#robust" tabindex="-1"><span class="ticker-version">0.16</span> Robust ML: MLM / MLMV / MLMVS / MLR with scaled tests &amp; robust fit indices</a></li>
       <li><a href="whatsnew.html#lavaan" tabindex="-1"><span class="ticker-version">0.16</span> Interoperability with lavaan: fromlavaan() &amp; tolavaan() converters</a></li>
@@ -201,16 +206,22 @@
         <a href="var1.html" class="card-link">Learn more &rarr;</a>
       </div>
       <div class="card">
-        <h3>DLVM1 &amp; Panel Models <span class="badge-new">RI-CLPM</span></h3>
+        <h3>DLVM &amp; Panel Models <span class="badge-new">RI-CLPM</span></h3>
         <p>Dynamic latent variable models for panel data. Decomposes temporal dynamics, within-person contemporaneous relations, and between-person individual differences into separate network structures. Now includes random-intercept cross-lagged panel models.</p>
-        <p><strong>Wrappers:</strong> <code>panelgvar()</code>, <code>panelvar()</code>, <code>ri_clpm()</code>, <code>panellvgvar()</code></p>
+        <p><strong>Wrappers:</strong> <code>dlvm()</code>, <code>panelgvar()</code>, <code>panelvar()</code>, <code>ri_clpm()</code>, <code>panellvgvar()</code></p>
         <a href="dlvm1.html" class="card-link">Learn more &rarr;</a>
       </div>
       <div class="card">
-        <h3>Multi-level Models <span class="badge-new">ml_ggm</span></h3>
+        <h3>Multi-level VAR <span class="badge-new">New</span></h3>
+        <p>Multi-level VAR / graphical VAR for intensive longitudinal (ESM) data: temporal, contemporaneous, and between-persons networks with random intercepts. A fast summary-statistics estimator keeps cost independent of the number of time points.</p>
+        <p><strong>Wrappers:</strong> <code>ml_var()</code>, <code>ml_gvar()</code></p>
+        <a href="ml_var.html" class="card-link">Learn more &rarr;</a>
+      </div>
+      <div class="card">
+        <h3>Multi-level SEM <span class="badge-new">ml_ggm</span></h3>
         <p>Two-level random-intercept models for clustered data (e.g., students in schools), for latent variables (<code>ml_lvm</code>) or observed variables (<code>ml_varcov</code>). Within-cluster and between-cluster structures can each be modeled as networks &mdash; including the multi-level GGM.</p>
         <p><strong>Wrappers:</strong> <code>ml_lvm()</code>, <code>ml_lnm()</code>, <code>ml_rnm()</code>, <code>ml_varcov()</code>, <code>ml_ggm()</code>, <code>ml_corr()</code></p>
-        <a href="mllvm.html" class="card-link">Learn more &rarr;</a>
+        <a href="ml_lvm.html" class="card-link">Learn more &rarr;</a>
       </div>
       <div class="card">
         <h3>Meta-analysis <span class="badge-new">Updated</span></h3>

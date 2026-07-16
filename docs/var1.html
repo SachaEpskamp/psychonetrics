@@ -30,9 +30,10 @@
           <li><a href="varcov.html" class="nav-link">Varcov (GGM)</a></li>
           <li><a href="lvm.html" class="nav-link">LVM (CFA / SEM)</a></li>
           <li><a href="var1.html" class="nav-link">Var1 (time series)</a></li>
-          <li><a href="dlvm1.html" class="nav-link">DLVM1 (panel / RI-CLPM)</a></li>
+          <li><a href="ml_var.html" class="nav-link">Multi-level VAR (ml_var / ml_gvar)</a></li>
+          <li><a href="dlvm1.html" class="nav-link">DLVM (panel / RI-CLPM)</a></li>
           <li><a href="ising.html" class="nav-link">Ising &amp; Blume-Capel</a></li>
-          <li><a href="mllvm.html" class="nav-link">Multi-level (ml_lvm / ml_varcov)</a></li>
+          <li><a href="ml_lvm.html" class="nav-link">Multi-level SEM (ml_lvm / ml_varcov)</a></li>
           <li><a href="meta.html" class="nav-link">Meta-analysis</a></li>
           <li class="dropdown-divider"><a href="robust.html" class="nav-link">Robust &amp; scaled estimation</a></li>
           <li><a href="lavaan.html" class="nav-link">lavaan interoperability</a></li>
@@ -165,7 +166,7 @@
       <li><strong><code>vars</code></strong>: character vector of variable names to include in the model.</li>
       <li><strong><code>dayvar</code></strong>: string indicating the column name for the assessment day. When specified, the first measurement of a day is <em>not</em> regressed on the last measurement of the previous day. Only add this if the data has multiple observations per day.</li>
       <li><strong><code>beepvar</code></strong>: string indicating the column name for the assessment beep number within a day. Non-consecutive beeps are treated as missing.</li>
-      <li><strong><code>idvar</code></strong>: string indicating the column name for subject ID. When multiple subjects are present, their data is concatenated (but each subject's time-series is treated separately for lagging). Note: for proper multi-level modeling with between-subject effects, use <code>panelvar()</code> or <code>panelgvar()</code> instead for datasets with limited repeated measures, and <a href="https://cran.r-project.org/package=mlVAR">mlVAR</a> otherwise.</li>
+      <li><strong><code>idvar</code></strong>: string indicating the column name for subject ID. When multiple subjects are present, their data is concatenated (but each subject's time-series is treated separately for lagging). Note: for proper multi-level modeling with between-subject effects, use <a href="ml_var.html"><code>ml_var()</code> / <code>ml_gvar()</code></a> (which selects between full-information ML via <code>panelvar()</code> for few occasions and a fast summary-statistics estimator for long series), or <a href="https://cran.r-project.org/package=mlVAR">mlVAR</a> for random-effects networks.</li>
     </ul>
 
     <h3>Example Data Structure</h3>
@@ -295,7 +296,7 @@ qgraph(contemporaneous, layout = L, theme = "colorblind", cut = 0,
       When visualizing the PDC matrix with <code>qgraph()</code>, use <code>directed = TRUE</code> and <code>diag = TRUE</code> to display the directed edges and auto-regressive effects.
     </p>
     <div class="tip">
-      <strong>New in 0.16.4:</strong> the PDC can also be <em>modeled directly</em> with <code>var1(..., temporal = "PDC")</code> (also available in <code>panelvar()</code>/<code>panelgvar()</code>, <code>tsdlvm1()</code>, and <code>dlvm1()</code> via <code>temporal_latent</code>/<code>temporal_residual</code>). The <code>PDC</code> parameter matrix encodes from = row, to = column; results are fit-equivalent to the raw parameterization, but standard errors, confidence intervals (<code>CIplot()</code>), modification indices, <code>prune()</code>/<code>stepup()</code>, and cross-group equality constraints (<code>groupequal("PDC")</code>) then apply directly on the PDC scale.
+      <strong>New in 0.16.4:</strong> the PDC can also be <em>modeled directly</em> with <code>var1(..., temporal = "PDC")</code> (also available in <code>panelvar()</code>/<code>panelgvar()</code>, <code>tsdlvm()</code>, and <code>dlvm()</code> via <code>temporal_latent</code>/<code>temporal_residual</code>). The <code>PDC</code> parameter matrix encodes from = row, to = column; results are fit-equivalent to the raw parameterization, but standard errors, confidence intervals (<code>CIplot()</code>), modification indices, <code>prune()</code>/<code>stepup()</code>, and cross-group equality constraints (<code>groupequal("PDC")</code>) then apply directly on the PDC scale.
     </div>
 
     <h3>PCC: Partial Contemporaneous Correlations</h3>
@@ -319,7 +320,7 @@ contemporaneous_network2 <- getmatrix(model, "omega_zeta")</code></pre>
       <li>Use <code>dayvar</code> and <code>beepvar</code> to properly handle ESM data with multiple measurements per day</li>
       <li>Extract standardized networks using <code>getmatrix(model, "PDC")</code> (temporal) and <code>getmatrix(model, "PCC")</code> or <code>getmatrix(model, "omega_zeta")</code> (contemporaneous)</li>
       <li>The same workflow applies: <code>runmodel</code> &rarr; <code>prune</code> &rarr; <code>stepup</code> &rarr; <code>compare</code></li>
-      <li>For multi-subject panel data, see the <a href="dlvm1.html">DLVM1 Family</a> page &mdash; a separate model family with wrappers <code>panelvar()</code>, <code>panelgvar()</code>, <code>dlvm1()</code>, and <code>panellvgvar()</code></li>
+      <li>For multi-subject panel data, see the <a href="dlvm1.html">DLVM Family</a> page (wrappers <code>panelvar()</code>, <code>panelgvar()</code>, <code>dlvm()</code>, and <code>panellvgvar()</code>); for multi-subject intensive longitudinal (ESM) data, see the <a href="ml_var.html">multi-level VAR family</a> (<code>ml_var()</code> / <code>ml_gvar()</code>)</li>
     </ul>
 
     <h3>Next Steps</h3>

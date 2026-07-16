@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="psychonetrics DLVM1 family: dynamic latent variable models for panel data, panel GVAR, and within/between-person network analysis">
-  <title>DLVM1 Family | psychonetrics</title>
+  <title>DLVM Family | psychonetrics</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -30,9 +30,10 @@
           <li><a href="varcov.html" class="nav-link">Varcov (GGM)</a></li>
           <li><a href="lvm.html" class="nav-link">LVM (CFA / SEM)</a></li>
           <li><a href="var1.html" class="nav-link">Var1 (time series)</a></li>
-          <li><a href="dlvm1.html" class="nav-link">DLVM1 (panel / RI-CLPM)</a></li>
+          <li><a href="ml_var.html" class="nav-link">Multi-level VAR (ml_var / ml_gvar)</a></li>
+          <li><a href="dlvm1.html" class="nav-link">DLVM (panel / RI-CLPM)</a></li>
           <li><a href="ising.html" class="nav-link">Ising &amp; Blume-Capel</a></li>
-          <li><a href="mllvm.html" class="nav-link">Multi-level (ml_lvm / ml_varcov)</a></li>
+          <li><a href="ml_lvm.html" class="nav-link">Multi-level SEM (ml_lvm / ml_varcov)</a></li>
           <li><a href="meta.html" class="nav-link">Meta-analysis</a></li>
           <li class="dropdown-divider"><a href="robust.html" class="nav-link">Robust &amp; scaled estimation</a></li>
           <li><a href="lavaan.html" class="nav-link">lavaan interoperability</a></li>
@@ -45,8 +46,8 @@
 </nav>
 
 <div class="page-header container container-narrow">
-  <h1>DLVM1 Family</h1>
-  <p class="subtitle">Dynamic latent variable models for panel data, including RI-CLPM</p>
+  <h1>DLVM Family</h1>
+  <p class="subtitle">Dynamic latent variable models for panel data, including RI-CLPM &mdash; dlvm() / dlvm1()</p>
 </div>
 
 <main class="container container-narrow">
@@ -94,7 +95,7 @@
       <strong>Note:</strong> The <code>dlvm1</code> family is distinct from the <a href="var1.html">var1</a> family. While <code>var1()</code> / <code>gvar()</code> fit a single VAR model to (possibly pooled) time-series data, the <code>dlvm1</code> family properly separates within-person and between-person effects in a multi-level framework.
     </div>
     <div class="warning">
-      <strong>Computational complexity:</strong> The DLVM1 model scales in complexity with the product of the number of variables and the number of time points, because all waves are modeled simultaneously in a single SEM. As a result, models with more than roughly <strong>10 waves</strong> of data can become computationally demanding and slow to fit. For intensive time-series data (many time points per person), consider using <a href="var1.html">var1 / gvar</a> or <a href="https://cran.r-project.org/package=mlVAR">mlVAR</a> instead.
+      <strong>Computational complexity:</strong> The DLVM1 model scales in complexity with the product of the number of variables and the number of time points, because all waves are modeled simultaneously in a single SEM. As a result, models with more than roughly <strong>10 waves</strong> of data can become computationally demanding and slow to fit. For intensive time-series data (many time points per person), consider using <a href="ml_var.html"><code>ml_var()</code> / <code>ml_gvar()</code></a> (multi-level, with a fast summary-statistics estimator), <a href="var1.html">var1 / gvar</a> (single subject or pooled), or <a href="https://cran.r-project.org/package=mlVAR">mlVAR</a> instead.
     </div>
   </section>
 
@@ -275,7 +276,7 @@
     </div>
 
     <div class="note">
-      <strong>Note:</strong> The older function <code>ml_gvar()</code> is deprecated. Use <code>panelgvar()</code> or <code>dlvm1()</code> instead.
+      <strong>Note:</strong> <code>ml_var()</code> / <code>ml_gvar()</code> are no longer dlvm1 wrappers: since 0.16.7 they form their own <a href="ml_var.html">multi-level VAR family</a> for intensive longitudinal (ESM) data. For panel data, use <code>panelgvar()</code>; for latent-variable panel models, <code>dlvm()</code>. Also since 0.16.7, <code>dlvm()</code> is the primary short name of <code>dlvm1()</code> (identical function).
     </div>
   </section>
 

@@ -29,9 +29,10 @@
           <li><a href="varcov.html" class="nav-link">Varcov (GGM)</a></li>
           <li><a href="lvm.html" class="nav-link">LVM (CFA / SEM)</a></li>
           <li><a href="var1.html" class="nav-link">Var1 (time series)</a></li>
-          <li><a href="dlvm1.html" class="nav-link">DLVM1 (panel / RI-CLPM)</a></li>
+          <li><a href="ml_var.html" class="nav-link">Multi-level VAR (ml_var / ml_gvar)</a></li>
+          <li><a href="dlvm1.html" class="nav-link">DLVM (panel / RI-CLPM)</a></li>
           <li><a href="ising.html" class="nav-link">Ising &amp; Blume-Capel</a></li>
-          <li><a href="mllvm.html" class="nav-link">Multi-level (ml_lvm / ml_varcov)</a></li>
+          <li><a href="ml_lvm.html" class="nav-link">Multi-level SEM (ml_lvm / ml_varcov)</a></li>
           <li><a href="meta.html" class="nav-link">Meta-analysis</a></li>
           <li class="dropdown-divider"><a href="robust.html" class="nav-link">Robust &amp; scaled estimation</a></li>
           <li><a href="lavaan.html" class="nav-link">lavaan interoperability</a></li>
@@ -57,6 +58,8 @@
   <div class="toc">
     <h4>On this page</h4>
     <ol>
+      <li><a href="#mlvar">0.16.7 &mdash; Multi-level VAR &amp; GVAR for ESM data: ml_var() &amp; ml_gvar()</a></li>
+      <li><a href="#naming">0.16.7 &mdash; Naming cleanup, summary() method &amp; meta-model guards</a></li>
       <li><a href="#mlvarcov">0.16 &mdash; Multi-level variance-covariance &amp; GGM: ml_varcov(), ml_ggm() &amp; ml_corr()</a></li>
       <li><a href="#samplingweights">0.16.5 &mdash; Sampling weights (pseudo-ML) for complex survey data</a></li>
       <li><a href="#pdctemporal">0.16.4 &mdash; Model the PDC (standardized temporal network) directly</a></li>
@@ -77,10 +80,46 @@
     </ol>
   </div>
 
+  <!-- ===================== 0.16.7 ml_var / ml_gvar ===================== -->
+  <div class="whatsnew-item" id="mlvar">
+    <h2>Multi-level VAR &amp; GVAR for ESM data: ml_var() &amp; ml_gvar() <span class="version-tag">0.16.7</span></h2>
+    <p class="whatsnew-meta">July 2026 &mdash; experimental; see the <a href="ml_var.html">multi-level VAR page</a></p>
+    <p>
+      A new model family estimates the <strong>multi-level (random intercept) VAR</strong> for intensive longitudinal / experience-sampling data: <code>ml_gvar()</code> yields the three multi-level GVAR networks &mdash; the <strong>temporal</strong> network (<code>beta</code> / <code>PDC</code>), the <strong>contemporaneous</strong> network (<code>omega_zeta_within</code>) and the <strong>between-persons</strong> network (<code>omega_zeta_between</code>) &mdash; with confirmatory model tests, model search, and multi-group support. The input mirrors the mlVAR package (<code>idvar</code>, <code>dayvar</code>, <code>beepvar</code>).
+    </p>
+    <pre><code class="language-r">mod <- ml_gvar(Data, vars = vars, idvar = "id", dayvar = "day", beepvar = "beep") %>%
+  runmodel
+
+mod %>% summary                              # incl. AIC / BIC
+getmatrix(mod, "PDC")                        # temporal network
+getmatrix(mod, "omega_zeta_within")          # contemporaneous network
+getmatrix(mod, "omega_zeta_between")         # between-persons network</code></pre>
+    <p>
+      Two estimators are available. The two-level <strong>summary-statistics pseudo-ML</strong> (<code>estimator = "ML"</code>) compresses each subject's series once into two-level sufficient statistics, so its cost is independent of the number of time points &mdash; the right choice for long ESM series. <code>estimator = "FIML"</code> instead routes to the <a href="dlvm1.html">panelvar framework</a> for exact full-information ML on short (panel-like) occasion grids. The default <code>estimator = "auto"</code> picks between them at 10 occasions per subject and prints its choice. Estimates closely track both <code>panelvar()</code> and <code>mlVAR()</code> on the same data; see the <a href="ml_var.html#caveats">statistical caveats</a> for the pseudo-likelihood fine print.
+    </p>
+  </div>
+
+  <!-- ===================== 0.16.7 naming cleanup ===================== -->
+  <div class="whatsnew-item" id="naming">
+    <h2>Naming cleanup, summary() method &amp; meta-model guards <span class="version-tag">0.16.7</span></h2>
+    <p class="whatsnew-meta">July 2026</p>
+    <p>
+      The plain names are now the primary names of several model families; the historical <code>*1</code> names (the &ldquo;1&rdquo; referred to the lag order) remain fully supported aliases, so all existing code keeps working:
+    </p>
+    <ul>
+      <li><code>dlvm()</code> = <code>dlvm1()</code>, <code>tsdlvm()</code> = <code>tsdlvm1()</code>, <code>meta_var()</code> = <code>meta_var1()</code>, and <code>ml_var()</code> / <code>ml_gvar()</code> = <code>ml_var1()</code> / <code>ml_gvar1()</code>.</li>
+      <li><code>var1()</code> / <code>gvar()</code> are unchanged: exporting <code>var()</code> would mask <code>stats::var</code>.</li>
+      <li><code>within</code> / <code>between</code> are now the preferred argument names for the contemporaneous and between-person structures in the latent-free frameworks <code>panelvar()</code> and <code>ml_var()</code>; the <code>*_latent</code> names remain accepted everywhere.</li>
+    </ul>
+    <p>
+      In addition, psychonetrics models gained a <code>summary()</code> method (the print output extended with log-likelihood, number of parameters, AIC, BIC, RMSEA, CFI and TLI &mdash; previously <code>summary()</code> silently fell through to the useless S4 default), and <code>meta_var()</code> / <code>meta_gvar()</code> now fail early with an informative error when more than 11 variables are used (the meta-level outcome dimension grows as p(p+1)/2 + p&sup2;, which exceeds internal limits beyond that) and warn when the number of studies is smaller than the number of meta-level outcomes. For subjects of a single intensive longitudinal study, <a href="ml_var.html"><code>ml_var()</code> / <code>ml_gvar()</code></a> is the recommended tool instead.
+    </p>
+  </div>
+
   <!-- ===================== 0.16 ml_varcov / ml_ggm ===================== -->
   <div class="whatsnew-item" id="mlvarcov">
     <h2>Multi-level variance-covariance &amp; GGM: ml_varcov(), ml_ggm() &amp; ml_corr() <span class="version-tag">0.16</span></h2>
-    <p class="whatsnew-meta">July 2026 &mdash; see the <a href="mllvm.html#mlvarcov">multi-level page</a></p>
+    <p class="whatsnew-meta">July 2026 &mdash; see the <a href="ml_lvm.html#mlvarcov">multi-level page</a></p>
     <p>
       A new framework brings the <a href="varcov.html">varcov family</a> to two-level (clustered) data. <code>ml_varcov()</code> models the <strong>within-cluster</strong> and <strong>between-cluster</strong> variance&ndash;covariance matrices directly &mdash; with no latent layer &mdash; supporting the same two estimators as <code>ml_lvm()</code>: the fast sufficient-statistics two-level ML estimator (cost independent of cluster size) and wide-format FIML for missing data. Each level can independently take any of the five varcov parameterizations (<code>cov</code>, <code>chol</code>, <code>prec</code>, <code>ggm</code>, <code>cor</code>) through the <code>within</code> and <code>between</code> arguments. The headline wrapper is <code>ml_ggm()</code>, the <strong>multi-level Gaussian graphical model</strong>, which estimates a within- and a between-cluster partial-correlation network simultaneously; <code>ml_corr()</code> gives the correlation-matrix version.
     </p>
@@ -203,7 +242,7 @@ mod_mlr %>% fit</code></pre>
   <!-- ===================== 0.16 two-level ML ===================== -->
   <div class="whatsnew-item" id="mlml">
     <h2>Fast multilevel SEM: two-level ML for ml_lvm() <span class="version-tag">0.16</span></h2>
-    <p class="whatsnew-meta">June 2026 &mdash; <strong>experimental</strong> &mdash; see the <a href="mllvm.html#estimator">multi-level page</a></p>
+    <p class="whatsnew-meta">June 2026 &mdash; <strong>experimental</strong> &mdash; see the <a href="ml_lvm.html#estimator">multi-level page</a></p>
     <p>
       <code>ml_lvm()</code> gains a sufficient-statistics <strong>two-level ML estimator</strong> (<code>estimator = "ML"</code>; McDonald &amp; Goldstein, 1989; Muthen, 1990). It optimizes the numerically identical objective as the wide-format FIML estimator but is dramatically faster for models with large clusters, with full C++ standard errors and modification indices. The two are the same exact likelihood computed two ways (not an approximation, and not the pseudo-balanced &ldquo;MUML&rdquo;); the <code>"ML"</code>/<code>"FIML"</code> labels denote the computational route &mdash; summary statistics versus row by row, as elsewhere in psychonetrics &mdash; and both can handle within-cluster missing data (MCAR/MAR). The <code>estimator</code> argument now defaults to <code>"default"</code>, which selects <code>"ML"</code> for complete data with the largest cluster &gt; 5 units and <code>"FIML"</code> otherwise; explicit <code>estimator = "FIML"</code> reproduces previous results exactly.
     </p>
@@ -467,7 +506,7 @@ mod_refit <- mod_pml %>% refit</code></pre>
   <!-- ===================== ml_lvm + meta frameworks ===================== -->
   <div class="whatsnew-item" id="mllvm">
     <h2>Multi-level &amp; meta-analytic frameworks matured <span class="version-tag">0.16</span></h2>
-    <p class="whatsnew-meta">See the new <a href="mllvm.html">multi-level</a> and <a href="meta.html">meta-analysis</a> pages</p>
+    <p class="whatsnew-meta">See the new <a href="ml_lvm.html">multi-level</a> and <a href="meta.html">meta-analysis</a> pages</p>
     <p>
       The multi-level latent variable model <code>ml_lvm()</code> &mdash; a two-level random-intercept model decomposing within-cluster and between-cluster structures &mdash; received important correctness fixes in this series: the latent intercepts are now properly identified (0.16; standard errors and degrees of freedom were affected, estimates were not), the analytic Jacobian includes the previously omitted mean derivative with respect to the between-level regressions (0.16), and variable-name matching and incomplete-design handling were hardened (0.16).
     </p>
