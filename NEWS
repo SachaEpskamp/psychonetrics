@@ -1,4 +1,22 @@
 Changes in Version 0.16.7
+  o Naming cleanup: the plain names are now the primary names of several model
+    families, with the historical *1 names (the "1" referred to the lag order;
+    no lag-2 frameworks are planned) remaining fully supported aliases:
+    dlvm() = dlvm1(), tsdlvm() = tsdlvm1(), meta_var() = meta_var1(), and
+    ml_var()/ml_gvar() = ml_var1()/ml_gvar1() (see below). var1() and gvar()
+    are unchanged: exporting var() would mask stats::var, and "var1" reads
+    naturally as VAR(1). In addition, 'within' and 'between' are now the
+    preferred argument names for the contemporaneous and between-person
+    structures in the latent-free frameworks panelvar() and ml_var()
+    (ml_var1() now accepts them too); the *_latent names remain accepted
+    everywhere.
+  o ml_var()/ml_gvar()/ml_var1()/ml_gvar1() default to estimator = "auto":
+    full-information ML (through the panelvar framework) when the
+    measurement-occasion grid has at most 10 occasions per subject - the
+    panel-data regime, matching the behavior (and estimates) of ml_var() in
+    psychonetrics 0.15 - and the two-level summary-statistics pseudo-ML for
+    longer series, where full-information ML is infeasible. A message states
+    which estimator was selected; set 'estimator' explicitly to override.
   o ml_var1()/ml_gvar1() now support estimator = "FIML": the model is dispatched
     to the panelvar() framework, with the measurement occasions (idvar / dayvar /
     beepvar) mapped to the waves of a panel model, so the exact multi-level
@@ -10,10 +28,10 @@ Changes in Version 0.16.7
   o ml_var() and ml_gvar() are now aliases for ml_var1() and ml_gvar1() (their
     'contemporaneous' and 'between' arguments map to 'within_latent' and
     'between_latent'). They were deprecated wrappers around dlvm1() with
-    estimator = "FIML"; note that their default estimator hence changed to the
-    much faster summary-statistics estimator ("ML"). The previous behavior is
-    available with estimator = "FIML". ml_tsdlvm1() and ml_ts_lvgvar() (the
-    latent versions) remain deprecated wrappers for dlvm1().
+    estimator = "FIML"; the new default estimator = "auto" (see above) keeps
+    the 0.15 behavior for panel-like data and switches to the summary-
+    statistics estimator for longer series. ml_tsdlvm1() and ml_ts_lvgvar()
+    (the latent versions) remain deprecated wrappers for dlvm1().
   o Added a summary() method for psychonetrics models: the print output extended
     with the main fit measures (log-likelihood, number of parameters, AIC, BIC,
     RMSEA, CFI, TLI). Previously summary() silently fell through to the default

@@ -1,11 +1,13 @@
-# ml_var / ml_gvar: multi-level VAR / graphical VAR wrappers.
+# ml_var / ml_gvar: the primary names of the multi-level VAR / graphical VAR
+# family (ml_var1/ml_gvar1 are identical and remain fully supported).
 #
-# Historically these were wrappers around dlvm1() (full-information ML with
-# every measurement occasion treated as a wave). As of 0.16.7 they are aliases
-# for the dedicated multi-level VAR framework ml_var1() / ml_gvar1(), which
-# estimates the same model much faster through two-level sufficient statistics
-# (estimator = "ML", the default). The previous full-information behavior is
-# available with estimator = "FIML", which routes to the panelvar framework.
+# Historically (<= 0.15) these were wrappers around dlvm1() (full-information
+# ML with every measurement occasion treated as a wave). As of 0.16.7 they are
+# aliases for ml_var1() / ml_gvar1(), whose default estimator = "auto" keeps
+# the 0.15 behavior for short (<= 10 occasions, panel-like) series - via the
+# faster panelvar framework, with identical estimates - and switches to the
+# two-level summary-statistics pseudo-ML for longer (ESM-like) series where
+# full-information ML is infeasible.
 #
 # ml_ts_lvgvar (latent version) remains a deprecated wrapper for dlvm1().
 

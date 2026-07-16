@@ -59,21 +59,40 @@ ml_var1 <- function(
   mu,
   equal = "none",
   baseline_saturated = TRUE,
-  estimator = "ML",
+  estimator = c("auto","ML","FIML"),
   optimizer,
   storedata = FALSE,
   standardize = c("none","z","quantile"),
   sampleStats,
   verbose = FALSE,
-  toeplitz = TRUE                         # INTERNAL: FALSE = free-within saturated mode
+  toeplitz = TRUE,                        # INTERNAL: FALSE = free-within saturated mode
+  within,                                 # alias for within_latent (no latents here)
+  between                                 # alias for between_latent (no latents here)
 ){
   # Experimental flag (fires once per session, unconditional of verbose):
   experimentalWarning("ml_var1 multi-level VAR pseudo-ML estimator")
+
+  # Handle 'within' and 'between' aliases for within_latent and between_latent:
+  if (!missing(within)){
+    if (!missing(within_latent) && !identical(within_latent, eval(formals(ml_var1)$within_latent))){
+      warning("Both 'within' and 'within_latent' were specified; using 'within_latent'.")
+    } else {
+      within_latent <- within
+    }
+  }
+  if (!missing(between)){
+    if (!missing(between_latent) && !identical(between_latent, eval(formals(ml_var1)$between_latent))){
+      warning("Both 'between' and 'between_latent' were specified; using 'between_latent'.")
+    } else {
+      between_latent <- between
+    }
+  }
 
   # Match args:
   within_latent <- match.arg(within_latent)
   between_latent <- match.arg(between_latent)
   standardize <- match.arg(standardize)
+  estimator <- match.arg(estimator)
 
   # CRAN check workarounds:
   . <- NULL
@@ -83,17 +102,27 @@ ml_var1 <- function(
   if (!missing(groupvar) && !is.null(groupvar)) groups <- groupvar
 
   # -----------------------------------------------------------------------
-  # estimator = "FIML": dispatch to the panelvar framework. The measurement
+  # Estimator resolution. "auto" chooses "FIML" for short (panel-like) series
+  # (at most 10 measurement occasions per subject) and the two-level
+  # summary-statistics pseudo-ML ("ML") otherwise, with a message.
+  #
+  # estimator = "FIML" dispatches to the panelvar framework: the measurement
   # occasions (day/beep) become the waves of a panel model, so the exact
   # multi-level VAR(1) likelihood is optimized with full-information ML
   # (missing responses and missed beeps are handled by FIML; a night gap is
   # bridged by an all-missing occasion between days). This is exact but much
-  # slower than the default two-level pseudo-ML estimator ("ML"):
+  # slower than the two-level pseudo-ML estimator ("ML"), and its cost grows
+  # with the number of occasions.
   # -----------------------------------------------------------------------
-  if (identical(estimator, "FIML")){
-    if (!missing(sampleStats)){
+  if (estimator %in% c("auto","FIML") && !missing(sampleStats)){
+    # Internal recursive calls (baseline/saturated) always use "ML":
+    if (estimator == "FIML"){
       stop("Internal error: estimator = 'FIML' cannot be combined with 'sampleStats' in ml_var1.")
     }
+    estimator <- "ML"
+  }
+
+  if (estimator %in% c("auto","FIML")){
     if (missing(idvar) || is.null(idvar)){
       stop("'idvar' may not be missing for ml_var1 (use var1() for single-level time-series models).")
     }
@@ -102,9 +131,6 @@ ml_var1 <- function(
 
     if (missing(dayvar)) dayvar <- NULL
     if (missing(beepvar)) beepvar <- NULL
-    if (missing(vars) || is.null(vars)){
-      vars <- setdiff(names(data), c(idvar, dayvar, beepvar, groups))
-    }
 
     # Combined measurement-occasion index (>= 1, integer). Consecutive beeps
     # within a day are consecutive occasions; days are separated by one
@@ -128,6 +154,28 @@ ml_var1 <- function(
       occasion <- (day - 1) * (nBeep + 1) + beep
     } else {
       occasion <- beep
+    }
+
+    # Resolve "auto" based on the occasion-grid length:
+    if (estimator == "auto"){
+      nOcc <- max(occasion)
+      if (nOcc <= 10){
+        estimator <- "FIML"
+        expl <- " <= 10: full-information ML through the panelvar framework)."
+      } else {
+        estimator <- "ML"
+        expl <- " > 10: two-level summary-statistics pseudo-ML)."
+      }
+      message(paste0(
+        "estimator = 'auto': using estimator = '", estimator,
+        "' (measurement-occasion grid of length ", nOcc, expl,
+        " Set 'estimator' explicitly to override."))
+    }
+  }
+
+  if (identical(estimator, "FIML")){
+    if (missing(vars) || is.null(vars)){
+      vars <- setdiff(names(data), c(idvar, dayvar, beepvar, groups))
     }
     data[[".occasion_ml_var1"]] <- occasion
 

@@ -1,5 +1,6 @@
 \name{dlvm1}
 \alias{dlvm1}
+\alias{dlvm}
 \alias{panel_lvgvar}
 \alias{panellvgvar}
 %- Also NEED an '\alias' for EACH other topic documented here.
@@ -7,7 +8,7 @@
 Lag-1 dynamic latent variable model family of psychonetrics models for panel data
 }
 \description{
-This is the family of models that models a dynamic factor model on panel data. All functions accept both wide-format data (with a design matrix for \code{vars}) and long-format data (with a character vector for \code{vars} plus \code{idvar} and optionally \code{beepvar}). The format is auto-detected from the type of \code{vars}. There are four covariance structures that can be modeled in different ways: \code{within_latent}, \code{between_latent} for the within-person and between-person latent (contemporaneous) models respectively, and \code{within_residual}, \code{between_residual} for the within-person and between-person residual models respectively. The \code{panellvgvar} wrapper automatically models all latent networks as GGMs. The old name \code{panel_lvgvar} is deprecated in favor of \code{panellvgvar}. The observed-variable special case of this family (a factor loading matrix fixed to identity and zero residual variances) is the panel VAR model, implemented as its own faster framework in \code{\link{panelvar}} and \code{\link{panelgvar}}.
+This is the family of models that models a dynamic factor model on panel data. All functions accept both wide-format data (with a design matrix for \code{vars}) and long-format data (with a character vector for \code{vars} plus \code{idvar} and optionally \code{beepvar}). The format is auto-detected from the type of \code{vars}. There are four covariance structures that can be modeled in different ways: \code{within_latent}, \code{between_latent} for the within-person and between-person latent (contemporaneous) models respectively, and \code{within_residual}, \code{between_residual} for the within-person and between-person residual models respectively. The \code{panellvgvar} wrapper automatically models all latent networks as GGMs. The old name \code{panel_lvgvar} is deprecated in favor of \code{panellvgvar}. \code{dlvm()} is the primary short name of \code{dlvm1()} (identical function; the historical "1" referred to the lag order). The observed-variable special case of this family (a factor loading matrix fixed to identity and zero residual variances) is the panel VAR model, implemented as its own faster framework in \code{\link{panelvar}} and \code{\link{panelgvar}}.
 }
 \usage{
 dlvm1(data, vars, datatype = c("auto", "wide", "long"),
@@ -52,6 +53,8 @@ dlvm1(data, vars, datatype = c("auto", "wide", "long"),
                    temporal_latent = c("raw","PDC"),
                    temporal_residual = c("raw","PDC"),
                    PDC = "full", PDC_epsilon = "zero")
+
+dlvm(...)
 
 panellvgvar(...)
 

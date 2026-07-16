@@ -1,11 +1,12 @@
 \name{meta_var1}
 \alias{meta_var1}
+\alias{meta_var}
 \alias{meta_gvar}
 \title{
 Meta-analytic VAR(1) model
 }
 \description{
-Single-stage meta-analytic vector autoregressive model (VAR(1)) for time-series data collected across multiple studies. Pools temporal (lag-1) and contemporaneous network structures across studies using a random-effects framework. The \code{meta_gvar} wrapper sets \code{contemporaneous = "ggm"} for graphical VAR estimation.
+Single-stage meta-analytic vector autoregressive model (VAR(1)) for time-series data collected across multiple studies. Pools temporal (lag-1) and contemporaneous network structures across studies using a random-effects framework. The \code{meta_gvar} wrapper sets \code{contemporaneous = "ggm"} for graphical VAR estimation, and \code{meta_var()} is the primary short name of \code{meta_var1()} (identical function).
 }
 \usage{
 meta_var1(data, covs, nobs,
@@ -31,6 +32,8 @@ meta_var1(data, covs, nobs,
           estimator = c("FIML", "ML"),
           sampleStats, verbose = FALSE,
           bootstrap = FALSE, boot_sub, boot_resample)
+
+meta_var(...)
 
 meta_gvar(...)
 }

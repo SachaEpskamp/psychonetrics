@@ -52,10 +52,10 @@ A data frame encoding the data used in the analysis. Can be missing if \code{cov
 For wide-format data, this must be a *matrix* with each row indicating a variable and each column indicating a measurement. The matrix must be filled with names of the variables in the dataset corresponding to variable i at wave j. NAs can be used to indicate missing waves. The rownames of this matrix will be used as variable names. For long-format data, this should be a character vector of variable names in the dataset.
 }
   \item{within_latent}{
-The type of within-person contemporaneous model to be used.
+The type of within-person contemporaneous model to be used. Since there are no latent variables in panelvar, the shorter alias \code{within} is preferred.
 }
   \item{between_latent}{
-The type of between-person model to be used.
+The type of between-person model to be used. Since there are no latent variables in panelvar, the shorter alias \code{between} is preferred.
 }
   \item{datatype}{
 Data format: \code{"auto"} (default) auto-detects based on whether \code{vars} is a matrix (wide) or character vector (long). \code{"wide"} forces wide-format interpretation. \code{"long"} forces long-format interpretation with automatic reshape to wide.
@@ -165,10 +165,10 @@ Proportion of cases to be subsampled (\code{round(boot_sub * N)}).
 Logical, should the bootstrap be with replacement (\code{TRUE}) or without replacement (\code{FALSE})
 }
 \item{within}{
-Optional alias for \code{within_latent}. If both \code{within} and \code{within_latent} are explicitly specified, \code{within_latent} takes precedence and a warning is issued.
+Preferred name for \code{within_latent} (there are no latent variables in panelvar). If both \code{within} and \code{within_latent} are explicitly specified, \code{within_latent} takes precedence and a warning is issued.
 }
 \item{between}{
-Optional alias for \code{between_latent}. If both \code{between} and \code{between_latent} are explicitly specified, \code{between_latent} takes precedence and a warning is issued.
+Preferred name for \code{between_latent} (there are no latent variables in panelvar). If both \code{between} and \code{between_latent} are explicitly specified, \code{between_latent} takes precedence and a warning is issued.
 }
 \item{penalty_lambda}{Numeric penalty strength for penalized ML estimation (PML/PFIML). \code{NA} (default) triggers automatic selection via EBIC-based grid search when a penalized estimator is used; set to a specific numeric value to use a fixed penalty strength (0 = no penalty). See \code{\link{find_penalized_lambda}} and \code{\link{penalize}}.}
 \item{penalty_alpha}{Elastic net mixing parameter: 1 = LASSO (default), 0 = ridge.}

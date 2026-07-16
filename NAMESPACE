@@ -60,6 +60,7 @@ export(ml_lrnm)
 export(meta_varcov)
 export(meta_lvm)
 export(meta_var1)
+export(meta_var)
 export(meta_gvar)
 
 # Ergodic:
@@ -119,6 +120,7 @@ export(gvar)
 
 # Panel var models:
 export(dlvm1)
+export(dlvm)
 export(panelvar)
 export(panelgvar)
 export(panel_lvgvar)
@@ -127,6 +129,7 @@ export(panellvgvar)
 # Time-series lvvar models:
 export(ts_lvgvar)
 export(tsdlvm1)
+export(tsdlvm)
 
 # extra:
 # export(joingroups)

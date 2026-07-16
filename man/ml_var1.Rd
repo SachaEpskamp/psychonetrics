@@ -27,13 +27,17 @@ intensive longitudinal / experience-sampling (ESM) data, where the number of rep
 measures per subject is large and the full-likelihood \code{panelvar} route is
 infeasible. See Details for the estimator and its statistical caveats.
 
-The legacy names \code{ml_var} and \code{ml_gvar} (which in earlier versions of
-psychonetrics were wrappers around \code{\link{dlvm1}} with
-\code{estimator = "FIML"}) are now aliases for \code{ml_var1} and \code{ml_gvar1},
-with the old argument names \code{contemporaneous} and \code{between} mapped to
-\code{within_latent} and \code{between_latent}. Note that their default estimator
-therefore changed to the (much faster) summary-statistics estimator; the previous
-full-information behavior is available with \code{estimator = "FIML"}.
+\code{ml_var} and \code{ml_gvar} are the primary names of this family
+(\code{ml_var1} / \code{ml_gvar1} are identical and remain fully supported; the
+historical "1" referred to the lag order). In psychonetrics 0.15 \code{ml_var} /
+\code{ml_gvar} were wrappers around \code{\link{dlvm1}} with
+\code{estimator = "FIML"}; the default \code{estimator = "auto"} reproduces that
+behavior for short (panel-like) measurement-occasion grids (at most 10 occasions,
+now through the faster \code{\link{panelvar}} framework with identical estimates)
+and uses the two-level summary-statistics estimator for longer (ESM-like) series,
+where full-information ML is not feasible. Their argument names
+\code{contemporaneous} and \code{between} are mapped to \code{within_latent} and
+\code{between_latent}.
 
 \strong{This estimator is experimental} (a message is shown once per session).
 }
@@ -50,10 +54,12 @@ ml_var1(data, idvar, vars, dayvar, beepvar, groups, groupvar,
         kappa_zeta_between = "full", sigma_zeta_between = "full",
         lowertri_zeta_between = "full", rho_zeta_between = "full",
         SD_zeta_between = "full",
-        mu, equal = "none", baseline_saturated = TRUE, estimator = "ML",
+        mu, equal = "none", baseline_saturated = TRUE,
+        estimator = c("auto", "ML", "FIML"),
         optimizer, storedata = FALSE,
         standardize = c("none", "z", "quantile"),
-        sampleStats, verbose = FALSE, toeplitz = TRUE)
+        sampleStats, verbose = FALSE, toeplitz = TRUE,
+        within, between)
 
 ml_gvar1(..., within_latent = "ggm", between_latent = "ggm")
 
@@ -147,7 +153,7 @@ A character vector indicating which matrices should be constrained equal across 
 A logical indicating if the baseline and saturated model should be included. Mostly used internally and NOT recommended to be used manually.
 }
   \item{estimator}{
-The estimator to be used. \code{"ML"} (default) uses the two-level summary-statistics pseudo maximum likelihood described in Details. \code{"FIML"} dispatches to the \code{\link{panelvar}} framework: the measurement occasions become the waves of a panel model that is estimated with full-information maximum likelihood (missing responses and missed beeps are handled by FIML; a night break, when \code{dayvar} is used, is bridged by one structurally missing occasion, so the model links the last beep of a day to the first beep of the next day through two VAR steps). The FIML route is exact but its cost grows with the number of measurement occasions, so it is only feasible for a modest number of occasions per subject.
+The estimator to be used. The default \code{"auto"} selects \code{"FIML"} when the measurement-occasion grid is short (at most 10 occasions per subject, the panel-data regime, where full-information ML is feasible and matches the behavior of \code{ml_var} in psychonetrics 0.15) and \code{"ML"} otherwise, with a message stating the choice. \code{"ML"} uses the two-level summary-statistics pseudo maximum likelihood described in Details. \code{"FIML"} dispatches to the \code{\link{panelvar}} framework: the measurement occasions become the waves of a panel model that is estimated with full-information maximum likelihood (missing responses and missed beeps are handled by FIML; a night break, when \code{dayvar} is used, is bridged by one structurally missing occasion, so the model links the last beep of a day to the first beep of the next day through two VAR steps). The FIML route is exact but its cost grows with the number of measurement occasions, so it is only feasible for a modest number of occasions per subject.
 }
   \item{optimizer}{
 The optimizer to be used. Can be one of \code{"nlminb"} (the default R \code{nlminb} function), \code{"ucminf"}, \code{"nloptr_TNEWTON"}, and \code{"LBFGS++"}.
@@ -170,11 +176,14 @@ Internal. If \code{TRUE} (default) the stationary Toeplitz VAR(1) within structu
 \item{\dots}{
 Arguments sent to \code{ml_var1} (used by \code{ml_gvar1}, \code{ml_var} and \code{ml_gvar}).
 }
-  \item{contemporaneous}{
-Alias for \code{within_latent}, used by the legacy names \code{ml_var} and \code{ml_gvar}.
+  \item{within}{
+Alias for \code{within_latent} (there are no latent variables in this model, so the shorter name is preferred).
 }
   \item{between}{
-Alias for \code{between_latent}, used by the legacy names \code{ml_var} and \code{ml_gvar}.
+Alias for \code{between_latent}; also the name used by \code{ml_var} and \code{ml_gvar} since psychonetrics 0.15.
+}
+  \item{contemporaneous}{
+Alias for \code{within_latent}, used by \code{ml_var} and \code{ml_gvar} (matching the \code{mlVAR} package).
 }
 }
 \details{

@@ -1,12 +1,13 @@
 \name{tsdlvm1}
 \alias{tsdlvm1}
+\alias{tsdlvm}
 \alias{ts_lvgvar}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 Lag-1 dynamic latent variable model family of psychonetrics models for time-series data
 }
 \description{
-This is the family of models that models a dynamic factor model on time-series. There are two covariance structures that can be modeled in different ways: \code{contemporaneous} for the contemporaneous model and \code{residual} for the residual model. These can be set to \code{"cov"} for covariances, \code{"prec"} for a precision matrix, \code{"ggm"} for a Gaussian graphical model and \code{"chol"} for a Cholesky decomposition. The \code{ts_lvgvar} wrapper function sets \code{contemporaneous = "ggm"} for the graphical VAR model.
+This is the family of models that models a dynamic factor model on time-series. There are two covariance structures that can be modeled in different ways: \code{contemporaneous} for the contemporaneous model and \code{residual} for the residual model. These can be set to \code{"cov"} for covariances, \code{"prec"} for a precision matrix, \code{"ggm"} for a Gaussian graphical model and \code{"chol"} for a Cholesky decomposition. The \code{ts_lvgvar} wrapper function sets \code{contemporaneous = "ggm"} for the graphical VAR model. \code{tsdlvm()} is the primary short name of \code{tsdlvm1()} (identical function; the historical "1" referred to the lag order).
 }
 \usage{
 tsdlvm1(data, lambda, contemporaneous = c("cov", "chol",
@@ -30,6 +31,9 @@ tsdlvm1(data, lambda, contemporaneous = c("cov", "chol",
                    rho_zeta = "full", SD_zeta = "diag",
                    rho_epsilon = "zero", SD_epsilon = "diag",
                    temporal = c("raw","PDC"), PDC = "full")
+
+
+tsdlvm(...)
 
 ts_lvgvar(...)
 }
