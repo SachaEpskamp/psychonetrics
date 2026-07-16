@@ -132,8 +132,13 @@ CIplot <- function(
         "beta",
         covchooser(x@types$zeta,"zeta")
       )
-      
-      
+
+    } else if (x@model == "ml_varcov"){
+      matrices <- c(
+        covchooser(x@types$within,"within"),
+        covchooser(x@types$between,"between")
+      )
+
     }  else if (x@model %in% c("Ising", "BlumeCapel")){
       matrices <- c("omega")
       

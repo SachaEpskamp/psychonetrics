@@ -17,6 +17,7 @@ impliedModel <- function(model, types, all = FALSE){
                      "Ising" = ,
                      "BlumeCapel" = implied_Ising_cpp, # <- Updated!
                      "ml_lvm" = implied_ml_lvm_cpp, # <- Updated!
+                     "ml_varcov" = implied_ml_varcov_cpp,
                      "meta_lvm" = implied_meta_lvm_cpp,
                      "meta_var1" = implied_meta_var1_cpp
     )
@@ -30,6 +31,7 @@ impliedModel <- function(model, types, all = FALSE){
                      "dlvm1" = implied_dlvm1,
                      "panelvar" = implied_panelvar,
                      "ml_var1" = implied_ml_var1,
+                     "ml_varcov" = implied_ml_varcov,
                      "tsdlvm1" = implied_tsdlvm1,
                      "meta_varcov" = implied_meta_varcov,
                      "Ising" = ,

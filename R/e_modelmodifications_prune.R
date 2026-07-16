@@ -142,6 +142,30 @@ prune <- function(
         matrices <- c(matrices,"omega_zeta_between")
       }
 
+    } else if (x@model == "ml_varcov"){
+      matrices <- character(0)
+      if (x@types$within == "prec"){
+        matrices <- c(matrices,"kappa_within")
+      } else if (x@types$within == "ggm"){
+        matrices <- c(matrices,"omega_within")
+      } else if (x@types$within == "cor"){
+        matrices <- c(matrices,"rho_within")
+      } else if (x@types$within == "chol"){
+        matrices <- c(matrices,"lowertri_within")
+      } else {
+        matrices <- c(matrices,"sigma_within")
+      }
+      if (x@types$between == "prec"){
+        matrices <- c(matrices,"kappa_between")
+      } else if (x@types$between == "ggm"){
+        matrices <- c(matrices,"omega_between")
+      } else if (x@types$between == "cor"){
+        matrices <- c(matrices,"rho_between")
+      } else if (x@types$between == "chol"){
+        matrices <- c(matrices,"lowertri_between")
+      } else {
+        matrices <- c(matrices,"sigma_between")
+      }
     } else if (x@model == "ml_var1"){
       matrices <- c("beta")
       if (x@types$within_latent == "prec"){

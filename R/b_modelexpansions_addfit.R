@@ -29,6 +29,7 @@ build_Delta_full <- function(x){
       "meta_varcov" = d_phi_theta_meta_varcov_cpp,
       "Ising" = ,
       "BlumeCapel" = d_phi_theta_Ising_cpp,
+      "ml_varcov" = d_phi_theta_ml_varcov_cpp,
       "ml_lvm" = d_phi_theta_ml_lvm_cpp,
       "meta_lvm" = d_phi_theta_meta_lvm_cpp,
       "meta_var1" = d_phi_theta_meta_var1_cpp
@@ -42,6 +43,7 @@ build_Delta_full <- function(x){
       "dlvm1" = d_phi_theta_dlvm1,
       "panelvar" = d_phi_theta_panelvar,
       "ml_var1" = d_phi_theta_ml_var1,
+      "ml_varcov" = d_phi_theta_ml_varcov,
       "tsdlvm1" = d_phi_theta_tsdlvm1,
       "meta_varcov" = d_phi_theta_meta_varcov,
       "Ising" = ,
@@ -542,6 +544,7 @@ wls_sandwich_components <- function(x) {
       "meta_varcov" = d_phi_theta_meta_varcov_cpp,
       "Ising" = ,
       "BlumeCapel" = d_phi_theta_Ising_cpp,
+      "ml_varcov" = d_phi_theta_ml_varcov_cpp,
       "ml_lvm" = d_phi_theta_ml_lvm_cpp,
       "meta_lvm" = d_phi_theta_meta_lvm_cpp,
       "meta_var1" = d_phi_theta_meta_var1_cpp
@@ -555,6 +558,7 @@ wls_sandwich_components <- function(x) {
       "dlvm1" = d_phi_theta_dlvm1,
       "panelvar" = d_phi_theta_panelvar,
       "ml_var1" = d_phi_theta_ml_var1,
+      "ml_varcov" = d_phi_theta_ml_varcov,
       "tsdlvm1" = d_phi_theta_tsdlvm1,
       "meta_varcov" = d_phi_theta_meta_varcov,
       "Ising" = ,

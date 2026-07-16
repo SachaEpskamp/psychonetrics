@@ -29,6 +29,8 @@
 #include "21_Ising_prepare_cpp.h"
 #include "22_ml_lvm_prepare_cpp.h"
 #include "22_ml_lvm_implied_cpp.h"
+#include "27_ml_varcov_prepare_cpp.h"
+#include "27_ml_varcov_implied_cpp.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -148,6 +150,10 @@ Rcpp::List impliedModel_cpp(
     //
     // imp = impfun(Rcpp::_["model"] = model, Rcpp::_["all"] =   all);
     //
+  }  else if (framework == "ml_varcov"){
+
+    imp = implied_ml_varcov_cpp(model, all);
+
   }  else if (framework == "meta_lvm"){
 
     imp = implied_meta_lvm_cpp(model, all);
@@ -268,6 +274,10 @@ Rcpp::List prepareModel_cpp(
     //
     // prep = prepfun(Rcpp::_["x"] = x, Rcpp::_["model"] =   model);
     //
+  }  else if (framework == "ml_varcov"){
+
+    prep = prepare_ml_varcov_cpp(x, model);
+
   }  else if (framework == "meta_lvm"){
 
     prep = prepare_meta_lvm_cpp(x, model);

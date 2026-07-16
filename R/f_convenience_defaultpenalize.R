@@ -83,6 +83,19 @@ defaultPenalizeMatrices <- function(x) {
       matrices <- c(matrices, "omega_mu")
     }
 
+  } else if (x@model == "ml_varcov") {
+    matrices <- character(0)
+    if (x@types$within == "ggm") {
+      matrices <- c(matrices, "omega_within")
+    } else if (x@types$within == "prec") {
+      matrices <- c(matrices, "kappa_within")
+    }
+    if (x@types$between == "ggm") {
+      matrices <- c(matrices, "omega_between")
+    } else if (x@types$between == "prec") {
+      matrices <- c(matrices, "kappa_between")
+    }
+
   } else if (x@model %in% c("ml_lvm", "dlvm1")) {
     if (x@model == "dlvm1") {
       matrices <- c("beta")

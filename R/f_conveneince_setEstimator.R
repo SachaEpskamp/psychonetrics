@@ -46,6 +46,11 @@ setestimator <- function(x, estimator){
     stop("ml_var1 models only support estimator = 'ML' (the two-level pseudo-ML estimator). For full-information ML use panelvar()/dlvm1().")
   }
 
+  # ml_varcov supports only the two-level sufficient-statistics 'ML' estimator:
+  if (x@model == "ml_varcov" && estimator != "ML"){
+    stop("ml_varcov models only support estimator = 'ML' (the two-level sufficient-statistics ML estimator).")
+  }
+
   # Robust ML estimators map internally to estimator = "ML" plus a robust
   # configuration. Resolve the requested name into the internal estimator and
   # the robust config now. MLR additionally supports missing data: when the

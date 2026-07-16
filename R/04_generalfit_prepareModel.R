@@ -21,6 +21,7 @@ prepareModel <- function(x, model){
                       "Ising" = ,
                       "BlumeCapel" = prepare_Ising_cpp, # <- Updated!
                       "ml_lvm" = prepare_ml_lvm_cpp, # <- Udated!!!
+                      "ml_varcov" = prepare_ml_varcov_cpp,
                       "meta_lvm" = prepare_meta_lvm_cpp,
                       "meta_var1" = prepare_meta_var1_cpp
                       # "cholesky" = prepare_cholesky
@@ -38,6 +39,7 @@ prepareModel <- function(x, model){
                       "dlvm1" = prepare_dlvm1,
                       "panelvar" = prepare_panelvar,
                       "ml_var1" = prepare_ml_var1,
+                      "ml_varcov" = prepare_ml_varcov,
                       "tsdlvm1" = prepare_tsdlvm1,
                       "meta_varcov" = prepare_meta_varcov,
                       "Ising" = ,

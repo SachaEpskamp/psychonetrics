@@ -20,6 +20,7 @@
 #include "24_meta_var1_derivatives_cpp.h"
 #include "21_Ising_derivatives_cpp.h"
 #include "22_ml_lvm_derivatives_cpp.h"
+#include "27_ml_varcov_derivatives_cpp.h"
 #include "02_algebrahelpers_modelMatrix_cpp.h"
 #include "04_generalfit_optimWorkspace.h"
 #include "09_PenMLestimator_penalty_helpers_cpp.h"
@@ -181,6 +182,10 @@ void psychonetrics_gradient_cpp_inner(
   }  else if (usemodel == "ml_lvm"){
 
     modelPart = d_phi_theta_ml_lvm_cpp(prep);
+
+  }  else if (usemodel == "ml_varcov"){
+
+    modelPart = d_phi_theta_ml_varcov_cpp(prep);
 
   }  else if (usemodel == "meta_lvm"){
 

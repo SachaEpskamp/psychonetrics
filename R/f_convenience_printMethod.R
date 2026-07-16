@@ -53,7 +53,8 @@ definition = function(object){
     "meta_var1" = "Meta-analytic VAR(1) model",
     "Ising" = "Ising model",
     "BlumeCapel" = "Blume-Capel model",
-    "ml_lvm" = "Multi-level latent variable model"
+    "ml_lvm" = "Multi-level latent variable model",
+    "ml_varcov" = "Multi-level variance-covariance matrix (ml_varcov)"
   )
   
   submod <- switch(
@@ -74,6 +75,9 @@ definition = function(object){
     "panelvar" = "Panel vector-autoregression (panelvar)",
     "ml_var1" = "Multi-level vector-autoregression (ml_var1)",
     "ml_gvar1" = "Multi-level graphical vector-autoregression (ml_gvar1)",
+    "ml_ggm" = "Multi-level Gaussian graphical model (ml_ggm)",
+    "ml_corr" = "Multi-level correlation model (ml_corr)",
+    "ml_varcov" = "Multi-level variance-covariance matrix (ml_varcov)",
     "meta_gvar" = "Meta-analytic graphical VAR (meta_gvar)",
     "meta_var" = "Meta-analytic VAR (meta_var)"
   )

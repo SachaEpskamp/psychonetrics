@@ -20,6 +20,7 @@
 #include "21_Ising_derivatives_cpp.h"
 #include "21_Ising_expectedHessian_full.h"
 #include "22_ml_lvm_derivatives_cpp.h"
+#include "27_ml_varcov_derivatives_cpp.h"
 #include "02_algebrahelpers_modelMatrix_cpp.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
@@ -159,6 +160,10 @@ void psychonetrics_FisherInformation_cpp_inner(
   }  else if (usemodel == "ml_lvm"){
 
     modelPart = d_phi_theta_ml_lvm_cpp(prep);
+
+  }  else if (usemodel == "ml_varcov"){
+
+    modelPart = d_phi_theta_ml_varcov_cpp(prep);
 
   }  else if (usemodel == "meta_lvm"){
 

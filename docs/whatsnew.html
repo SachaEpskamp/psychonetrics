@@ -31,7 +31,7 @@
           <li><a href="var1.html" class="nav-link">Var1 (time series)</a></li>
           <li><a href="dlvm1.html" class="nav-link">DLVM1 (panel / RI-CLPM)</a></li>
           <li><a href="ising.html" class="nav-link">Ising &amp; Blume-Capel</a></li>
-          <li><a href="mllvm.html" class="nav-link">Multi-level (ml_lvm)</a></li>
+          <li><a href="mllvm.html" class="nav-link">Multi-level (ml_lvm / ml_varcov)</a></li>
           <li><a href="meta.html" class="nav-link">Meta-analysis</a></li>
           <li class="dropdown-divider"><a href="robust.html" class="nav-link">Robust &amp; scaled estimation</a></li>
           <li><a href="lavaan.html" class="nav-link">lavaan interoperability</a></li>
@@ -57,6 +57,7 @@
   <div class="toc">
     <h4>On this page</h4>
     <ol>
+      <li><a href="#mlvarcov">0.16 &mdash; Multi-level variance-covariance &amp; GGM: ml_varcov(), ml_ggm() &amp; ml_corr()</a></li>
       <li><a href="#samplingweights">0.16.5 &mdash; Sampling weights (pseudo-ML) for complex survey data</a></li>
       <li><a href="#pdctemporal">0.16.4 &mdash; Model the PDC (standardized temporal network) directly</a></li>
       <li><a href="#betaepsilon">0.16.3 &mdash; dlvm1(): residual temporal effects (beta_epsilon)</a></li>
@@ -74,6 +75,25 @@
       <li><a href="#penalized">0.16 &mdash; Penalized (regularized) estimation</a></li>
       <li><a href="#mllvm">0.16 &mdash; Multi-level &amp; meta-analytic frameworks matured</a></li>
     </ol>
+  </div>
+
+  <!-- ===================== 0.16 ml_varcov / ml_ggm ===================== -->
+  <div class="whatsnew-item" id="mlvarcov">
+    <h2>Multi-level variance-covariance &amp; GGM: ml_varcov(), ml_ggm() &amp; ml_corr() <span class="version-tag">0.16</span></h2>
+    <p class="whatsnew-meta">July 2026 &mdash; see the <a href="mllvm.html#mlvarcov">multi-level page</a></p>
+    <p>
+      A new framework brings the <a href="varcov.html">varcov family</a> to two-level (clustered) data. <code>ml_varcov()</code> models the <strong>within-cluster</strong> and <strong>between-cluster</strong> variance&ndash;covariance matrices directly &mdash; with no latent layer &mdash; using the same fast sufficient-statistics two-level ML estimator as <code>ml_lvm()</code>, so its cost is independent of cluster size. Each level can independently take any of the five varcov parameterizations (<code>cov</code>, <code>chol</code>, <code>prec</code>, <code>ggm</code>, <code>cor</code>) through the <code>within</code> and <code>between</code> arguments. The headline wrapper is <code>ml_ggm()</code>, the <strong>multi-level Gaussian graphical model</strong>, which estimates a within- and a between-cluster partial-correlation network simultaneously; <code>ml_corr()</code> gives the correlation-matrix version.
+    </p>
+    <pre><code class="language-r"># Multi-level GGM: within- and between-cluster networks from clustered data
+mod <- ml_ggm(Data, vars = paste0("V", 1:4), clusters = "cluster") %>% runmodel
+
+getmatrix(mod, "omega_within")    # within-cluster partial-correlation network
+getmatrix(mod, "omega_between")   # between-cluster partial-correlation network
+
+mod <- mod %>% prune(alpha = 0.05)   # prune non-significant edges as usual</code></pre>
+    <p>
+      The framework has its own native matrix names (<code>sigma_within</code>, <code>omega_within</code>, <code>sigma_between</code>, <code>omega_between</code>, &hellip;) and simpler analytic derivatives, verified against numeric differentiation and an independent C++ implementation. The multi-level GGM is also available in the mlVAR package's <code>mlGGM()</code>, which uses a different estimator &mdash; nodewise multilevel regression (one mixed-effects model per variable); <code>psychonetrics::ml_ggm</code> instead estimates the full two-level covariance structure by maximum likelihood and additionally provides model fit indices and confirmatory testing.
+    </p>
   </div>
 
   <!-- ===================== 0.16.5 sampling weights ===================== -->

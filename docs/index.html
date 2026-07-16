@@ -34,7 +34,7 @@
           <li><a href="var1.html" class="nav-link">Var1 (time series)</a></li>
           <li><a href="dlvm1.html" class="nav-link">DLVM1 (panel / RI-CLPM)</a></li>
           <li><a href="ising.html" class="nav-link">Ising &amp; Blume-Capel</a></li>
-          <li><a href="mllvm.html" class="nav-link">Multi-level (ml_lvm)</a></li>
+          <li><a href="mllvm.html" class="nav-link">Multi-level (ml_lvm / ml_varcov)</a></li>
           <li><a href="meta.html" class="nav-link">Meta-analysis</a></li>
           <li class="dropdown-divider"><a href="robust.html" class="nav-link">Robust &amp; scaled estimation</a></li>
           <li><a href="lavaan.html" class="nav-link">lavaan interoperability</a></li>
@@ -51,6 +51,7 @@
   <a class="ticker-label" href="whatsnew.html">What&#39;s&nbsp;New</a>
   <div class="ticker-viewport">
     <ul class="ticker-track">
+      <li><a href="whatsnew.html#mlvarcov"><span class="ticker-version">0.17</span> Multi-level variance-covariance &amp; GGM: ml_varcov(), ml_ggm() &amp; ml_corr()</a></li>
       <li><a href="whatsnew.html#robust"><span class="ticker-version">0.16</span> Robust ML: MLM / MLMV / MLMVS / MLR with scaled tests &amp; robust fit indices</a></li>
       <li><a href="whatsnew.html#lavaan"><span class="ticker-version">0.16</span> Interoperability with lavaan: fromlavaan() &amp; tolavaan() converters</a></li>
       <li><a href="whatsnew.html#mlml"><span class="ticker-version">0.16</span> Fast multilevel SEM: a two-level ML estimator for ml_lvm()</a></li>
@@ -65,6 +66,7 @@
       <li><a href="whatsnew.html#mllvm"><span class="ticker-version">0.16</span> Multi-level latent variable models &amp; meta-analytic SEM matured</a></li>
     </ul>
     <ul class="ticker-track" aria-hidden="true">
+      <li><a href="whatsnew.html#mlvarcov" tabindex="-1"><span class="ticker-version">0.17</span> Multi-level variance-covariance &amp; GGM: ml_varcov(), ml_ggm() &amp; ml_corr()</a></li>
       <li><a href="whatsnew.html#robust" tabindex="-1"><span class="ticker-version">0.16</span> Robust ML: MLM / MLMV / MLMVS / MLR with scaled tests &amp; robust fit indices</a></li>
       <li><a href="whatsnew.html#lavaan" tabindex="-1"><span class="ticker-version">0.16</span> Interoperability with lavaan: fromlavaan() &amp; tolavaan() converters</a></li>
       <li><a href="whatsnew.html#mlml" tabindex="-1"><span class="ticker-version">0.16</span> Fast multilevel SEM: a two-level ML estimator for ml_lvm()</a></li>
@@ -205,9 +207,9 @@
         <a href="dlvm1.html" class="card-link">Learn more &rarr;</a>
       </div>
       <div class="card">
-        <h3>Multi-level LVM</h3>
-        <p>Two-level random-intercept latent variable models for clustered data (e.g., students in schools). Within-cluster and between-cluster structures can each be modeled as networks.</p>
-        <p><strong>Wrappers:</strong> <code>ml_lvm()</code>, <code>ml_lnm()</code>, <code>ml_rnm()</code></p>
+        <h3>Multi-level Models <span class="badge-new">ml_ggm</span></h3>
+        <p>Two-level random-intercept models for clustered data (e.g., students in schools), for latent variables (<code>ml_lvm</code>) or observed variables (<code>ml_varcov</code>). Within-cluster and between-cluster structures can each be modeled as networks &mdash; including the multi-level GGM.</p>
+        <p><strong>Wrappers:</strong> <code>ml_lvm()</code>, <code>ml_lnm()</code>, <code>ml_rnm()</code>, <code>ml_varcov()</code>, <code>ml_ggm()</code>, <code>ml_corr()</code></p>
         <a href="mllvm.html" class="card-link">Learn more &rarr;</a>
       </div>
       <div class="card">

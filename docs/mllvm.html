@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="psychonetrics multi-level latent variable models: ml_lvm, ml_lnm, ml_rnm for two-level (clustered) data">
+  <meta name="description" content="psychonetrics multi-level models for two-level (clustered) data: latent variable models (ml_lvm, ml_lnm, ml_rnm) and observed-variable variance-covariance / GGM models (ml_varcov, ml_ggm, ml_corr)">
   <title>Multi-level Models | psychonetrics</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,7 +32,7 @@
           <li><a href="var1.html" class="nav-link">Var1 (time series)</a></li>
           <li><a href="dlvm1.html" class="nav-link">DLVM1 (panel / RI-CLPM)</a></li>
           <li><a href="ising.html" class="nav-link">Ising &amp; Blume-Capel</a></li>
-          <li><a href="mllvm.html" class="nav-link">Multi-level (ml_lvm)</a></li>
+          <li><a href="mllvm.html" class="nav-link">Multi-level (ml_lvm / ml_varcov)</a></li>
           <li><a href="meta.html" class="nav-link">Meta-analysis</a></li>
           <li class="dropdown-divider"><a href="robust.html" class="nav-link">Robust &amp; scaled estimation</a></li>
           <li><a href="lavaan.html" class="nav-link">lavaan interoperability</a></li>
@@ -45,8 +45,8 @@
 </nav>
 
 <div class="page-header container container-narrow">
-  <h1>Multi-level Latent Variable Models</h1>
-  <p class="subtitle">Two-level random-intercept models for clustered data (ml_lvm)</p>
+  <h1>Multi-level Models</h1>
+  <p class="subtitle">Two-level random-intercept models for clustered data: latent variables (ml_lvm) and observed variables (ml_varcov)</p>
 </div>
 
 <main class="container container-narrow">
@@ -60,6 +60,7 @@
       <li><a href="#example">Example: Two-Level CFA on Simulated Data</a></li>
       <li><a href="#estimator">Estimation: two-level ML vs FIML</a></li>
       <li><a href="#networks">Network Variants</a></li>
+      <li><a href="#mlvarcov">Observed-variable models: ml_varcov, ml_ggm &amp; ml_corr</a></li>
       <li><a href="#summary">Summary</a></li>
     </ul>
   </div>
@@ -71,6 +72,9 @@
     </p>
     <p>
       The model decomposes each observation into a <strong>within-cluster</strong> component (how units deviate from their cluster average) and a <strong>between-cluster</strong> component (how cluster averages differ from each other), each with its own measurement model and latent structure. As everywhere in psychonetrics, every latent and residual covariance matrix on either level can independently be parameterized as a Gaussian Graphical Model.
+    </p>
+    <p>
+      This page first covers the latent-variable family (<code>ml_lvm</code> and its network variants); its observed-variable counterpart &mdash; <a href="#mlvarcov"><code>ml_varcov</code>, <code>ml_ggm</code> and <code>ml_corr</code></a>, which model the within- and between-cluster (co)variance structures directly, without a latent layer &mdash; is described below.
     </p>
     <div class="note">
       <strong>Recently fixed</strong> <span class="version-tag">0.16</span>: latent intercepts are now properly identified (standard errors and degrees of freedom of older fits were affected; estimates were not), the analytic gradient includes the previously omitted mean derivative for between-level regressions, and variable names containing special characters (e.g. <code>"y.1"</code>) are no longer silently dropped. See <a href="whatsnew.html#mllvm">What&#39;s New</a>.
@@ -223,6 +227,80 @@ mod_mlnm %>% prune(alpha = 0.05)</code></pre>
     </p>
   </section>
 
+  <section id="mlvarcov">
+    <h2>Observed-variable models: <code>ml_varcov</code>, <code>ml_ggm</code> and <code>ml_corr</code></h2>
+    <p>
+      The <strong>ml_varcov</strong> family is the two-level analogue of the single-level <a href="varcov.html">varcov family</a>: it models the <strong>within-cluster</strong> and <strong>between-cluster</strong> variance&ndash;covariance matrices of clustered data <em>directly</em>, with no latent layer. It is the observed-variable counterpart of <code>ml_lvm</code> &mdash; formally the special case with identity factor loadings and no residual variance &mdash; but it is implemented as its own framework, with its own native matrix names and its own simpler analytic derivatives. The headline use case is the <strong>multi-level Gaussian graphical model</strong> (<code>ml_ggm</code>), which estimates a within-cluster and a between-cluster partial-correlation network simultaneously.
+    </p>
+
+    <h3>The Two-Level Model</h3>
+    <p>For unit $j$ in cluster $i$, the observed response vector is decomposed into independent within- and between-cluster components:</p>
+    <p class="formula">$$\boldsymbol{y}_{ij} = \boldsymbol{\mu} + \boldsymbol{\eta}^{(W)}_{ij} + \boldsymbol{\eta}^{(B)}_{i}, \qquad \boldsymbol{\eta}^{(W)}_{ij} \sim \mathcal{N}(\boldsymbol{0}, \boldsymbol{\Sigma}_{W}), \quad \boldsymbol{\eta}^{(B)}_{i} \sim \mathcal{N}(\boldsymbol{0}, \boldsymbol{\Sigma}_{B})$$</p>
+    <p>with $\boldsymbol{\eta}^{(W)}_{ij}$ and $\boldsymbol{\eta}^{(B)}_{i}$ mutually independent. Because all units in a cluster share the same between-cluster component, this induces a simple two-level covariance structure:</p>
+    <p class="formula">$$\text{var}(\boldsymbol{y}_{ij}) = \boldsymbol{\Sigma}_{W} + \boldsymbol{\Sigma}_{B}, \qquad \text{cov}(\boldsymbol{y}_{ij}, \boldsymbol{y}_{ij'}) = \boldsymbol{\Sigma}_{B} \quad (j \neq j')$$</p>
+    <ul>
+      <li><strong>$\boldsymbol{\Sigma}_{W}$</strong> (<code>sigma_within</code>): the within-cluster covariance, parameterized through the <code>within</code> argument.</li>
+      <li><strong>$\boldsymbol{\Sigma}_{B}$</strong> (<code>sigma_between</code>): the between-cluster covariance, parameterized through the <code>between</code> argument.</li>
+      <li>Each of <code>within</code> and <code>between</code> can independently be any of the five varcov parameterizations &mdash; <code>"cov"</code>, <code>"chol"</code>, <code>"prec"</code>, <code>"ggm"</code>, or <code>"cor"</code> &mdash; exactly like the single-level <code>type</code> argument.</li>
+    </ul>
+    <p>For the <code>"ggm"</code> parameterization each level is written as a Gaussian graphical model,</p>
+    <p class="formula">$$\boldsymbol{\Sigma} = \boldsymbol{\Delta}(\boldsymbol{I} - \boldsymbol{\Omega})^{-1}\boldsymbol{\Delta},$$</p>
+    <p>
+      with a partial-correlation network $\boldsymbol{\Omega}$ (<code>omega_within</code> / <code>omega_between</code>) and diagonal scaling $\boldsymbol{\Delta}$ (<code>delta_within</code> / <code>delta_between</code>). The remaining parameterizations expose their usual matrices with <code>_within</code> / <code>_between</code> suffixes (<code>lowertri_*</code>, <code>kappa_*</code>, <code>rho_*</code>, <code>SD_*</code>), and the mean structure is the single vector <code>mu</code>.
+    </p>
+    <p>
+      Estimation uses the same fast <a href="#estimator">two-level sufficient-statistics Gaussian ML estimator</a> that <code>ml_lvm</code> uses with <code>estimator = "ML"</code>, so its cost is independent of cluster size and unbalanced clusters are handled exactly. The analytic gradient was verified against numeric differentiation and against an independent C++ implementation.
+    </p>
+
+    <h3>Wrapper Functions</h3>
+    <table>
+      <thead><tr><th>Function</th><th>What it sets</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>ml_varcov()</code></td><td>user chooses</td><td>Base function for two-level variance&ndash;covariance models</td></tr>
+        <tr><td><code>ml_ggm()</code></td><td><code>within = "ggm"</code>, <code>between = "ggm"</code></td><td>Multi-level Gaussian graphical model (within- and between-cluster networks)</td></tr>
+        <tr><td><code>ml_corr()</code></td><td><code>within = "cor"</code>, <code>between = "cor"</code></td><td>Multi-level correlation model</td></tr>
+      </tbody>
+    </table>
+    <p>
+      As in <code>ml_lvm</code>, the variables are supplied via <code>vars</code> and cluster membership via the <code>clusters</code> argument (a column name in the data). Multi-group models (<code>groups</code>) and cross-group equality constraints (<code>equal</code>) work exactly as elsewhere in psychonetrics.
+    </p>
+
+    <h3>Example: Multi-Level GGM on Simulated Data</h3>
+    <p>
+      We simulate 200 clusters of 8 units on four variables, giving the within-cluster covariance a single edge (between V1 and V2) and the between-cluster covariance a different edge (between V3 and V4), then recover both networks with <code>ml_ggm()</code>. The example is fully reproducible and runs in a couple of seconds:
+    </p>
+    <pre><code class="language-r">library("psychonetrics"); library("dplyr")
+
+# --- Simulate two-level data ---
+set.seed(1)
+nCluster <- 200; perCluster <- 8; p <- 4
+cl <- rep(seq_len(nCluster), each = perCluster)
+
+SigmaW <- diag(p); SigmaW[1,2] <- SigmaW[2,1] <- 0.4        # within-cluster edge V1-V2
+SigmaB <- diag(0.5, p); SigmaB[3,4] <- SigmaB[4,3] <- 0.2   # between-cluster edge V3-V4
+
+b <- MASS::mvrnorm(nCluster, rep(0, p), SigmaB)
+Y <- b[cl, ] + MASS::mvrnorm(nCluster * perCluster, rep(0, p), SigmaW)
+Data <- as.data.frame(Y); names(Data) <- paste0("V", 1:p); Data$cluster <- cl
+
+# --- Fit the multi-level GGM ---
+mod <- ml_ggm(Data, vars = paste0("V", 1:p), clusters = "cluster") %>% runmodel
+
+# Within- and between-cluster partial-correlation networks:
+getmatrix(mod, "omega_within")
+getmatrix(mod, "omega_between")
+
+# Prune non-significant edges as usual:
+mod <- mod %>% prune(alpha = 0.05)</code></pre>
+    <p>
+      <code>getmatrix()</code> returns the two partial-correlation networks: here the within-cluster network recovers the V1&ndash;V2 edge and the between-cluster network the V3&ndash;V4 edge, matching the simulation. The full psychonetrics toolbox &mdash; <code>fit</code> indices, <code>prune()</code> / <code>stepup()</code> search, and <code>compare()</code> for confirmatory testing &mdash; applies exactly as for the single-level <code>ggm()</code>.
+    </p>
+
+    <div class="note">
+      <strong>Relationship to <code>mlVAR::mlGGM()</code>.</strong> The multi-level GGM is also implemented in the mlVAR package's <code>mlGGM()</code> function, which uses a different estimator: nodewise multilevel regression (one mixed-effects model per variable). By contrast, <code>psychonetrics::ml_ggm</code> estimates the full two-level covariance structure by maximum likelihood, and additionally provides model fit indices and confirmatory testing.
+    </div>
+  </section>
+
   <section id="summary">
     <h2>Summary</h2>
     <ul>
@@ -230,6 +308,7 @@ mod_mlnm %>% prune(alpha = 0.05)</code></pre>
       <li>Within-cluster and between-cluster structures each get their own latent and residual covariance matrices</li>
       <li>Any of these matrices can be parameterized as a network (GGM): <code>ml_lnm()</code>, <code>ml_rnm()</code>, <code>ml_lrnm()</code></li>
       <li>Cluster membership is a single column passed via <code>clusters</code></li>
+      <li>For clustered data on <em>observed</em> variables with no latent layer, the <a href="#mlvarcov"><code>ml_varcov</code> / <code>ml_ggm</code> / <code>ml_corr</code></a> family models the within- and between-cluster (co)variance structures and networks directly</li>
       <li>For clustered <em>longitudinal</em> data with temporal dynamics, use the <a href="dlvm1.html">DLVM1 / panel family</a> instead</li>
     </ul>
   </section>

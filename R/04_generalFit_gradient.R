@@ -92,6 +92,7 @@ psychonetrics_gradient <- function(x, model){
       "Ising" = ,
       "BlumeCapel" = d_phi_theta_Ising_cpp, # <- updated!
       "ml_lvm" = d_phi_theta_ml_lvm_cpp, # <- updated!
+      "ml_varcov" = d_phi_theta_ml_varcov_cpp,
       "meta_lvm" = d_phi_theta_meta_lvm_cpp,
       "meta_var1" = d_phi_theta_meta_var1_cpp
       # "cholesky" = d_phi_theta_cholesky
@@ -110,6 +111,7 @@ psychonetrics_gradient <- function(x, model){
       "dlvm1" = d_phi_theta_dlvm1,
       "panelvar" = d_phi_theta_panelvar,
       "ml_var1" = d_phi_theta_ml_var1,
+      "ml_varcov" = d_phi_theta_ml_varcov,
       "tsdlvm1" = d_phi_theta_tsdlvm1,
       "meta_varcov" = d_phi_theta_meta_varcov,
       "Ising" = ,
