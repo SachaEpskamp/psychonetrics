@@ -1,3 +1,21 @@
+Changes in Version 0.17.0
+  o ri_clpm() now uses type = "cor" (correlations with separate standard
+    deviations) as its default latent parameterization instead of "cov". This
+    separates the innovation correlations (rho_zeta) from the innovation
+    standard deviations (SD_zeta), so that a stationary contemporaneous-
+    correlation constraint and a stationary innovation-variance constraint
+    become two distinct, cleanly nested steps. The unconstrained model fit
+    (chi-square, degrees of freedom, number of parameters) is unchanged; only
+    the parameterization differs. Passing type = "cov" (or any other type)
+    explicitly restores the previous behavior.
+  o ri_clpm_search() now adds the stationarity constraints in the order
+    unconstrained -> equal temporal effects -> equal contemporaneous relations
+    (innovation correlations / GGM) -> equal intercepts -> equal innovation
+    variances -> full panel(G)VAR, matching the usual RI-CLPM analysis
+    workflow. As before, the innovation-variance step never equates the
+    innovation variances with the exogenous wave-1 variances nor with the
+    between-person (random intercept) variances.
+
 Changes in Version 0.16.9
   o The ordinal-data regression tests (GitHub issue #54) now probe whether the
     'pbv' package's C++ API is usable and are skipped when it is not. On some

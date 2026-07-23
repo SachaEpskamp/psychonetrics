@@ -119,12 +119,18 @@ ri_clpm_stationary <- function(
 
 # Sequential stationarity search for RI-CLPM models.
 # Starts from an (unconstrained) ri_clpm model and adds, one at a time,
-# stationarity constraints on (1) intercepts, (2) temporal effects,
-# (3) contemporaneous relations, (4) innovation variances, and finally
-# (5) the panelVAR model (wave 1 treated as the stationary distribution).
-# At each step the more constrained model is compared to the currently
-# selected one and the constraint is retained only if it does not worsen
-# fit according to 'criterion'. The search stops at the first rejection.
+# stationarity constraints on (1) the temporal effects, (2) the
+# contemporaneous relations (the innovation correlations / GGM), (3) the
+# intercepts, (4) the innovation variances, and finally (5) the panel(G)VAR
+# model (wave 1 treated as the stationary distribution). The correlation
+# parameterization used by ri_clpm() (type = "cor" by default) makes the
+# contemporaneous (correlation) and innovation-variance (standard deviation)
+# steps two cleanly separated, nested constraints; the innovation variances
+# are never equated with the exogenous wave-1 variances nor with the
+# between-person (random intercept) variances. At each step the more
+# constrained model is compared to the currently selected one and the
+# constraint is retained only if it does not worsen fit according to
+# 'criterion'. The search stops at the first rejection.
 ri_clpm_search <- function(
     x,                                    # An ri_clpm() model (run or unrun)
     criterion = c("BIC", "AIC", "Chisq"), # Selection criterion
@@ -186,7 +192,10 @@ ri_clpm_search <- function(
   path <- addrow(NULL, "base", "(none)", x, NA_real_, "start")
 
   # --- Sequential stationarity constraints ---
-  steps <- c("intercepts", "temporal", "contemporaneous", "innovation")
+  # Order: temporal effects -> contemporaneous relations (innovation
+  # correlations / GGM) -> intercepts -> innovation variances. The final
+  # panel(G)VAR step below is only attempted once all four are retained.
+  steps <- c("temporal", "contemporaneous", "intercepts", "innovation")
   for (st in steps){
     if (verbose) message("Testing stationary '", st, "' ...")
     cand <- tryCatch(

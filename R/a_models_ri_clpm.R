@@ -17,7 +17,12 @@ ri_clpm <- function(
     lambda,
 
     # Types:
-    type = c("cov","chol","prec","ggm","cor"),
+    # Default "cor" (correlations + separate standard deviations): this cleanly
+    # separates the contemporaneous relations (the innovation correlations,
+    # rho_zeta) from the innovation variances (the standard deviations, SD_zeta),
+    # so that ri_clpm_search() can test equality of contemporaneous correlations
+    # and equality of innovation variances as two distinct, nested steps.
+    type = c("cor","cov","chol","prec","ggm"),
 
     # Which should be stationary:
     # stationary = "random_intercept", # "none", random_intercept", "contemporaneous", "innovation", "temporal" "intercepts" accepted

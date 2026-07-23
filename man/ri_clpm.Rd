@@ -16,7 +16,7 @@ ri_clpm(data, vars,
         idvar, beepvar,
         standardize = c("none", "z", "quantile", "z_per_wave"),
         lambda,
-        type = c("cov", "chol", "prec", "ggm", "cor"),
+        type = c("cor", "cov", "chol", "prec", "ggm"),
         verbose = FALSE, \dots)
 
 ri_clpm_stationary(x,
@@ -60,7 +60,7 @@ ri_clpm_search(x,
   }
 
   \item{type}{
-  The parameterization used for the latent (innovation and between-person random intercept) covariance structure: \code{"cov"} (covariances), \code{"chol"} (Cholesky), \code{"prec"} (precision), \code{"ggm"} (Gaussian graphical model / partial correlations), or \code{"cor"} (correlations with separate standard deviations). Because the latent covariance matrix is block-diagonal over time, this parameterization is applied to both the within-person (innovation) blocks and the between-person (random intercept) block.
+  The parameterization used for the latent (innovation and between-person random intercept) covariance structure: \code{"cor"} (correlations with separate standard deviations; the default), \code{"cov"} (covariances), \code{"chol"} (Cholesky), \code{"prec"} (precision), or \code{"ggm"} (Gaussian graphical model / partial correlations). Because the latent covariance matrix is block-diagonal over time, this parameterization is applied to both the within-person (innovation) blocks and the between-person (random intercept) block. The default \code{"cor"} parameterization separates the innovation correlations from the innovation standard deviations, so that \code{ri_clpm_search} can test equality of the contemporaneous relations and equality of the innovation variances as two distinct, nested steps.
   }
 
   \item{verbose}{
@@ -95,7 +95,7 @@ ri_clpm_search(x,
 \details{
 The RI-CLPM decomposes each observed score into a stable between-person random intercept and a within-person deviation (innovation). The within-person deviations follow a lag-1 (cross-lagged) structure over time. In this implementation the innovations and the random intercepts are modeled as latent variables under the \code{\link{lvm}} framework, with the latent covariance matrix being block-diagonal over time, so that the within-person (contemporaneous) and between-person covariance structures can each be modeled as a covariance matrix, a Cholesky decomposition, a precision matrix, or a Gaussian graphical model (GGM).
 
-\code{ri_clpm_search} formalizes the typical analysis workflow as a sequence akin to measurement-invariance testing. Starting from the unconstrained model it adds, in order, stationarity of intercepts, temporal effects, contemporaneous relations and innovation variances, and finally the panelVAR model. Each more constrained model is compared to the currently selected one and the constraint is kept only if it does not worsen fit according to \code{criterion}; the search stops at the first rejection.
+\code{ri_clpm_search} formalizes the typical analysis workflow as a sequence akin to measurement-invariance testing. Starting from the unconstrained model it adds, in order, stationarity of the temporal effects, the contemporaneous relations (the innovation correlations / GGM), the intercepts and the innovation variances, and finally the panel(G)VAR model (which additionally treats the first wave as the stationary distribution of the process). Each more constrained model is compared to the currently selected one and the constraint is kept only if it does not worsen fit according to \code{criterion}; the search stops at the first rejection. With the default \code{type = "cor"} parameterization the contemporaneous (correlation) step and the innovation-variance (standard deviation) step are cleanly separated and nested; the innovation variances are never equated with the exogenous wave-1 variances nor with the between-person random-intercept variances.
 
 Structural missing waves (\code{NA} entries in the \code{vars} design matrix, i.e. a variable not measured at a particular wave) are not yet supported. Incomplete cases (missing data for some subjects) are handled automatically through full-information maximum likelihood.
 }
@@ -144,9 +144,9 @@ mod <- ri_clpm(data, design, type = "ggm")
 mod <- runmodel(mod)
 
 # Add stationarity constraints step by step:
-mod_int  <- runmodel(ri_clpm_stationary(mod,     "intercepts"))
-mod_temp <- runmodel(ri_clpm_stationary(mod_int, "temporal"))
-compare(base = mod, intercepts = mod_int, temporal = mod_temp)
+mod_temp <- runmodel(ri_clpm_stationary(mod,      "temporal"))
+mod_con  <- runmodel(ri_clpm_stationary(mod_temp, "contemporaneous"))
+compare(base = mod, temporal = mod_temp, contemporaneous = mod_con)
 
 # Or run the whole sequential search automatically:
 res <- ri_clpm_search(mod, criterion = "BIC")
