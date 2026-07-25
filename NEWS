@@ -1,3 +1,39 @@
+Changes in Version 0.17.4
+  o New plot() method for psychonetrics models: a wrapper around qgraph in the
+    spirit of bootnet's plot method for estimateNetwork objects, with the same
+    overwritten defaults (cut = 0, theme = "colorblind", layout = "spring",
+    parallelEdge = TRUE) and everything else passed on to qgraph via '...'.
+    - plot(x) without further arguments picks sensible matrices per family:
+      the (co)variance matrix for the varcov family and meta_varcov, omega for
+      Ising / Blume-Capel, temporal + contemporaneous for var1/gvar and
+      tsdlvm1, temporal + contemporaneous + between-person for
+      panelvar/panelgvar, dlvm1, ml_var1 and ml_lvm, within + between for
+      ml_varcov, the latent/residual network for lnm/rnm/lrnm, the blocks for
+      ri_clpm/ri_clpn, and the full path diagram (via semPlot::semPaths and
+      tolavaan) for any other latent variable model. Models using the "PDC"
+      temporal parameterization get a PDC panel instead of beta.
+    - 'matrix' may be a VECTOR of matrices (unlike getmatrix), one panel each,
+      in the given order. 'group', 'threshold'/'alpha'/'adjust'/'mode' and the
+      RI-CLPM 'time' block selector behave as in getmatrix().
+    - How a matrix is drawn follows from what it is: omega and kappa give
+      undirected networks, sigma and rho give networks with two arrowheads per
+      edge, beta and PDC give directed networks with the autoregressions as
+      self-loops, and lambda is drawn as a reflective measurement diagram with
+      qgraph.loadings(). Covariance matrices are shown as correlation networks
+      and precision matrices as partial correlation networks (with a message
+      when verbose = TRUE); covariances = TRUE draws the unstandardized matrix
+      instead, with the diagonal as self-loops. Cholesky decompositions,
+      diagonal scaling matrices and mean vectors have no network
+      interpretation and give an informative error.
+    - Panels showing the same nodes are constrained to a common layout through
+      qgraph::averageLayout(), so that they are visually comparable, and each
+      panel is titled with what it shows. Set equalLayout = FALSE or
+      titles = FALSE to turn this off. Multiple groups give one row of panels
+      per group.
+  o Bug fix: the default 'matrices' of CIplot() for dlvm1 and ml_lvm models
+    took the type of the between-person block from 'within_residual' instead
+    of 'between_latent'. This only had an effect when the two types differed.
+
 Changes in Version 0.17.3
   o RI-CLPM / RI-CLPN networks can now be extracted and plotted as blocks.
     ri_clpm() is built on the lvm framework, so its model matrices span all

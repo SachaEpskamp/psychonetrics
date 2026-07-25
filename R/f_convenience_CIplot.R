@@ -139,10 +139,13 @@ CIplot <- function(
       )
 
     } else if (x@model %in% c("ml_lvm","dlvm1")){
+      # The between-person block is typed by 'between_latent'; using
+      # 'within_residual' here was a bug (invisible whenever the two types
+      # coincide, which they do by default):
       matrices <- c(
         "beta",
         covchooser(x@types$within_latent,"zeta_within"),
-        covchooser(x@types$within_residual,"zeta_between")
+        covchooser(x@types$between_latent,"zeta_between")
       )
       
     } else if (x@model == "tsdlvm1"){
