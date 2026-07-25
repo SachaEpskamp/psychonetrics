@@ -88,3 +88,64 @@ expected <- c("temporal", "contemporaneous", "intercepts", "innovation", "panelV
 # Whatever steps were attempted must be a prefix of the intended order:
 expect_true(length(constrained) >= 1L)
 expect_equal(constrained, expected[seq_along(constrained)])
+
+## ---- (e) The verdict table (0.17.2 guarded decision tree) ----
+expect_true(is.data.frame(res$verdicts))
+expect_equal(res$verdicts$step,
+             c("temporal", "contemporaneous", "intercepts", "innovation",
+               "wave1_endogenous"))
+expect_true(all(c("step", "tested", "decision", "Chisq_diff", "DF_diff",
+                  "p_value", "dAIC", "dBIC", "note") %in% names(res$verdicts)))
+expect_true(all(res$verdicts$decision %in%
+                  c("retained", "released", "rejected (gate)", "not tested",
+                    "not applicable")))
+expect_true(is.character(res$selected_name))
+expect_equal(res$on_rejection, "release")
+
+# Every step after a retained temporal gate must have been tested (release
+# rule: only the gate can stop the search). The wave-1 step may be "not
+# applicable" when the covariance process is not stationary:
+if (res$verdicts$decision[1] == "retained"){
+  expect_true(all(res$verdicts$tested[2:4]))
+} else {
+  expect_equal(res$verdicts$decision[1], "rejected (gate)")
+  expect_true(all(res$verdicts$decision[2:5] == "not tested"))
+}
+
+# The wave-1 step is gated on covariance stationarity:
+covstat <- all(res$verdicts$decision[c(1, 2, 4)] == "retained")
+if (!covstat){
+  expect_true(res$verdicts$decision[5] %in% c("not applicable", "not tested"))
+} else if (isTRUE(res$verdicts$tested[5])){
+  # The panel model is the CONSTRAINED special case: m(m+1)/2 more df:
+  expect_equal(res$verdicts$DF_diff[5], nVar * (nVar + 1) / 2)
+  expect_true(res$verdicts$Chisq_diff[5] >= -1e-4)
+}
+
+## ---- (f) on_rejection = "stop" reproduces the old chain ----
+res_stop <- suppressWarnings(ri_clpm_search(fit_cor, criterion = "Chisq",
+                                            verbose = FALSE,
+                                            on_rejection = "stop"))
+expect_equal(res_stop$on_rejection, "stop")
+# In "stop" mode no step after a rejection is ever tested:
+dec <- res_stop$verdicts$decision
+firstreject <- which(dec %in% c("released", "rejected (gate)"))
+if (length(firstreject) > 0){
+  expect_true(all(dec[(firstreject[1] + 1):length(dec)] == "not tested"))
+}
+
+## ---- (g) RI-CLPN wrappers ----
+expect_equal(eval(formals(ri_clpn)$type)[1], "ggm")
+mod_clpn <- suppressWarnings(ri_clpn(dat, design))
+mod_ggm  <- suppressWarnings(ri_clpm(dat, design, type = "ggm"))
+expect_equal(mod_clpn@extramatrices$ri_clpm_type, "ggm")
+expect_identical(mod_clpn@parameters, mod_ggm@parameters)
+# The type argument can still be overridden:
+expect_equal(suppressWarnings(ri_clpn(dat, design, type = "cov"))@extramatrices$ri_clpm_type,
+             "cov")
+# ri_clpn_stationary()/ri_clpn_search() are pure aliases:
+expect_identical(suppressWarnings(ri_clpn_stationary(fit_cor, "temporal"))@parameters,
+                 suppressWarnings(ri_clpm_stationary(fit_cor, "temporal"))@parameters)
+res_alias <- suppressWarnings(ri_clpn_search(fit_cor, criterion = "Chisq", verbose = FALSE))
+expect_identical(res_alias$verdicts, res$verdicts)
+expect_identical(res_alias$selected_name, res$selected_name)

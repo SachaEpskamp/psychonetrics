@@ -1,3 +1,61 @@
+Changes in Version 0.17.2
+  o ri_clpm_search() has been redesigned as a guarded decision tree. Where the
+    search used to be a strict chain that stopped at the first rejection, it
+    now follows the targets of inference:
+    - "temporal" is the only hard gate. If stationarity of the temporal
+      (cross-lagged) effects is rejected, the search stops entirely and the
+      unconstrained model is selected: there is then no single lag-1 temporal
+      network to report and the target of inference changes to a set of
+      per-transition temporal networks. The remaining steps are reported as
+      "not tested", and the print method explains this and advises checking
+      whether the waves are equally spaced (unequal measurement intervals
+      mimic temporal non-stationarity).
+    - "contemporaneous", "intercepts" and "innovation" are released rather
+      than fatal: a rejected constraint is simply not imposed (those
+      parameters stay wave-specific) and the search continues. Each of these
+      constraints is therefore tested exactly once, conditional only on the
+      constraints that survived their own test. This reaches endpoints the
+      old chain could not reach, such as wave-varying contemporaneous
+      relations with stationary intercepts and innovation variances.
+    - The closing panel(G)VAR step ("wave1_endogenous") is now gated on
+      covariance stationarity: it requires the temporal, contemporaneous and
+      innovation constraints to be retained, because a wave-varying
+      innovation covariance structure has no stationary distribution for an
+      endogenous first wave to be drawn from. Otherwise the step is reported
+      as "not applicable".
+    - When the intercept constraint was released, the panel(G)VAR comparison
+      model is now fit with stationary_means = FALSE, so that both models
+      carry a saturated (wave-specific) mean structure and the test isolates
+      the wave-1 exogenous covariance block. The degrees-of-freedom gap of
+      this comparison (the panel model is the constrained special case and
+      has m(m+1)/2 MORE degrees of freedom) is verified at run time, with a
+      warning when it deviates.
+    - Candidate models that did not converge, or that produced a negative or
+      non-finite chi-square or a non-finite criterion, are never retained;
+      such a fit counts as a rejection and the reason is reported.
+    o The new argument on_rejection = c("release", "stop") controls this.
+      The default "release" is the tree described above; "stop" reproduces
+      the pre-0.17.2 stop-at-first-rejection chain exactly, for
+      reproducibility of existing analyses. Both use the same code path.
+    o ri_clpm_search() now also returns a 'verdicts' data frame with one row
+      per step (temporal, contemporaneous, intercepts, innovation,
+      wave1_endogenous) and the columns tested, decision ("retained",
+      "released", "rejected (gate)", "not tested", "not applicable"),
+      Chisq_diff, DF_diff, p_value, dAIC, dBIC and note, plus the element
+      on_rejection. 'selected_name' now describes the selected model
+      compactly, e.g. "temporal+contemporaneous+innovation (means free)" or
+      "panelVAR (means free)". The existing elements (selected, models,
+      comparison, path, criterion, alpha) are unchanged, and the default
+      criterion remains "BIC". The print method shows the verdict table.
+  o New RI-CLPN wrapper functions. The GGM-parameterized RI-CLPM is the
+    random-intercept cross-lagged panel NETWORK model (RI-CLPN): the
+    contemporaneous and between-person structures are then partial
+    correlation networks. ri_clpn() calls ri_clpm() with type = "ggm" as its
+    default (still overridable), mirroring how panelgvar() wraps panelvar().
+    ri_clpn_stationary() and ri_clpn_search() are pure aliases of
+    ri_clpm_stationary() and ri_clpm_search(), so that a network-
+    parameterized analysis can be written entirely in RI-CLPN notation.
+
 Changes in Version 0.17.1
   o New wave-specific mean structure for the stationary panel models:
     panelvar(), panelgvar() and dlvm1() (alias dlvm()) gained the argument

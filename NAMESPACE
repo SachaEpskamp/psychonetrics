@@ -4,6 +4,10 @@ useDynLib(psychonetrics, .registration = TRUE)
 export(ri_clpm)
 export(ri_clpm_stationary)
 export(ri_clpm_search)
+# RI-CLPN: the GGM-parameterized RI-CLPM (network parameterization):
+export(ri_clpn)
+export(ri_clpn_stationary)
+export(ri_clpn_search)
 
 # lavaan interoperability:
 export(fromlavaan)

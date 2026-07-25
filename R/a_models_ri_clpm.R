@@ -360,3 +360,34 @@ ri_clpm <- function(
   # Return model:
   return(mod)
 }
+
+
+# Random intercept cross-lagged panel NETWORK model (RI-CLPN): the RI-CLPM
+# with GGM (partial correlation network) parameterizations for the
+# within-person (innovation) and between-person (random intercept)
+# structures. This mirrors how panelgvar() wraps panelvar(): the type
+# argument is exposed with "ggm" first among the choices, so the default is
+# the GGM parameterization but a user can still override it.
+ri_clpn <- function(data, vars,
+                    type = c("ggm","cor","cov","chol","prec"),
+                    ...){
+  # Match arg:
+  type <- match.arg(type)
+
+  # Conditionally pass data and vars, so that ri_clpm()'s own missing()
+  # handling is preserved (covs-only usage without data; long-format usage
+  # with 'idvar' and without 'vars'):
+  if (missing(data)){
+    if (missing(vars)){
+      ri_clpm(type = type, ...)
+    } else {
+      ri_clpm(vars = vars, type = type, ...)
+    }
+  } else {
+    if (missing(vars)){
+      ri_clpm(data = data, type = type, ...)
+    } else {
+      ri_clpm(data = data, vars = vars, type = type, ...)
+    }
+  }
+}

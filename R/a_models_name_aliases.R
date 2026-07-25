@@ -15,3 +15,17 @@ tsdlvm <- function(...){
 meta_var <- function(...){
   meta_var1(...)
 }
+
+# RI-CLPN naming (0.17.2): the GGM-parameterized RI-CLPM is called the
+# random-intercept cross-lagged panel NETWORK model. ri_clpn() itself lives
+# next to ri_clpm() (it sets a different default 'type'); the two helpers
+# below operate on an already specified model object, so no type argument is
+# involved and they are pure aliases:
+
+ri_clpn_stationary <- function(...){
+  ri_clpm_stationary(...)
+}
+
+ri_clpn_search <- function(...){
+  ri_clpm_search(...)
+}
