@@ -120,13 +120,33 @@ dlvm1 <- function(
   temporal_latent = c("raw","PDC"),
   temporal_residual = c("raw","PDC"),
   PDC = "full",        # Only used when temporal_latent = "PDC"
-  PDC_epsilon = "zero" # Only used when temporal_residual = "PDC"
+  PDC_epsilon = "zero", # Only used when temporal_residual = "PDC"
+  # Mean structure: TRUE (default) has item intercepts (nu) that are invariant
+  # across waves; FALSE gives wave-specific item intercepts (trend-stationary;
+  # saturated mean structure). The latent means (mu_eta) are fixed to zero for
+  # identification in both cases:
+  stationary_means = TRUE
 ){
 
 
   covtype <- match.arg(covtype)
   datatype <- match.arg(datatype)
   standardize <- match.arg(standardize)
+
+  # Mean structure. Stored in the types slot as a string ("stationary" or
+  # "free"), which is what the implied structures and derivatives (R and C++)
+  # branch on:
+  if (!is.logical(stationary_means) || length(stationary_means) != 1 || is.na(stationary_means)){
+    stop("'stationary_means' must be TRUE or FALSE")
+  }
+  mean_structure <- if (stationary_means) "stationary" else "free"
+
+  # 'means' holds the sample means; a character value is never valid there. Give
+  # an informative error rather than silently ignoring it (a pre-release of
+  # 0.17.1 used means = "free" to request a wave-specific mean structure):
+  if (!missing(means) && is.character(means)){
+    stop("'means' must be numeric (a vector/matrix of sample means). Use stationary_means = FALSE to model wave-specific means.")
+  }
 
   # Standardize input arguments:
   .data_missing <- missing(data)
@@ -536,7 +556,8 @@ dlvm1 <- function(
                                   types = list(
                                     within_latent = within_latent, between_latent = between_latent,
                                     within_residual = within_residual, between_residual = between_residual,
-                                    temporal_latent = temporal_latent, temporal_residual = temporal_residual
+                                    temporal_latent = temporal_latent, temporal_residual = temporal_residual,
+                                    mean_structure = mean_structure
                                   ),
                                   sample = sampleStats,computed = FALSE, 
                                   equal = equal,
@@ -562,15 +583,47 @@ dlvm1 <- function(
   
   # Expected means:
   expMeans <- lapply(model@sample@means, function(x)tapply(x,timePerVar,mean,na.rm=TRUE))
-  
-  # Fix nu
-  modMatrices$nu <- matrixsetup_mu(nu,nNode = nVar, nGroup = nGroup, labels = varnames,equal = "nu" %in% equal,
-                                   expmeans = expMeans, sampletable = sampleStats, name = "nu")
-  
-  # Fix between-subject means:
-  modMatrices$mu_eta <- matrixsetup_mu(mu_eta,nNode = nLat, nGroup = nGroup, labels = latents, equal = "mu_eta" %in% equal,
-                                       expmeans = lapply(1:nGroup,function(x)rep(0, nLat)), sampletable = sampleStats, name = "mu_eta")
-  
+
+  if (mean_structure == "free"){
+    # Wave-specific means: the item intercepts (nu) become wave-specific, one
+    # per variable--wave combination in the design, which saturates the mean
+    # structure. The latent means (mu_eta) stay fixed to zero for
+    # identification (as with a stationary mean structure): wave-specific
+    # intercepts and wave-specific latent means are not jointly identified, and
+    # the intercepts keep the mean structure saturated so that the baseline
+    # model (which has saturated wave-specific means) stays nested.
+
+    # Observed means per variable--wave combination (variable--wave
+    # combinations not in the design are filled with the variable's average
+    # across waves, for start values only):
+    expMeansPerWave <- lapply(seq_along(model@sample@means),function(g){
+      out <- matrix(NA_real_, nVar, nTime)
+      out[as.vector(design) == 1] <- model@sample@means[[g]]
+      for (v in seq_len(nVar)){
+        out[v,!is.finite(out[v,])] <- expMeans[[g]][v]
+      }
+      out
+    })
+
+    # Fix the wave-specific intercepts:
+    modMatrices$nu <- matrixsetup_mu(nu,nNode = nVar, nGroup = nGroup, labels = varnames,equal = "nu" %in% equal,
+                                     expmeans = expMeansPerWave, sampletable = sampleStats, name = "nu",
+                                     nTime = nTime, design = design, timelabels = timenames)
+
+    # Fix between-subject means (fixed to zero by identify()):
+    modMatrices$mu_eta <- matrixsetup_mu(mu_eta,nNode = nLat, nGroup = nGroup, labels = latents, equal = "mu_eta" %in% equal,
+                                         expmeans = lapply(1:nGroup,function(x)rep(0, nLat)), sampletable = sampleStats, name = "mu_eta")
+
+  } else {
+    # Fix nu
+    modMatrices$nu <- matrixsetup_mu(nu,nNode = nVar, nGroup = nGroup, labels = varnames,equal = "nu" %in% equal,
+                                     expmeans = expMeans, sampletable = sampleStats, name = "nu")
+
+    # Fix between-subject means:
+    modMatrices$mu_eta <- matrixsetup_mu(mu_eta,nNode = nLat, nGroup = nGroup, labels = latents, equal = "mu_eta" %in% equal,
+                                         expmeans = lapply(1:nGroup,function(x)rep(0, nLat)), sampletable = sampleStats, name = "mu_eta")
+  }
+
   
   # 23/08/2023: Attempt at better starting values
   if (start == "psychonetrics"){
@@ -1336,8 +1389,14 @@ dlvm1 <- function(
   
   # Come up with P...
   # Dummy matrix to contain indices:
-  # Dummy matrices with indices:
-  muDummy <- matrix(rep(1:nVar,nTime))
+  # Dummy matrices with indices. With a stationary mean structure the same nVar
+  # mean elements are repeated at every wave; with wave-specific means every
+  # variable--wave combination is its own element:
+  if (mean_structure == "free"){
+    muDummy <- matrix(seq_len(nVar*nTime))
+  } else {
+    muDummy <- matrix(rep(1:nVar,nTime))
+  }
   sigDummy <- matrix(0,nVar,nVar)
   sigDummy[lower.tri(sigDummy,diag=TRUE)] <- max(muDummy) + seq_len(nVar*(nVar+1)/2)
   sigDummy[upper.tri(sigDummy)] <- t(sigDummy)[upper.tri(sigDummy)]
@@ -1402,14 +1461,19 @@ dlvm1 <- function(
                                                  estimator = estimator,
                                                  baseline_saturated = FALSE,
                                                  sampleStats = sampleStats,
-                                                 
+
+                                                 # The baseline must be nested in
+                                                 # the fitted model, so its mean
+                                                 # structure matches:
+                                                 stationary_means = stationary_means,
+
                                                  # Empty networks:
                                                  sigma_zeta_within = "diag",
                                                  sigma_zeta_between = "diag",
                                                  beta = "zero"
                                                  )
-    
-    } else if (baseline == "stationary"){ 
+
+    } else if (baseline == "stationary"){
       
       # Form the baseline model:
       model@baseline_saturated$baseline <- panelvar(data,
@@ -1423,7 +1487,12 @@ dlvm1 <- function(
                                                     estimator = estimator,
                                                     baseline_saturated = FALSE,
                                                     sampleStats = sampleStats,
-                                                    
+
+                                                    # The baseline must be nested
+                                                    # in the fitted model, so its
+                                                    # mean structure matches:
+                                                    stationary_means = stationary_means,
+
                                                     # Empty networks:
                                                     sigma_zeta_within = "diag",
                                                     sigma_zeta_between = "zero",

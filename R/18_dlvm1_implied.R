@@ -33,7 +33,11 @@ implied_dlvm1 <- function(model,all = FALSE){
   
   # Identity matrix for latents:
   I_eta <- model@extramatrices$I_eta
-  
+
+  # Wave-specific ("free") means? Then the item intercepts 'nu' have one column
+  # per wave (the latent means stay fixed to zero for identification):
+  free_means <- !is.null(model@types$mean_structure) && model@types$mean_structure == "free"
+
   for (g in 1:nGroup){
     # PDC temporal parameterizations: compute beta (latent) and/or
     # beta_epsilon (residual) from the PDC matrices and the corresponding
@@ -48,11 +52,20 @@ implied_dlvm1 <- function(model,all = FALSE){
     # Beta star:
     BetaStar <- as.matrix(solve(I_eta %x% I_eta - (x[[g]]$beta %x% x[[g]]$beta)))
     
-    # Implied mean vector:
-    impMu <- x[[g]]$nu + x[[g]]$lambda %*% x[[g]]$mu_eta
-    
+    # Implied mean vector. With wave-specific intercepts the implied means
+    # differ per wave (nu_t + lambda mu_eta):
+    if (free_means){
+      impMu <- x[[g]]$nu + matrix(as.vector(x[[g]]$lambda %*% x[[g]]$mu_eta), nVar, nTime)
+    } else {
+      impMu <- x[[g]]$nu + x[[g]]$lambda %*% x[[g]]$mu_eta
+    }
+
     fullMu <- as(do.call(rbind,lapply(seq_len(nTime),function(t){
-      impMu[design[,t]==1,,drop=FALSE]
+      if (free_means){
+        impMu[design[,t]==1,t,drop=FALSE]
+      } else {
+        impMu[design[,t]==1,,drop=FALSE]
+      }
     })), "Matrix")
     
     # List of implied varcovs within-subject latents:

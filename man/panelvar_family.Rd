@@ -8,7 +8,7 @@ Lag-1 panel vector autoregression family of psychonetrics models
 \description{
 This is the family of models that models a lag-1 vector autoregression (VAR) process with random intercepts on panel data of observed variables: a within-person stationary VAR(1) process (temporal matrix \code{beta} and contemporaneous structure \code{sigma_zeta_within}) combined with a between-person (random intercept) structure (\code{sigma_zeta_between}). The \code{panelvar} function models the contemporaneous and between-person structures as variance--covariance matrices by default, and the \code{panelgvar} wrapper models them as Gaussian graphical models (GGMs), yielding the panel graphical VAR model.
 
-This model family is the observed-variable special case of \code{\link{dlvm1}} (a factor loading matrix fixed to identity, zero residual variances and observed means). Since psychonetrics 0.16.2 it is implemented as its own model framework: results are identical to routing through \code{dlvm1} with dummy matrices, but estimation skips all factor-loading algebra and is faster. The mean structure is a single \code{mu} matrix of observed stationary means (in older versions these appeared as \code{nu}). Latent panel models (\code{lambda} not identity) are still handled by \code{\link{dlvm1}} and its wrapper \code{panellvgvar}.
+This model family is the observed-variable special case of \code{\link{dlvm1}} (a factor loading matrix fixed to identity, zero residual variances and observed means). Since psychonetrics 0.16.2 it is implemented as its own model framework: results are identical to routing through \code{dlvm1} with dummy matrices, but estimation skips all factor-loading algebra and is faster. The mean structure is a single \code{mu} matrix of observed stationary means (in older versions these appeared as \code{nu}); with \code{stationary_means = FALSE} \code{mu} instead holds wave-specific means, one per variable per wave (the trend-stationary case, see the details below). Latent panel models (\code{lambda} not identity) are still handled by \code{\link{dlvm1}} and its wrapper \code{panellvgvar}.
 
 All functions accept both wide-format data (with a design matrix for \code{vars}) and long-format data (with a character vector for \code{vars} plus \code{idvar} and optionally \code{beepvar}). The format is auto-detected from the type of \code{vars}.
 }
@@ -38,7 +38,8 @@ panelvar(data, vars, within_latent = c("cov", "chol", "prec",
                    penalize_matrices,
                    rho_zeta_within = "full", SD_zeta_within = "diag",
                    rho_zeta_between = "full", SD_zeta_between = "diag",
-                   temporal = c("raw","PDC"), PDC = "full")
+                   temporal = c("raw","PDC"), PDC = "full",
+                   stationary_means = TRUE)
 
 panelgvar(data, vars, within_latent = c("ggm","chol","cov","prec","cor"),
           between_latent = c("ggm","chol","cov","prec","cor"), ...)
@@ -103,7 +104,7 @@ Only used when \code{between_latent = "cov"}. Can be \code{"full"}, \code{"diag"
 Only used when \code{between_latent = "chol"}. Can be \code{"full"}, \code{"diag"}, or a typical model matrix with 0s indicating parameters constrained to zero, 1s indicating free parameters, and higher integers indicating equality constraints. For multiple groups, this argument can be a list or array with each element/slice encoding such a matrix.
 }
   \item{mu}{
-Optional vector encoding the observed stationary means. Set elements to 0 to indicate fixed to zero constrains, 1 to indicate free means, and higher integers to indicate equality constraints. For multiple groups, this argument can be a list or array with each element/column encoding such a vector.
+Optional vector encoding the observed stationary means. Set elements to 0 to indicate fixed to zero constrains, 1 to indicate free means, and higher integers to indicate equality constraints. For multiple groups, this argument can be a list or array with each element/column encoding such a vector. When \code{stationary_means = FALSE} this is instead a \code{nVar} by \code{nTime} matrix (variables in the rows, waves in the columns), or an array/list of such matrices for multiple groups; elements at variable--wave combinations that are not in the \code{vars} design matrix are always fixed to zero.
 }
   \item{groups}{
 Deprecated. Use \code{groupvar} instead. An optional string indicating the name of the group variable in \code{data}.
@@ -118,7 +119,7 @@ A sample variance--covariance matrix, or a list/array of such matrices for multi
 Not supported in \code{panelvar()}; supplying correlation input produces an error.
 }
   \item{means}{
-A vector of sample means, or a list/matrix containing such vectors for multiple groups.
+A vector of sample means, or a list/matrix containing such vectors for multiple groups. This argument always refers to the sample means; the mean \emph{structure} of the model is set with \code{stationary_means}.
 }
   \item{nobs}{
 The number of observations used in \code{covs} and \code{means}, or a vector of such numbers of observations for multiple groups.
@@ -154,7 +155,7 @@ Logical, should progress be printed to the console?
   \item{sampleStats}{
 An optional sample statistics object. Mostly used internally.
 }
-\item{baseline}{What baseline model should be used? \code{"stationary_random_intercept"} includes both within- and between person variances constrained equal across time (default), \code{"stationary"} only includes within-person variances constrained equal across time, \code{"independence"} (default up to version 0.11) includes a variance for every variable at every time point (not constrained equal across time), and \code{"none"} includes no baseline model.}
+\item{baseline}{What baseline model should be used? \code{"stationary_random_intercept"} includes both within- and between person variances constrained equal across time (default), \code{"stationary"} only includes within-person variances constrained equal across time, \code{"independence"} (default up to version 0.11) includes a variance for every variable at every time point (not constrained equal across time), and \code{"none"} includes no baseline model. The baseline model always uses the same mean structure as the model itself (see the \code{stationary_means} argument and the details below).}
 \item{bootstrap}{
 Should the data be bootstrapped? If \code{TRUE} the data are resampled and a bootstrap sample is created. These must be aggregated using \code{\link{aggregate_bootstraps}}! Can be \code{TRUE} or \code{FALSE}. Can also be \code{"nonparametric"} (which sets \code{boot_sub = 1} and \code{boot_resample = TRUE}) or \code{"case"} (which sets \code{boot_sub = 0.75} and \code{boot_resample = FALSE}).
 }
@@ -179,9 +180,21 @@ Preferred name for \code{between_latent} (there are no latent variables in panel
 \item{SD_zeta_between}{Only used when \code{between_latent = "cor"}. Diagonal standard-deviation matrix specification (\code{"diag"}, \code{"full"}, or a pattern matrix).}
 \item{temporal}{Parameterization of the temporal effects: \code{"raw"} (default) models \code{beta} directly; \code{"PDC"} models the partial directed correlations directly, with the \code{PDC} matrix encoding from = row and to = column (the transposed orientation relative to \code{beta}, matching \code{getmatrix(..., "PDC")}). A (pattern-constrained) PDC model is fit-equivalent to the corresponding raw model, but standard errors, confidence intervals, equality constraints and modification indices then apply directly on the PDC scale.}
 \item{PDC}{Only used when \code{temporal = "PDC"}. Model matrix for the partial directed correlations (from = row, to = column): \code{"full"}, \code{"zero"}, \code{"diag"}, or a pattern matrix with 0s indicating elements fixed to zero, 1s indicating free elements, and higher integers indicating equality constraints.}
+\item{stationary_means}{Logical. \code{TRUE} (default, and the behavior of all earlier versions) models a single stationary mean per variable, constrained equal across waves. \code{FALSE} models a separate mean for every variable at every wave (the \code{mu} matrix becomes \code{nVar} by \code{nTime}), which saturates the mean structure and adds \code{nVar * (nTime - 1)} parameters. See the details below.}
 \item{\dots}{
 Arguments sent to \code{panelvar}.
 }
+}
+\details{
+\bold{Stationary versus wave-specific means.} By default the panel VAR model is fully stationary: every variable has a single mean, and the implied means are therefore equal across waves. With \code{stationary_means = FALSE} the means become wave-specific, which is the classical \emph{trend-stationary} case. The level shifts are then period effects that are exogenous to the dynamics: they are deterministic offsets added to all cases at a given wave, the within-person deviation process
+\deqn{y_{i,t} = \mu_t + \eta_{i,t} + \zeta_i, \quad \eta_{i,t} = B \eta_{i,t-1} + \varepsilon_{i,t}}
+remains covariance-stationary, and wave 1 is still drawn from that stationary distribution. Consequently the implied covariance matrix is \emph{identical} to that of the stationary-means model, and only the mean part of the model (and of its Jacobian) changes. Fitting \code{stationary_means = FALSE} to raw data is equivalent to fitting the default model to per-wave mean-centered data, except that the free means are estimated (and tested) rather than removed, and the degrees of freedom are adjusted accordingly.
+
+\bold{Identification.} The mean structure under \code{stationary_means = FALSE} is exactly saturated: one free mean per variable--wave combination present in the \code{vars} design matrix (variable--wave combinations that are absent have no mean parameter). The estimated means therefore equal the observed per-wave means, and the likelihood-ratio test of \code{stationary_means = TRUE} against \code{FALSE} is a test of equal means over time with \code{nVar * (nTime - 1)} degrees of freedom. Cross-group equality constraints (\code{equal = "mu"}) equate the means \emph{per wave} across groups.
+
+\bold{No free innovation variances.} Only the means can be freed over time in this framework, not the innovation (co)variances: a wave-varying innovation covariance has no stationary distribution for wave 1 to be drawn from, so the Kronecker/stationarity machinery on which \code{panelvar} is built does not apply. Models with wave-specific innovation structures are covered by the RI-CLPM / RI-CLPN framework instead, see \code{\link{ri_clpm}} (which also leaves the exogenous wave-1 covariance block free).
+
+\bold{Baseline model.} The baseline model always uses the same mean structure as the fitted model: with \code{stationary_means = FALSE} the baseline gets wave-specific means as well. A baseline model must be nested in the fitted model, otherwise it can fit better than the fitted model on the mean side (a free-means baseline against an equal-means target would beat it), which makes incremental fit indices meaningless or negative. A corollary is that incremental fit indices (CFI, TLI, NFI, ...) are \bold{not} directly comparable between a \code{stationary_means = TRUE} and a \code{stationary_means = FALSE} fit of the same data, because the two use different baselines by design; compare those two models with a likelihood-ratio test (\code{\link{compare}}) instead. The saturated model already has a saturated mean structure and is unchanged.
 }
 \value{
 An object of the class psychonetrics (\link{psychonetrics-class})
@@ -240,5 +253,13 @@ mod_long <- panelgvar(data = longdata,
                       vars = c("x", "y"),
                       idvar = "id",
                       beepvar = "time")
+
+# The same model with wave-specific (trend-stationary) means, which can be
+# compared to the stationary-means model with a chi-square difference test:
+mod_free <- panelgvar(data = longdata,
+                      vars = c("x", "y"),
+                      idvar = "id",
+                      beepvar = "time",
+                      stationary_means = FALSE)
 }
 }

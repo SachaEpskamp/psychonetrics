@@ -33,6 +33,12 @@ Rcpp::List implied_panelvar_cpp_core(
   std::string temporal = "raw";
   if (types.containsElementNamed("temporal")) temporal = as<std::string>(types["temporal"]);
 
+  // Wave-specific ("free") means? Then 'mu' has one column per wave:
+  bool free_means = false;
+  if (types.containsElementNamed("mean_structure")){
+    free_means = (as<std::string>(types["mean_structure"]) == "free");
+  }
+
   // Add implied cov structure:
   x = impliedcovstructures_cpp(x, "zeta_within", within_latent, all);
   x = impliedcovstructures_cpp(x, "zeta_between", between_latent, all);
@@ -71,12 +77,18 @@ Rcpp::List implied_panelvar_cpp_core(
     arma::mat I2 = eye(nVar*nVar, nVar*nVar);
     arma::mat BetaStar = inv(I2 - kron(beta, beta));
 
-    // Implied mean vector (stationary means, repeated at every wave):
-    arma::vec impMu = mu;
-
+    // Implied mean vector (stationary means, repeated at every wave; with
+    // wave-specific means wave t takes column t of 'mu'):
     arma::vec fullMu(nTime * nVar);
-    for (i=0;i<nTime;i++){
-      fullMu.submat(i*nVar,0,(i+1)*nVar-1,0) = impMu;
+    if (free_means){
+      for (i=0;i<nTime;i++){
+        fullMu.submat(i*nVar,0,(i+1)*nVar-1,0) = mu.col(i);
+      }
+    } else {
+      arma::vec impMu = mu.col(0);
+      for (i=0;i<nTime;i++){
+        fullMu.submat(i*nVar,0,(i+1)*nVar-1,0) = impMu;
+      }
     }
 
     Rcpp::List allSigmas_within(nTime);

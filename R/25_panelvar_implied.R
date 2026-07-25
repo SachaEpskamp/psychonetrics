@@ -31,6 +31,9 @@ implied_panelvar <- function(model,all = FALSE){
   # Identity matrix for the variables:
   In <- model@extramatrices$In
 
+  # Wave-specific ("free") means? Then 'mu' has one column per wave:
+  free_means <- !is.null(model@types$mean_structure) && model@types$mean_structure == "free"
+
   for (g in 1:nGroup){
     # PDC temporal parameterization: compute beta from PDC and the
     # innovation covariance:
@@ -42,10 +45,15 @@ implied_panelvar <- function(model,all = FALSE){
     BetaStar <- as.matrix(solve(In %x% In - (x[[g]]$beta %x% x[[g]]$beta)))
 
     # Implied mean vector: the stationary means, repeated at every wave and
-    # subset by the design matrix:
+    # subset by the design matrix. With wave-specific means, wave t simply
+    # takes column t of 'mu':
     mu <- x[[g]]$mu
     fullMu <- as(do.call(rbind,lapply(seq_len(nTime),function(t){
-      mu[design[,t]==1,,drop=FALSE]
+      if (free_means){
+        mu[design[,t]==1,t,drop=FALSE]
+      } else {
+        mu[design[,t]==1,,drop=FALSE]
+      }
     })), "Matrix")
 
     # List of implied within-person varcovs per lag:

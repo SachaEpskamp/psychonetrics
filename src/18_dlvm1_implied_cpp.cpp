@@ -35,6 +35,13 @@ Rcpp::List implied_dlvm1_cpp_core(
   std::string temporal_residual = "raw";
   if (types.containsElementNamed("temporal_residual")) temporal_residual = as<std::string>(types["temporal_residual"]);
 
+  // Wave-specific ("free") means? Then the item intercepts 'nu' have one column
+  // per wave (the latent means stay fixed to zero for identification):
+  bool free_means = false;
+  if (types.containsElementNamed("mean_structure")){
+    free_means = (as<std::string>(types["mean_structure"]) == "free");
+  }
+
   // Add implied cov structure:
   x = impliedcovstructures_cpp(x, "zeta_within", within_latent, all);
   x = impliedcovstructures_cpp(x, "epsilon_within", within_residual, all);
@@ -102,12 +109,19 @@ Rcpp::List implied_dlvm1_cpp_core(
     // Some stuff needed now:
     arma::mat BetaStar = inv(I2 - kron(beta, beta));
     
-    // Implied mean vector:
-    arma::vec impMu = nu + lambda * mu_eta;
-    
+    // Implied mean vector. With wave-specific intercepts the implied means
+    // differ per wave (nu_t + lambda mu_eta):
     arma::vec fullMu(nTime * nVar);
-    for (i=0;i<nTime;i++){
-      fullMu.submat(i*nVar,0,(i+1)*nVar-1,0) = impMu;
+    if (free_means){
+      arma::vec lamMuEta = lambda * mu_eta;
+      for (i=0;i<nTime;i++){
+        fullMu.submat(i*nVar,0,(i+1)*nVar-1,0) = nu.col(i) + lamMuEta;
+      }
+    } else {
+      arma::vec impMu = nu + lambda * mu_eta;
+      for (i=0;i<nTime;i++){
+        fullMu.submat(i*nVar,0,(i+1)*nVar-1,0) = impMu;
+      }
     }
     
     

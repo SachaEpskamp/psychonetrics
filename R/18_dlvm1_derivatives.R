@@ -1,13 +1,26 @@
-d_mu_mu_eta_dlvm1 <- function(lambda,...){
-  lambda
+d_mu_mu_eta_dlvm1 <- function(lambda,nu,...){
+  # With wave-specific intercepts, 'nu' has one column per wave and the implied
+  # means are stacked per wave; the (wave-invariant) latent means then enter
+  # every wave's block:
+  if (ncol(nu) > 1){
+    Matrix(1,ncol(nu),1) %x% lambda
+  } else {
+    lambda
+  }
 }
 
 # d_mu_lambda_dlvm1 <- function(mu_eta,I_y,...){
 #   t(mu_eta) %x% I_y
 # }
 
-d_mu_lambda_dlvm1 <- function(mu_eta,I_y,...){
-  t(mu_eta) %x% I_y
+d_mu_lambda_dlvm1 <- function(mu_eta,I_y,nu,...){
+  res <- t(mu_eta) %x% I_y
+  # With wave-specific intercepts the implied means are stacked per wave, and
+  # the (wave-invariant) latent means contribute the same block at every wave:
+  if (ncol(nu) > 1){
+    res <- Matrix(1,ncol(nu),1) %x% res
+  }
+  res
 }
 
 # d_sigmak_lambda_dlvm1 <- function(lambda, k = 0,  allSigmas_within, C_y_eta, I_y, L_y, ...){
@@ -215,13 +228,21 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
   has_beta_eps <- !is.null(beta_epsilon)
   eps_ar <- has_beta_eps && any(beta_epsilon != 0)
 
+  # Wave-specific ("free") means? Then the item intercepts have one column per
+  # wave and the implied means differ per wave, so every variable--wave
+  # combination is its own mean element. The covariance part of the Jacobian is
+  # unaffected: wave-specific deterministic means leave the implied
+  # (stationary) covariance structure unchanged.
+  nNuCols <- ncol(dots$nu)
+  nMeans <- nVar * nNuCols
+
   # I need to construct the Jacobian for the following "observations:"
-  nobs <- nVar + # Means
+  nobs <- nMeans + # Means
     (nVar * (nVar+1))/2 + # Variances
     nVar^2 * (nTime - 1) # lagged variances
 
   # total number of elements:
-  nelement <- nVar + # intercepts in nu
+  nelement <- nVar * nNuCols + # intercepts in nu (per wave when wave-specific)
     nLat + # Latent means
     nVar * nLat + # Factor loadings
     nLat * (nLat+1) / 2 + # within factor variances
@@ -236,9 +257,9 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
   Jac <- Matrix(0, nrow = nobs, ncol=nelement, sparse = FALSE)
 
   # Indices:
-  meanInds <- 1:nVar
+  meanInds <- seq_len(nMeans)
   sigInds <- list(
-    nVar + seq_len(nVar*(nVar+1)/2)
+    nMeans + seq_len(nVar*(nVar+1)/2)
   )
 
   # For each lag:
@@ -247,7 +268,7 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
   }
 
   # Indices model:
-  nu_inds <- seq_len(nVar)
+  nu_inds <- seq_len(nVar * nNuCols)
   mu_eta_inds <- max(nu_inds) + seq_len(nLat)
   lambda_inds <- max(mu_eta_inds) + seq_len(nVar * nLat)
 
@@ -344,9 +365,11 @@ d_phi_theta_dlvm1_group <- function(within_latent,within_residual,between_latent
 
  
   # message("Starting...")
-  # fill intercept part:
-  Jac[meanInds,nu_inds] <- Diagonal(nVar)
-  
+  # fill intercept part. Each mean element maps onto exactly one intercept (the
+  # permutation matrix P repeats the invariant intercepts over waves, or maps
+  # every wave-specific intercept onto its own variable--wave observation):
+  Jac[meanInds,nu_inds] <- Diagonal(nMeans)
+
   # Fill latent mean part:
   Jac[meanInds,mu_eta_inds] <- d_mu_mu_eta_dlvm1( ...)
   

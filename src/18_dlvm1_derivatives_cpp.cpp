@@ -166,6 +166,7 @@ arma::mat d_phi_theta_dlvm1_group_cpp(
   Rcpp::List allSigmas_within = grouplist["allSigmas_within"];
   arma::mat sigma_zeta_between = grouplist["sigma_zeta_between"];
   arma::mat mu_eta = grouplist["mu_eta"];
+  arma::mat nu = grouplist["nu"];
   arma::mat BetaStar = grouplist["BetaStar"];
   arma::mat lamWkronlamW = grouplist["lamWkronlamW"];
   arma::sp_mat IkronBeta = grouplist["IkronBeta"];
@@ -201,20 +202,29 @@ arma::mat d_phi_theta_dlvm1_group_cpp(
   
   // Number of latents:
   int nLat = lambda.n_cols;
-  
+
   // Number of within latents:
   // nLat <- ncol(lambda)
-  
+
   // Number of between latents:
   // nLat <- ncol(lambda)
-  
+
+  // Wave-specific ("free") means? Then the item intercepts have one column per
+  // wave and the implied means differ per wave, so every variable--wave
+  // combination is its own mean element. The covariance part of the Jacobian is
+  // unaffected: wave-specific deterministic means leave the implied
+  // (stationary) covariance structure unchanged.
+  int nNuCols = nu.n_cols;
+  bool free_means = nNuCols > 1;
+  int nMeans = nVar * nNuCols;
+
   // I need to construct the Jacobian for the following "observations:"
-  int nobs = nVar + // Means
+  int nobs = nMeans + // Means
     (nVar * (nVar+1))/2 + // Variances
     (nVar * nVar) * (nTime - 1); // lagged variances
-  
+
   // total number of elements:
-  int nelement = nVar + // intercepts in nu
+  int nelement = nVar * nNuCols + // intercepts in nu (per wave when wave-specific)
     nLat + // Latent means
     nVar * nLat + // Factor loadings
     nLat * (nLat+1) / 2 + // within factor variances
@@ -236,20 +246,20 @@ arma::mat d_phi_theta_dlvm1_group_cpp(
   // arma::vec nuetaInds = seq_len_inds(interceptInds(1) + 1, nlat);
   //
   // Indices:
-  arma::vec meanInds = seq_len_inds(0, nVar);
-  
+  arma::vec meanInds = seq_len_inds(0, nMeans);
+
   Rcpp::List sigInds(nTime);
   sigInds[0] = seq_len_inds(meanInds(1) + 1, nVar*(nVar+1)/2);
-  
+
   // For each lag:
   for (t=1; t<nTime;t++){
     arma::vec prev = sigInds[t-1];
     sigInds[t]  = seq_len_inds(prev(1) + 1, nVar*nVar);
   }
-  
-  
+
+
   // Indices model:
-  arma::vec nu_inds = seq_len_inds(0, nVar);
+  arma::vec nu_inds = seq_len_inds(0, nVar * nNuCols);
   arma::vec mu_eta_inds = seq_len_inds(nu_inds(1) + 1, nLat);
   arma::vec lambda_inds = seq_len_inds(mu_eta_inds(1) + 1, nVar * nLat);
   
@@ -422,15 +432,23 @@ arma::mat d_phi_theta_dlvm1_group_cpp(
   }
   
   
-  // fill intercept part:
-  Jac.submat(meanInds(0),nu_inds(0),meanInds(1),nu_inds(1)) =  eye(nVar, nVar);
-  
-  
-  // Fill latent mean part:
-  Jac.submat(meanInds(0),mu_eta_inds(0),meanInds(1),mu_eta_inds(1)) =  lambda;
-  
-  // Fill mean to factor loading part:
-  Jac.submat(meanInds(0),lambda_inds(0),meanInds(1),lambda_inds(1)) = d_mu_lambda_dlvm1_cpp(mu_eta, I_y);
+  // fill intercept part. Each mean element maps onto exactly one intercept (the
+  // permutation matrix P repeats the invariant intercepts over waves, or maps
+  // every wave-specific intercept onto its own variable--wave observation):
+  Jac.submat(meanInds(0),nu_inds(0),meanInds(1),nu_inds(1)) =  eye(nMeans, nMeans);
+
+
+  // Fill latent mean part and the mean part of the factor loadings. With
+  // wave-specific intercepts the implied means are stacked per wave, and the
+  // (wave-invariant) latent means contribute the same block at every wave:
+  if (free_means){
+    Jac.submat(meanInds(0),mu_eta_inds(0),meanInds(1),mu_eta_inds(1)) = repmat(lambda, nTime, 1);
+    Jac.submat(meanInds(0),lambda_inds(0),meanInds(1),lambda_inds(1)) =
+      repmat(d_mu_lambda_dlvm1_cpp(mu_eta, I_y), nTime, 1);
+  } else {
+    Jac.submat(meanInds(0),mu_eta_inds(0),meanInds(1),mu_eta_inds(1)) =  lambda;
+    Jac.submat(meanInds(0),lambda_inds(0),meanInds(1),lambda_inds(1)) = d_mu_lambda_dlvm1_cpp(mu_eta, I_y);
+  }
   
   // Precompute constant "between" block for lambda Jacobian (OPT-A):
   arma::mat lambda_sigBetween = lambda * sigma_zeta_between;

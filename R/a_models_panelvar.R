@@ -7,7 +7,9 @@
 # estimation faster than routing through dlvm1 with dummy matrices. The
 # model matrices keep their dlvm1 names (beta, sigma_zeta_within,
 # sigma_zeta_between, and their typed variants) for backward compatibility;
-# the mean structure is a single 'mu' matrix of observed stationary means.
+# the mean structure is a single 'mu' matrix of observed stationary means, or,
+# with stationary_means = FALSE, a nVar * nTime 'mu' matrix of wave-specific
+# means (trend-stationary case).
 panelvar <- function(
   data, # Dataset
   vars, # Design matrix (wide) or character vector of variable names (long)
@@ -86,12 +88,31 @@ panelvar <- function(
   # Temporal parameterization: "raw" models beta directly; "PDC" models the
   # partial directed correlations (from = row, to = column) directly:
   temporal = c("raw","PDC"),
-  PDC = "full" # Only used when temporal = "PDC"
+  PDC = "full", # Only used when temporal = "PDC"
+  # Mean structure: TRUE (default) models one stationary mean per variable,
+  # constrained equal across waves; FALSE models a separate mean per variable
+  # at every wave (trend-stationary; saturated mean structure):
+  stationary_means = TRUE
 ){
 
   covtype <- match.arg(covtype)
   datatype <- match.arg(datatype)
   standardize <- match.arg(standardize)
+
+  # Mean structure. Stored in the types slot as a string ("stationary" or
+  # "free"), which is what the implied structures and derivatives (R and C++)
+  # branch on:
+  if (!is.logical(stationary_means) || length(stationary_means) != 1 || is.na(stationary_means)){
+    stop("'stationary_means' must be TRUE or FALSE")
+  }
+  mean_structure <- if (stationary_means) "stationary" else "free"
+
+  # 'means' holds the sample means; a character value is never valid there. Give
+  # an informative error rather than silently ignoring it (a pre-release of
+  # 0.17.1 used means = "free" to request a wave-specific mean structure):
+  if (!missing(means) && is.character(means)){
+    stop("'means' must be numeric (a vector/matrix of sample means). Use stationary_means = FALSE to model wave-specific means.")
+  }
 
   # Standardize input arguments:
   .data_missing <- missing(data)
@@ -418,7 +439,8 @@ panelvar <- function(
                                   ),
                                   types = list(
                                     within_latent = within_latent, between_latent = between_latent,
-                                    temporal = temporal
+                                    temporal = temporal,
+                                    mean_structure = mean_structure
                                   ),
                                   sample = sampleStats,computed = FALSE,
                                   equal = equal,
@@ -446,8 +468,27 @@ panelvar <- function(
   expMeans <- lapply(model@sample@means, function(x)tapply(x,timePerVar,mean,na.rm=TRUE))
 
   # Setup mu:
-  modMatrices$mu <- matrixsetup_mu(mu,nNode = nVar, nGroup = nGroup, labels = varnames,equal = "mu" %in% equal,
-                                   expmeans = expMeans, sampletable = sampleStats, name = "mu")
+  if (mean_structure == "free"){
+    # Wave-specific means: start values are the observed means per
+    # variable--wave combination (variable--wave combinations not in the design
+    # are filled with the variable's average across waves, but are fixed to
+    # zero anyway):
+    expMeansPerWave <- lapply(seq_along(model@sample@means),function(g){
+      out <- matrix(NA_real_, nVar, nTime)
+      out[as.vector(design) == 1] <- model@sample@means[[g]]
+      for (v in seq_len(nVar)){
+        out[v,!is.finite(out[v,])] <- expMeans[[g]][v]
+      }
+      out
+    })
+
+    modMatrices$mu <- matrixsetup_mu(mu,nNode = nVar, nGroup = nGroup, labels = varnames,equal = "mu" %in% equal,
+                                     expmeans = expMeansPerWave, sampletable = sampleStats, name = "mu",
+                                     nTime = nTime, design = design, timelabels = timenames)
+  } else {
+    modMatrices$mu <- matrixsetup_mu(mu,nNode = nVar, nGroup = nGroup, labels = varnames,equal = "mu" %in% equal,
+                                     expmeans = expMeans, sampletable = sampleStats, name = "mu")
+  }
 
   if (start == "psychonetrics"){
 
@@ -801,8 +842,14 @@ panelvar <- function(
   )
 
   # Come up with P...
-  # Dummy matrices with indices:
-  muDummy <- matrix(rep(1:nVar,nTime))
+  # Dummy matrices with indices. With stationary means the same nVar mean
+  # elements are repeated at every wave; with wave-specific means every
+  # variable--wave combination is its own element:
+  if (mean_structure == "free"){
+    muDummy <- matrix(seq_len(nVar*nTime))
+  } else {
+    muDummy <- matrix(rep(1:nVar,nTime))
+  }
   sigDummy <- matrix(0,nVar,nVar)
   sigDummy[lower.tri(sigDummy,diag=TRUE)] <- max(muDummy) + seq_len(nVar*(nVar+1)/2)
   sigDummy[upper.tri(sigDummy)] <- t(sigDummy)[upper.tri(sigDummy)]
@@ -863,6 +910,11 @@ panelvar <- function(
                                                  baseline_saturated = FALSE,
                                                  sampleStats = sampleStats,
 
+                                                 # The baseline must be nested in
+                                                 # the fitted model, so its mean
+                                                 # structure matches:
+                                                 stationary_means = stationary_means,
+
                                                  # Empty networks:
                                                  sigma_zeta_within = "diag",
                                                  sigma_zeta_between = "diag",
@@ -883,6 +935,11 @@ panelvar <- function(
                                                     estimator = estimator,
                                                     baseline_saturated = FALSE,
                                                     sampleStats = sampleStats,
+
+                                                    # The baseline must be nested
+                                                    # in the fitted model, so its
+                                                    # mean structure matches:
+                                                    stationary_means = stationary_means,
 
                                                     # Empty networks:
                                                     sigma_zeta_within = "diag",

@@ -45,13 +45,23 @@ arma::mat d_phi_theta_panelvar_group_cpp(
   // Number of time points:
   int nTime = design.n_cols;
 
+  // Wave-specific ("free") means? Then there is one mean element (and one 'mu'
+  // column) per variable--wave combination rather than one per variable. The
+  // covariance part of the Jacobian is unaffected: wave-specific deterministic
+  // means leave the implied (stationary) covariance structure unchanged.
+  bool free_means = false;
+  if (grouplist.containsElementNamed("mean_structure")){
+    free_means = (as<std::string>(grouplist["mean_structure"]) == "free");
+  }
+  int nMeans = free_means ? nVar * nTime : nVar;
+
   // I need to construct the Jacobian for the following "observations:"
-  int nobs = nVar + // Means
+  int nobs = nMeans + // Means
     (nVar * (nVar+1))/2 + // Variances
     (nVar * nVar) * (nTime - 1); // lagged variances
 
   // total number of elements:
-  int nelement = nVar + // means
+  int nelement = nMeans + // means
     nVar * (nVar+1) / 2 + // within-person contemporaneous block
     (nVar * nVar) + // temporal effects
     nVar * (nVar + 1) / 2; // between-person block
@@ -60,7 +70,7 @@ arma::mat d_phi_theta_panelvar_group_cpp(
   arma::mat Jac = zeros(nobs,nelement);
 
   // Indices (observations):
-  arma::vec meanInds = seq_len_inds(0, nVar);
+  arma::vec meanInds = seq_len_inds(0, nMeans);
 
   Rcpp::List sigInds(nTime);
   sigInds[0] = seq_len_inds(meanInds(1) + 1, nVar*(nVar+1)/2);
@@ -72,7 +82,7 @@ arma::mat d_phi_theta_panelvar_group_cpp(
   }
 
   // Indices model:
-  arma::vec mu_inds = seq_len_inds(0, nVar);
+  arma::vec mu_inds = seq_len_inds(0, nMeans);
   arma::vec sigma_zeta_within_inds = seq_len_inds(mu_inds(1) + 1,  nVar * (nVar+1) / 2);
   arma::vec beta_inds = seq_len_inds(sigma_zeta_within_inds(1) + 1, nVar * nVar);
   arma::vec sigma_zeta_between_inds = seq_len_inds(beta_inds(1) + 1, nVar * (nVar + 1) / 2);
@@ -143,8 +153,10 @@ arma::mat d_phi_theta_panelvar_group_cpp(
 
   }
 
-  // fill mean part:
-  Jac.submat(meanInds(0),mu_inds(0),meanInds(1),mu_inds(1)) =  eye(nVar, nVar);
+  // fill mean part. Each mean element maps onto exactly one 'mu' element (the
+  // permutation matrix P repeats the stationary means over waves, or maps every
+  // wave-specific mean onto its own variable--wave observation):
+  Jac.submat(meanInds(0),mu_inds(0),meanInds(1),mu_inds(1)) =  eye(nMeans, nMeans);
 
   arma::vec curSigInds = sigInds[0];
 

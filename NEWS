@@ -1,3 +1,36 @@
+Changes in Version 0.17.1
+  o New wave-specific mean structure for the stationary panel models:
+    panelvar(), panelgvar() and dlvm1() (alias dlvm()) gained the argument
+    stationary_means (default TRUE). The default is the existing behavior and
+    all existing models are bit-identical to before.
+    - With stationary_means = FALSE the panelvar/panelgvar mean structure
+      becomes wave-specific: 'mu' is a nVar * nTime matrix with one free mean
+      per variable-wave combination in the design, so the mean structure is
+      exactly saturated (m(T-1) extra parameters).
+    - In dlvm1() the item intercepts 'nu' become wave-specific (nVar * nTime,
+      also m(T-1) extra parameters) while the latent means 'mu_eta' stay fixed
+      to zero for identification. Wave-specific intercepts and wave-specific
+      latent means are not jointly identified; placing the level shifts in the
+      intercepts saturates the mean structure, which is what keeps the baseline
+      model (an observed-variable panelvar model) nested in the fitted model.
+    This is the classical trend-stationary case: the level shifts are period
+    effects exogenous to the dynamics, the within-person deviation process
+    remains covariance-stationary, and the implied covariance matrix is
+    identical to the stationary-means model. Free innovation variances are not
+    offered here (a wave-varying innovation covariance has no stationary
+    distribution for wave 1 to be drawn from); that case is covered by
+    ri_clpm().
+  o The baseline model of both panel frameworks now mirrors the target model's
+    mean structure, so that the baseline stays nested in the fitted model:
+    with stationary_means = FALSE the baseline gets wave-specific means as
+    well. The baselines of stationary-means models are unchanged
+    (bit-identical). As a consequence, incremental fit indices (CFI, TLI, ...)
+    are not directly comparable between a stationary-means and a
+    wave-specific-means fit of the same data, because the two use different
+    baselines by design; use a chi-square difference test (compare()) instead.
+  o panelvar(), panelgvar() and dlvm1() now give an informative error when the
+    'means' argument (sample means) is given a character value.
+
 Changes in Version 0.17.0
   o ri_clpm() now uses type = "cor" (correlations with separate standard
     deviations) as its default latent parameterization instead of "cov". This

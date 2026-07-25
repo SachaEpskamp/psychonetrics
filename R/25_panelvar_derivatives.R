@@ -34,13 +34,20 @@ d_phi_theta_panelvar_group <- function(within_latent,between_latent,...){
   # Number of time points:
   nTime <- ncol(design)
 
+  # Wave-specific ("free") means? Then there is one mean element (and one 'mu'
+  # column) per variable--wave combination rather than one per variable. The
+  # covariance part of the Jacobian is unaffected: wave-specific deterministic
+  # means leave the implied (stationary) covariance structure unchanged.
+  free_means <- !is.null(dots$mean_structure) && dots$mean_structure == "free"
+  nMeans <- if (free_means) nVar * nTime else nVar
+
   # I need to construct the Jacobian for the following "observations:"
-  nobs <- nVar + # Means
+  nobs <- nMeans + # Means
     (nVar * (nVar+1))/2 + # Variances
     nVar^2 * (nTime - 1) # lagged variances
 
   # total number of elements:
-  nelement <- nVar + # means
+  nelement <- nMeans + # means
     nVar * (nVar+1) / 2 + # within-person contemporaneous block
     nVar^2 + # temporal effects
     nVar * (nVar + 1) / 2 # between-person block
@@ -49,9 +56,9 @@ d_phi_theta_panelvar_group <- function(within_latent,between_latent,...){
   Jac <- Matrix(0, nrow = nobs, ncol=nelement, sparse = FALSE)
 
   # Indices (observations):
-  meanInds <- 1:nVar
+  meanInds <- seq_len(nMeans)
   sigInds <- list(
-    nVar + seq_len(nVar*(nVar+1)/2)
+    nMeans + seq_len(nVar*(nVar+1)/2)
   )
 
   # For each lag:
@@ -60,7 +67,7 @@ d_phi_theta_panelvar_group <- function(within_latent,between_latent,...){
   }
 
   # Indices model:
-  mu_inds <- seq_len(nVar)
+  mu_inds <- seq_len(nMeans)
   sigma_zeta_within_inds <- max(mu_inds) + seq_len(nVar * (nVar+1) / 2)
   beta_inds <- max(sigma_zeta_within_inds) + seq_len(nVar^2)
   sigma_zeta_between_inds <- max(beta_inds) + seq_len(nVar * (nVar + 1) / 2)
@@ -105,8 +112,10 @@ d_phi_theta_panelvar_group <- function(within_latent,between_latent,...){
     )
   }
 
-  # Fill mean part:
-  Jac[meanInds,mu_inds] <- Diagonal(nVar)
+  # Fill mean part. Each mean element maps onto exactly one 'mu' element (the
+  # permutation matrix P repeats the stationary means over waves, or maps every
+  # wave-specific mean onto its own variable--wave observation):
+  Jac[meanInds,mu_inds] <- Diagonal(nMeans)
 
   # Fill s0 to sigma_zeta_within part (and store for later use):
   J_sigma_zeta_within <- d_sigma0_sigma_zeta_within_panelvar(...) %*% aug_within_latent
