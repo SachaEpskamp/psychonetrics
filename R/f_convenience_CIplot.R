@@ -44,7 +44,8 @@ CIplot <- function(
     prop0,
     prop0_cex = 1,
     prop0_alpha = 0.95,
-    prop0_minAlpha = 0.25
+    prop0_minAlpha = 0.25,
+    time   # Only for ri_clpm()/ri_clpn() models: the wave (block) to plot
 ){
   # ggplot2 is only needed for the plotting and is a Suggests dependency:
   if(!requireNamespace("ggplot2")) stop("'ggplot2' package needs to be installed.")
@@ -73,6 +74,11 @@ CIplot <- function(
   
   
   
+  # 'time' selects a wave (block) and only exists for RI-CLPM models:
+  if (!missing(time) && !is_riclpm(x)){
+    stop("The 'time' argument is only available for ri_clpm() / ri_clpn() models.")
+  }
+
   if (missing(labels2) && !missing(labels)){
     labels2 <- labels
   }
@@ -91,11 +97,23 @@ CIplot <- function(
     }  else if (x@model == "meta_varcov"){
       matrices <- covchooser(x@types$y,"y")
     }  else if (x@model == "lvm"){
-      
-      if (x@submodel == "rnm"){
-        
+
+      if (is_riclpm(x)){
+
+        # RI-CLPM / RI-CLPN: mirror the panelvar default, but on the blocks
+        # (temporal, contemporaneous within-person, between-person) rather
+        # than on the full latent-sized matrices, which would mix all waves
+        # and the random intercepts into one unreadable plot:
+        rictype <- if (boot_agg) NULL else x@extramatrices$ri_clpm_type
+        if (is.null(rictype)) rictype <- x@types$latent
+        matrices <- c("beta",
+                      covchooser(rictype,"zeta_within"),
+                      covchooser(rictype,"zeta_between"))
+
+      } else if (x@submodel == "rnm"){
+
         matrices <- covchooser(x@types$residual,"epsilon")
-        
+
       } else if (x@submodel == "lnm"){
         
         matrices <- covchooser(x@types$latent,"zeta")
@@ -157,7 +175,63 @@ CIplot <- function(
   
   # Extract parameters:
   pars <- x@parameters
-  
+
+  # Dimensions of each plotted matrix (used to check 'labels'/'labels2'):
+  matdims <- data.frame(name = x@matrices$name, nrow = x@matrices$nrow,
+                        ncol = x@matrices$ncol, stringsAsFactors = FALSE)
+
+  # --- RI-CLPM / RI-CLPN: expand block requests ---
+  # A matrix name such as "omega_zeta_within" (or a plain "beta") refers to an
+  # nVar x nVar block of the full latent-sized matrix. Each requested block
+  # becomes its own pseudo-matrix in 'pars', with the wave in its name and the
+  # plain variable names as node labels, so that the plotting code below can
+  # stay untouched. Waves that share the same free parameters (after a
+  # stationarity constraint) are collapsed into a single block.
+  if (is_riclpm(x)){
+    newmats <- character(0)
+    for (mat in matrices){
+      spec <- if (missing(time)){
+        riclpm_resolve(x, mat, implicit = TRUE)
+      } else riclpm_resolve(x, mat, time, implicit = TRUE)
+
+      if (is.null(spec)){
+        newmats <- c(newmats, mat)
+        next
+      }
+      if (spec$kind == "PDC"){
+        stop("The RI-CLPM has no PDC parameters (PDC is derived from beta and the innovation precision), so its confidence intervals cannot be plotted. Use matrices = 'beta' instead, or getmatrix(x, 'PDC', time = ...) for the point estimates.")
+      }
+      for (v in spec$views){
+        lab <- if (spec$kind %in% c("between","mean_between")){
+          spec$request
+        } else paste0(spec$request, " (", v$label, ")")
+
+        sub  <- pars[pars$matrix == spec$real, , drop = FALSE]
+        ri   <- match(sub$row, v$rows)
+        ci   <- match(sub$col, v$cols)
+        keep <- !is.na(ri) & !is.na(ci)
+        sub  <- sub[keep, , drop = FALSE]
+        if (nrow(sub) == 0) next
+
+        sub$matrix  <- lab
+        sub$var1_id <- ri[keep]
+        sub$var2_id <- ci[keep]
+        sub$var1    <- spec$rowlabs[sub$var1_id]
+        sub$var2    <- if (is.null(spec$collabs)) "" else spec$collabs[sub$var2_id]
+
+        pars    <- rbind(pars, sub)
+        newmats <- c(newmats, lab)
+        matdims <- rbind(matdims, data.frame(name = lab, nrow = length(v$rows),
+                                             ncol = length(v$cols),
+                                             stringsAsFactors = FALSE))
+      }
+    }
+    if (length(newmats) == 0){
+      stop("None of the requested matrices contain parameters to plot.")
+    }
+    matrices <- newmats
+  }
+
   # Make a data frame for each matrix:
   plots <- lapply(matrices,function(mat,labels,labels2,labelstart,split0,prop0){
     
@@ -183,8 +257,8 @@ CIplot <- function(
     # symmetrical <- x@matrices$symmetrical[x@matrices$name == mat]
     # diagonal  <- x@matrices$diagonal[x@matrices$name == mat]
     # lowertri   <- x@matrices$lowertri[x@matrices$name == mat]
-    ncol   <- x@matrices$ncol[x@matrices$name == mat]
-    nrow   <- x@matrices$nrow[x@matrices$name == mat]
+    ncol   <- matdims$ncol[matdims$name == mat]
+    nrow   <- matdims$nrow[matdims$name == mat]
     
     # Edgelist:
     if (missing(labels)){

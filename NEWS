@@ -1,3 +1,45 @@
+Changes in Version 0.17.3
+  o RI-CLPM / RI-CLPN networks can now be extracted and plotted as blocks.
+    ri_clpm() is built on the lvm framework, so its model matrices span all
+    waves at once (the within-person components of every wave, followed by the
+    random intercepts), which made getting at the temporal, contemporaneous
+    and between-person networks a manual indexing exercise. getmatrix() and
+    CIplot() now accept the same matrix names that panelvar()/panelgvar() use,
+    together with a new 'time' argument selecting the wave:
+      getmatrix(x, "beta", time = 2)                # temporal network T2 -> T3
+      getmatrix(x, "PDC",  time = 2)                # ... as partial directed cors
+      getmatrix(x, "omega_zeta_within", time = 3)   # contemporaneous network
+      getmatrix(x, "omega_zeta_between")            # between-person network
+      getmatrix(x, "nu", time = 2) / "nu_between"   # intercepts / RI means
+      CIplot(x, "omega_zeta_within", time = 3)      # CIs of that block
+    - All parameterizations are supported (sigma_/omega_/kappa_/lowertri_/
+      rho_/SD_/delta_zeta, with the _within/_between suffix), and the plain
+      matrix name plus 'time' works as a shorthand.
+    - Blocks carry the variable names of the design matrix as dimnames, so
+      they can be handed straight to qgraph.
+    - The RI-CLPM has no PDC parameters of its own; getmatrix(x, "PDC", ...)
+      derives them from the temporal block and the innovation precision of the
+      target wave, which for a fully stationary model reproduces the
+      panelvar/panelgvar PDC exactly.
+    - Thresholding is applied to the full matrix and the block is then cut out
+      of the result, so a thresholded block is exactly the corresponding
+      submatrix of the thresholded full matrix (identical multiple-comparison
+      adjustment). diag = FALSE, in contrast, applies to the block, so that it
+      removes the autoregressive effects of a temporal block.
+    - Omitting 'time' returns one block per wave; waves whose parameters were
+      equated by ri_clpm_stationary() are collapsed into a single entry, so a
+      stationary structure gives one block instead of several identical ones.
+    - Plain matrix names without 'time' (e.g. getmatrix(x, "beta")) still
+      return the full latent-sized matrix, so existing code is unaffected.
+      CIplot() is the exception: for RI-CLPM models it always plots blocks,
+      since a confidence-interval plot of the full matrix mixes all waves and
+      the random intercepts. Its default 'matrices' for these models is now
+      the temporal, within-person and between-person block, mirroring the
+      panelvar default.
+  o ri_clpm() models store an explicit block index in
+    @extramatrices$ri_clpm_blocks. Models created with earlier versions are
+    handled by deriving the index from the stored design matrix.
+
 Changes in Version 0.17.2
   o ri_clpm_search() has been redesigned as a guarded decision tree. Where the
     search used to be a strict chain that stopped at the first rejection, it

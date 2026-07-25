@@ -128,6 +128,17 @@ Setting \code{on_rejection = "stop"} reproduces the pre-0.17.2 behavior exactly:
 
 With the default \code{type = "cor"} parameterization the contemporaneous (correlation) step and the innovation-variance (standard deviation) step are cleanly separated and nested; the innovation variances are never equated with the exogenous wave-1 variances nor with the between-person random-intercept variances.
 
+\bold{Extracting and plotting the networks.} Because the model is set up in the \code{\link{lvm}} framework, its matrices span all waves at once and the temporal, contemporaneous and between-person networks are blocks of those matrices. Those blocks can be addressed directly, using the same matrix names as \code{\link{panelvar}} / \code{\link{panelgvar}} together with a \code{time} argument:
+
+\preformatted{getmatrix(x, "beta", time = 2)               # temporal network, wave 2 -> 3
+getmatrix(x, "PDC",  time = 2)               # ... as partial directed correlations
+getmatrix(x, "omega_zeta_within", time = 3)  # contemporaneous network at wave 3
+getmatrix(x, "omega_zeta_between")           # between-person network
+getmatrix(x, "nu_between")                   # random-intercept means
+CIplot(x, "omega_zeta_within", time = 3)     # confidence intervals of that block}
+
+Blocks carry the variable names of the design matrix, so they can be passed straight to \code{qgraph}. Omitting \code{time} returns one block per wave, with waves that were equated by \code{ri_clpm_stationary} collapsed into a single entry. See \code{\link{getmatrix}} and \code{\link{CIplot}} for the details.
+
 Structural missing waves (\code{NA} entries in the \code{vars} design matrix, i.e. a variable not measured at a particular wave) are not yet supported. Incomplete cases (missing data for some subjects) are handled automatically through full-information maximum likelihood.
 }
 \value{
@@ -139,7 +150,7 @@ The \code{verdicts} element is a data frame with one row per step and the column
 Sacha Epskamp
 }
 \seealso{
-\code{\link{lvm}}, \code{\link{dlvm1}}, \code{\link{panelvar}}, \code{\link{panelgvar}}
+\code{\link{lvm}}, \code{\link{dlvm1}}, \code{\link{panelvar}}, \code{\link{panelgvar}}, \code{\link{getmatrix}}, \code{\link{CIplot}}
 }
 \examples{
 # Simulate a small panel data set (3 variables, 4 waves):
@@ -187,6 +198,13 @@ res <- ri_clpn_search(mod, criterion = "BIC")
 res
 res$verdicts
 res$selected
+
+# Extract the networks as nVar x nVar blocks (rather than the full
+# latent-sized matrices of the underlying lvm model):
+getmatrix(mod, "omega_zeta_between")           # between-person network
+getmatrix(mod, "beta", time = 1)               # temporal network, T1 -> T2
+getmatrix(mod, "PDC", time = 1)                # ... as partial directed correlations
+getmatrix(mod, "omega_zeta_within", time = 2)  # contemporaneous network at wave 2
 
 # The pre-0.17.2 stop-at-first-rejection chain:
 ri_clpn_search(mod, criterion = "BIC", on_rejection = "stop")

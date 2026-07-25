@@ -337,6 +337,11 @@ ri_clpm <- function(
   mod@extramatrices$vars <- vars
   mod@extramatrices$varsDF <- varsDF
   mod@extramatrices$ri_clpm_type <- type
+  # Explicit block index (which latent / observed variable belongs to which
+  # wave and to which variable). getmatrix() and CIplot() use this to return
+  # nVar x nVar blocks instead of the full latent-sized matrices; storing it
+  # rather than re-deriving positional arithmetic in every consumer:
+  mod@extramatrices$ri_clpm_blocks <- riclpm_makeindex(vars)
   
   # Submodel:
   mod@submodel <- "RI_CLPM"

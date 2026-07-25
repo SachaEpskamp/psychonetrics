@@ -149,3 +149,80 @@ expect_identical(suppressWarnings(ri_clpn_stationary(fit_cor, "temporal"))@param
 res_alias <- suppressWarnings(ri_clpn_search(fit_cor, criterion = "Chisq", verbose = FALSE))
 expect_identical(res_alias$verdicts, res$verdicts)
 expect_identical(res_alias$selected_name, res$selected_name)
+
+## ---- (h) Block extraction: getmatrix(..., time = ) (0.17.3) ----
+nObs <- nVar * nWave
+lat  <- function(t) if (is.na(t)) nObs + seq_len(nVar) else (t - 1) * nVar + seq_len(nVar)
+
+full_beta <- getmatrix(fit_cor, "beta")
+full_rho  <- getmatrix(fit_cor, "rho_zeta")
+
+# Plain names without 'time' are unchanged (backward compatibility):
+expect_equal(dim(full_beta), c(nObs + nVar, nObs + nVar))
+
+# Temporal blocks:
+for (tt in seq_len(nWave - 1)){
+  expect_equal(unname(getmatrix(fit_cor, "beta", time = tt)),
+               unname(full_beta[lat(tt + 1), lat(tt)]))
+}
+# Contemporaneous and between-person blocks:
+expect_equal(unname(getmatrix(fit_cor, "rho_zeta_within", time = 2)),
+             unname(full_rho[lat(2), lat(2)]))
+expect_equal(unname(getmatrix(fit_cor, "rho_zeta_between")),
+             unname(full_rho[lat(NA), lat(NA)]))
+# Shorthand and wave labels:
+expect_equal(getmatrix(fit_cor, "rho_zeta", time = 2),
+             getmatrix(fit_cor, "rho_zeta_within", time = 2))
+expect_equal(getmatrix(fit_cor, "rho_zeta_within", time = "T3"),
+             getmatrix(fit_cor, "rho_zeta_within", time = 3))
+# Blocks carry the design matrix variable names:
+expect_equal(rownames(getmatrix(fit_cor, "rho_zeta_between")), paste0("V", 1:nVar))
+expect_equal(colnames(getmatrix(fit_cor, "beta", time = 1)), paste0("V", 1:nVar))
+# Mean structure:
+expect_equal(unname(getmatrix(fit_cor, "nu", time = 2)),
+             unname(getmatrix(fit_cor, "nu")[lat(2), , drop = FALSE]))
+expect_equal(unname(getmatrix(fit_cor, "nu_between")),
+             unname(getmatrix(fit_cor, "nu_eta")[lat(NA), , drop = FALSE]))
+
+## ---- (i) PDC blocks ----
+manualPDC <- function(tt){
+  bb <- full_beta[lat(tt + 1), lat(tt)]
+  kk <- getmatrix(fit_cor, "kappa_zeta")[lat(tt + 1), lat(tt + 1)]
+  unname(t(bb / sqrt(diag(solve(kk)) %o% diag(kk) + bb^2)))
+}
+for (tt in seq_len(nWave - 1)){
+  expect_equal(unname(getmatrix(fit_cor, "PDC", time = tt)), manualPDC(tt))
+}
+expect_equal(dimnames(getmatrix(fit_cor, "PDC", time = 1)),
+             list(paste0("V", 1:nVar), paste0("V", 1:nVar)))
+
+## ---- (j) Thresholding is exactly the submatrix of the thresholded matrix ----
+thr_full  <- suppressWarnings(getmatrix(fit_cor, "rho_zeta", threshold = TRUE, alpha = 0.05))
+thr_block <- suppressWarnings(getmatrix(fit_cor, "rho_zeta_within", time = 2,
+                                        threshold = TRUE, alpha = 0.05))
+expect_equal(unname(thr_block), unname(thr_full[lat(2), lat(2)]))
+# Numeric thresholds:
+raw2 <- getmatrix(fit_cor, "rho_zeta_within", time = 2)
+ref2 <- raw2; ref2[abs(ref2) < 0.05] <- 0
+expect_equal(getmatrix(fit_cor, "rho_zeta_within", time = 2, threshold = 0.05), ref2)
+
+## ---- (k) diag = FALSE applies to the block ----
+b1  <- getmatrix(fit_cor, "beta", time = 1)
+b1d <- getmatrix(fit_cor, "beta", time = 1, diag = FALSE)
+expect_true(all(diag(b1d) == 0))
+expect_true(any(diag(b1) != 0))
+expect_equal(b1d[lower.tri(b1d)], b1[lower.tri(b1)])
+
+## ---- (l) Collapsing over waves after a stationarity constraint ----
+stat_t <- suppressWarnings(runmodel(ri_clpm_stationary(fit_cor, "temporal"), verbose = FALSE))
+expect_equal(getmatrix(stat_t, "beta", time = 1), getmatrix(stat_t, "beta", time = 2))
+# Unconstrained: one block per wave; the between block is a single matrix:
+expect_true(is.list(getmatrix(fit_cor, "PDC")))
+expect_equal(length(getmatrix(fit_cor, "PDC")), nWave - 1L)
+expect_true(is.matrix(getmatrix(fit_cor, "rho_zeta_between")))
+
+## ---- (m) Guards ----
+expect_error(getmatrix(fit_cor, "rho_zeta_between", time = 1))
+expect_error(getmatrix(fit_cor, "beta", time = nWave))
+expect_error(getmatrix(fit_cor, "rho_zeta_within", time = nWave + 1))
+expect_error(getmatrix(fit_cor, "rho_zeta_within", time = "T99"))
