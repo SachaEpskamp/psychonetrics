@@ -4,6 +4,10 @@
 
 suppressMessages(library(psychonetrics))
 
+# Shared helpers (portable multivariate normal draws; see _helpers.R):
+source(if (file.exists("_helpers.R")) "_helpers.R" else
+         system.file("tinytest", "_helpers.R", package = "psychonetrics"))
+
 set.seed(1)
 n <- 250
 
@@ -11,7 +15,7 @@ n <- 250
 omegaTrue <- matrix(0, 5, 5)
 for (i in 1:4) omegaTrue[i, i + 1] <- omegaTrue[i + 1, i] <- 0.35
 Sigma <- cov2cor(solve(diag(5) - omegaTrue))
-dcs <- as.data.frame(MASS::mvrnorm(n, rep(0, 5), Sigma))
+dcs <- as.data.frame(rmvnorm(n, rep(0, 5), Sigma))
 names(dcs) <- paste0("V", 1:5)
 
 nV <- 3; Ttot <- 400
@@ -93,7 +97,7 @@ expect_equal(gz$graphAttributes$Graph$cut, 0.2)
 
 ## ---- (h) Factor loadings --------------------------------------------------
 lam <- matrix(0, 6, 2); lam[1:3, 1] <- 1; lam[4:6, 2] <- 1
-Fs  <- MASS::mvrnorm(n, c(0, 0), matrix(c(1, 0.5, 0.5, 1), 2, 2))
+Fs  <- rmvnorm(n, c(0, 0), matrix(c(1, 0.5, 0.5, 1), 2, 2))
 dcfa <- as.data.frame(Fs %*% t(lam) + matrix(rnorm(n * 6, sd = 0.7), n, 6))
 names(dcfa) <- paste0("y", 1:6)
 fit_cfa <- suppressWarnings(runmodel(lvm(dcfa, lambda = lam,

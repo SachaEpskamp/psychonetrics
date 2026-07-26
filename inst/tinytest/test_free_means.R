@@ -8,6 +8,10 @@
 
 suppressMessages(library(psychonetrics))
 
+# Shared helpers (portable multivariate normal draws; see _helpers.R):
+source(if (file.exists("_helpers.R")) "_helpers.R" else
+         system.file("tinytest", "_helpers.R", package = "psychonetrics"))
+
 ## ---- Simulate a stationary panel VAR with a random intercept and
 ##      wave-specific level shifts ----
 sim_panel <- function(seed = 1, m = 3, nT = 3, N = 300, shifts = rep(0, nT)){
@@ -16,11 +20,11 @@ sim_panel <- function(seed = 1, m = 3, nT = 3, N = 300, shifts = rep(0, nT)){
   SigZ <- diag(m) * 0.6; SigZ[1, 2] <- SigZ[2, 1] <- 0.2
   SigB <- diag(m) * 0.4; SigB[1, 2] <- SigB[2, 1] <- 0.15
   Sig0 <- matrix(solve(diag(m^2) - kronecker(B, B), as.vector(SigZ)), m, m)
-  RI  <- MASS::mvrnorm(N, rep(0, m), SigB)
-  eta <- MASS::mvrnorm(N, rep(0, m), Sig0)
+  RI  <- rmvnorm(N, rep(0, m), SigB)
+  eta <- rmvnorm(N, rep(0, m), Sig0)
   Y <- matrix(NA_real_, N, m * nT)
   for (t in seq_len(nT)){
-    if (t > 1) eta <- eta %*% t(B) + MASS::mvrnorm(N, rep(0, m), SigZ)
+    if (t > 1) eta <- eta %*% t(B) + rmvnorm(N, rep(0, m), SigZ)
     Y[, (t - 1) * m + seq_len(m)] <- eta + RI + shifts[t]
   }
   colnames(Y) <- paste0("V", rep(seq_len(m), nT), "_", rep(seq_len(nT), each = m))
@@ -121,14 +125,14 @@ Lam <- matrix(0, nn, q); Lam[1:2, 1] <- c(1, .8); Lam[3:4, 2] <- c(1, .7)
 Bq <- matrix(c(.3, .1, -.05, .25), q, q)
 SigW <- matrix(c(.6, .15, .15, .5), q, q); SigZb <- matrix(c(.4, .1, .1, .3), q, q)
 Sig0q <- matrix(solve(diag(q^2) - kronecker(Bq, Bq), as.vector(SigW)), q, q)
-bi <- MASS::mvrnorm(N, rep(0, q), SigZb); ebi <- MASS::mvrnorm(N, rep(0, nn), diag(.2, nn))
-eta <- MASS::mvrnorm(N, rep(0, q), Sig0q)
+bi <- rmvnorm(N, rep(0, q), SigZb); ebi <- rmvnorm(N, rep(0, nn), diag(.2, nn))
+eta <- rmvnorm(N, rep(0, q), Sig0q)
 latshift <- c(0, .4, .8)
 Yl <- matrix(0, N, nn * nT)
 for (t in seq_len(nT)){
-  if (t > 1) eta <- eta %*% t(Bq) + MASS::mvrnorm(N, rep(0, q), SigW)
+  if (t > 1) eta <- eta %*% t(Bq) + rmvnorm(N, rep(0, q), SigW)
   Yl[, (t - 1) * nn + seq_len(nn)] <- (eta + bi + latshift[t]) %*% t(Lam) + ebi +
-    MASS::mvrnorm(N, rep(0, nn), diag(.4, nn))
+    rmvnorm(N, rep(0, nn), diag(.4, nn))
 }
 colnames(Yl) <- paste0("y", rep(seq_len(nn), nT), "_", rep(seq_len(nT), each = nn))
 dl <- as.data.frame(Yl)

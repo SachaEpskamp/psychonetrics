@@ -5,13 +5,17 @@
 
 suppressMessages(library(psychonetrics))
 
+# Shared helpers (portable multivariate normal draws; see _helpers.R):
+source(if (file.exists("_helpers.R")) "_helpers.R" else
+         system.file("tinytest", "_helpers.R", package = "psychonetrics"))
+
 ## ---- var1: PDC vs raw equivalence ----
 set.seed(42)
 p <- 3; TT <- 300
 B <- diag(0.3, p); B[1, 2] <- 0.2; B[3, 1] <- 0.15
 SigZ <- diag(p) * 0.8; SigZ[1, 3] <- SigZ[3, 1] <- 0.3
 Y <- matrix(0, TT, p)
-for (t in 2:TT) Y[t, ] <- as.vector(B %*% Y[t - 1, ]) + MASS::mvrnorm(1, rep(0, p), SigZ)
+for (t in 2:TT) Y[t, ] <- as.vector(B %*% Y[t - 1, ]) + rmvnorm(1, rep(0, p), SigZ)
 tsdat <- as.data.frame(Y); colnames(tsdat) <- paste0("V", 1:p)
 
 m_raw <- suppressWarnings(runmodel(var1(tsdat, vars = paste0("V", 1:p)), verbose = FALSE))
@@ -52,13 +56,13 @@ if (at_home()){
   SigZ2 <- diag(p2) * 0.7; SigZ2[1, 2] <- SigZ2[2, 1] <- 0.2
   SigB2 <- diag(p2) * 0.4
   Sig02 <- matrix(solve(diag(p2^2) - kronecker(B2, B2), as.vector(SigZ2)), p2, p2)
-  RI <- MASS::mvrnorm(N, rep(0, p2), SigB2)
+  RI <- rmvnorm(N, rep(0, p2), SigB2)
   out <- matrix(NA_real_, N, p2 * nT)
   for (i in 1:N){
-    eta <- MASS::mvrnorm(1, rep(0, p2), Sig02)
+    eta <- rmvnorm(1, rep(0, p2), Sig02)
     out[i, 1:p2] <- eta + RI[i, ]
     for (t in 2:nT){
-      eta <- as.vector(B2 %*% eta) + MASS::mvrnorm(1, rep(0, p2), SigZ2)
+      eta <- as.vector(B2 %*% eta) + rmvnorm(1, rep(0, p2), SigZ2)
       out[i, (t - 1) * p2 + 1:p2] <- eta + RI[i, ]
     }
   }
@@ -86,13 +90,13 @@ if (at_home()){
   Sig04 <- matrix(solve(diag(q4^2) - kronecker(B4, B4), as.vector(SigW)), q4, q4)
   Se04 <- matrix(solve(diag(n4^2) - kronecker(Beps, Beps), as.vector(Su)), n4, n4)
   set.seed(7)
-  bi <- MASS::mvrnorm(N, rep(0, q4), SigZb); ebi <- MASS::mvrnorm(N, rep(0, n4), Seb)
-  eta <- MASS::mvrnorm(N, rep(0, q4), Sig04); eps <- MASS::mvrnorm(N, rep(0, n4), Se04)
+  bi <- rmvnorm(N, rep(0, q4), SigZb); ebi <- rmvnorm(N, rep(0, n4), Seb)
+  eta <- rmvnorm(N, rep(0, q4), Sig04); eps <- rmvnorm(N, rep(0, n4), Se04)
   Y4 <- matrix(0, N, n4 * nT)
   for (t in 1:nT){
     if (t > 1){
-      eta <- eta %*% t(B4) + MASS::mvrnorm(N, rep(0, q4), SigW)
-      eps <- eps %*% t(Beps) + MASS::mvrnorm(N, rep(0, n4), Su)
+      eta <- eta %*% t(B4) + rmvnorm(N, rep(0, q4), SigW)
+      eps <- eps %*% t(Beps) + rmvnorm(N, rep(0, n4), Su)
     }
     Y4[, (t - 1) * n4 + 1:n4] <- (eta + bi) %*% t(Lam4) + ebi + eps
   }

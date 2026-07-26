@@ -8,14 +8,18 @@ suppressMessages({
   library(psychonetrics)
 })
 
+# Shared helpers (portable multivariate normal draws; see _helpers.R):
+source(if (file.exists("_helpers.R")) "_helpers.R" else
+         system.file("tinytest", "_helpers.R", package = "psychonetrics"))
+
 # ---------------------------------------------------------------------------
 # Simulate two-level data with a known within/between structure (complete):
 # ---------------------------------------------------------------------------
 sim_ml <- function(seed, p, J, nper, SigW, SigB, mu = rep(0, p)){
   set.seed(seed)
   cl <- rep(seq_len(J), each = nper)
-  b  <- MASS::mvrnorm(J, rep(0, p), SigB)
-  Y  <- b[cl, , drop = FALSE] + MASS::mvrnorm(J * nper, rep(0, p), SigW)
+  b  <- rmvnorm(J, rep(0, p), SigB)
+  Y  <- b[cl, , drop = FALSE] + rmvnorm(J * nper, rep(0, p), SigW)
   Y  <- sweep(Y, 2, mu, "+")
   d  <- as.data.frame(Y); names(d) <- paste0("V", seq_len(p)); d$cluster <- cl
   d

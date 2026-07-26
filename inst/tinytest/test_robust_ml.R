@@ -263,8 +263,11 @@ if (at_home()) {
   ## ---- Multi-group DWLS trUG2 fix: the equality-constrained scaled chisq now
   ##      matches lavaan (the old per-group accumulation did not) ----
   HSc <- HS
+  # ordered = FALSE is explicit: lavaan >= 0.7 refuses "WLSMV" on continuous
+  # data unless it is told the data are not categorical.
   fitL_dwls <- lavaan::cfa(mod, HSc, estimator = "WLSMV", group = "school",
-                           group.equal = "loadings", std.lv = TRUE)
+                           group.equal = "loadings", std.lv = TRUE,
+                           ordered = FALSE)
   fitP0d <- suppressWarnings(lvm(HSc, lambda = Lambda, vars = X,
                   identification = "variance", estimator = "DWLS", groups = "school"))
   fitPd <- suppressWarnings(runmodel(groupequal(fitP0d, "lambda"), verbose = FALSE))

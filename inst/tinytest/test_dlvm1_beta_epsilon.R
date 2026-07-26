@@ -4,6 +4,10 @@
 
 suppressMessages(library(psychonetrics))
 
+# Shared helpers (portable multivariate normal draws; see _helpers.R):
+source(if (file.exists("_helpers.R")) "_helpers.R" else
+         system.file("tinytest", "_helpers.R", package = "psychonetrics"))
+
 ## ---- Simulate a small panel with item-level AR residuals ----
 set.seed(101)
 n <- 4; q <- 2; nT <- 4; N <- 500
@@ -16,13 +20,13 @@ Beps_true <- diag(c(.4, .3, .25, .35))
 Seb <- diag(runif(n, .15, .25))
 Sig0 <- matrix(solve(diag(q^2) - kronecker(B, B), as.vector(SigW)), q, q)
 Se0 <- matrix(solve(diag(n^2) - kronecker(Beps_true, Beps_true), as.vector(Su)), n, n)
-bi <- MASS::mvrnorm(N, rep(0, q), SigZb); ebi <- MASS::mvrnorm(N, rep(0, n), Seb)
-eta <- MASS::mvrnorm(N, rep(0, q), Sig0); eps <- MASS::mvrnorm(N, rep(0, n), Se0)
+bi <- rmvnorm(N, rep(0, q), SigZb); ebi <- rmvnorm(N, rep(0, n), Seb)
+eta <- rmvnorm(N, rep(0, q), Sig0); eps <- rmvnorm(N, rep(0, n), Se0)
 Y <- matrix(0, N, n * nT)
 for (t in 1:nT){
   if (t > 1){
-    eta <- eta %*% t(B) + MASS::mvrnorm(N, rep(0, q), SigW)
-    eps <- eps %*% t(Beps_true) + MASS::mvrnorm(N, rep(0, n), Su)
+    eta <- eta %*% t(B) + rmvnorm(N, rep(0, q), SigW)
+    eps <- eps %*% t(Beps_true) + rmvnorm(N, rep(0, n), Su)
   }
   Y[, (t - 1) * n + 1:n] <- (eta + bi) %*% t(Lam) + ebi + eps
 }

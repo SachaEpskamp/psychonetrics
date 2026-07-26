@@ -4,10 +4,14 @@
 # convergence regression from the RI-CLPM audit (4 variables, 4 waves;
 # this seed combination previously diverged).
 #
-# Reference values hard-coded from psychonetrics 0.15.30-dev
-# (fable-improvements worktree build, 2026-06-12).
+# Reference values hard-coded from psychonetrics 0.17.6, regenerated when the
+# simulated data moved to the portable rmvnorm() helper (see _helpers.R).
 
 suppressMessages(library(psychonetrics))
+
+# Shared helpers (portable multivariate normal draws; see _helpers.R):
+source(if (file.exists("_helpers.R")) "_helpers.R" else
+         system.file("tinytest", "_helpers.R", package = "psychonetrics"))
 
 ## ---- Example 19 analogue: gvar pipeline on simulated VAR(1) data ----
 set.seed(42)
@@ -15,19 +19,19 @@ p <- 5; TT <- 200
 B <- diag(0.3, p); B[1, 2] <- 0.2; B[3, 4] <- -0.2; B[5, 1] <- 0.15
 SigZ <- diag(p) * 0.8; SigZ[1, 3] <- SigZ[3, 1] <- 0.3
 Y <- matrix(0, TT, p)
-Y[1, ] <- MASS::mvrnorm(1, rep(0, p), diag(p))
-for (t in 2:TT) Y[t, ] <- as.vector(B %*% Y[t - 1, ]) + MASS::mvrnorm(1, rep(0, p), SigZ)
+Y[1, ] <- rmvnorm(1, rep(0, p), diag(p))
+for (t in 2:TT) Y[t, ] <- as.vector(B %*% Y[t - 1, ]) + rmvnorm(1, rep(0, p), SigZ)
 tsdata <- as.data.frame(Y)
 colnames(tsdata) <- paste0("V", 1:p)
 
 model <- suppressWarnings(runmodel(gvar(tsdata, vars = paste0("V", 1:p))))
 expect_inherits(model, "psychonetrics")
-expect_true(abs(model@fitmeasures$logl - (-2623.75131)) < 0.01)
+expect_true(abs(model@fitmeasures$logl - (-2625.83627)) < 0.01)
 expect_equal(model@fitmeasures$npar, 65)
 expect_equal(model@fitmeasures$df, 0)
 
 model_pruned <- suppressWarnings(prune(model, alpha = 0.01))
-expect_equal(model_pruned@fitmeasures$df, 29)
+expect_equal(model_pruned@fitmeasures$df, 26)
 
 temporal <- getmatrix(model_pruned, "PDC")
 contemporaneous <- getmatrix(model_pruned, "omega_zeta")
@@ -46,13 +50,13 @@ B2 <- matrix(c(0.3, 0.1, 0,  0, 0.25, 0.1,  0.1, 0, 0.3), p2, p2, byrow = TRUE)
 SigZ2 <- diag(p2) * 0.7; SigZ2[1, 2] <- SigZ2[2, 1] <- 0.2
 SigB2 <- diag(p2) * 0.4
 Sig02 <- matrix(solve(diag(p2^2) - kronecker(B2, B2), as.vector(SigZ2)), p2, p2)
-RI <- MASS::mvrnorm(N, rep(0, p2), SigB2)
+RI <- rmvnorm(N, rep(0, p2), SigB2)
 out <- matrix(NA_real_, N, p2 * nT)
 for (i in 1:N) {
-  eta <- MASS::mvrnorm(1, rep(0, p2), Sig02)
+  eta <- rmvnorm(1, rep(0, p2), Sig02)
   out[i, 1:p2] <- eta + RI[i, ]
   for (t in 2:nT) {
-    eta <- as.vector(B2 %*% eta) + MASS::mvrnorm(1, rep(0, p2), SigZ2)
+    eta <- as.vector(B2 %*% eta) + rmvnorm(1, rep(0, p2), SigZ2)
     out[i, (t - 1) * p2 + 1:p2] <- eta + RI[i, ]
   }
 }
@@ -67,7 +71,7 @@ expect_inherits(mod_pg, "psychonetrics")
 # dummy matrices); the reference values below were obtained via the dlvm1
 # route and must reproduce exactly:
 expect_equal(mod_pg@model, "panelvar")
-expect_true(abs(mod_pg@fitmeasures$logl - (-4981.73663)) < 0.01)
+expect_true(abs(mod_pg@fitmeasures$logl - (-4982.19766)) < 0.01)
 expect_equal(mod_pg@fitmeasures$df, 66)
 expect_equal(mod_pg@fitmeasures$npar, 24)
 # The temporal network recovers the generating coefficients:
@@ -111,13 +115,13 @@ if (at_home()) {
   Pb <- matrix(rnorm(p3 * p3), p3, p3); SigB3 <- crossprod(Pb) / (2 * p3) + diag(p3) * 0.3
   Sig03 <- matrix(solve(diag(p3^2) - kronecker(B3, B3), as.vector(SigZ3)), p3, p3)
   set.seed(11)
-  RI3 <- MASS::mvrnorm(N3, rep(0, p3), SigB3)
+  RI3 <- rmvnorm(N3, rep(0, p3), SigB3)
   out3 <- matrix(NA_real_, N3, p3 * nT3)
   for (i in 1:N3) {
-    eta <- MASS::mvrnorm(1, rep(0, p3), Sig03)
+    eta <- rmvnorm(1, rep(0, p3), Sig03)
     out3[i, 1:p3] <- eta + RI3[i, ]
     for (t in 2:nT3) {
-      eta <- as.vector(B3 %*% eta) + MASS::mvrnorm(1, rep(0, p3), SigZ3)
+      eta <- as.vector(B3 %*% eta) + rmvnorm(1, rep(0, p3), SigZ3)
       out3[i, (t - 1) * p3 + 1:p3] <- eta + RI3[i, ]
     }
   }
@@ -130,7 +134,7 @@ if (at_home()) {
   ll <- mod_pv@fitmeasures$logl
   expect_true(is.finite(ll))
   expect_true(ll < 0)
-  expect_true(abs(ll - (-7106.99383)) < 1)
+  expect_true(abs(ll - (-7147.44727)) < 1)
   grad <- psychonetrics:::psychonetrics_gradient_cpp(
     psychonetrics:::parVector(mod_pv), mod_pv
   )

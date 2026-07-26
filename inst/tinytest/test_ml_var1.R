@@ -8,6 +8,10 @@
 
 suppressMessages(library(psychonetrics))
 
+# Shared helpers (portable multivariate normal draws; see _helpers.R):
+source(if (file.exists("_helpers.R")) "_helpers.R" else
+         system.file("tinytest", "_helpers.R", package = "psychonetrics"))
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -44,12 +48,12 @@ sim_mlvar <- function(seed, p, J, TT, beta, SigZ, SigB, mu = rep(0, p)){
   set.seed(seed)
   Sig0 <- matrix(solve(diag(p^2) - kronecker(beta, beta), as.vector(SigZ)), p, p)
   long <- do.call(rbind, lapply(seq_len(J), function(i){
-    bi  <- MASS::mvrnorm(1, rep(0, p), SigB)
-    eta <- MASS::mvrnorm(1, rep(0, p), Sig0)
+    bi  <- rmvnorm(1, rep(0, p), SigB)
+    eta <- rmvnorm(1, rep(0, p), Sig0)
     Y <- matrix(NA_real_, TT, p)
     Y[1, ] <- mu + eta + bi
     for (t in 2:TT){
-      eta <- as.vector(beta %*% eta) + MASS::mvrnorm(1, rep(0, p), SigZ)
+      eta <- as.vector(beta %*% eta) + rmvnorm(1, rep(0, p), SigZ)
       Y[t, ] <- mu + eta + bi
     }
     data.frame(id = i, beep = seq_len(TT), Y)

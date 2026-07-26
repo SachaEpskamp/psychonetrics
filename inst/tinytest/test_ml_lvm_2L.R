@@ -9,6 +9,10 @@
 # under at_home() only.
 
 suppressMessages(library(psychonetrics))
+
+# Shared helpers (portable multivariate normal draws; see _helpers.R):
+source(if (file.exists("_helpers.R")) "_helpers.R" else
+         system.file("tinytest", "_helpers.R", package = "psychonetrics"))
 suppressMessages(library(lavaan))
 
 # --- simulate two-level data ---
@@ -22,8 +26,8 @@ simdat_2l <- function(seed, J, sizes, p = 6, gshift = 0){
   SigB <- Lam %*% PsiB %*% t(Lam) + ThB
   SigW <- Lam %*% PsiW %*% t(Lam) + ThW
   Y <- do.call(rbind, lapply(1:J, function(j){
-    bj <- MASS::mvrnorm(1, rep(0,p), SigB)
-    t(replicate(nj[j], nu + bj + MASS::mvrnorm(1, rep(0,p), SigW)))
+    bj <- rmvnorm(1, rep(0,p), SigB)
+    t(replicate(nj[j], nu + bj + rmvnorm(1, rep(0,p), SigW)))
   }))
   dat <- data.frame(Y); names(dat) <- paste0("y", 1:p)
   dat$cl <- rep(1:J, nj)

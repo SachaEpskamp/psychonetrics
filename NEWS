@@ -1,3 +1,23 @@
+Changes in Version 0.17.6
+  o Fixed the CRAN test failures on the ATLAS, MKL and OpenBLAS check flavors
+    and on r-oldrel-macos-arm64. The tinytest suite simulated its data with
+    MASS::mvrnorm(), which transforms standard normal draws with the
+    eigendecomposition of the covariance matrix. Eigenvectors are determined
+    only up to a sign, and up to a rotation when eigenvalues are repeated, so
+    which decomposition LAPACK returns depends on the BLAS/LAPACK build. The
+    simulated data - and therefore the hard-coded reference values in
+    test_meta.R and test_var_panel.R - were consequently not reproducible
+    across platforms, even with a fixed seed.
+    The tests now draw from the multivariate normal through the Cholesky
+    factor, which is unique for a positive definite covariance matrix, via a
+    new rmvnorm() helper in inst/tinytest/_helpers.R. The reference values in
+    test_meta.R and test_var_panel.R were regenerated accordingly. This is a
+    change to the test suite only; no package code was touched and results are
+    identical to 0.17.5.
+  o The at_home() lavaan oracle comparison in test_robust_ml.R now passes
+    ordered = FALSE to lavaan::cfa(), which lavaan >= 0.7 requires when the
+    "WLSMV" estimator is used on continuous data.
+
 Changes in Version 0.17.5
   o The default 'criterion' of ri_clpm_search() (and its alias
     ri_clpn_search()) is now "Chisq" instead of "BIC": each stationarity
