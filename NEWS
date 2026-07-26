@@ -1,3 +1,13 @@
+Changes in Version 0.17.5
+  o The default 'criterion' of ri_clpm_search() (and its alias
+    ri_clpn_search()) is now "Chisq" instead of "BIC": each stationarity
+    constraint is retained when its chi-square difference test is not
+    significant at level 'alpha' (0.05 by default). This matches the
+    recommendation accompanying the guarded decision tree introduced in
+    0.17.2. The information criteria remain available, and passing
+    criterion = "BIC" explicitly reproduces the behavior of psychonetrics
+    0.17.4 and earlier. Nothing else about the search changed.
+
 Changes in Version 0.17.4
   o New plot() method for psychonetrics models: a wrapper around qgraph in the
     spirit of bootnet's plot method for estimateNetwork objects, with the same

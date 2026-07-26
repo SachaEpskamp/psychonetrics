@@ -90,6 +90,9 @@ expect_true(length(constrained) >= 1L)
 expect_equal(constrained, expected[seq_along(constrained)])
 
 ## ---- (e) The verdict table (0.17.2 guarded decision tree) ----
+# Default criterion is the chi-square difference test (since 0.17.5):
+expect_equal(eval(formals(ri_clpm_search)$criterion)[1], "Chisq")
+expect_equal(suppressWarnings(ri_clpm_search(fit_cor, verbose = FALSE))$criterion, "Chisq")
 expect_true(is.data.frame(res$verdicts))
 expect_equal(res$verdicts$step,
              c("temporal", "contemporaneous", "intercepts", "innovation",

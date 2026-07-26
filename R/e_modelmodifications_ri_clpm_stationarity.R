@@ -167,9 +167,13 @@ ri_clpm_stationary <- function(
 # on_rejection = "stop" reproduces the pre-0.17.2 stop-at-first-rejection
 # chain exactly. It is the same tree with an early break, so there is a single
 # code path.
+#
+# The default criterion is the chi-square difference test. Up to and including
+# 0.17.4 it was "BIC"; pass criterion = "BIC" explicitly to reproduce searches
+# run with those versions.
 ri_clpm_search <- function(
     x,                                    # An ri_clpm() model (run or unrun)
-    criterion = c("BIC", "AIC", "Chisq"), # Selection criterion
+    criterion = c("Chisq", "AIC", "BIC"), # Selection criterion
     alpha = 0.05,                         # Significance level (criterion = "Chisq")
     include_panelvar = TRUE,              # Also test the panel(G)VAR (wave-1 endogenous) model
     verbose = TRUE,

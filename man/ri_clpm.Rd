@@ -32,7 +32,7 @@ ri_clpm_stationary(x,
 ri_clpn_stationary(\dots)
 
 ri_clpm_search(x,
-        criterion = c("BIC", "AIC", "Chisq"),
+        criterion = c("Chisq", "AIC", "BIC"),
         alpha = 0.05,
         include_panelvar = TRUE,
         verbose = TRUE,
@@ -87,7 +87,7 @@ ri_clpn_search(\dots)
   }
 
   \item{criterion}{
-  The criterion used by \code{ri_clpm_search} to decide whether to retain each constraint: \code{"BIC"} (default) or \code{"AIC"} retain the constraint when the criterion does not increase; \code{"Chisq"} retains it when the likelihood-ratio test is not significant at level \code{alpha}. The default is \code{"BIC"} (unchanged since the introduction of \code{ri_clpm_search}).
+  The criterion used by \code{ri_clpm_search} to decide whether to retain each constraint: \code{"Chisq"} (the default) retains it when the likelihood-ratio test is not significant at level \code{alpha}, while \code{"AIC"} and \code{"BIC"} retain it when that criterion does not increase. The default was \code{"BIC"} up to and including psychonetrics 0.17.4; pass \code{criterion = "BIC"} explicitly to reproduce analyses run with those versions.
   }
 
   \item{alpha}{
@@ -193,11 +193,15 @@ mod_temp <- runmodel(ri_clpm_stationary(mod,      "temporal"))
 mod_con  <- runmodel(ri_clpm_stationary(mod_temp, "contemporaneous"))
 compare(base = mod, temporal = mod_temp, contemporaneous = mod_con)
 
-# Or run the whole guarded decision-tree search automatically:
-res <- ri_clpn_search(mod, criterion = "BIC")
+# Or run the whole guarded decision-tree search automatically
+# (chi-square difference tests at alpha = 0.05 by default):
+res <- ri_clpn_search(mod)
 res
 res$verdicts
 res$selected
+
+# Information criteria can be used instead:
+ri_clpn_search(mod, criterion = "BIC")
 
 # Extract the networks as nVar x nVar blocks (rather than the full
 # latent-sized matrices of the underlying lvm model):
@@ -206,7 +210,7 @@ getmatrix(mod, "beta", time = 1)               # temporal network, T1 -> T2
 getmatrix(mod, "PDC", time = 1)                # ... as partial directed correlations
 getmatrix(mod, "omega_zeta_within", time = 2)  # contemporaneous network at wave 2
 
-# The pre-0.17.2 stop-at-first-rejection chain:
+# The pre-0.17.2 behavior: BIC, stopping at the first rejection:
 ri_clpn_search(mod, criterion = "BIC", on_rejection = "stop")
 }
 }
