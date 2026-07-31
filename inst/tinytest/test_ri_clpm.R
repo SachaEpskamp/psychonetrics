@@ -46,7 +46,10 @@ expect_equal(max(fit_cor@parameters$par), max(fit_cov@parameters$par))
 ## ---- (c) "cor" splits into rho_zeta (off-diagonal) + SD_zeta (diagonal) ----
 pp  <- fit_cor@parameters
 zet <- pp[grepl("_zeta", pp$matrix) & !pp$fixed, ]
-expect_equal(sort(unique(zet$matrix)), c("rho_zeta", "SD_zeta"))
+# Compared as a set: sort() on character is locale dependent (C collation puts
+# "SD_zeta" before "rho_zeta", en_US.UTF-8 the other way around). The two
+# expectations below pin down which matrix is which.
+expect_true(setequal(unique(zet$matrix), c("rho_zeta", "SD_zeta")))
 expect_equal(unique(zet$matrix[zet$row != zet$col]), "rho_zeta")
 expect_equal(unique(zet$matrix[zet$row == zet$col]), "SD_zeta")
 

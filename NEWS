@@ -1,3 +1,12 @@
+Changes in Version 0.17.7
+  o Fixed a test that failed when the tests are run under the C collation
+    locale (as devtools::check() and some CRAN check flavors do). The RI-CLPM
+    test compared sort(unique(...)) of the matrix names against
+    c("rho_zeta", "SD_zeta"), but sort() on character vectors is locale
+    dependent: the C locale orders "SD_zeta" before "rho_zeta", en_US.UTF-8
+    the other way around. The names are now compared as a set. Test suite
+    only; no package code changed.
+
 Changes in Version 0.17.6
   o Fixed the CRAN test failures on the ATLAS, MKL and OpenBLAS check flavors
     and on r-oldrel-macos-arm64. The tinytest suite simulated its data with
