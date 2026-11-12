@@ -225,7 +225,11 @@ cvm <- function(
   verbose = FALSE,
   bootstrap = FALSE,
   boot_sub,
-  boot_resample
+  boot_resample,
+  # Penalized ML arguments (estimator = "PML" / "PFIML"):
+  penalty_lambda = NA,  # Penalty strength (NA = auto-select via EBIC grid search)
+  penalty_alpha = 1,   # Elastic net mixing: 1 = LASSO, 0 = ridge
+  penalize_matrices  # Character vector of matrix names to penalize. Default: defaultPenalizeMatrices()
 ){
   # Standardize input arguments:
   si <- standardize_input(
@@ -249,8 +253,8 @@ cvm <- function(
   if (estimator == "default"){
     estimator <- "ML"
   }
-  if (!estimator %in% c("ML","FIML","ULS","WLS","DWLS")){
-    stop("cvm() currently supports the estimators 'ML', 'FIML', 'ULS', 'WLS' and 'DWLS'.")
+  if (!estimator %in% c("ML","FIML","ULS","WLS","DWLS","PML","PFIML")){
+    stop("cvm() currently supports the estimators 'ML', 'FIML', 'ULS', 'WLS', 'DWLS', 'PML' and 'PFIML'.")
   }
 
   # Type:
@@ -284,6 +288,8 @@ cvm <- function(
       if (has_missing) {
         if (estimator == "ML") {
           estimator <- "FIML"
+        } else if (estimator == "PML") {
+          estimator <- "PFIML"
         } else {
           missing <- "listwise"
         }
@@ -303,9 +309,9 @@ cvm <- function(
                                covs = covs,
                                means = means,
                                nobs = nobs,
-                               missing = ifelse(estimator == "FIML","pairwise",missing),
+                               missing = ifelse(estimator %in% c("FIML","PFIML"),"pairwise",missing),
                                rawts = rawts,
-                               fimldata = estimator == "FIML",
+                               fimldata = estimator %in% c("FIML","PFIML"),
                                storedata = storedata,
                                covtype = covtype,
                                weightsmatrix = WLS.W,
@@ -720,6 +726,8 @@ cvm <- function(
   model@extramatrices <- extramatrices
 
   ### Baseline model ###
+  # The baseline and saturated models always use the unpenalized estimator:
+  base_est <- switch(estimator, "PML" = "ML", "PFIML" = "FIML", estimator)
   if (baseline_saturated){
     model@baseline_saturated$baseline <- varcov(data,
                                                 type = "chol",
@@ -731,7 +739,7 @@ cvm <- function(
                                                 nobs = nobs,
                                                 missing = missing,
                                                 equal = equal,
-                                                estimator = estimator,
+                                                estimator = base_est,
                                                 baseline_saturated = FALSE, sampleStats = sampleStats)
 
     ### Saturated model ###
@@ -744,11 +752,11 @@ cvm <- function(
                                                  means = means,
                                                  nobs = nobs,
                                                  missing = missing,
-                                                 estimator = estimator,
+                                                 estimator = base_est,
                                                  baseline_saturated = FALSE, sampleStats = sampleStats)
 
     # if not FIML, Treat as computed:
-    if (estimator != "FIML"){
+    if (base_est != "FIML"){
       model@baseline_saturated$saturated@computed <- TRUE
       model@baseline_saturated$saturated@objective <- psychonetrics_fitfunction(parVector(model@baseline_saturated$saturated),model@baseline_saturated$saturated)
     }
@@ -769,6 +777,19 @@ cvm <- function(
     model <- setoptimizer(model, "default")
   } else {
     model <- setoptimizer(model, optimizer)
+  }
+
+  # Setup PML/PFIML penalization (by default of the network structures in the
+  # model, see defaultPenalizeMatrices):
+  if (estimator %in% c("PML", "PFIML")) {
+    model@penalty <- list(lambda = penalty_lambda, alpha = penalty_alpha)
+    pen_mats <- if (missing(penalize_matrices)) defaultPenalizeMatrices(model) else penalize_matrices
+    if (length(pen_mats) == 0){
+      warning("No matrices to penalize: by default only network structures (omega_c / kappa_c, omega_epsilon / kappa_epsilon, omega_zeta) are penalized in cvm(). ",
+              "Use composite = 'ggm' (or cnm()), residual = 'ggm' or latent = 'ggm', or set 'penalize_matrices'.")
+    } else {
+      model <- penalize(model, matrix = pen_mats, lambda = penalty_lambda, log = FALSE)
+    }
   }
 
   # Return model:

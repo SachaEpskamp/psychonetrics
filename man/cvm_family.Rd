@@ -28,7 +28,9 @@ cvm(data, lambda, weights, latent = c("cov", "ggm"),
                    optimizer, storedata = FALSE, WLS.W, covtype =
                    c("choose", "ML", "UB"), standardize = c("none", "z",
                    "quantile"), sampleStats, verbose = FALSE,
-                   bootstrap = FALSE, boot_sub, boot_resample)
+                   bootstrap = FALSE, boot_sub, boot_resample,
+                   penalty_lambda = NA, penalty_alpha = 1,
+                   penalize_matrices)
 
 cnm(\dots)
 }
@@ -151,7 +153,7 @@ A character vector indicating which matrices should be constrained equal across 
 A logical indicating if the baseline and saturated model should be included. Mostly used internally and NOT Recommended to be used manually.
 }
   \item{estimator}{
-The estimator to be used. Currently implemented are \code{"ML"} for maximum likelihood estimation, \code{"FIML"} for full-information maximum likelihood estimation, \code{"ULS"} for unweighted least squares estimation, \code{"WLS"} for weighted least squares estimation, and \code{"DWLS"} for diagonally weighted least squares estimation. Defaults to \code{"ML"}, which is automatically switched to \code{"FIML"} if missing data is detected.
+The estimator to be used. Currently implemented are \code{"ML"} for maximum likelihood estimation, \code{"FIML"} for full-information maximum likelihood estimation, \code{"PML"} for penalized maximum likelihood estimation, \code{"PFIML"} for penalized full-information maximum likelihood estimation, \code{"ULS"} for unweighted least squares estimation, \code{"WLS"} for weighted least squares estimation, and \code{"DWLS"} for diagonally weighted least squares estimation. Defaults to \code{"ML"}. If missing data is detected, \code{"ML"} is automatically switched to \code{"FIML"} and \code{"PML"} to \code{"PFIML"}.
 }
   \item{optimizer}{
 The optimizer to be used. Can be one of \code{"nlminb"} (the default R \code{nlminb} function), \code{"ucminf"} (from the \code{optimr} package), \code{"nloptr_TNEWTON"} (preconditioned truncated Newton via \code{nloptr}), and \code{"LBFGS++"} (pure C++ L-BFGS-B). Defaults to \code{"nlminb"}.
@@ -183,6 +185,15 @@ Proportion of cases to be subsampled (\code{round(boot_sub * N)}).
   \item{boot_resample}{
 Logical, should the bootstrap be with replacement (\code{TRUE}) or without replacement (\code{FALSE})
 }
+  \item{penalty_lambda}{
+Numeric penalty strength for penalized ML estimation (PML/PFIML). \code{NA} (default) triggers automatic selection via EBIC-based grid search when a penalized estimator is used; set to a specific numeric value to use a fixed penalty strength (0 = no penalty). See \code{\link{find_penalized_lambda}} and \code{\link{penalize}}.
+}
+  \item{penalty_alpha}{
+Elastic net mixing parameter: 1 = LASSO (default), 0 = ridge.
+}
+  \item{penalize_matrices}{
+Character vector of matrix names to penalize. If missing, the network structures in the model are penalized (\code{omega_c} or \code{kappa_c}, \code{omega_epsilon} or \code{kappa_epsilon}, and \code{omega_zeta}); the weights are never penalized by default. See Details.
+}
   \item{\dots}{
 Arguments sent to \code{cvm}
 }
@@ -202,7 +213,11 @@ in which \eqn{\boldsymbol{\Lambda}}{lambda} contains the factor loadings (\code{
 
 \strong{Latent network models.} With \code{latent = "ggm"}, the (residual) variance--covariance matrix of the constructs is modeled as a Gaussian graphical model. Because the scaling of a composite is computed, a composite can then either be part of the latent network (\code{omega_zeta}) or have incoming effects in \code{beta}, but not both. A composite without incoming effects can thus be connected in \code{omega_zeta}, while a composite with incoming effects only has a (computed) residual variance. Model search functions will not add parameters that violate this restriction.
 
-\strong{Estimation.} Estimation is implemented in both R and C++ (the default), which can be compared using \code{\link{usecpp}}. Starting values for the weights are obtained with partial least squares (mode B), which is consistent for the composite model (Dijkstra, 2017). Because composite weights are only weakly identified, the default optimizer (\code{nlminb}) is supplied with the expected Hessian (Fisher scoring within a trust region) and uses a stricter convergence tolerance than in other model families. A warning is given when the optimizer does not report convergence, when the indicator that scales a composite turns out to have a negligible weight, or when the computed residual variance of a composite is not positive (its predictors then explain more than its variance). Standard errors are based on the expected Fisher information. Ordinal data, correlation input, penalized estimation and the conversion to and from \pkg{lavaan} syntax are currently not supported for this family. Models with a fully estimated \code{sigma_c} are equivalent to models estimated with \pkg{lavaan} (Rosseel, 2012) using the \code{<~} operator.
+\strong{Estimation.} Estimation is implemented in both R and C++ (the default), which can be compared using \code{\link{usecpp}}. Starting values for the weights are obtained with partial least squares (mode B), which is consistent for the composite model (Dijkstra, 2017). Because composite weights are only weakly identified, the default optimizer (\code{nlminb}) is supplied with the expected Hessian (Fisher scoring within a trust region) and uses a stricter convergence tolerance than in other model families. A warning is given when the optimizer does not report convergence, when the indicator that scales a composite turns out to have a negligible weight, or when the computed residual variance of a composite is not positive (its predictors then explain more than its variance). Standard errors are based on the expected Fisher information. Ordinal data and correlation input are currently not supported for this family.
+
+\strong{Penalized estimation.} With \code{estimator = "PML"} (or \code{"PFIML"} with missing data) the network structures in the model are estimated with a LASSO or elastic net penalty, for example the networks of indicators within composites in \code{cnm()}, after which \code{\link{refit}} re-estimates the selected structure without the penalty to obtain standard errors and fit measures. The penalized estimates are obtained with a first-order (proximal gradient) optimizer, which does not use the expected Hessian: for models from this family it can need very many iterations, and it stops less close to the optimum in the weights than the unpenalized estimators do. Use \code{\link{refit}} for the final estimates.
+
+Conversion to and from \pkg{lavaan} syntax is currently not supported for this family. Models with a fully estimated \code{sigma_c} are equivalent to models estimated with \pkg{lavaan} (Rosseel, 2012) using the \code{<~} operator.
 }
 \value{
 An object of the class psychonetrics (\link{psychonetrics-class})
@@ -226,7 +241,7 @@ Schuberth, F., Henseler, J., & Dijkstra, T. K. (2018). Confirmatory composite an
 Sacha Epskamp
 }
 \seealso{
-\code{\link{lvm}}, \code{\link{varcov}}
+\code{\link{lvm}}, \code{\link{varcov}}, \code{\link{penalize}}
 }
 \examples{
 library("dplyr")

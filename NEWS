@@ -39,10 +39,10 @@ Changes in Version 0.18
     - A composite with a single indicator represents that observed variable,
       which allows observed variables in the structural model.
     - Supported: single and multiple groups with equality constraints, mean
-      structures, the ML, FIML, ULS, WLS and DWLS estimators, and the usual
-      model modification and search functions. Not (yet) supported: ordinal
-      data, correlation input, penalized estimation and conversion to and
-      from lavaan syntax.
+      structures, the ML, FIML, ULS, WLS and DWLS estimators, penalized
+      estimation (PML, PFIML) and the usual model modification and search
+      functions. Not (yet) supported: ordinal data, correlation input and
+      conversion to and from lavaan syntax.
     - Implemented in both the R and the C++ (default) pipelines, with analytic
       gradients and Fisher information that build on the lvm derivatives. The
       two pipelines give identical results, and models with fully estimated
@@ -71,6 +71,18 @@ Changes in Version 0.18
       is not positive. Starting values for the weights are obtained with
       partial least squares (mode B), and are adjusted when needed such that
       the starting point is admissible. Other model families are unchanged.
+    - Penalized estimation: estimator = "PML" (or "PFIML" with missing data)
+      with the arguments 'penalty_lambda', 'penalty_alpha' and
+      'penalize_matrices', as in the other families. By default the network
+      structures in the model are penalized (omega_c / kappa_c,
+      omega_epsilon / kappa_epsilon and omega_zeta), never the weights;
+      refit() re-estimates the selected structure without the penalty. Note
+      that the proximal gradient optimizer used for penalized estimation is
+      a first-order method: in composite variable models it can need very
+      many iterations (minutes for some models with a dozen variables) and
+      it stops less close to the optimum in the weights than the
+      unpenalized estimators, so refit() should be used for the final
+      estimates.
     - Verification (scripts and reports in the development folder): the
       analytic Jacobian, gradient and Fisher information were checked
       against an independent implementation of the model and numerical

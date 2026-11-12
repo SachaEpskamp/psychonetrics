@@ -211,8 +211,64 @@ expect_equal(pf$row[pf$matrix == "weights" & pf$col == 2 & pf$fixed & pf$est == 
 expect_equal(fitC@optim$convergence, 0)
 expect_equal(fit_ggm@optim$convergence, 0)
 
+## ---- 8b. Penalized maximum likelihood (PML) ----
+# By default the network of the composite indicators is penalized; edges are
+# shrunk to exactly zero, the weights are never penalized, and refit() gives
+# the unpenalized estimates of the selected network. (A small model with the
+# two composites only: the proximal gradient optimizer used for PML can need
+# very many iterations in larger composite models.)
+weights_c <- matrix(0, 7, 2); weights_c[1:3, 1] <- 1; weights_c[4:7, 2] <- 1
+beta_c <- matrix(0, 2, 2); beta_c[2, 1] <- 1
+pml_model <- function(data = dat, ...){
+  cnm(data, vars = nm[7:13], weights = weights_c, beta = beta_c, latents = c("c3", "c4"), ...)
+}
+mod_pml <- pml_model(estimator = "PML", penalty_lambda = 0.3)
+expect_equal(mod_pml@estimator, "PML")
+Ppml <- mod_pml@parameters
+expect_true(all(Ppml$penalty_lambda[Ppml$matrix == "omega_c" & !Ppml$fixed] == 0.3))
+expect_true(all(Ppml$penalty_lambda[Ppml$matrix != "omega_c"] == 0))
+# The baseline and saturated models are not penalized:
+expect_equal(mod_pml@baseline_saturated$saturated@estimator, "ML")
+fit_pml <- suppressWarnings(suppressMessages(runmodel(mod_pml)))
+expect_equal(fit_pml@optim$convergence, 0)
+edges_pml <- fit_pml@parameters[fit_pml@parameters$matrix == "omega_c" & !fit_pml@parameters$fixed, ]
+expect_true(any(edges_pml$est == 0))
+expect_true(any(edges_pml$est != 0))
+fit_refit <- suppressWarnings(suppressMessages(refit(fit_pml)))
+fit_ml_c <- runmodel(pml_model())
+expect_equal(fit_refit@estimator, "ML")
+expect_equal(fit_refit@fitmeasures$df, fit_ml_c@fitmeasures$df + sum(edges_pml$est == 0))
+expect_true(fit_refit@fitmeasures$chisq > fit_ml_c@fitmeasures$chisq - 1e-6)
+# Without a network in the model there is nothing to penalize by default:
+expect_warning(cvm(dat, vars = nm[7:13], weights = weights_c, beta = beta_c, latents = c("c3", "c4"),
+                   estimator = "PML", penalty_lambda = 0.3), "No matrices to penalize")
+
 ## ---- 9. Longer-running checks ----
 if (at_home()){
+
+  # Penalized ML: identical in the R pipeline, PFIML with missing data, and
+  # automatic selection of the penalty:
+  fit_pml_R <- suppressWarnings(suppressMessages(runmodel(usecpp(mod_pml, FALSE))))
+  expect_true(max(abs(fit_pml_R@parameters$est - fit_pml@parameters$est)) < 1e-8)
+  dat_mis <- dat[, nm[7:13]]
+  set.seed(5); dat_mis[cbind(sample(nrow(dat_mis), 100), sample(7, 100, TRUE))] <- NA
+  fit_pfiml <- suppressWarnings(suppressMessages(runmodel(pml_model(data = dat_mis, estimator = "PML", penalty_lambda = 0.3))))
+  expect_equal(fit_pfiml@estimator, "PFIML")
+  expect_equal(fit_pfiml@optim$convergence, 0)
+  expect_equal(suppressWarnings(suppressMessages(refit(fit_pfiml)))@estimator, "FIML")
+  fit_auto <- suppressWarnings(suppressMessages(runmodel(pml_model(estimator = "PML"))))
+  expect_true(is.finite(fit_auto@penalty$lambda) && fit_auto@penalty$lambda > 0)
+  # The model returned by the search is the penalized fit at the selected
+  # penalty (the penalty must not be lost in the grid search):
+  fit_fixed <- suppressWarnings(suppressMessages(runmodel(
+    pml_model(estimator = "PML", penalty_lambda = fit_auto@penalty$lambda))))
+  sel_edges <- fit_auto@parameters$matrix == "omega_c" & !fit_auto@parameters$fixed
+  expect_true(max(abs(fit_auto@parameters$est[sel_edges] - fit_fixed@parameters$est[sel_edges])) < 1e-2)
+  # At the largest penalty of the grid all penalized edges are zero:
+  lam_max <- psychonetrics:::compute_lambda_max(pml_model(estimator = "PML"))
+  fit_max <- suppressWarnings(suppressMessages(find_penalized_lambda(pml_model(estimator = "PML"), nLambda = 2,
+                                                                     lambda_min_ratio = 0.999)))
+  expect_true(all(abs(fit_max@parameters$est[sel_edges]) < 1e-3))
 
   # An observed variable in the structural model (single-indicator composite),
   # multiple groups with equality constraints, and missing data:

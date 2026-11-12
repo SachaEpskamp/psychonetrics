@@ -517,6 +517,11 @@ runmodel <- function(
     x@objective <- x@optim$value
     x <- updateModel(parVector(x), x, updateMatrices = TRUE)
 
+    # Composite variable models: warn when the solution may not be reliable:
+    if (x@model == "cvm"){
+      cvm_solution_warnings(x)
+    }
+
   } else if (grepl("cpp",optimizer) || optimizer == "LBFGS++"){
 
     if (optimizer == "LBFGS++") {
