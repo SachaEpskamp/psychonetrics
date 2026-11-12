@@ -28,6 +28,7 @@
         <ul class="dropdown-menu">
           <li><a href="varcov.html" class="nav-link">Varcov (GGM)</a></li>
           <li><a href="lvm.html" class="nav-link">LVM (CFA / SEM)</a></li>
+          <li><a href="cvm.html" class="nav-link">CVM (composites)</a></li>
           <li><a href="var1.html" class="nav-link">Var1 (time series)</a></li>
           <li><a href="ml_var.html" class="nav-link">Multi-level VAR (ml_var / ml_gvar)</a></li>
           <li><a href="dlvm1.html" class="nav-link">DLVM (panel / RI-CLPM)</a></li>
@@ -46,7 +47,7 @@
 
 <div class="page-header container container-narrow">
   <h1>What&#39;s New</h1>
-  <p class="subtitle">Highlights from the 0.16 release</p>
+  <p class="subtitle">Highlights from the 0.16 release and later</p>
 </div>
 
 <main class="container container-narrow">
@@ -58,6 +59,7 @@
   <div class="toc">
     <h4>On this page</h4>
     <ol>
+      <li><a href="#cvm">0.18 &mdash; Composite variable models: cvm() &amp; cnm()</a></li>
       <li><a href="#mlvar">0.16.7 &mdash; Multi-level VAR &amp; GVAR for ESM data: ml_var() &amp; ml_gvar()</a></li>
       <li><a href="#naming">0.16.7 &mdash; Naming cleanup, summary() method &amp; meta-model guards</a></li>
       <li><a href="#mlvarcov">0.16 &mdash; Multi-level variance-covariance &amp; GGM: ml_varcov(), ml_ggm() &amp; ml_corr()</a></li>
@@ -78,6 +80,27 @@
       <li><a href="#penalized">0.16 &mdash; Penalized (regularized) estimation</a></li>
       <li><a href="#mllvm">0.16 &mdash; Multi-level &amp; meta-analytic frameworks matured</a></li>
     </ol>
+  </div>
+
+  <!-- ===================== 0.18 cvm / cnm ===================== -->
+  <div class="whatsnew-item" id="cvm">
+    <h2>Composite variable models: cvm() &amp; cnm() <span class="version-tag">0.18</span></h2>
+    <p class="whatsnew-meta">November 2026 &mdash; experimental; see the <a href="cvm.html">composite variable page</a></p>
+    <p>
+      A new model family estimates structural equation models that contain both <strong>latent variables</strong> (measured with error, through <code>lambda</code>) and <strong>composites</strong> (exact weighted sums of their indicators, through the new <code>weights</code> matrix), following the factor- and composite-based SEM framework of Schamberger, Schuberth, Henseler and Rosseel (2025). As elsewhere in psychonetrics, the covariance structures can be modeled as networks: <code>cnm()</code> estimates a partial correlation network of the indicators within every composite (<code>omega_c</code>), and <code>latent = "ggm"</code> a network of the constructs.
+    </p>
+    <pre><code class="language-r">weights <- matrix(0, 7, 3)
+weights[1, 1] <- 1; weights[2:4, 2] <- 1; weights[5:7, 3] <- 1
+beta <- matrix(0, 3, 3); beta[1, 2:3] <- 1
+
+mod <- cnm(StarWars, weights = weights, beta = beta,
+           vars = c("Q1", paste0("Q", 5:10)),
+           latents = c("Fan", "Originals", "Sequels")) %>% runmodel
+
+mod %>% prune(alpha = 0.05) %>% getmatrix("omega_c")   # networks within the composites</code></pre>
+    <p>
+      Multiple groups, mean structures, missing data (FIML) and the usual model search functions are supported, and models with covariance parameterizations convert to and from lavaan 0.7 with <a href="lavaan.html"><code>tolavaan()</code> and <code>fromlavaan()</code></a>. The family is <strong>experimental</strong>: it has been checked against lavaan and in simulations, but arguments and defaults may still change.
+    </p>
   </div>
 
   <!-- ===================== 0.16.7 ml_var / ml_gvar ===================== -->

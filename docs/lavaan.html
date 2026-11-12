@@ -29,6 +29,7 @@
         <ul class="dropdown-menu">
           <li><a href="varcov.html" class="nav-link">Varcov (GGM)</a></li>
           <li><a href="lvm.html" class="nav-link">LVM (CFA / SEM)</a></li>
+          <li><a href="cvm.html" class="nav-link">CVM (composites)</a></li>
           <li><a href="var1.html" class="nav-link">Var1 (time series)</a></li>
           <li><a href="ml_var.html" class="nav-link">Multi-level VAR (ml_var / ml_gvar)</a></li>
           <li><a href="dlvm1.html" class="nav-link">DLVM (panel / RI-CLPM)</a></li>
@@ -64,6 +65,7 @@
       <li><a href="#overview">Overview</a></li>
       <li><a href="#fromlavaan">fromlavaan(): lavaan &rarr; psychonetrics</a></li>
       <li><a href="#tolavaan">tolavaan(): psychonetrics &rarr; lavaan</a></li>
+      <li><a href="#composites">Models with composites</a></li>
       <li><a href="#scope">Supported features</a></li>
       <li><a href="#summary">Summary</a></li>
     </ul>
@@ -149,6 +151,36 @@ logLik(back) : -3737.745</div>
     </p>
   </section>
 
+  <section id="composites">
+    <h2>Models with composites <span class="badge-new">Experimental (0.18)</span></h2>
+    <p>
+      lavaan 0.7 and later estimate composites, defined with the <code>&lt;~</code> operator. Since psychonetrics 0.18 such models convert to and from the <a href="cvm.html">composite variable family</a>: <code>fromlavaan()</code> returns a <code>cvm</code> model, and <code>tolavaan()</code> accepts a <code>cvm</code> model in which <code>latent</code>, <code>residual</code> and <code>composite</code> are all <code>"cov"</code>.
+    </p>
+    <pre><code class="language-r">library("lavaan")
+library("psychonetrics")
+data(StarWars)
+
+fit <- sem(' Originals <~ Q5 + Q6 + Q7
+             Sequels   =~ Q8 + Q9 + Q10
+             Sequels   ~  Originals ',
+           data = StarWars, meanstructure = TRUE, composites.cov = "free")
+
+mod <- fromlavaan(fit, run = TRUE)     # a cvm model
+c(lavaan = fitMeasures(fit, "chisq"), psychonetrics = mod@fitmeasures$chisq)
+# both 3.01 with 6 degrees of freedom
+
+tolavaan(mod)                          # and back to lavaan</code></pre>
+    <p>Three things to know:</p>
+    <ul>
+      <li><strong>Covariances of composite indicators.</strong> By default lavaan fixes the variances and covariances of the indicators of composites to their sample values; psychonetrics estimates them, which is <code>composites.cov = "free"</code> in lavaan. With complete data both give the same chi-square, degrees of freedom, weights, loadings and regressions with the same standard errors, but a different number of parameters (and so a different AIC and BIC). <code>fromlavaan()</code> gives a warning when the lavaan model used the default.</li>
+      <li><strong>Starting values.</strong> When the lavaan model was not fitted or did not converge, <code>fromlavaan()</code> uses the psychonetrics starting values instead of the lavaan values. On some models with composites lavaan does not converge from its own starting values; in that case <code>tolavaan()</code> on the estimated psychonetrics model supplies the estimates as starting values to lavaan.</li>
+      <li><strong>Known differences.</strong> In lavaan up to at least version 0.7-3, the reported intercept of a composite that is predicted by another endogenous composite differs from the value psychonetrics computes, and a covariance between composite indicators that is fixed to zero is not counted in the degrees of freedom. The fit of the model and all other estimates are the same.</li>
+    </ul>
+    <p>
+      Not convertible: covariances between indicators of different composites, covariances between an indicator of a composite and another observed variable, composites without a fixed weight, and network parameterizations (<code>"ggm"</code>, <code>"prec"</code>), which have no lavaan counterpart.
+    </p>
+  </section>
+
   <section id="scope">
     <h2>Supported features</h2>
     <p>
@@ -170,6 +202,7 @@ logLik(back) : -3737.745</div>
     <ul>
       <li><code>fromlavaan()</code> converts a fitted lavaan object (or syntax + data) to a psychonetrics <code>lvm</code> model, reproducing estimates, SEs, chi-square, df and log-likelihood.</li>
       <li><code>tolavaan()</code> converts a psychonetrics <code>lvm</code> back to a fitted lavaan object or parameter table.</li>
+      <li>Models with composites (<code>&lt;~</code> in lavaan 0.7 or later) convert to and from the experimental <a href="cvm.html"><code>cvm</code> family</a>.</li>
       <li>Multi-group models, equality constraints, <code>std.lv</code> and FIML are all supported; unsupported features error informatively.</li>
       <li>Use lavaan for specification and reporting, and psychonetrics for network reparameterization, automated search, and <a href="robust.html">robust estimation</a>.</li>
     </ul>

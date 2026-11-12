@@ -265,3 +265,151 @@ if (at_home()){
   expect_true(abs(p_sem@fitmeasures$chisq -
                     as.numeric(lavaan::fitMeasures(f_sem)["chisq"])) < 1e-3)
 }
+
+
+## =========================================================================
+## Composite variable models: cvm() <-> lavaan composites ("<~")
+## =========================================================================
+vars9 <- paste0("x", 1:9)
+Wc <- matrix(0, 9, 3); Wc[1:3, 1] <- 1; Wc[4:6, 2] <- 1
+Lc <- matrix(0, 9, 3); Lc[7:9, 3] <- 1
+Bc <- matrix(0, 3, 3); Bc[3, 1:2] <- 1
+Szc <- diag(3); Szc[1, 2] <- Szc[2, 1] <- 1
+cvm_mod <- cvm(HS, vars = vars9, lambda = Lc, weights = Wc, beta = Bc, sigma_zeta = Szc,
+               latents = c("c1", "c2", "f"))
+
+## Fast: the lavaan parameter table of a cvm (no lavaan fit involved).
+if (utils::packageVersion("lavaan") >= "0.7.0"){
+  PTc <- tolavaan(cvm_mod, fit = FALSE)
+  expect_equal(sum(PTc$op == "<~"), 6L)                     # weights
+  expect_equal(sum(PTc$op == "=~"), 3L)                     # loadings of the factor only
+  expect_equal(sum(PTc$op == "<~" & PTc$free == 0 & PTc$ustart == 1), 2L)   # marker weights
+  # Variances and intercepts of composites are computed by lavaan: fixed without a value.
+  comprow <- PTc$lhs %in% c("c1", "c2") & ((PTc$op == "~~" & PTc$lhs == PTc$rhs) | PTc$op == "~1")
+  expect_equal(sum(comprow), 4L)
+  expect_true(all(PTc$free[comprow] == 0) && all(is.na(PTc$ustart[comprow])))
+  # No covariances between indicators of different composites:
+  expect_false(any(PTc$op == "~~" & PTc$lhs %in% vars9[1:3] & PTc$rhs %in% vars9[4:6]))
+  # As many free parameters as the psychonetrics model:
+  expect_equal(max(PTc$free), max(cvm_mod@parameters$par))
+}
+
+## Fast: guards.
+expect_error(tolavaan(cnm(HS, vars = vars9, lambda = Lc, weights = Wc, beta = Bc, sigma_zeta = Szc)),
+             "composite = 'cov'")
+expect_error(tolavaan(cvm(HS, vars = vars9, lambda = Lc, weights = Wc, latent = "ggm")), "latent = 'cov'")
+
+## Numerical agreement with lavaan (lavaan >= 0.7 models "<~" as composites).
+if (at_home() && utils::packageVersion("lavaan") >= "0.7.0"){
+  lavchi <- function(l) as.numeric(lavaan::fitMeasures(l, "chisq"))
+  lavdf  <- function(l) as.numeric(lavaan::fitMeasures(l, "df"))
+  # Estimates of a lavaan fit in the order of a psychonetrics parameter table:
+  lavest <- function(p, l, what = "est"){
+    pe <- lavaan::parameterEstimates(l)
+    P <- p@parameters
+    lop <- c(lambda = "=~", weights = "<~", beta = "~")[P$matrix]
+    idx <- match(paste(ifelse(P$matrix == "beta", P$var1, P$var2), lop, ifelse(P$matrix == "beta", P$var2, P$var1), P$group_id),
+                 paste(pe$lhs, pe$op, pe$rhs, if (is.null(pe$group)) 1 else pe$group))
+    pe[[what]][idx]
+  }
+  sel <- function(p) p@parameters$matrix %in% c("lambda", "weights", "beta") & !p@parameters$fixed
+
+  cmod <- ' c1 <~ x1 + x2 + x3
+            c2 <~ x4 + x5 + x6
+            f =~ x7 + x8 + x9
+            f ~ c1 + c2 '
+
+  # (a) composite indicator covariances estimated in lavaan: everything matches.
+  la <- lavaan::sem(cmod, HS, meanstructure = TRUE, likelihood = "normal", composites.cov = "free")
+  pa <- fromlavaan(la, run = TRUE)
+  expect_equal(pa@model, "cvm")
+  expect_equal(pa@fitmeasures$df, lavdf(la))
+  expect_equal(pa@fitmeasures$npar, as.numeric(lavaan::fitMeasures(la, "npar")))
+  expect_true(abs(pa@fitmeasures$chisq - lavchi(la)) < 1e-4)
+  expect_true(max(abs(pa@parameters$est[sel(pa)] - lavest(pa, la)[sel(pa)])) < 1e-3)
+  expect_true(max(abs(pa@parameters$se[sel(pa)] - lavest(pa, la, "se")[sel(pa)])) < 1e-3)
+  # The variances and intercepts of composites are computed, never estimated:
+  Pa <- pa@parameters
+  comp_computed <- (Pa$matrix == "sigma_zeta" & Pa$row == Pa$col & Pa$var1 %in% c("c1", "c2")) |
+    (Pa$matrix == "nu_eta" & Pa$var1 %in% c("c1", "c2"))
+  expect_true(all(Pa$fixed[comp_computed]))
+
+  # (b) the lavaan default fixes these covariances to their sample values:
+  #     a warning, and the same chi-square, df, estimates and standard errors
+  #     of weights, loadings and regressions.
+  lb <- lavaan::sem(cmod, HS, meanstructure = TRUE, likelihood = "normal")
+  expect_warning(pb <- fromlavaan(lb, run = TRUE), "composites.cov")
+  expect_equal(pb@fitmeasures$df, lavdf(lb))
+  expect_true(abs(pb@fitmeasures$chisq - lavchi(lb)) < 1e-4)
+  expect_true(max(abs(pb@parameters$est[sel(pb)] - lavest(pb, lb)[sel(pb)])) < 1e-3)
+  expect_true(max(abs(pb@parameters$se[sel(pb)] - lavest(pb, lb, "se")[sel(pb)])) < 1e-3)
+
+  # (c) a chain of composites; the intercept of the last composite equals
+  #     (I - B) times the composite means (lavaan <= 0.7-3 reports another value).
+  lc <- lavaan::sem(' c1 <~ x1 + x2 + x3
+                      c2 <~ x4 + x5 + x6
+                      c3 <~ x7 + x8 + x9
+                      c2 ~ c1
+                      c3 ~ c2 ', HS, meanstructure = TRUE, likelihood = "normal", composites.cov = "free")
+  pc <- fromlavaan(lc, run = TRUE)
+  expect_equal(pc@fitmeasures$df, lavdf(lc))
+  expect_true(abs(pc@fitmeasures$chisq - lavchi(lc)) < 1e-4)
+  Wpc <- as.matrix(getmatrix(pc, "weights")); mupc <- as.numeric(getmatrix(pc, "mu"))
+  expect_true(max(abs(as.numeric(getmatrix(pc, "mu_eta")) - as.numeric(t(Wpc) %*% mupc))) < 1e-8)
+  expect_true(max(abs(as.numeric(getmatrix(pc, "nu_eta")) -
+                        as.numeric((diag(3) - as.matrix(getmatrix(pc, "beta"))) %*% t(Wpc) %*% mupc))) < 1e-8)
+
+  # (d) two groups with equality constraints on weights (labels) and loadings.
+  ld <- lavaan::sem(' c1 <~ x1 + c(a, a)*x2 + c(b, b)*x3
+                      c2 <~ x4 + x5 + x6
+                      f =~ x7 + x8 + x9
+                      f ~ c1 + c2 ', HS, group = "school", meanstructure = TRUE, likelihood = "normal",
+                    composites.cov = "free", group.equal = "loadings")
+  pd <- fromlavaan(ld, run = TRUE)
+  expect_equal(pd@fitmeasures$df, lavdf(ld))
+  expect_true(abs(pd@fitmeasures$chisq - lavchi(ld)) < 1e-4)
+
+  # (e) missing data.
+  HSm <- HS[, vars9]
+  set.seed(1); HSm[cbind(sample(nrow(HSm), 60), sample(9, 60, TRUE))] <- NA
+  le <- lavaan::sem(cmod, HSm, meanstructure = TRUE, missing = "ml", composites.cov = "free", information = "expected")
+  pe_ <- fromlavaan(le, run = TRUE)
+  expect_equal(pe_@estimator, "FIML")
+  expect_equal(pe_@fitmeasures$df, lavdf(le))
+  expect_true(abs(pe_@fitmeasures$chisq - lavchi(le)) < 1e-3)
+
+  # (f) another marker than the first indicator, from an unfitted lavaan
+  #     object (psychonetrics starting values in the lavaan metric).
+  mf <- ' c1 <~ NA*x1 + x2 + 1*x3
+          c2 <~ NA*x4 + x5 + 2*x6
+          f =~ x7 + x8 + x9
+          f ~ c1 + c2 '
+  pf <- fromlavaan(lavaan::sem(mf, HS, meanstructure = TRUE, likelihood = "normal", composites.cov = "free", do.fit = FALSE),
+                   run = TRUE)
+  Wf <- pf@parameters[pf@parameters$matrix == "weights" & pf@parameters$fixed & pf@parameters$est != 0, ]
+  expect_equal(Wf$var1, c("x3", "x6"))
+  expect_equal(Wf$est, c(1, 2))
+  expect_equal(pf@optim$convergence, 0)
+  expect_true(abs(pf@fitmeasures$chisq - lavchi(la)) < 1e-4)   # equivalent to model (a)
+
+  # (g) refused models.
+  expect_error(suppressWarnings(fromlavaan(lavaan::sem(sub("x1", "NA*x1", cmod), HS, composites.cov = "free"))),
+               "no fixed weight")
+  expect_error(suppressWarnings(fromlavaan(lavaan::sem(paste(cmod, "\n x1 ~~ x4"), HS, composites.cov = "free"))),
+               "different composites")
+
+  # (h) cvm -> lavaan: summary statistics, stored raw data, and the round trip.
+  ph <- runmodel(cvm_mod)
+  lh <- tolavaan(ph)
+  expect_equal(ph@fitmeasures$df, lavdf(lh))
+  expect_true(abs(ph@fitmeasures$chisq - lavchi(lh)) < 1e-4)
+  expect_true(max(abs(ph@parameters$est[sel(ph)] - lavest(ph, lh)[sel(ph)])) < 1e-3)
+  expect_true(max(abs(ph@parameters$se[sel(ph)] - lavest(ph, lh, "se")[sel(ph)])) < 1e-3)
+  lh2 <- tolavaan(runmodel(cvm(HS, vars = vars9, lambda = Lc, weights = Wc, beta = Bc, sigma_zeta = Szc,
+                               latents = c("c1", "c2", "f"), storedata = TRUE)))
+  expect_true(abs(ph@fitmeasures$chisq - lavchi(lh2)) < 1e-4)
+  rt <- fromlavaan(lh, run = TRUE)
+  expect_equal(rt@fitmeasures$df, ph@fitmeasures$df)
+  expect_equal(rt@fitmeasures$npar, ph@fitmeasures$npar)
+  expect_true(abs(rt@fitmeasures$chisq - ph@fitmeasures$chisq) < 1e-4)
+}

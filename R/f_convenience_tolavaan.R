@@ -1,5 +1,6 @@
-# Convert a psychonetrics lvm (latent = "cov", residual = "cov") into a fitted
-# lavaan object or a lavaan parameter table.
+# Convert a psychonetrics lvm (latent = "cov", residual = "cov") or cvm (in
+# addition composite = "cov") into a fitted lavaan object or a lavaan parameter
+# table.
 #
 # Only the lavaan public API (lavaan::lavaan) is used; no lavaan source code is
 # ported. See man/tolavaan.Rd for the restriction to cov/cov models and the
@@ -11,13 +12,23 @@ tolavaan <- function(x, fit = TRUE, verbose = FALSE, ...){
   if (!is(x, "psychonetrics")){
     stop("'x' must be a psychonetrics object.")
   }
-  if (x@model != "lvm"){
-    stop("Only lvm-family models can be converted to lavaan (got model = '", x@model, "').")
+  if (!x@model %in% c("lvm", "cvm")){
+    stop("Only lvm-family and cvm-family models can be converted to lavaan (got model = '", x@model, "').")
   }
   if (x@types$latent != "cov" || x@types$residual != "cov"){
     stop("Only latent = 'cov' and residual = 'cov' models can be converted; got latent = '",
          x@types$latent, "', residual = '", x@types$residual,
          "'. Network (ggm/prec) and Cholesky structures have no lavaan equivalent.")
+  }
+  isCVM <- x@model == "cvm"
+  if (isCVM){
+    if (x@types$composite != "cov"){
+      stop("Only composite = 'cov' models can be converted; got composite = '", x@types$composite,
+           "'. Network (ggm/prec), Cholesky and correlation structures of the composite indicators have no lavaan equivalent.")
+    }
+    if (utils::packageVersion("lavaan") < "0.7.0"){
+      stop("Converting a composite variable model requires lavaan >= 0.7.")
+    }
   }
   if (isTRUE(x@sample@corinput) || any(x@sample@variables$ordered)){
     stop("Ordinal / correlation-input models cannot be converted to lavaan.")
@@ -38,20 +49,36 @@ tolavaan <- function(x, fit = TRUE, verbose = FALSE, ...){
 
   ## ---- Rows of the lavaan parameter table ---------------------------
   # Emit a row for EVERY managed parameter-table row (including fixed-at-zero
-  # rows) so lavaan does not add any defaults of its own.
-  maprow <- function(m, r, c){
+  # rows) so lavaan does not add any defaults of its own. The residual and
+  # composite indicator blocks of a cvm are indexed within their own block, so
+  # the variable ids (v1, v2) are used for these.
+  maprow <- function(m, r, c, v1, v2){
     switch(m,
       lambda        = c(latents[c], "=~", vars[r]),
+      weights       = c(latents[c], "<~", vars[r]),
       sigma_zeta    = c(latents[c], "~~", latents[r]),
-      sigma_epsilon = c(vars[c],    "~~", vars[r]),
+      sigma_epsilon = c(vars[v2],   "~~", vars[v1]),
+      sigma_c       = c(vars[v2],   "~~", vars[v1]),
       beta          = c(latents[r], "~",  latents[c]),
       nu            = c(vars[r],    "~1", ""),
       nu_eta        = c(latents[r], "~1", ""),
       NULL)
   }
-  keep <- P$matrix %in% c("lambda", "sigma_zeta", "sigma_epsilon", "beta", "nu", "nu_eta")
+  keep <- P$matrix %in% c("lambda", "weights", "sigma_zeta", "sigma_epsilon", "sigma_c", "beta", "nu", "nu_eta")
   P <- P[keep, , drop = FALSE]
-  lor <- t(mapply(maprow, P$matrix, P$row, P$col))
+
+  # Composite variable models: the structural zeros (loadings of composite
+  # indicators and on composites, weights outside the composite of an
+  # indicator, covariances between indicators of different composites) are not
+  # part of the lavaan model, and the variances and intercepts of composites
+  # are computed by lavaan as well (fixed, without a value):
+  computed <- rep(FALSE, nrow(P))
+  if (isCVM){
+    struc <- cvm_structural_rows(x, P)
+    P <- P[!struc$zero, , drop = FALSE]
+    computed <- (struc$intercept | struc$variance)[!struc$zero]
+  }
+  lor <- t(mapply(maprow, P$matrix, P$row, P$col, P$var1_id, P$var2_id))
 
   PT <- data.frame(lhs = lor[, 1], op = lor[, 2], rhs = lor[, 3],
                    block = P$group_id, group = P$group_id,
@@ -61,6 +88,7 @@ tolavaan <- function(x, fit = TRUE, verbose = FALSE, ...){
   isfree <- !P$fixed
   PT$free[isfree] <- seq_len(sum(isfree))
   PT$ustart[!isfree] <- P$est[!isfree]                 # fixed values
+  PT$ustart[computed] <- NA_real_                      # computed by lavaan (composites)
   if (x@computed) PT$ustart[isfree] <- P$est[isfree]   # warm starts on free rows
 
   ## ---- Equality constraints: shared par index -> "==" rows ----------

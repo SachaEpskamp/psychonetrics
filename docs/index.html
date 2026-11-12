@@ -31,6 +31,7 @@
         <ul class="dropdown-menu">
           <li><a href="varcov.html" class="nav-link">Varcov (GGM)</a></li>
           <li><a href="lvm.html" class="nav-link">LVM (CFA / SEM)</a></li>
+          <li><a href="cvm.html" class="nav-link">CVM (composites)</a></li>
           <li><a href="var1.html" class="nav-link">Var1 (time series)</a></li>
           <li><a href="ml_var.html" class="nav-link">Multi-level VAR (ml_var / ml_gvar)</a></li>
           <li><a href="dlvm1.html" class="nav-link">DLVM (panel / RI-CLPM)</a></li>
@@ -192,6 +193,12 @@
         <p>Latent variable models (CFA / SEM) where latent and residual covariances can be modeled as networks. Supports bifactor models and latent growth curves.</p>
         <p><strong>Wrappers:</strong> <code>lnm()</code>, <code>rnm()</code>, <code>lrnm()</code>, <code>bifactor()</code>, <code>latentgrowth()</code></p>
         <a href="lvm.html" class="card-link">Learn more &rarr;</a>
+      </div>
+      <div class="card">
+        <h3>Composite Variable Family <span class="badge-new">Experimental</span></h3>
+        <p>Structural equation models with both latent variables and composites (exact weighted sums of their indicators). The indicators within each composite can be modeled as a network. New and experimental in version 0.18.</p>
+        <p><strong>Functions:</strong> <code>cvm()</code>, <code>cnm()</code></p>
+        <a href="cvm.html" class="card-link">Learn more &rarr;</a>
       </div>
       <div class="card">
         <h3>Ising &amp; Blume-Capel <span class="badge-new">Updated</span></h3>

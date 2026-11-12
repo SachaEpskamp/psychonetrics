@@ -1,10 +1,10 @@
 \name{fromlavaan}
 \alias{fromlavaan}
 \title{
-Convert a lavaan model to a psychonetrics lvm
+Convert a lavaan model to a psychonetrics lvm or cvm
 }
 \description{
-Converts a \code{lavaan} model into an equivalent psychonetrics latent variable model (\code{\link{lvm}}) with \code{latent = "cov"} and \code{residual = "cov"}. The input can be a fitted \code{lavaan} object (e.g., from \code{lavaan::cfa} or \code{lavaan::sem}), or lavaan model syntax together with a data frame. Only the public lavaan API is used; no lavaan source code is reused.
+Converts a \code{lavaan} model into an equivalent psychonetrics latent variable model (\code{\link{lvm}}) with \code{latent = "cov"} and \code{residual = "cov"}. A \code{lavaan} model with composites (the \code{<~} operator) is converted into an equivalent composite variable model (\code{\link{cvm}}) with, in addition, \code{composite = "cov"}. The input can be a fitted \code{lavaan} object (e.g., from \code{lavaan::cfa} or \code{lavaan::sem}), or lavaan model syntax together with a data frame. Only the public lavaan API is used; no lavaan source code is reused.
 }
 \usage{
 fromlavaan(x, data = NULL, run = FALSE, estimator = "default",
@@ -21,16 +21,16 @@ A data frame. Required when \code{x} is model syntax; ignored when \code{x} is a
 Logical. If \code{TRUE}, the resulting psychonetrics model is estimated with \code{\link{runmodel}} before being returned.
 }
   \item{estimator}{
-The estimator passed to \code{\link{lvm}}. The default (\code{"default"}) uses \code{"ML"}, or \code{"FIML"} when lavaan was fitted with full-information maximum likelihood for missing data.
+The estimator passed to \code{\link{lvm}} or \code{\link{cvm}}. The default (\code{"default"}) uses \code{"ML"}, or \code{"FIML"} when lavaan was fitted with full-information maximum likelihood for missing data.
 }
   \item{baseline_saturated}{
-Logical, passed to \code{\link{lvm}}; should the baseline and saturated models be included? Mostly used internally.
+Logical, passed to \code{\link{lvm}} or \code{\link{cvm}}; should the baseline and saturated models be included? Mostly used internally.
 }
   \item{verbose}{
 Logical. If \code{TRUE}, an experimental-feature note is shown and progress is printed.
 }
   \item{\dots}{
-Further arguments passed to \code{\link{lvm}}.
+Further arguments passed to \code{\link{lvm}} or \code{\link{cvm}}.
 }
 }
 \details{
@@ -40,7 +40,9 @@ The following are guaranteed to match lavaan (for a standard ML fit, see the cav
 
 \bold{Caveats.} (1) If the lavaan model has no meanstructure, psychonetrics adds a saturated mean structure (free \code{nu}, \code{nu_eta} fixed to 0): estimates, standard errors, chi-square and df still match, but the log-likelihood differs by a constant; a warning is issued. (2) With \code{fixed.x = TRUE} and exogenous covariates, psychonetrics treats the covariates as random (endogenous): estimates, standard errors and chi-square match, but df-based fit measures and the log-likelihood do not (lavaan conditions on the covariates); a warning is issued. (3) If lavaan used \code{likelihood = "wishart"} (the \eqn{n-1} normalization), psychonetrics uses the normal (\eqn{n}) likelihood, so the log-likelihood differs; a warning is issued. (4) Robust standard errors and robust/scaled test statistics are not transferred; the model is converted as plain ML, with a warning. (5) For FIML, psychonetrics uses expected information for standard errors, whereas lavaan defaults to observed information, so FIML standard errors may differ slightly even though the log-likelihood matches.
 
-\bold{Unsupported.} The following lavaan features cannot be converted and raise an informative error: two-level / multilevel models (\code{cluster=}, \code{level:}), defined parameters (\code{:=}), inequality constraints (\code{<}, \code{>}), general (non-simple) equality constraints, formative indicators (\code{<~}), \code{conditional.x = TRUE}, and categorical (ordinal) endogenous variables.
+\bold{Composites.} A model that contains composites (\code{<~}, as modeled by \pkg{lavaan} 0.7 or later) is converted to the \code{\link{cvm}} family: the weights (lavaan's \code{wmat}) become \code{weights}, the variances and covariances of the indicators of composites become \code{sigma_c}, and the residuals of all other observed variables \code{sigma_epsilon}. The scaling of the composites is taken from lavaan (the weight that lavaan fixed, which need not be that of the first indicator). The variances and intercepts of composites are not parameters in either package; psychonetrics computes them from the other parameters. The following differences apply. (1) By default lavaan fixes the variances and covariances of the composite indicators to their sample values (\code{composites.cov = "fixed"}), whereas psychonetrics estimates them. With complete data the chi-square, degrees of freedom, estimates and the standard errors of weights, loadings and regressions are the same, but the number of parameters (and therefore AIC and BIC) and the standard errors of (co)variances between composites differ, and with missing data all results differ slightly; a warning is issued. Fit the lavaan model with \code{composites.cov = "free"} for an exact match. (2) When the lavaan model was not fitted or did not converge, the starting values of \code{\link{cvm}} are used instead of the lavaan values. (3) The intercept of a composite that is predicted by another endogenous composite is computed as the corresponding element of \eqn{(\boldsymbol{I} - \boldsymbol{B}) \boldsymbol{\mu}_\eta}{(I - beta) mu_eta}, which can differ from the value reported by lavaan (versions up to at least 0.7-3). (4) Covariances between indicators of different composites, covariances between an indicator of a composite and another observed variable, and composites without a fixed weight cannot be converted and raise an informative error.
+
+\bold{Unsupported.} The following lavaan features cannot be converted and raise an informative error: two-level / multilevel models (\code{cluster=}, \code{level:}), defined parameters (\code{:=}), inequality constraints (\code{<}, \code{>}), general (non-simple) equality constraints, formative indicators (\code{<~}) that lavaan does not model as composites (lavaan versions before 0.7), \code{conditional.x = TRUE}, and categorical (ordinal) endogenous variables.
 }
 \value{
 An object of class \code{psychonetrics} (see \code{\link{psychonetrics-class}}).
@@ -52,7 +54,7 @@ Rosseel, Y. (2012). lavaan: An R Package for Structural Equation Modeling. Journ
 Sacha Epskamp
 }
 \seealso{
-\code{\link{tolavaan}}, \code{\link{lvm}}
+\code{\link{tolavaan}}, \code{\link{lvm}}, \code{\link{cvm}}
 }
 \examples{
 \donttest{
@@ -79,6 +81,18 @@ if (requireNamespace("lavaan", quietly = TRUE)){
                        textual =~ x4 + x5 + x6
                        speed   =~ x7 + x8 + x9 ',
                      data = HS, run = TRUE)
+
+  # A model with composites (lavaan >= 0.7) becomes a cvm:
+  if (packageVersion("lavaan") >= "0.7.0"){
+    fit_c <- sem(' c1 <~ x1 + x2 + x3
+                   c2 <~ x4 + x5 + x6
+                   speed =~ x7 + x8 + x9
+                   speed ~ c1 + c2 ',
+                 data = HS, meanstructure = TRUE, composites.cov = "free")
+    mod_c <- fromlavaan(fit_c, run = TRUE)
+    c(lavaan = as.numeric(fitMeasures(fit_c, "chisq")),
+      psychonetrics = mod_c@fitmeasures$chisq)
+  }
 }
 }
 }

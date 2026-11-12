@@ -40,9 +40,10 @@ Changes in Version 0.18
       which allows observed variables in the structural model.
     - Supported: single and multiple groups with equality constraints, mean
       structures, the ML, FIML, ULS, WLS and DWLS estimators, penalized
-      estimation (PML, PFIML) and the usual model modification and search
-      functions. Not (yet) supported: ordinal data, correlation input and
-      conversion to and from lavaan syntax.
+      estimation (PML, PFIML), the usual model modification and search
+      functions, and conversion to and from lavaan. Not (yet) supported:
+      ordinal data and correlation input. The family is experimental:
+      arguments and defaults may still change.
     - Implemented in both the R and the C++ (default) pipelines, with analytic
       gradients and Fisher information that build on the lvm derivatives. The
       two pipelines give identical results, and models with fully estimated
@@ -90,6 +91,30 @@ Changes in Version 0.18
       lavaan were compared in 91 models; and simulations confirmed
       consistency, standard errors, coverage, the chi-square distribution and
       the recovery of the networks within composites and between constructs.
+  o fromlavaan() and tolavaan() now convert models with composites:
+    - fromlavaan() converts a lavaan model that contains composites (the
+      '<~' operator, lavaan >= 0.7) into an equivalent cvm() model; such
+      models were refused before. Weights, the scaling chosen by lavaan,
+      fixed values, equality constraints, multiple groups and missing data
+      (FIML) are carried over. lavaan by default fixes the variances and
+      covariances of composite indicators to their sample values
+      (composites.cov = "fixed"), whereas psychonetrics estimates them: with
+      complete data this gives the same chi-square, degrees of freedom,
+      estimates and standard errors of weights, loadings and regressions,
+      but another number of parameters; a warning explains this. With
+      composites.cov = "free" in lavaan everything matches. When the lavaan
+      model was not fitted or did not converge, the cvm() starting values
+      are used rather than the lavaan values (lavaan does not converge from
+      its own starting values on some composite models that psychonetrics
+      estimates without problems).
+    - tolavaan() converts a cvm() model with latent = "cov",
+      residual = "cov" and composite = "cov" into a fitted lavaan model or
+      a lavaan parameter table.
+    - Known differences that are due to lavaan (up to at least 0.7-3):
+      lavaan reports another intercept for a composite that is predicted by
+      another endogenous composite, and does not count a covariance between
+      composite indicators that is fixed to zero in its degrees of freedom.
+    - Conversion of models without composites is unchanged.
   o Bug fix in the R pipeline (usecpp(x, FALSE)) for all model families: the
     derived standard deviation matrices returned by getmatrix() ('SD',
     'SD_zeta', 'SD_epsilon', ...) when a covariance structure was estimated

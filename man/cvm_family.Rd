@@ -6,7 +6,7 @@
 Composite variable family of psychonetrics models
 }
 \description{
-This is the family of models that models the data as a structural equation model (SEM) with both latent variables (common factors) and composites, following the factor- and composite-based SEM framework of Schamberger, Schuberth, Henseler and Rosseel (2025). A latent variable is measured by its indicators with error (\code{lambda}), whereas a composite is an exact weighted sum of its indicators (\code{weights}). Latent variables and composites (jointly termed constructs) can be related to each other through regressions (\code{beta}) and (residual) covariances or a network. As in the \code{\link{lvm}} family, the variance--covariance structures in the model can be modeled in different ways, including as Gaussian graphical models (Epskamp, Rhemtulla and Borsboom, 2017). The \code{latent} argument sets the model for the constructs, the \code{residual} argument sets the model for the residuals of the indicators of latent variables, and the \code{composite} argument sets the model for the indicators of composites (the matrices with the suffix \code{_c}; see Details). The wrapper \code{cnm()} sets \code{composite = "ggm"} for the composite network model (CNM), which models a network of indicators within every composite.
+This is the family of models that models the data as a structural equation model (SEM) with both latent variables (common factors) and composites, following the factor- and composite-based SEM framework of Schamberger, Schuberth, Henseler and Rosseel (2025). A latent variable is measured by its indicators with error (\code{lambda}), whereas a composite is an exact weighted sum of its indicators (\code{weights}). Latent variables and composites (jointly termed constructs) can be related to each other through regressions (\code{beta}) and (residual) covariances or a network. As in the \code{\link{lvm}} family, the variance--covariance structures in the model can be modeled in different ways, including as Gaussian graphical models (Epskamp, Rhemtulla and Borsboom, 2017). The \code{latent} argument sets the model for the constructs, the \code{residual} argument sets the model for the residuals of the indicators of latent variables, and the \code{composite} argument sets the model for the indicators of composites (the matrices with the suffix \code{_c}; see Details). The wrapper \code{cnm()} sets \code{composite = "ggm"} for the composite network model (CNM), which models a network of indicators within every composite. This family is new in version 0.18 and experimental: arguments and defaults may still change.
 }
 \usage{
 cvm(data, lambda, weights, latent = c("cov", "ggm"),
@@ -217,7 +217,7 @@ in which \eqn{\boldsymbol{\Lambda}}{lambda} contains the factor loadings (\code{
 
 \strong{Penalized estimation.} With \code{estimator = "PML"} (or \code{"PFIML"} with missing data) the network structures in the model are estimated with a LASSO or elastic net penalty, for example the networks of indicators within composites in \code{cnm()}, after which \code{\link{refit}} re-estimates the selected structure without the penalty to obtain standard errors and fit measures. The penalized estimates are obtained with a first-order (proximal gradient) optimizer, which does not use the expected Hessian: for models from this family it can need very many iterations, and it stops less close to the optimum in the weights than the unpenalized estimators do. Use \code{\link{refit}} for the final estimates.
 
-Conversion to and from \pkg{lavaan} syntax is currently not supported for this family. Models with a fully estimated \code{sigma_c} are equivalent to models estimated with \pkg{lavaan} (Rosseel, 2012) using the \code{<~} operator.
+\strong{Relation to lavaan.} Models with \code{latent = "cov"}, \code{residual = "cov"} and \code{composite = "cov"} can be estimated with \pkg{lavaan} (Rosseel, 2012; version 0.7 or later) using the \code{<~} operator, and can be converted to and from \pkg{lavaan} with \code{\link{tolavaan}} and \code{\link{fromlavaan}}. By default \pkg{lavaan} fixes the variances and covariances of the composite indicators to their sample values, whereas they are estimated here (the option \code{composites.cov = "free"} in \pkg{lavaan}): this gives the same estimates, standard errors of weights, loadings and regressions, chi-square and degrees of freedom with complete data, but a different number of parameters. Network structures (\code{"ggm"} and \code{"prec"}) have no \pkg{lavaan} counterpart.
 }
 \value{
 An object of the class psychonetrics (\link{psychonetrics-class})
@@ -241,7 +241,7 @@ Schuberth, F., Henseler, J., & Dijkstra, T. K. (2018). Confirmatory composite an
 Sacha Epskamp
 }
 \seealso{
-\code{\link{lvm}}, \code{\link{varcov}}, \code{\link{penalize}}
+\code{\link{lvm}}, \code{\link{varcov}}, \code{\link{fromlavaan}}, \code{\link{tolavaan}}, \code{\link{penalize}}
 }
 \examples{
 library("dplyr")
