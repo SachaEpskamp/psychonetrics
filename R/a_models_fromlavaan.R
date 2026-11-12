@@ -398,6 +398,10 @@ fromlavaan <- function(x,
     # Make sure the starting values are admissible (they are when taken from a
     # fitted lavaan model):
     mod <- cvm_admissible_start(mod)
+    # With the psychonetrics starting values (lavaan model not fitted or not
+    # converged), also start the intercepts of the factor indicators consistently
+    # with the implied means of the constructs:
+    if (!useLavStart) mod <- cvm_start_intercepts(mod)
   }
   mod@modelmatrices <- formModelMatrices(mod)
 

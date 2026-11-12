@@ -33,9 +33,14 @@ Changes in Version 0.18
       the implied residual covariances of the composite indicators
       ('sigma_epsilon_c').
     - With latent = "ggm" a composite can either be a node in the latent
-      network (omega_zeta) or have incoming effects in beta, but not both;
-      such models are refused with an informative error and model search does
-      not propose them.
+      network (omega_zeta) or have incoming effects in beta, but not both.
+      This is part of the identification of the model (identify_cvm): the
+      effects on a composite without incoming effects, and the edges of a
+      composite with incoming effects, are marked as identified such that
+      modification indices and model search skip them. A model that violates
+      the restriction is refused with an error when it is specified,
+      identified or evaluated. After adding or removing effects on
+      composites by hand, identify() updates the marks.
     - A composite with a single indicator represents that observed variable,
       which allows observed variables in the structural model.
     - Supported: single and multiple groups with equality constraints, mean
@@ -47,8 +52,9 @@ Changes in Version 0.18
     - Implemented in both the R and the C++ (default) pipelines, with analytic
       gradients and Fisher information that build on the lvm derivatives. The
       two pipelines give identical results, and models with fully estimated
-      composite indicator covariances reproduce lavaan (chi-square, degrees of
-      freedom, estimates, standard errors and fit measures), including
+      composite indicator covariances reproduce lavaan (degrees of freedom
+      exactly; chi-square, estimates, standard errors and fit measures up to
+      the precision of the optimizer, see 'Estimation' below), including
       multi-group and FIML models. See the new test file test_cvm.R.
     - Composites are scaled by fixing the weight of their first indicator to
       1. When the starting value of that weight is near zero relative to the
@@ -58,20 +64,37 @@ Changes in Version 0.18
       new argument 'bad_marker_crit'. A warning is given when a composite
       with estimated weights is not related to any other construct (its
       weights are then not identified).
-    - Estimation. Composite weights are only weakly identified, which makes
-      the fit function flat around the optimum. For cvm models only,
-      runmodel() therefore (1) supplies the expected Hessian (twice the
-      Fisher information) to the default optimizer nlminb, i.e., Fisher
-      scoring within a trust region; (2) uses a relative convergence
-      tolerance of 1e-10 (the lavaan default); (3) keeps track of the best
-      point at which the fit function was evaluated, because nlminb can
-      return parameters that do not belong to its best objective when it
-      stops without convergence; and (4) warns when the optimizer did not
-      report convergence, when the indicator that scales a composite has a
-      negligible weight, or when a computed residual variance of a composite
-      is not positive. Starting values for the weights are obtained with
-      partial least squares (mode B), and are adjusted when needed such that
-      the starting point is admissible. Other model families are unchanged.
+    - Estimation uses the same optimizer and settings as all other model
+      families; runmodel() has no settings that are specific to this family.
+      Composite weights are only weakly identified, which makes the fit
+      function flat in the direction of the weights, so that the optimizer can
+      stop slightly before the optimum: the chi-square is typically accurate
+      to about two decimals. In 1500 simulated data sets with n = 250 it was
+      more than 0.01 too high in 18 (at most 0.24; up to 0.9 in models with a
+      saturated network, and at most 0.03 with n = 1000); the largest
+      difference between an estimate and the optimum was 0.005 standard errors
+      at the median and below 0.1 in 99% of the data sets, but 2.3 standard
+      errors in one weakly identified data set in which the optimizer stopped
+      on a flat ridge (with a very large reported standard error). Stricter
+      convergence criteria, which found the optimum there, can be set with
+      setoptimizer(), e.g. optim.args = list(control = list(rel.tol = 1e-10,
+      eval.max = 20000, iter.max = 10000)). Starting values for the weights
+      are obtained with partial least squares (mode B), and are adjusted when
+      needed such that the starting point is admissible. The intercepts of the
+      indicators of latent variables are started such that the implied means
+      equal the sample means: a latent variable that is predicted by
+      composites has a nonzero mean, so that these intercepts are not the
+      indicator means (starting them at the means made ULS and DWLS fits of
+      such models fail). After estimation, runmodel() warns when the optimizer
+      did not report convergence, when the indicator that scales a composite
+      has a negligible weight, when a composite with estimated weights is not
+      related to any other construct, when an element that is computed in this
+      family was freed by hand, or when a computed residual variance of a
+      composite is not positive. (A stricter tolerance and supplying the
+      expected Hessian to nlminb were tried during development and give more
+      precise fits in fewer iterations, but were not adopted in order to keep
+      estimation the same for all families; see the note in the source of
+      runmodel().)
     - Penalized estimation: estimator = "PML" (or "PFIML" with missing data)
       with the arguments 'penalty_lambda', 'penalty_alpha' and
       'penalize_matrices', as in the other families. By default the network
@@ -88,9 +111,11 @@ Changes in Version 0.18
       analytic Jacobian, gradient and Fisher information were checked
       against an independent implementation of the model and numerical
       differentiation in 68 model configurations; R and C++ results and
-      lavaan were compared in 91 models; and simulations confirmed
-      consistency, standard errors, coverage, the chi-square distribution and
-      the recovery of the networks within composites and between constructs.
+      lavaan were compared in 91 models (R and C++ agree to 1e-7 in all of
+      them, and the chi-square is within 0.005 of lavaan where lavaan
+      estimates the same model); and simulations confirmed consistency,
+      standard errors, coverage, the chi-square distribution and the
+      recovery of the networks within composites and between constructs.
   o fromlavaan() and tolavaan() now convert models with composites:
     - fromlavaan() converts a lavaan model that contains composites (the
       '<~' operator, lavaan >= 0.7) into an equivalent cvm() model; such

@@ -770,6 +770,11 @@ cvm <- function(
   # of composites and positive definite implied covariances):
   model <- cvm_admissible_start(model)
 
+  # Start the intercepts of the factor indicators such that the implied means
+  # equal the sample means, given the implied means of the constructs at the
+  # starting values (see cvm_start_intercepts):
+  model <- cvm_start_intercepts(model)
+
   # Form the model matrices
   model@modelmatrices <- formModelMatrices(model)
 

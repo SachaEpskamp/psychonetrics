@@ -268,7 +268,7 @@ getmatrix(mod3, "omega_zeta")</code></pre>
       The estimated partial correlations are 0.525 between being a fan and the composite of the original trilogy, 0.228 between being a fan and the composite of the sequels, and 0.259 between the two composites. With all three edges included, this model is equivalent to the first example (chi-square = 2.92, df = 8).
     </p>
     <div class="note">
-      <strong>One restriction:</strong> with <code>latent = "ggm"</code>, a composite can either be a node in the latent network or have incoming effects in <code>beta</code>, but not both. Such models are refused with an informative error, and the model search functions do not propose them.
+      <strong>One restriction:</strong> with <code>latent = "ggm"</code>, a composite can either be a node in the latent network or have incoming effects in <code>beta</code>, but not both. Such models are refused with an informative error, and the model search functions do not propose them. Which of the two a composite is follows from the model as you specify it; after adding or removing effects on composites by hand, <code>identify()</code> updates which parameters model search may add.
     </div>
   </section>
 
@@ -290,7 +290,7 @@ getmatrix(mod3, "omega_zeta")</code></pre>
       The estimators <code>"ML"</code>, <code>"FIML"</code> (chosen automatically with missing data), <code>"ULS"</code>, <code>"WLS"</code> and <code>"DWLS"</code> are available, for single and multiple groups with equality constraints (<code>equal</code>, <code>groupequal()</code>) and with a mean structure. The model is implemented in both the R and the C++ pipeline, which give identical results.
     </p>
     <p>
-      Composite weights are only weakly identified, which makes the likelihood flat in some directions. For this family <code>runmodel()</code> therefore supplies the expected Hessian to the optimizer and starts from partial least squares estimates of the weights. A warning is given when the optimizer does not report convergence, when the indicator that scales a composite has a negligible weight, or when the computed residual variance of a composite is not positive.
+      Composite weights are only weakly identified, which makes the likelihood flat in some directions. Estimation starts from partial least squares estimates of the weights and uses the same optimizer and settings as all other model families. The optimizer can therefore stop slightly before the optimum: the chi-square is typically accurate to about two decimals. Stricter convergence criteria can be set with <code>setoptimizer()</code>, for example <code>setoptimizer(mod, "nlminb", optim.args = list(control = list(rel.tol = 1e-10, eval.max = 20000, iter.max = 10000)))</code>. A warning is given when the optimizer does not report convergence, when the indicator that scales a composite has a negligible weight, when a composite with estimated weights is not related to any other construct, or when the computed residual variance of a composite is not positive.
     </p>
     <div class="note">
       <strong>Penalized estimation:</strong> <code>estimator = "PML"</code> penalizes the network structures in the model, after which <code>refit()</code> gives unpenalized estimates of the selected network. This works, but the optimizer used for penalized estimation is a first-order method and can be very slow for composite models (minutes for a model with a dozen variables). For now, <code>prune()</code> and <code>stepup()</code> are the faster route to a sparse network.
@@ -307,7 +307,7 @@ getmatrix(mod3, "omega_zeta")</code></pre>
 
 # psychonetrics -> lavaan:
 lavfit <- tolavaan(mod2)
-fitMeasures(lavfit, c("chisq", "df", "npar"))   # 3.01, 6, 21: identical
+fitMeasures(lavfit, c("chisq", "df", "npar"))   # 3.01, 6, 21: as above
 
 # lavaan -> psychonetrics:
 fit <- sem(' Originals <~ Q5 + Q6 + Q7
@@ -334,7 +334,9 @@ mod_from_lavaan <- fromlavaan(fit, run = TRUE)</code></pre>
       <li>Ordinal data and correlation input are not supported.</li>
       <li><code>latent</code> can only be <code>"cov"</code> or <code>"ggm"</code>.</li>
       <li>With <code>latent = "ggm"</code>, a composite cannot have both incoming effects and edges in the latent network.</li>
-      <li>In small samples (around 250 or fewer) with weak relations between constructs, the weights can be poorly determined. Check the warnings, and consider another indicator to scale the composite.</li>
+      <li>In small samples (around 250 or fewer) with weak relations between constructs, the weights can be poorly determined: standard errors are then very large, and the optimizer can stop on a flat part of the likelihood. Check the warnings and the standard errors, estimate the model again with stricter convergence criteria, and consider another indicator to scale the composite.</li>
+      <li>The optimizer can stop slightly before the optimum in the weights: the chi-square is accurate to about two decimals (within 0.005 of lavaan in the models that were compared). <code>setoptimizer()</code> gives stricter convergence (see Estimation).</li>
+      <li>Large models are slow: about 10 to 20 seconds for 36 variables, and minutes for 64 variables.</li>
       <li>Penalized estimation can be slow (see above).</li>
     </ul>
   </section>

@@ -49,12 +49,6 @@ runmodel <- function(
     x@optim.args <- optim.control
   }
   
-  # Composite variable models: update which structural parameters may be freed
-  # (and check that no composite has both incoming effects and network edges):
-  if (x@model == "cvm"){
-    x <- cvm_update_structure(x, warn = TRUE)
-  }
-
   # Set optim args:
   optim.control <- x@optim.args
   
@@ -708,27 +702,6 @@ runmodel <- function(
       optim.control$fn <- psychonetrics_fitfunction
     }
     
-    # Composite variable models: keep track of the best point at which the fit
-    # function was evaluated. When nlminb stops without convergence (e.g.,
-    # 'singular convergence'), the parameters it returns are not necessarily
-    # those of the best objective it reports, which can be a far worse point
-    # when composite weights drift along a flat ridge. Only for the cvm framework:
-    cvmTrack <- NULL
-    if (x@model == "cvm"){
-      cvmTrack <- new.env()
-      cvmTrack$value <- Inf
-      cvmTrack$par <- NULL
-      cvmTrack$fn <- optim.control$fn
-      optim.control$fn <- function(x, model){
-        val <- cvmTrack$fn(x, model)
-        if (is.finite(val) && val < cvmTrack$value){
-          cvmTrack$value <- val
-          cvmTrack$par <- x
-        }
-        val
-      }
-    }
-
     optim.control$model <- x
     if (level != "fitfunction"){
       if (x@cpp){
@@ -739,15 +712,6 @@ runmodel <- function(
       
     }
     
-    # Composite variable models: supply the expected Hessian to nlminb (Fisher
-    # scoring within a trust region). Composite weights are only weakly
-    # identified, for which quasi-Newton iterations are slow and stop short of
-    # the optimum. All other frameworks only pass the gradient to nlminb.
-    # Only for the cvm framework, and only when no Hessian was set by the user:
-    if (x@model == "cvm" && optimizer == "nlminb" && level != "fitfunction" && is.null(optim.control$hess)){
-      optim.control$hess <- cvm_expected_hessian
-    }
-
     # Add method:
     optim.control$method <- optimizer
     
@@ -764,24 +728,49 @@ runmodel <- function(
     curtry <- 1
     
     # If nlminb, add lavaan controls:
+    #
+    # NOTE (0.18), a suggestion for later investigation. These settings are the
+    # same for all model families. In composite variable models (cvm) the fit
+    # function is flat in the direction of the composite weights, so that these
+    # settings stop slightly short of the optimum there: in 1500 simulated data
+    # sets (n = 250, six models) the chi-square was more than 0.01 above the
+    # optimum in 18 (at most 0.24; up to 0.9 when a saturated network was
+    # estimated on these data, and at most 0.03 with n = 1000). The largest
+    # difference between an estimate
+    # and the optimum was 0.005 standard errors at the median and below 0.1 in
+    # 99% of the data sets, but 2.3 standard errors in one weakly identified
+    # data set, in which the optimizer stopped on a flat ridge (the standard
+    # error reported there was very large). Two alternatives were tried during
+    # the development of cvm and were NOT adopted, to keep estimation the same
+    # for all families:
+    #  (1) rel.tol = 1e-10 (the value lavaan uses): chi-square at most 0.004
+    #      above the optimum in 600 of these data sets, and the optimum in the
+    #      weakly identified data set, with about a third more iterations.
+    #  (2) rel.tol = 1e-10 and the expected Hessian (twice the unit Fisher
+    #      information, i.e., Fisher scoring; see cvm_expected_hessian()) as the
+    #      'hessian' of nlminb: the optimum to 7 decimals in about 3.5 times
+    #      fewer iterations. Caveats: the expected Hessian is not the Hessian of
+    #      the fit function (the two only coincide when the model reproduces
+    #      the sample moments), one evaluation costs about 6 gradients, and for
+    #      large models of other families it was slower than these settings.
+    #      It also hid a problem that belonged elsewhere: with poor starting
+    #      values for the intercepts of factor indicators, ULS and DWLS fits of
+    #      cvm models failed with these settings but not with (2); this was
+    #      solved in the starting values (cvm_start_intercepts()).
+    # Both can be tried without changing this function:
+    #   setoptimizer(x, "nlminb", optim.args = list(control = list(...), hess = ...))
     if (optimizer == "nlminb"){
       if (is.null(optim.control$control)){
         optim.control$control<- list(eval.max=20000L,
                                      iter.max=10000L,
                                      trace=0L,
                                      abs.tol=sqrt(.Machine$double.eps),
-                                     # Composite weights (cvm) are only weakly
-                                     # identified, giving a flat fit function
-                                     # around the optimum; the cvm framework
-                                     # therefore uses a stricter relative
-                                     # tolerance (the lavaan default). All
-                                     # other frameworks are unchanged:
-                                     rel.tol=if (x@model == "cvm") 1e-10 else sqrt(.Machine$double.eps),
+                                     rel.tol=sqrt(.Machine$double.eps),
                                      step.min=1.0,
                                      step.max=1.0,
                                      x.tol=1.5e-8,
                                      xf.tol=2.2e-14)
-        #
+        # 
         # optim.control$control<- list(maxfeval=20000L,
         #                              maxit=10000L,
         #                              trace=0L)
@@ -837,16 +826,6 @@ runmodel <- function(
     }
 
     
-    # Composite variable models: use the best point that was evaluated if the
-    # returned parameters do not correspond to it (see above):
-    if (!is.null(cvmTrack) && !is.null(cvmTrack$par)){
-      cvmFinal <- tryCatch(cvmTrack$fn(optim.out$par, x), error = function(e) Inf)
-      if (!is.finite(cvmFinal) || cvmFinal > cvmTrack$value + 1e-10 * (abs(cvmTrack$value) + 1)){
-        optim.out$par <- cvmTrack$par
-        optim.out$value <- cvmTrack$value
-      }
-    }
-
     optimresults <- optim.out
     optimresults$optimizer <- optimizer
     class(optimresults) <- c("list",class(optimresults))
@@ -856,7 +835,8 @@ runmodel <- function(
     x <- updateModel(optim.out$par,x,updateMatrices = TRUE)
 
     # Composite variable models: warn when the solution may not be reliable
-    # (no convergence, or a composite scaled by an indicator with a negligible weight):
+    # (no convergence, a composite scaled by an indicator with a negligible
+    # weight, or a composite whose weights are not identified):
     if (x@model == "cvm"){
       cvm_solution_warnings(x)
     }

@@ -197,35 +197,27 @@ identify_cvm <- function(x, identify = TRUE){
   return(x)
 }
 
-# Update which structural parameters of a cvm model may be freed.
+# Which structural parameters of a cvm model with a latent network may be freed.
+# This is part of the identification step: it is only called by identify_cvm().
 #
 # With latent = "ggm" the scaling of a composite (delta_zeta) is computed from
 # its variance. This is only possible in closed form when a composite either
 # (a) has no incoming effects in beta, in which case it can be a node in the
 # latent network (omega_zeta), or (b) has incoming effects but no edges in the
-# latent network. A composite can therefore not have both. This function marks
-# the parameters that would violate this as 'identified' (so that modification
-# indices and model search skip them) and is called whenever a model is
-# identified or run, such that the marks follow the current model structure.
-cvm_update_structure <- function(x, warn = FALSE){
-  # The computed quantities and structural zeros of a cvm model cannot be estimated:
-  struc <- cvm_structural_rows(x)
-  bad <- which((struc$zero | struc$intercept | struc$variance) & !x@parameters$fixed)
-  if (length(bad) > 0){
-    stop(paste0("The following element(s) cannot be estimated in a composite variable model, because they are computed from other parameters ",
-                "(variances / scalings and intercepts of composites) or are structural zeros (loadings of composite indicators, weights outside ",
-                "the composite of an indicator, and elements connecting indicators of different composites in the '_c' matrices): ",
-                paste(unique(paste0(x@parameters$matrix[bad], "[", x@parameters$var1[bad], ", ",
-                                     ifelse(is.na(x@parameters$var2[bad]), "1", x@parameters$var2[bad]), "]")), collapse = "; "), "."), call. = FALSE)
-  }
-
-  # Warn when the weights of a composite are not identified (only when running the model):
-  unconnected <- if (warn) cvm_unconnected_composites(x) else character(0)
-  if (length(unconnected) > 0){
-    warning(paste0("The following composite(s) have estimated weights but are not related to any other construct (no effects in 'beta' and no covariances / edges): ",
-                   paste(unconnected, collapse = ", "), ". The weights of an isolated composite are not identified."), call. = FALSE)
-  }
-
+# latent network. A composite can therefore not have both; the implied model
+# (implied_cvm, R and C++) stops with an error for such a model. This function
+# marks the parameters that would lead to such a model as 'identified', so that
+# modification indices and model search skip them:
+#  - for a composite with incoming effects: its edges in the latent network;
+#  - for a composite without incoming effects (a node of the latent network,
+#    whether or not it currently has edges): its incoming effects.
+# The marks only depend on which composites have incoming effects. Model search
+# does not free marked parameters and can therefore not change that, so the
+# marks stay valid during stepup() without updating them; prune() and the other
+# functions that remove parameters identify the model again afterwards. If
+# effects are added or removed by hand (freepar(), fixpar()), the marks are
+# updated the next time the model is identified (identify()).
+cvm_update_structure <- function(x){
   if (!identical(x@types$latent, "ggm")) return(x)
 
   pars <- x@parameters
@@ -252,10 +244,10 @@ cvm_update_structure <- function(x, warn = FALSE){
                     "(its scaling is computed from the composite variance). Remove either the effects or the edges, or use latent = 'cov'."))
       }
       lockOmega[k] <- hasBeta
-      lockBeta[k] <- hasOmega
+      lockBeta[k] <- !hasBeta
     }
 
-    # Effects on composites that are part of the latent network:
+    # Effects on composites that are nodes of the latent network:
     inactiveBeta <- which(isBeta & !active & pars$row %in% comp)
     pars$identified[inactiveBeta] <- lockBeta[pars$row[inactiveBeta]]
 
@@ -393,15 +385,63 @@ cvm_admissible_start <- function(x, maxtry = 25){
   x
 }
 
-# Expected Hessian of the fit function for cvm models (twice the unit Fisher
-# information), used by runmodel() with the nlminb optimizer. Composite weights
-# are only weakly identified, which makes the fit function flat around the
-# optimum: quasi-Newton iterations (nlminb with only the gradient) then need
-# many iterations and stop short of the optimum. With the expected Hessian,
-# nlminb performs Fisher scoring within a trust region, which reaches the
-# optimum in a handful of iterations. This is about precision and speed, not
-# about robustness: whether a solution is found depends on the starting values.
-# The function itself is generic (it does not use anything specific to cvm).
+# Starting values for the intercepts of the indicators of common factors.
+#
+# The mean of a composite is the weighted sum of the means of its indicators,
+# which is in general not zero. A common factor that is predicted by composites
+# (or by factors that are) then has a nonzero implied mean as well, so that the
+# intercepts of its indicators (nu) are the means of these indicators MINUS the
+# loadings times that mean. The generic starting values put all intercepts at
+# the sample means. For such a factor that can be far off (several units in
+# the tests), so that estimation starts with a large misfit in the means; with
+# the DWLS estimator this made the optimizer stop without convergence. This
+# function starts the free intercepts of the factor indicators at
+#   sample mean - lambda %*% (implied mean of the constructs)
+# evaluated at the other starting values. The intercepts ("means") of composite
+# indicators are not changed: these are the sample means themselves.
+cvm_start_intercepts <- function(x){
+  if (!isTRUE(x@meanstructure)) return(x)
+  imp <- tryCatch(implied_cvm(x, all = TRUE), error = function(e) NULL)
+  if (is.null(imp)) return(x)
+
+  pars <- x@parameters
+  block <- as.vector(as.matrix(x@extramatrices$blockvec))
+  changed <- FALSE
+  for (g in seq_along(imp)){
+    if (is.null(imp[[g]]$mu_eta) || length(x@sample@means) < g) next
+    mu_eta <- as.vector(as.matrix(imp[[g]]$mu_eta))
+    means <- as.vector(as.matrix(x@sample@means[[g]]))
+    if (any(!is.finite(mu_eta)) || any(!is.finite(means)) || length(means) != length(block)) next
+
+    # Loadings of the common factors at the starting values:
+    lam <- pars[pars$matrix == "lambda" & pars$group_id == g, , drop = FALSE]
+    Lf <- matrix(0, length(means), length(mu_eta))
+    Lf[cbind(lam$row, lam$col)] <- lam$est
+
+    rows <- which(pars$matrix == "nu" & pars$group_id == g & !pars$fixed & block[pars$row] == 0)
+    if (length(rows) == 0) next
+    start <- (means - as.vector(Lf %*% mu_eta))[pars$row[rows]]
+    ok <- is.finite(start)
+    pars$est[rows[ok]] <- start[ok]
+    changed <- TRUE
+  }
+  if (!changed) return(x)
+  x@parameters <- pars
+
+  # Make the estimates of equality constrained parameters consistent:
+  updateModel(parVector(x), x, updateMatrices = FALSE)
+}
+
+# Expected Hessian of the fit function (twice the unit Fisher information).
+#
+# NOT USED by the package: kept for later investigation, see the note at the
+# nlminb settings in runmodel(). Nothing in this function is specific to cvm
+# models. It can be supplied to nlminb for any model, which then performs
+# Fisher scoring within a trust region instead of quasi-Newton iterations:
+#   setoptimizer(x, "nlminb", optim.args = list(hess = psychonetrics:::cvm_expected_hessian))
+# The expected Hessian is not the Hessian of the fit function: the two only
+# coincide when the model reproduces the sample moments, and are close when
+# the model fits well and the parameters are near the solution.
 cvm_expected_hessian <- function(x, model){
   model <- updateModel(x, model, updateMatrices = FALSE)
   H <- tryCatch({
@@ -423,7 +463,11 @@ cvm_expected_hessian <- function(x, model){
 #  - the optimizer did not report convergence;
 #  - the indicator that scales a composite (weight fixed to 1) has a negligible
 #    weight relative to the other indicators, so that the other weights become
-#    extremely large (the weights are not well defined in that scaling).
+#    extremely large (the weights are not well defined in that scaling);
+#  - a composite with estimated weights is not related to any other construct
+#    (its weights are then not identified);
+#  - an element that is not a parameter of a cvm model was freed by hand (the
+#    identification step fixes these elements, see identify_cvm()).
 cvm_solution_warnings <- function(x){
   msgs <- character(0)
 
@@ -432,7 +476,8 @@ cvm_solution_warnings <- function(x){
   if (!is.null(conv) && length(conv) == 1 && !is.na(conv) && is.numeric(conv) && conv != 0){
     msg <- x@optim$message
     msgs <- c(msgs, paste0("the optimizer did not report convergence",
-                           if (!is.null(msg) && length(msg) == 1) paste0(" ('", msg, "')") else ""))
+                           if (!is.null(msg) && length(msg) == 1) paste0(" ('", msg, "')") else "",
+                           " (consider other starting values or another optimizer, see setoptimizer())"))
   }
 
   # Negligible weight of the indicator that scales a composite:
@@ -464,13 +509,31 @@ cvm_solution_warnings <- function(x){
   }
   if (length(bad) > 0){
     msgs <- c(msgs, paste0("the indicator that scales composite(s) ", paste(unique(bad), collapse = ", "),
-                           " (weight fixed to 1) has a negligible weight relative to the other indicators, so that the other weights are extremely large and not well defined in this scaling"))
+                           " (weight fixed to 1) has a negligible weight relative to the other indicators, so that the other weights are extremely large and not well defined in this scaling",
+                           " (consider scaling the composite with another indicator: free the fixed weight with freepar() and fix the weight of another indicator to 1 with fixpar())"))
+  }
+
+  # Composites with estimated weights that are not related to any other construct:
+  unconnected <- cvm_unconnected_composites(x)
+  if (length(unconnected) > 0){
+    msgs <- c(msgs, paste0("the following composite(s) have estimated weights but are not related to any other construct (no effects in 'beta' and no covariances / edges): ",
+                           paste(unconnected, collapse = ", "), " (the weights of an isolated composite are not identified)"))
+  }
+
+  # Elements that were freed by hand but are not parameters of a cvm model:
+  struc <- cvm_structural_rows(x)
+  notpar <- which((struc$zero | struc$intercept | struc$variance) & !pars$fixed)
+  if (length(notpar) > 0){
+    msgs <- c(msgs, paste0("the following element(s) were freed but cannot be estimated in a composite variable model, because they are computed from other parameters ",
+                           "(variances / scalings and intercepts of composites) or are structural zeros (loadings of composite indicators, weights outside ",
+                           "the composite of an indicator, and elements connecting indicators of different composites in the '_c' matrices): ",
+                           paste(unique(paste0(pars$matrix[notpar], "[", pars$var1[notpar], ", ",
+                                               ifelse(is.na(pars$var2[notpar]), "1", pars$var2[notpar]), "]")), collapse = "; "),
+                           " (fix these again with fixpar())"))
   }
 
   if (length(msgs) > 0){
-    warning(paste0("The estimates of this composite variable model may not be reliable: ", paste(msgs, collapse = "; in addition, "),
-                   ". Inspect the estimates, and consider scaling the composite with another indicator (free the fixed weight with freepar() and fix the weight of another indicator to 1 with fixpar()), ",
-                   "other starting values, or another optimizer (setoptimizer())."), call. = FALSE)
+    warning(paste0("The estimates of this composite variable model may not be reliable: ", paste(msgs, collapse = "; in addition, "), "."), call. = FALSE)
   }
   invisible(NULL)
 }
