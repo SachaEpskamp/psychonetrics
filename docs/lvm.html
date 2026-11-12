@@ -389,12 +389,12 @@ qgraph(omega_resid,
     The <code>omega_epsilon</code> matrix contains partial correlations between observed variable residuals. Non-zero edges indicate relationships between variables that are not captured by the latent factor structure alone.
   </p>
 
-  <h3>RNM with Pseudo-Maximum Likelihood (PML) <em style="color:var(--nus-orange);">[experimental]</em></h3>
+  <h3>RNM with Penalized Maximum Likelihood (PML) <em style="color:var(--nus-orange);">[experimental]</em></h3>
   <p>
-    With ML estimation, an RNM with a saturated (full) residual network is not identified because the CFA model plus all residual edges is overparameterized. PML estimation avoids this problem by estimating the model based on bivariate marginal likelihoods, which makes even a saturated residual network identified. This allows a top-down approach: start with a full residual network and prune non-significant edges.
+    With ML estimation, an RNM with a saturated (full) residual network is not identified: the factor model plus all residual edges has more parameters than there are variances and covariances. Penalized maximum likelihood (PML) still allows a top-down approach. All residual edges are included with a LASSO penalty, which shrinks most of them to exactly zero, and the strength of the penalty is selected automatically with an information criterion. The selected structure is then re-estimated without the penalty with <code>refit()</code>, which gives the usual standard errors and fit measures.
   </p>
   <div class="note">
-    <p><strong>Note:</strong> PML is an experimental feature and has not yet been fully validated.</p>
+    <p><strong>Note:</strong> PML is an experimental feature and has not yet been fully validated. The default criterion (<code>"ebic.5"</code>) is conservative: in this example it selects the largest penalty, which leaves no residual edges, so the BIC is used below. Standard errors after <code>refit()</code> do not take the selection of the edges into account.</p>
   </div>
   <pre><code class="language-r"># RNM with PML: start with a full residual network
 mod_rnm_pml <- rnm(HolzingerSwineford1939,
@@ -404,19 +404,25 @@ mod_rnm_pml <- rnm(HolzingerSwineford1939,
                     identification = "variance",
                     omega_epsilon = "full",
                     estimator = "PML")
-mod_rnm_pml <- mod_rnm_pml %>% runmodel
 
-# Prune non-significant residual edges
-mod_rnm_pml <- mod_rnm_pml %>% prune(alpha = 0.01)
+# Estimate; the penalty strength is selected automatically (here with BIC)
+mod_rnm_pml <- mod_rnm_pml %>% runmodel(criterion = "bic")
+
+# Re-estimate the selected residual network without the penalty
+mod_rnm_refit <- mod_rnm_pml %>% refit
 
 # Inspect and visualize
-mod_rnm_pml %>% parameters
-omega_resid_pml <- getmatrix(mod_rnm_pml, "omega_epsilon")
+mod_rnm_refit %>% fit
+mod_rnm_refit %>% parameters
+omega_resid_pml <- getmatrix(mod_rnm_refit, "omega_epsilon")
 qgraph(omega_resid_pml,
        labels = paste0("x", 1:9),
        theme = "colorblind",
        cut = 0,
        layout = "spring")</code></pre>
+  <p>
+    In this example five residual edges are selected (x2&ndash;x3, x2&ndash;x7, x3&ndash;x5, x4&ndash;x7 and x7&ndash;x8). The refitted model has a chi-square of 25.6 with 19 degrees of freedom, against 85.3 with 24 degrees of freedom for the model without residual edges.
+  </p>
 </section>
 
 <!-- Example: SEM Section -->
