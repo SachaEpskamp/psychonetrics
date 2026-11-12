@@ -789,6 +789,22 @@ prepare_ml_varcov_cpp <- function(x, model) {
     .Call(`_psychonetrics_prepare_ml_varcov_cpp`, x, model)
 }
 
+d_phi_theta_cvm_group_cpp <- function(grouplist) {
+    .Call(`_psychonetrics_d_phi_theta_cvm_group_cpp`, grouplist)
+}
+
+d_phi_theta_cvm_cpp <- function(prep) {
+    .Call(`_psychonetrics_d_phi_theta_cvm_cpp`, prep)
+}
+
+implied_cvm_cpp <- function(model, all = FALSE) {
+    .Call(`_psychonetrics_implied_cvm_cpp`, model, all)
+}
+
+prepare_cvm_cpp <- function(x, model) {
+    .Call(`_psychonetrics_prepare_cvm_cpp`, x, model)
+}
+
 updateModel_cpp <- function(x, model, updateMatrices) {
     .Call(`_psychonetrics_updateModel_cpp`, x, model, updateMatrices)
 }

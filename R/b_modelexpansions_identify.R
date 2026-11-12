@@ -12,6 +12,10 @@ identify <- function(x){
   #   x <- identify_rnm(x)
   #   return(x)
   # } else 
+  if (x@model == "cvm"){
+    x <- identify_cvm(x)
+    return(x)
+  } else 
   if (x@model == "lvm"){
     x <- identify_lvm(x)
     return(x)

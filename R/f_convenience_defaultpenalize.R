@@ -28,6 +28,9 @@ defaultPenalizeMatrices <- function(x) {
       matrices <- c(matrices, "kappa_randomEffects")
     }
 
+  } else if (x@model == "cvm") {
+    matrices <- c(matrices, cvm_default_matrices(x))
+
   } else if (x@model == "lvm") {
     if (x@types$latent == "ggm") {
       matrices <- c(matrices, "omega_zeta")

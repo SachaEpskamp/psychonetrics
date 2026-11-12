@@ -12,6 +12,7 @@ prepareModel <- function(x, model){
                       # "gvar" = prepare_gvar,
                       "varcov" = prepare_varcov_cpp, # <- Updated!
                       "lvm" = prepare_lvm_cpp, # <- updated!
+                      "cvm" = prepare_cvm_cpp,
                       "var1" = prepare_var1_cpp, # <- Updated!
                       # "panelvar1" = prepare_panelvar1,
                       "dlvm1" = prepare_dlvm1_cpp, # <- Updayed!
@@ -34,6 +35,7 @@ prepareModel <- function(x, model){
                       # "gvar" = prepare_gvar,
                       "varcov" = prepare_varcov,
                       "lvm" = prepare_lvm,
+                      "cvm" = prepare_cvm,
                       "var1" = prepare_var1,
                       # "panelvar1" = prepare_panelvar1,
                       "dlvm1" = prepare_dlvm1,

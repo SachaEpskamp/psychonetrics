@@ -11,6 +11,7 @@
 #include "07_FIMLestimator_jacobian_gauss.h"
 #include "14_varcov_derivatives_cpp.h"
 #include "15_lvm_derivatives_cpp.h"
+#include "28_cvm_derivatives_cpp.h"
 #include "16_var1_derivatives_cpp.h"
 #include "18_dlvm1_derivatives_cpp.h"
 #include "25_panelvar_derivatives_cpp.h"
@@ -151,6 +152,10 @@ void psychonetrics_gradient_cpp_inner(
     
     modelPart = d_phi_theta_varcov_cpp(prep);
     
+  } else   if (usemodel == "cvm"){
+
+    modelPart = d_phi_theta_cvm_cpp(prep);
+
   } else   if (usemodel == "lvm"){
     
     modelPart = d_phi_theta_lvm_cpp(prep);

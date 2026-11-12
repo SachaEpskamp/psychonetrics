@@ -114,6 +114,10 @@ export(lvm)
 export(lnm)
 export(rnm)
 export(lrnm)
+
+# Composite variable models (factor- and composite-based SEM):
+export(cvm)
+export(cnm)
 export(bifactor)
 export(latentgrowth)
 

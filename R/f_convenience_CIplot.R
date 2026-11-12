@@ -96,6 +96,9 @@ CIplot <- function(
       matrices <- covchooser(x@submodel)
     }  else if (x@model == "meta_varcov"){
       matrices <- covchooser(x@types$y,"y")
+    }  else if (x@model == "cvm"){
+      matrices <- cvm_default_matrices(x)
+      if (length(matrices) == 0) matrices <- "none"
     }  else if (x@model == "lvm"){
 
       if (is_riclpm(x)){

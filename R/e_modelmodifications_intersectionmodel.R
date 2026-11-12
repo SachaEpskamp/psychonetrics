@@ -40,7 +40,12 @@ intersectionmodel <- function(
       } 
       
       
-    }  else if (x@model == "lvm"){
+    }  else if (x@model == "cvm"){
+
+      # Network structures of the composite variable model:
+      matrices <- cvm_default_matrices(x)
+
+    } else if (x@model == "lvm"){
       
       # Only add GGM structures to search:
       matrices <- character(0)

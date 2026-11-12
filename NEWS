@@ -1,3 +1,90 @@
+Changes in Version 0.18
+  o New model family: the composite variable model, cvm(), with the wrapper
+    cnm() for the composite network model. The family implements the factor-
+    and composite-based structural equation modeling framework of Schamberger,
+    Schuberth, Henseler and Rosseel (2025, arXiv:2508.06112): structural
+    equation models that contain both latent variables (common factors,
+    measured with error through 'lambda') and composites (exact weighted sums
+    of their indicators, through the new 'weights' matrix), which can be
+    related to each other through 'beta' and (residual) covariances or a
+    network.
+    - Model matrices: nu, nu_eta, lambda, weights, beta, the construct block
+      (sigma_zeta, or omega_zeta and delta_zeta), the residuals of the
+      indicators of latent variables (the usual '_epsilon' matrices), and the
+      NEW '_c' matrices (sigma_c, lowertri_c, kappa_c, omega_c + delta_c,
+      rho_c + SD_c), which model the variance-covariance matrix of the
+      indicators of composites. The '_c' matrices are block diagonal with one
+      block per composite: covariances between indicators of different
+      composites are implied by the relations between the composites and are
+      always fixed to zero.
+    - Three type arguments: 'latent' ("cov" or "ggm") for the constructs,
+      'residual' (cov/chol/prec/ggm/cor) for the residuals of factor
+      indicators, and 'composite' (cov/chol/prec/ggm/cor) for the composite
+      indicators. composite = "ggm" (or cnm()) gives a partial correlation
+      network of the indicators within every composite (omega_c), which can
+      be made sparse with prune() and stepup(); these never add edges between
+      indicators of different composites.
+    - The (residual) variances of composites (or their scalings with
+      latent = "ggm") and the intercepts of composites are not parameters but
+      are computed from the weights and the composite indicator covariances.
+      They are shown in the parameter table without standard errors.
+      getmatrix() additionally returns the composite loadings (in 'lambda'),
+      the implied construct covariances and means ('sigma_eta', 'mu_eta') and
+      the implied residual covariances of the composite indicators
+      ('sigma_epsilon_c').
+    - With latent = "ggm" a composite can either be a node in the latent
+      network (omega_zeta) or have incoming effects in beta, but not both;
+      such models are refused with an informative error and model search does
+      not propose them.
+    - A composite with a single indicator represents that observed variable,
+      which allows observed variables in the structural model.
+    - Supported: single and multiple groups with equality constraints, mean
+      structures, the ML, FIML, ULS, WLS and DWLS estimators, and the usual
+      model modification and search functions. Not (yet) supported: ordinal
+      data, correlation input, penalized estimation and conversion to and
+      from lavaan syntax.
+    - Implemented in both the R and the C++ (default) pipelines, with analytic
+      gradients and Fisher information that build on the lvm derivatives. The
+      two pipelines give identical results, and models with fully estimated
+      composite indicator covariances reproduce lavaan (chi-square, degrees of
+      freedom, estimates, standard errors and fit measures), including
+      multi-group and FIML models. See the new test file test_cvm.R.
+    - Composites are scaled by fixing the weight of their first indicator to
+      1. When the starting value of that weight is near zero relative to the
+      other weights (a bad marker indicator, for which the other weights
+      would become extremely large), the indicator with the largest starting
+      weight is used instead and a message is shown, as lavaan does; see the
+      new argument 'bad_marker_crit'. A warning is given when a composite
+      with estimated weights is not related to any other construct (its
+      weights are then not identified).
+    - Estimation. Composite weights are only weakly identified, which makes
+      the fit function flat around the optimum. For cvm models only,
+      runmodel() therefore (1) supplies the expected Hessian (twice the
+      Fisher information) to the default optimizer nlminb, i.e., Fisher
+      scoring within a trust region; (2) uses a relative convergence
+      tolerance of 1e-10 (the lavaan default); (3) keeps track of the best
+      point at which the fit function was evaluated, because nlminb can
+      return parameters that do not belong to its best objective when it
+      stops without convergence; and (4) warns when the optimizer did not
+      report convergence, when the indicator that scales a composite has a
+      negligible weight, or when a computed residual variance of a composite
+      is not positive. Starting values for the weights are obtained with
+      partial least squares (mode B), and are adjusted when needed such that
+      the starting point is admissible. Other model families are unchanged.
+    - Verification (scripts and reports in the development folder): the
+      analytic Jacobian, gradient and Fisher information were checked
+      against an independent implementation of the model and numerical
+      differentiation in 68 model configurations; R and C++ results and
+      lavaan were compared in 91 models; and simulations confirmed
+      consistency, standard errors, coverage, the chi-square distribution and
+      the recovery of the networks within composites and between constructs.
+  o Bug fix in the R pipeline (usecpp(x, FALSE)) for all model families: the
+    derived standard deviation matrices returned by getmatrix() ('SD',
+    'SD_zeta', 'SD_epsilon', ...) when a covariance structure was estimated
+    with another parameterization had dimension n^2 x n^2 instead of n x n.
+    The C++ pipeline (the default) was not affected.
+  o The package version is now 0.18.
+
 Changes in Version 0.17.7
   o Fixed a test that failed when the tests are run under the C collation
     locale (as devtools::check() and some CRAN check flavors do). The RI-CLPM

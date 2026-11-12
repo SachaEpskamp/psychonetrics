@@ -49,7 +49,7 @@ impliedcovstructures <- function(
           x[[g]][[kappa]] <- as.matrix(solve_symmetric(x[[g]][[sigma]]))
           x[[g]][[omega]]  <- as.matrix(qgraph::wi2net(as.matrix(x[[g]][[kappa]])))
           x[[g]][[rho]] <- as.matrix(cov2cor(as.matrix(x[[g]][[sigma]])))
-          x[[g]][[SD]] <- Diagonal(x=diag(sqrt(diag(as.matrix(x[[g]][[sigma]])))))
+          x[[g]][[SD]] <- Diagonal(x=sqrt(diag(as.matrix(x[[g]][[sigma]]))))
         }
       }
     } else if(type == "chol"){
@@ -62,7 +62,7 @@ impliedcovstructures <- function(
           x[[g]][[kappa]] <- as.matrix(solve_symmetric(x[[g]][[sigma]]))
           x[[g]][[omega]]  <- as.matrix(qgraph::wi2net(as.matrix(x[[g]][[kappa]])))
           x[[g]][[rho]] <- as.matrix(cov2cor(as.matrix(x[[g]][[sigma]])))
-          x[[g]][[SD]] <- Diagonal(x=diag(sqrt(diag(as.matrix(x[[g]][[sigma]])))))
+          x[[g]][[SD]] <- Diagonal(x=sqrt(diag(as.matrix(x[[g]][[sigma]]))))
         }
 
       }
@@ -88,7 +88,7 @@ impliedcovstructures <- function(
         if (!all(x[[g]][[sigma]] == 0)){
           x[[g]][[kappa]] <- as.matrix(solve_symmetric(x[[g]][[sigma]]))
           x[[g]][[rho]] <- as.matrix(cov2cor(as.matrix(x[[g]][[sigma]])))
-          x[[g]][[SD]] <- Diagonal(x=diag(sqrt(diag(as.matrix(x[[g]][[sigma]])))))
+          x[[g]][[SD]] <- Diagonal(x=sqrt(diag(as.matrix(x[[g]][[sigma]]))))
         }
         
       }
@@ -105,7 +105,7 @@ impliedcovstructures <- function(
       if (all) {
         x[[g]][[omega]] <- as.matrix(qgraph::wi2net(as.matrix(x[[g]][[kappa]])))
         x[[g]][[rho]] <- as.matrix(cov2cor(as.matrix(x[[g]][[sigma]])))
-        x[[g]][[SD]] <- Diagonal(x=diag(sqrt(diag(as.matrix(x[[g]][[sigma]])))))
+        x[[g]][[SD]] <- Diagonal(x=sqrt(diag(as.matrix(x[[g]][[sigma]]))))
       }
     } else if (type == "cor"){
 

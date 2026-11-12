@@ -6,6 +6,7 @@ impliedModel <- function(model, types, all = FALSE){
   if (model@cpp){
     impFun <- switch(framework,
                      "lvm" = implied_lvm_cpp, #< - updated!
+                     "cvm" = implied_cvm_cpp,
                      "varcov" = implied_varcov_cpp, # <- Updated!
                      # "gvar" = implied_gvar_norawts,
                      "var1" = implied_var1_cpp, # <- updated!
@@ -24,6 +25,7 @@ impliedModel <- function(model, types, all = FALSE){
   } else {
     impFun <- switch(framework,
                      "lvm" = implied_lvm,
+                     "cvm" = implied_cvm,
                      "varcov" = implied_varcov,
                      # "gvar" = implied_gvar_norawts,
                      "var1" = implied_var1,

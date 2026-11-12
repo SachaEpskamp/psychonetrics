@@ -116,6 +116,13 @@ psychonetrics_defaultmatrices <- function(x){
       cc(x@types$between_latent, "zeta_between"))
   } else if (mod == "ml_varcov"){
     c(cc(x@types$within, "within"), cc(x@types$between, "between"))
+  } else if (mod == "cvm"){
+    # Composite variable model: the networks in the model, if any:
+    res <- cvm_default_matrices(x)
+    if (length(res) == 0){
+      stop("No default matrix to plot for this composite variable model. Use the 'matrix' argument, e.g., plot(x, matrix = \"beta\").")
+    }
+    res
   } else if (mod == "lvm"){
     if (identical(x@submodel, "RI_CLPM")){
       rictype <- x@extramatrices$ri_clpm_type

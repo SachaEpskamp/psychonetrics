@@ -11,6 +11,8 @@
 #include "14_varcov_prepare_cpp.h"
 #include "15_lvm_prepare_cpp.h"
 #include "15_lvm_implied_cpp.h"
+#include "28_cvm_prepare_cpp.h"
+#include "28_cvm_implied_cpp.h"
 #include "16_var1_implied_cpp.h"
 #include "16_var1_prepare_cpp.h"
 #include "18_dlvm1_implied_cpp.h"
@@ -77,6 +79,10 @@ Rcpp::List impliedModel_cpp(
     
     imp = implied_varcov_cpp(model, all); // = Updated!
     
+  } else if (framework == "cvm"){
+
+    imp = implied_cvm_cpp(model, all);
+
   } else if (framework == "lvm"){
     
     imp = implied_lvm_cpp(model, all); // = Updated!
@@ -199,6 +205,10 @@ Rcpp::List prepareModel_cpp(
     
     prep = prepare_varcov_cpp(x, model); // = Updated!
     
+  } else if (framework == "cvm"){
+
+    prep = prepare_cvm_cpp(x, model);
+
   } else if (framework == "lvm"){
     
     prep = prepare_lvm_cpp(x, model); // = Updated!

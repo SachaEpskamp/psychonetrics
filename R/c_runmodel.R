@@ -49,6 +49,12 @@ runmodel <- function(
     x@optim.args <- optim.control
   }
   
+  # Composite variable models: update which structural parameters may be freed
+  # (and check that no composite has both incoming effects and network edges):
+  if (x@model == "cvm"){
+    x <- cvm_update_structure(x, warn = TRUE)
+  }
+
   # Set optim args:
   optim.control <- x@optim.args
   
@@ -697,6 +703,27 @@ runmodel <- function(
       optim.control$fn <- psychonetrics_fitfunction
     }
     
+    # Composite variable models: keep track of the best point at which the fit
+    # function was evaluated. When nlminb stops without convergence (e.g.,
+    # 'singular convergence'), the parameters it returns are not necessarily
+    # those of the best objective it reports, which can be a far worse point
+    # when composite weights drift along a flat ridge. Only for the cvm framework:
+    cvmTrack <- NULL
+    if (x@model == "cvm"){
+      cvmTrack <- new.env()
+      cvmTrack$value <- Inf
+      cvmTrack$par <- NULL
+      cvmTrack$fn <- optim.control$fn
+      optim.control$fn <- function(x, model){
+        val <- cvmTrack$fn(x, model)
+        if (is.finite(val) && val < cvmTrack$value){
+          cvmTrack$value <- val
+          cvmTrack$par <- x
+        }
+        val
+      }
+    }
+
     optim.control$model <- x
     if (level != "fitfunction"){
       if (x@cpp){
@@ -707,6 +734,14 @@ runmodel <- function(
       
     }
     
+    # Composite variable models: supply the expected Hessian to nlminb (Fisher
+    # scoring within a trust region). Composite weights are only weakly
+    # identified, for which quasi-Newton Hessian approximations are unreliable.
+    # Only for the cvm framework, and only when no Hessian was set by the user:
+    if (x@model == "cvm" && optimizer == "nlminb" && level != "fitfunction" && is.null(optim.control$hess)){
+      optim.control$hess <- cvm_expected_hessian
+    }
+
     # Add method:
     optim.control$method <- optimizer
     
@@ -729,12 +764,18 @@ runmodel <- function(
                                      iter.max=10000L,
                                      trace=0L,
                                      abs.tol=sqrt(.Machine$double.eps),
-                                     rel.tol=sqrt(.Machine$double.eps),
+                                     # Composite weights (cvm) are only weakly
+                                     # identified, giving a flat fit function
+                                     # around the optimum; the cvm framework
+                                     # therefore uses a stricter relative
+                                     # tolerance (the lavaan default). All
+                                     # other frameworks are unchanged:
+                                     rel.tol=if (x@model == "cvm") 1e-10 else sqrt(.Machine$double.eps),
                                      step.min=1.0,
                                      step.max=1.0,
                                      x.tol=1.5e-8,
                                      xf.tol=2.2e-14)
-        # 
+        #
         # optim.control$control<- list(maxfeval=20000L,
         #                              maxit=10000L,
         #                              trace=0L)
@@ -790,6 +831,16 @@ runmodel <- function(
     }
 
     
+    # Composite variable models: use the best point that was evaluated if the
+    # returned parameters do not correspond to it (see above):
+    if (!is.null(cvmTrack) && !is.null(cvmTrack$par)){
+      cvmFinal <- tryCatch(cvmTrack$fn(optim.out$par, x), error = function(e) Inf)
+      if (!is.finite(cvmFinal) || cvmFinal > cvmTrack$value + 1e-10 * (abs(cvmTrack$value) + 1)){
+        optim.out$par <- cvmTrack$par
+        optim.out$value <- cvmTrack$value
+      }
+    }
+
     optimresults <- optim.out
     optimresults$optimizer <- optimizer
     class(optimresults) <- c("list",class(optimresults))
@@ -797,6 +848,12 @@ runmodel <- function(
     # x@computed <- TRUE
     x@objective <- optimresults$value
     x <- updateModel(optim.out$par,x,updateMatrices = TRUE)
+
+    # Composite variable models: warn when the solution may not be reliable
+    # (no convergence, or a composite scaled by an indicator with a negligible weight):
+    if (x@model == "cvm"){
+      cvm_solution_warnings(x)
+    }
   }
   
   
