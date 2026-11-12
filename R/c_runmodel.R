@@ -741,7 +741,8 @@ runmodel <- function(
     
     # Composite variable models: supply the expected Hessian to nlminb (Fisher
     # scoring within a trust region). Composite weights are only weakly
-    # identified, for which quasi-Newton Hessian approximations are unreliable.
+    # identified, for which quasi-Newton iterations are slow and stop short of
+    # the optimum. All other frameworks only pass the gradient to nlminb.
     # Only for the cvm framework, and only when no Hessian was set by the user:
     if (x@model == "cvm" && optimizer == "nlminb" && level != "fitfunction" && is.null(optim.control$hess)){
       optim.control$hess <- cvm_expected_hessian

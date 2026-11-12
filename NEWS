@@ -120,6 +120,29 @@ Changes in Version 0.18
     'SD_zeta', 'SD_epsilon', ...) when a covariance structure was estimated
     with another parameterization had dimension n^2 x n^2 instead of n x n.
     The C++ pipeline (the default) was not affected.
+  o Bug fix in the automatic penalty search of penalized estimation
+    (estimator = "PML" / "PFIML" with penalty_lambda = NA;
+    find_penalized_lambda()) for all model families. The search first fits
+    an unpenalized helper model to compute the largest penalty of the grid
+    (lambda_max). The cached C++ workspace of that helper model was then
+    re-used for the first fit of the grid, which was therefore not
+    penalized: at lambda_max, where all penalized parameters are zero by
+    definition, a GGM returned the unpenalized ML estimates. The cache is
+    now cleared before the grid search, and a cached workspace is only
+    re-used for a model with the same framework and estimator. Consequences:
+    - The wrong first fit only mattered when it had the best criterion
+      value of the grid (the unpenalized estimates were then returned,
+      labelled with the largest penalty) or when the best penalty is at or
+      close to lambda_max (the first fit is the starting point of the
+      second). In a comparison of 13 analyses, the selected penalty and all
+      estimates were unchanged (to 1e-12) in every ggm(), precision(),
+      gvar(), panelgvar() and Ising() analysis, including multi-group and
+      PFIML models. Two rnm() analyses with a full residual network, in
+      which the criterion prefers the largest penalties, now return the
+      empty residual network (the correct solution at lambda_max, with a
+      lower criterion value); one lnm() analysis changed in the third
+      decimal only.
+    - See the new regression test in test_ggm_varcov.R.
   o The package version is now 0.18.
 
 Changes in Version 0.17.7

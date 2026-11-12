@@ -60,6 +60,7 @@
     <h4>On this page</h4>
     <ol>
       <li><a href="#cvm">0.18 &mdash; Composite variable models: cvm() &amp; cnm()</a></li>
+      <li><a href="#penaltysearch">0.18 &mdash; Bug fix in the automatic penalty search (PML / PFIML)</a></li>
       <li><a href="#mlvar">0.16.7 &mdash; Multi-level VAR &amp; GVAR for ESM data: ml_var() &amp; ml_gvar()</a></li>
       <li><a href="#naming">0.16.7 &mdash; Naming cleanup, summary() method &amp; meta-model guards</a></li>
       <li><a href="#mlvarcov">0.16 &mdash; Multi-level variance-covariance &amp; GGM: ml_varcov(), ml_ggm() &amp; ml_corr()</a></li>
@@ -101,6 +102,20 @@ mod %>% prune(alpha = 0.05) %>% getmatrix("omega_c")   # networks within the com
     <p>
       Multiple groups, mean structures, missing data (FIML) and the usual model search functions are supported, and models with covariance parameterizations convert to and from lavaan 0.7 with <a href="lavaan.html"><code>tolavaan()</code> and <code>fromlavaan()</code></a>. The family is <strong>experimental</strong>: it has been checked against lavaan and in simulations, but arguments and defaults may still change.
     </p>
+  </div>
+
+  <!-- ===================== 0.18 penalty search fix ===================== -->
+  <div class="whatsnew-item" id="penaltysearch">
+    <h2>Bug fix in the automatic penalty search (PML / PFIML) <span class="version-tag">0.18</span></h2>
+    <p class="whatsnew-meta">November 2026 &mdash; all model families</p>
+    <p>
+      With <code>estimator = "PML"</code> or <code>"PFIML"</code> and no fixed penalty, <code>runmodel()</code> searches a grid of penalties that starts at the largest penalty, <code>lambda_max</code>, at which all penalized parameters are zero. The first fit of that grid was not penalized: it re-used an internal workspace of the unpenalized model that is fitted to compute <code>lambda_max</code>. This is now fixed.
+    </p>
+    <ul>
+      <li>Results only change when the first fit mattered: when the unpenalized fit had the best criterion value of the whole grid (the unpenalized estimates were then returned with <code>lambda_max</code> as the selected penalty), or when the best penalty is at or close to <code>lambda_max</code>.</li>
+      <li>In a comparison of 13 analyses, every <code>ggm()</code>, <code>precision()</code>, <code>gvar()</code>, <code>panelgvar()</code> and <code>Ising()</code> analysis was unchanged. Two <code>rnm()</code> analyses with a full residual network, for which the default criterion prefers the largest penalties, now return an empty residual network.</li>
+      <li>If a penalized latent variable model returns an empty network, a less conservative criterion can be used, for example <code>runmodel(criterion = "bic")</code>.</li>
+    </ul>
   </div>
 
   <!-- ===================== 0.16.7 ml_var / ml_gvar ===================== -->

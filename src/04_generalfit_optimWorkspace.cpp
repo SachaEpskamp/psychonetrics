@@ -151,9 +151,23 @@ void invalidateWorkspaceCache() {
 // [[Rcpp::export]]
 void updateWorkspacePenaltyLambda(const arma::vec& new_lambda_vec, SEXP modelSEXP) {
     if (s_cachedWorkspace && (int)new_lambda_vec.n_elem == s_cachedWorkspace->nFreePar) {
-        s_cachedWorkspace->penalty_lambda_vec = new_lambda_vec;
-        s_cachedWorkspace->modelSEXP = modelSEXP;
-        setCachedModelKey(modelSEXP);
+        // The cached workspace is only re-used (re-keyed to this model) when it
+        // was built for the same framework and estimator. A workspace that was
+        // built for another model (e.g., the unpenalized ML / FIML copy that
+        // compute_lambda_max() evaluates) stores that model's estimator, so
+        // re-using it would silently fit this model without the penalty. In
+        // that case the cache is cleared and the workspace is rebuilt from the
+        // model itself at the next evaluation:
+        S4 model(modelSEXP);
+        std::string estimator = Rcpp::as<std::string>(model.slot("estimator"));
+        std::string framework = Rcpp::as<std::string>(model.slot("model"));
+        if (s_cachedWorkspace->estimator == estimator && s_cachedWorkspace->framework == framework) {
+            s_cachedWorkspace->penalty_lambda_vec = new_lambda_vec;
+            s_cachedWorkspace->modelSEXP = modelSEXP;
+            setCachedModelKey(modelSEXP);
+        } else {
+            invalidateWorkspaceCache();
+        }
     }
     // Invalidate prep cache since model parameters changed
     invalidatePrepCache();

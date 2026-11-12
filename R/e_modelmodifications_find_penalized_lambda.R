@@ -229,17 +229,15 @@ find_penalized_lambda <- function(
 
   # compute_lambda_max() evaluates an unpenalized (ML / FIML) copy of the model,
   # which leaves a C++ workspace for that copy in the cache. The grid search
-  # below only updates the penalty vector of the cached workspace, so the
-  # penalized fits would use the unpenalized estimator stored in that workspace
-  # until the workspace happens to be rebuilt. In most frameworks that is after
-  # the first grid point (so that only the fit at lambda_max is unpenalized); in
-  # the cvm framework it never happens, and every fit of the grid would be
-  # unpenalized. The cache is therefore cleared here for cvm models.
-  # FIXME: clearing the cache for all frameworks also corrects the first grid
-  # point elsewhere, but changes which lambda is selected in some analyses.
-  if (model@model == "cvm"){
-    invalidateWorkspaceCache()
-  }
+  # below only updates the penalty vector of the cached workspace, so without
+  # clearing the cache the penalized fits would use the unpenalized estimator
+  # stored in that workspace until the workspace happens to be rebuilt (in most
+  # frameworks after the first grid point, so that the fit at lambda_max was
+  # unpenalized; in the cvm framework never). The cache is therefore cleared
+  # here, so that the first fit of the grid builds a workspace for the
+  # penalized model itself. (updateWorkspacePenaltyLambda() additionally
+  # refuses to re-use a workspace that was built for another estimator.)
+  invalidateWorkspaceCache()
 
   # Step 2: Build log-spaced grid from lambda_max to lambda_min
   lambda_min <- lambda_max * lambda_min_ratio

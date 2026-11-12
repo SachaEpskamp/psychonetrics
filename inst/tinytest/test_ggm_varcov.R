@@ -119,6 +119,35 @@ mod_thu_pruned <- suppressWarnings(
 expect_equal(mod_thu_pruned@fitmeasures$df, 23)
 expect_equal(dim(getmatrix(mod_thu_pruned, "omega")), c(9L, 9L))
 
+## ---- Penalized GGM (PML): the automatic penalty search ----
+# At the largest penalty of the search grid (lambda_max) all penalized edges
+# are (near) zero by definition. Regression test for 0.18: the first fit of
+# the grid re-used the C++ workspace of an unpenalized helper model and was
+# therefore not penalized (edges up to 0.36 here before the fix).
+fit_lmax <- suppressWarnings(suppressMessages(
+  find_penalized_lambda(ggm(bfi10[, 1:5], estimator = "PML"),
+                        nLambda = 2, lambda_min_ratio = 0.999)
+))
+pen_edges <- fit_lmax@parameters$matrix == "omega" & !fit_lmax@parameters$fixed
+expect_equal(sum(pen_edges), 10)
+expect_true(all(abs(fit_lmax@parameters$est[pen_edges]) < 0.01))
+
+# The mechanism itself: a C++ workspace that is cached for an unpenalized model
+# may not be re-used for a penalized model with the same number of parameters
+# (updateWorkspacePenaltyLambda() only re-uses a workspace of the same
+# framework and estimator):
+mod_ml5 <- ggm(bfi10[, 1:5])
+mod_pml5 <- ggm(bfi10[, 1:5], estimator = "PML", penalty_lambda = 0.2)
+par5 <- psychonetrics:::parVector(mod_pml5) + 0.05
+psychonetrics:::invalidateWorkspaceCache()
+f_pml5 <- psychonetrics:::psychonetrics_fitfunction_cpp(par5, mod_pml5)
+psychonetrics:::invalidateWorkspaceCache()
+f_ml5 <- psychonetrics:::psychonetrics_fitfunction_cpp(par5, mod_ml5)
+psychonetrics:::updateWorkspacePenaltyLambda(psychonetrics:::penaltyVector(mod_pml5), mod_pml5)
+expect_true(f_pml5 > f_ml5 + 0.1)
+expect_equal(psychonetrics:::psychonetrics_fitfunction_cpp(par5, mod_pml5), f_pml5)
+psychonetrics:::invalidateWorkspaceCache()
+
 ## ---- at_home: full 25-item versions of examples 1-2 ----
 if (at_home()) {
   bfi25 <- na.omit(bfi[, 1:25])

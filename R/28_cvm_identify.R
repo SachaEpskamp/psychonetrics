@@ -395,10 +395,13 @@ cvm_admissible_start <- function(x, maxtry = 25){
 
 # Expected Hessian of the fit function for cvm models (twice the unit Fisher
 # information), used by runmodel() with the nlminb optimizer. Composite weights
-# are only weakly identified, which makes quasi-Newton approximations of the
-# Hessian unreliable: with the expected Hessian, nlminb performs Fisher scoring
-# within a trust region, which converges in far fewer iterations and is much
-# more robust (e.g., with highly correlated composite indicators).
+# are only weakly identified, which makes the fit function flat around the
+# optimum: quasi-Newton iterations (nlminb with only the gradient) then need
+# many iterations and stop short of the optimum. With the expected Hessian,
+# nlminb performs Fisher scoring within a trust region, which reaches the
+# optimum in a handful of iterations. This is about precision and speed, not
+# about robustness: whether a solution is found depends on the starting values.
+# The function itself is generic (it does not use anything specific to cvm).
 cvm_expected_hessian <- function(x, model){
   model <- updateModel(x, model, updateMatrices = FALSE)
   H <- tryCatch({
