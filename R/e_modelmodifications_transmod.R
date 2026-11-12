@@ -81,6 +81,14 @@ transmod <- function(x,...,verbose,keep_computed = FALSE, log=TRUE, identify = T
       appendix = c("_zeta","_epsilon")
     ),
     
+    # cvm (the '_c' matrices hold the covariances of the composite indicators;
+    # transforming 'composite' switches between e.g. cvm and cnm models):
+    data.frame(
+      family = "cvm",
+      type = c("latent","residual","composite"),
+      appendix = c("_zeta","_epsilon","_c")
+    ),
+
     # dlvm1:
     data.frame(
       family = "dlvm1",
@@ -139,6 +147,15 @@ transmod <- function(x,...,verbose,keep_computed = FALSE, log=TRUE, identify = T
   
   # form the new model:
   newmod <- x
+
+  # Elements that are never estimated in a model family are not part of the
+  # structure that is transformed. Only the cvm family has such elements (see
+  # cvm_transmod_setup): e.g., the elements between indicators of different
+  # composites in the '_c' matrices, which are block diagonal.
+  structural <- rep(FALSE, nrow(newmod@parameters))
+  if (model == "cvm"){
+    structural <- cvm_transmod_setup(newmod, dots)
+  }
   
   # Update the matrices:
   newmod@modelmatrices <- formModelMatrices_cpp(newmod)
@@ -174,13 +191,15 @@ transmod <- function(x,...,verbose,keep_computed = FALSE, log=TRUE, identify = T
       stop("'transmod' is not yet supported for models with equality constraints")
     }
     
-    # Is the model diagonal or saturated?
+    # Is the model diagonal or saturated? (not counting structural elements)
+    inStructure <- whichPars & !structural
+
     # Is the structure saturated?
-    saturated <- all(newmod@parameters$est[whichPars]!=0)
+    saturated <- all(newmod@parameters$est[inStructure]!=0)
     
     # Is the structure diagonal?
-    diagonal <- all(newmod@parameters$est[whichPars & newmod@parameters$row == newmod@parameters$col]!=0) &
-      all(newmod@parameters$est[whichPars & newmod@parameters$row != newmod@parameters$col]==0)
+    diagonal <- all(newmod@parameters$est[inStructure & newmod@parameters$row == newmod@parameters$col]!=0) &
+      all(newmod@parameters$est[inStructure & newmod@parameters$row != newmod@parameters$col]==0)
     
     # If not saturated or diagonal, stop:
     if (!(saturated || diagonal)){
@@ -243,14 +262,35 @@ transmod <- function(x,...,verbose,keep_computed = FALSE, log=TRUE, identify = T
       new_par_tab$mattable$name <- gsub("\\_","",new_par_tab$mattable$name)
     }
     
-    # overwrite the parameter numbers:
-    new_par_tab$partable$par <- max(x@parameters$par) + new_par_tab$partable$par
+    # overwrite the parameter numbers. Fixed elements keep parameter number 0:
+    # adding the maximum to these as well (as was done before version 0.18)
+    # turned all fixed elements of a transformed diagonal structure (e.g., the
+    # zero partial correlations when residual = "cov" with a diagonal matrix
+    # is transformed to "ggm") into one additional free parameter, so that the
+    # transformed model was not equivalent to the original model.
+    isFreeNew <- new_par_tab$partable$par > 0
+    new_par_tab$partable$par[isFreeNew] <- max(x@parameters$par) + new_par_tab$partable$par[isFreeNew]
+
+    # Keep the variable ids of the block that is transformed. These equal the
+    # row numbers of the block (as generated above) unless the block only
+    # contains a subset of the variables, as in the cvm family:
+    oldDiag <- which(whichPars & newmod@parameters$row == newmod@parameters$col & newmod@parameters$group_id == 1)
+    idOfRow <- newmod@parameters$var1_id[oldDiag][match(seq_along(varNames), newmod@parameters$row[oldDiag])]
+    if (!anyNA(idOfRow) && !identical(as.numeric(idOfRow), as.numeric(seq_along(varNames)))){
+      new_par_tab$partable$var1_id <- idOfRow[new_par_tab$partable$row]
+      new_par_tab$partable$var2_id <- idOfRow[new_par_tab$partable$col]
+    }
     
     # overwrite the parameters:
     newmod@parameters[whichPars,] <- new_par_tab$partable
     
     # Fix labels:
     newmod@parameters <- parRelabel(newmod@parameters)
+
+    # The structural elements of the family, for the new parameter table:
+    if (model == "cvm"){
+      structural <- cvm_transmod_setup(newmod, list())
+    }
     
     # overwrite the matrix:
     newmod@matrices <- rbind(
@@ -272,6 +312,13 @@ transmod <- function(x,...,verbose,keep_computed = FALSE, log=TRUE, identify = T
   # Identify:
   if (identify){
     newmod <- identify(newmod)
+  } else if (model == "cvm"){
+    # The structural zeros and computed elements of a cvm model are always
+    # marked, also when the scaling of the model is left as it is:
+    newmod <- identify_cvm(newmod, identify = FALSE)
+  }
+  if (model == "cvm"){
+    newmod@submodel <- ifelse(newmod@types$composite %in% c("ggm","prec"), "cnm", "cvm")
   }
   
   # If the model was run, re-compute SEs:

@@ -54,6 +54,19 @@ invisible(capture.output(mi <- MIs(mod_cfa, verbose = FALSE)))
 expect_true(is.data.frame(mi))
 expect_true(nrow(mi) > 0)
 
+# transmod() of a diagonal structure gives an equivalent model. Regression test
+# for 0.18: the zero elements of the new parameterization (here the residual
+# partial correlations) were turned into one additional free parameter, so
+# that the transformed model had one degree of freedom less.
+mod_cfa_ggm <- transmod(mod_cfa, residual = "ggm")
+expect_equal(max(mod_cfa_ggm@parameters$par), max(mod_cfa@parameters$par))
+expect_false(any(mod_cfa_ggm@parameters$fixed & mod_cfa_ggm@parameters$par > 0))
+expect_true(abs(psychonetrics:::psychonetrics_fitfunction_cpp(psychonetrics:::parVector(mod_cfa_ggm), mod_cfa_ggm) -
+                  mod_cfa@objective) < 1e-8)
+mod_cfa_ggm <- suppressWarnings(runmodel(mod_cfa_ggm))
+expect_equal(mod_cfa_ggm@fitmeasures$df, 24)
+expect_true(abs(mod_cfa_ggm@fitmeasures$chisq - mod_cfa@fitmeasures$chisq) < 0.01)
+
 ## ---- Example 11: SEM with structural paths (PoliticalDemocracy) ----
 vars <- c(paste0("y", 1:8), paste0("x", 1:3))
 data_sem <- lavaan::PoliticalDemocracy[, vars]

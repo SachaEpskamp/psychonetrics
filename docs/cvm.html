@@ -225,6 +225,17 @@ getmatrix(mod_cnm_pruned, "omega_c")</code></pre>
     <p>
       Pruning removes the two edges that involve Q9, leaving a fully connected network of the three questions on the original trilogy (partial correlations 0.26, 0.16 and 0.38) and a single edge between Q8 and Q10 (0.37) for the sequels. <code>prune()</code>, <code>stepup()</code> and <code>modelsearch()</code> never add edges between indicators of different composites.
     </p>
+    <p>
+      Because the unpruned <code>cnm</code> model is the <code>cvm</code> model in another parameterization, a fitted model can also be transformed from one to the other with <code>transmod()</code>, without estimating it again:
+    </p>
+    <pre><code class="language-r"># cvm -> cnm (covariances of the composite indicators -> networks):
+mod_cnm2 <- transmod(mod, composite = "ggm", keep_computed = TRUE)
+
+# cnm -> cvm:
+mod_cvm2 <- transmod(mod_cnm, composite = "cov", keep_computed = TRUE)</code></pre>
+    <p>
+      This works when every composite is saturated (all covariances or all edges among its indicators), and also for the other types (<code>"chol"</code>, <code>"prec"</code>, <code>"cor"</code>), the <code>residual</code> type and the <code>latent</code> type (<code>"cov"</code> or <code>"ggm"</code>).
+    </p>
   </section>
 
   <!-- Mixed -->

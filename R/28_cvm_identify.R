@@ -218,11 +218,21 @@ identify_cvm <- function(x, identify = TRUE){
 # effects are added or removed by hand (freepar(), fixpar()), the marks are
 # updated the next time the model is identified (identify()).
 cvm_update_structure <- function(x){
-  if (!identical(x@types$latent, "ggm")) return(x)
-
   pars <- x@parameters
   comp <- which(as.vector(as.matrix(x@extramatrices$compvec)) == 1)
   if (length(comp) == 0) return(x)
+
+  if (!identical(x@types$latent, "ggm")){
+    # No restriction when the constructs are modeled with covariances: remove
+    # marks on effects that were set while they formed a network (the type of
+    # a model can be changed with transmod()):
+    inactiveBeta <- pars$matrix == "beta" & pars$row != pars$col & pars$row %in% comp &
+      pars$fixed & !is.na(pars$est) & pars$est == 0
+    pars$identified[inactiveBeta] <- FALSE
+    x@parameters <- pars
+    return(x)
+  }
+
   nLat <- length(as.vector(as.matrix(x@extramatrices$compvec)))
   latents <- unique(pars$var1[pars$matrix == "nu_eta"])
 
@@ -258,6 +268,28 @@ cvm_update_structure <- function(x){
 
   x@parameters <- pars
   x
+}
+
+# Support for transmod() in the cvm family: checks the requested types, and
+# returns which rows of the parameter table are structural elements, i.e.,
+# elements that are never estimated and are therefore not part of the structure
+# that transmod() transforms:
+#  - elements between indicators of different composites in the "_c" matrices
+#    (these matrices are block diagonal with one block per composite, and every
+#    parameterization of a block diagonal covariance matrix is block diagonal);
+#  - loadings of composite indicators and weights outside of a composite.
+# The computed (residual) variances / scalings of composites are part of the
+# structure: their values are used to transform the construct covariances.
+cvm_transmod_setup <- function(x, dots){
+  if ("latent" %in% names(dots) && !dots[["latent"]] %in% c("cov", "ggm")){
+    stop("In the cvm family, 'latent' can only be 'cov' or 'ggm'.")
+  }
+  for (type in intersect(names(dots), c("residual", "composite"))){
+    if (!dots[[type]] %in% c("cov", "chol", "prec", "ggm", "cor")){
+      stop(paste0("'", type, "' must be one of 'cov', 'chol', 'prec', 'ggm' or 'cor'."))
+    }
+  }
+  cvm_structural_rows(x)$zero
 }
 
 # Default matrices for model search (stepup, prune, modelsearch, ...) in cvm

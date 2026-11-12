@@ -140,6 +140,26 @@ Changes in Version 0.18
       another endogenous composite, and does not count a covariance between
       composite indicators that is fixed to zero in its degrees of freedom.
     - Conversion of models without composites is unchanged.
+  o transmod() now supports the composite variable family: the types
+    'composite', 'residual' and 'latent' of a cvm model can be transformed
+    between equivalent parameterizations. In particular,
+    transmod(x, composite = "ggm") turns a cvm model into the equivalent cnm
+    model and transmod(x, composite = "cov") does the reverse, without
+    estimating the model again (keep_computed = TRUE also transforms the
+    standard errors). The '_c' matrices are block diagonal; they can be
+    transformed when every block is saturated (or when they are diagonal),
+    and the elements between indicators of different composites stay fixed
+    to zero. 'latent' can be transformed between "cov" and "ggm".
+  o Bug fix in transmod() for all model families: when a diagonal structure
+    was transformed (e.g., transmod(x, residual = "ggm") on an lvm model with
+    the default diagonal residual covariances), all fixed elements of the new
+    parameterization (the zero partial correlations in this example) were
+    turned into one additional free parameter. The transformed model was
+    therefore not equivalent to the original model: after running it, it had
+    one degree of freedom less and a lower chi-square (in a two-factor
+    example: df 7 instead of 8, chi-square 4.32 instead of 5.37). Fixed
+    elements now remain fixed. Transformations of saturated structures were
+    not affected (identical results before and after).
   o Bug fix in the R pipeline (usecpp(x, FALSE)) for all model families: the
     derived standard deviation matrices returned by getmatrix() ('SD',
     'SD_zeta', 'SD_epsilon', ...) when a covariance structure was estimated

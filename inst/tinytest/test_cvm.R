@@ -196,6 +196,64 @@ expect_true(fit_pruned@fitmeasures$df >= fit_cnm@fitmeasures$df)
 expect_true(all(getmatrix(fit_pruned, "omega_c")[1:3, 4:7] == 0))
 expect_error(cnm(dat, weights = weights, composite = "cov"))
 
+## ---- 5b. transmod(): switching between equivalent cvm and cnm models ----
+# The '_c' matrices are block diagonal (one block per composite). Every
+# parameterization of a block diagonal covariance matrix is block diagonal, so
+# a model with saturated blocks can be transformed between the types; the
+# elements between indicators of different composites stay fixed to zero.
+tab_structure <- function(m){
+  P <- m@parameters
+  sort(paste(P$matrix, P$var1, P$var2, P$var1_id, P$var2_id, P$group_id, P$fixed, P$identified, P$par > 0))
+}
+objective_at <- function(m) psychonetrics:::psychonetrics_fitfunction_cpp(psychonetrics:::parVector(m), m)
+
+# cvm -> cnm: the same model as specified with cnm(), at the same solution:
+to_cnm <- transmod(fitC, composite = "ggm")
+expect_equal(to_cnm@types$composite, "ggm")
+expect_equal(to_cnm@submodel, "cnm")
+expect_identical(tab_structure(to_cnm), tab_structure(fit_cnm))
+expect_true(abs(objective_at(to_cnm) - fitC@objective) < 1e-8)
+pc0 <- -cov2cor(solve(getmatrix(fitC, "sigma_c"))); diag(pc0) <- 0
+expect_true(max(abs(pc0 - suppressWarnings(getmatrix(to_cnm, "omega_c")))) < 1e-8)
+
+# cnm -> cvm:
+to_cvm <- transmod(fit_cnm, composite = "cov")
+expect_equal(to_cvm@submodel, "cvm")
+expect_identical(tab_structure(to_cvm), tab_structure(fitC))
+expect_true(abs(objective_at(to_cvm) - fit_cnm@objective) < 1e-8)
+
+# The residual type (a diagonal structure): no parameters are added, same fit:
+to_res <- transmod(fitC, residual = "ggm")
+expect_equal(max(to_res@parameters$par), max(fitC@parameters$par))
+expect_false(any(to_res@parameters$fixed & to_res@parameters$par > 0))
+expect_true(abs(objective_at(to_res) - fitC@objective) < 1e-8)
+
+# Not possible: other latent types than cov / ggm, and structures that are
+# neither saturated nor diagonal:
+expect_error(transmod(fitC, latent = "chol"), "can only be 'cov' or 'ggm'")
+expect_error(transmod(fit_pruned, composite = "cov"), "Only diagonal and saturated")
+
+if (at_home()){
+  for (type in c("chol", "prec", "cor")){
+    expect_true(abs(objective_at(transmod(fitC, composite = type)) - fitC@objective) < 1e-8)
+  }
+  # Running the transformed model gives the same fit:
+  run_cnm <- runmodel(to_cnm)
+  expect_equal(run_cnm@fitmeasures$df, fitC@fitmeasures$df)
+  expect_true(abs(run_cnm@fitmeasures$chisq - fitC@fitmeasures$chisq) < 5e-2)
+  # With keep_computed = TRUE the standard errors are those of the cnm model:
+  kept <- transmod(fitC, composite = "ggm", keep_computed = TRUE)
+  sel_k <- kept@parameters$matrix == "omega_c" & !kept@parameters$fixed
+  expect_true(all(is.finite(kept@parameters$se[sel_k])))
+  expect_true(max(abs(kept@parameters$se[sel_k] - fit_cnm@parameters$se[sel_k])) < 1e-2)
+  # A saturated latent network to covariances between the constructs: same
+  # fit, and the marks of the network restriction are removed:
+  to_cov <- transmod(fit_net, latent = "cov")
+  expect_true(abs(objective_at(to_cov) - fit_net@objective) < 1e-8)
+  expect_false(any(to_cov@parameters$identified[to_cov@parameters$matrix == "beta" &
+                                                  to_cov@parameters$row != to_cov@parameters$col]))
+}
+
 ## ---- 6. Input checks ----
 bad <- weights; bad[1, 3] <- 1 # y1 is a factor indicator
 expect_error(cvm(dat, lambda = lambda, weights = bad, latents = latents))

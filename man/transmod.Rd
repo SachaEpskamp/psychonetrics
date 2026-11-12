@@ -17,7 +17,7 @@ transmod(x, ..., verbose, keep_computed = FALSE, log = TRUE,
 A psychonetrics model
 }
   \item{\dots}{
-Named arguments with the new types to use (e.g., \code{between = "ggm"} or \code{y = "cov"})
+Named arguments with the new types to use (e.g., \code{between = "ggm"}, \code{y = "cov"}, or \code{composite = "ggm"} for a composite variable model)
 }
   \item{verbose}{
 Logical, should messages be printed?
@@ -33,7 +33,9 @@ Logical, should the model be identified after transforming?
 }
 }
 \details{
-Transformations are only possible if the model is diagonal (e.g., no partial correlations) or saturated (e.g., all covariances included).
+Transformations are only possible if the model is diagonal (e.g., no partial correlations) or saturated (e.g., all covariances included). The transformed model is equivalent to the original model: it has the same number of parameters and the same fit.
+
+In the composite variable family (\code{\link{cvm}}) the types \code{composite}, \code{residual} and \code{latent} can be transformed. The matrices of the composite indicators are block diagonal with one block per composite, and can be transformed when every block is saturated (or when they are diagonal); the elements between indicators of different composites remain fixed to zero. Transforming \code{composite} between \code{"cov"} and \code{"ggm"} switches between equivalent \code{cvm} and \code{cnm} models. The type \code{latent} can only be \code{"cov"} or \code{"ggm"}.
 }
 \value{
 An object of the class psychonetrics (\link{psychonetrics-class}) with the requested variance--covariance structure(s).
