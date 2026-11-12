@@ -42,7 +42,10 @@ Changes in Version 0.18
       identified or evaluated. After adding or removing effects on
       composites by hand, identify() updates the marks.
     - A composite with a single indicator represents that observed variable,
-      which allows observed variables in the structural model.
+      which allows observed variables in the structural model (a latent
+      variable with a single indicator gives the same model). A variable
+      cannot load on a composite; the error message explains how to specify
+      such a model with a single-indicator construct and 'beta'.
     - Supported: single and multiple groups with equality constraints, mean
       structures, the ML, FIML, ULS, WLS and DWLS estimators, penalized
       estimation (PML, PFIML), the usual model modification and search

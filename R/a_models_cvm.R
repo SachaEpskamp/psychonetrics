@@ -387,7 +387,9 @@ cvm <- function(
   comp <- colSums(wAny) > 0
   fac <- colSums(lamAny) > 0
   if (any(comp & fac)){
-    stop("A construct cannot have both factor loadings ('lambda') and composite weights ('weights').")
+    stop("A construct cannot have both factor loadings ('lambda') and composite weights ('weights'): a composite is formed by its indicators and has no reflective indicators. ",
+         "To let an observed variable be predicted by (or predict) a composite, add that variable as a construct of its own with a single indicator and specify the effect in 'beta': ",
+         "a latent variable with one loading in 'lambda' (its residual variance is then fixed to zero), or equivalently a composite with one weight in 'weights'.")
   }
   if (any(!comp & !fac)){
     stop("Every construct needs at least one indicator in 'lambda' or 'weights'.")

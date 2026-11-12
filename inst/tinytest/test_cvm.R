@@ -260,7 +260,7 @@ expect_error(cvm(dat, lambda = lambda, weights = bad, latents = latents))
 bad <- weights; bad[7, 4] <- 1 # y7 in two composites
 expect_error(cvm(dat, lambda = lambda, weights = bad, latents = latents))
 bad <- lambda; bad[1, 3] <- 1 # c3 with both loadings and weights
-expect_error(cvm(dat, lambda = bad, weights = weights, latents = latents))
+expect_error(cvm(dat, lambda = bad, weights = weights, latents = latents), "single indicator")
 
 # An isolated composite with estimated weights gives a warning after the model is run
 # (one of the warnings on the solution):
