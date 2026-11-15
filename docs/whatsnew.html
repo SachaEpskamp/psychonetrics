@@ -89,7 +89,7 @@
     <h2>Composite variable models: cvm() &amp; cnm() <span class="version-tag">0.18</span></h2>
     <p class="whatsnew-meta">November 2026 &mdash; experimental; see the <a href="cvm.html">composite variable page</a></p>
     <p>
-      A new model family estimates structural equation models that contain both <strong>latent variables</strong> (measured with error, through <code>lambda</code>) and <strong>composites</strong> (exact weighted sums of their indicators, through the new <code>weights</code> matrix), following the factor- and composite-based SEM framework of Schamberger, Schuberth, Henseler and Rosseel (2025). As elsewhere in psychonetrics, the covariance structures can be modeled as networks: <code>cnm()</code> estimates a partial correlation network of the indicators within every composite (<code>omega_c</code>), and <code>latent = "ggm"</code> a network of the constructs.
+      A new model family estimates structural equation models that contain both <strong>latent variables</strong> (measured with error, through <code>lambda</code>) and <strong>composites</strong> (exact weighted sums of their indicators, through the new <code>weights</code> matrix), following the factor- and composite-based SEM framework of Schamberger, Schuberth, Henseler and Rosseel (2026). As elsewhere in psychonetrics, the covariance structures can be modeled as networks: <code>cnm()</code> estimates a partial correlation network of the indicators within every composite (<code>omega_c</code>), and <code>latent = "ggm"</code> a network of the constructs.
     </p>
     <pre><code class="language-r">weights <- matrix(0, 7, 3)
 weights[1, 1] <- 1; weights[2:4, 2] <- 1; weights[5:7, 3] <- 1

@@ -1,1871 +1,399 @@
 Changes in Version 0.18
-  o New model family: the composite variable model, cvm(), with the wrapper
-    cnm() for the composite network model. The family implements the factor-
-    and composite-based structural equation modeling framework of Schamberger,
-    Schuberth, Henseler and Rosseel (2025, arXiv:2508.06112): structural
-    equation models that contain both latent variables (common factors,
-    measured with error through 'lambda') and composites (exact weighted sums
-    of their indicators, through the new 'weights' matrix), which can be
-    related to each other through 'beta' and (residual) covariances or a
-    network.
-    - Model matrices: nu, nu_eta, lambda, weights, beta, the construct block
-      (sigma_zeta, or omega_zeta and delta_zeta), the residuals of the
-      indicators of latent variables (the usual '_epsilon' matrices), and the
-      NEW '_c' matrices (sigma_c, lowertri_c, kappa_c, omega_c + delta_c,
-      rho_c + SD_c), which model the variance-covariance matrix of the
-      indicators of composites. The '_c' matrices are block diagonal with one
-      block per composite: covariances between indicators of different
-      composites are implied by the relations between the composites and are
-      always fixed to zero.
-    - Three type arguments: 'latent' ("cov" or "ggm") for the constructs,
-      'residual' (cov/chol/prec/ggm/cor) for the residuals of factor
-      indicators, and 'composite' (cov/chol/prec/ggm/cor) for the composite
-      indicators. composite = "ggm" (or cnm()) gives a partial correlation
-      network of the indicators within every composite (omega_c), which can
-      be made sparse with prune() and stepup(); these never add edges between
-      indicators of different composites.
-    - The (residual) variances of composites (or their scalings with
-      latent = "ggm") and the intercepts of composites are not parameters but
-      are computed from the weights and the composite indicator covariances.
-      They are shown in the parameter table without standard errors.
-      getmatrix() additionally returns the composite loadings (in 'lambda'),
-      the implied construct covariances and means ('sigma_eta', 'mu_eta') and
-      the implied residual covariances of the composite indicators
-      ('sigma_epsilon_c').
-    - With latent = "ggm" a composite can either be a node in the latent
-      network (omega_zeta) or have incoming effects in beta, but not both.
-      This is part of the identification of the model (identify_cvm): the
-      effects on a composite without incoming effects, and the edges of a
-      composite with incoming effects, are marked as identified such that
-      modification indices and model search skip them. A model that violates
-      the restriction is refused with an error when it is specified,
-      identified or evaluated. After adding or removing effects on
-      composites by hand, identify() updates the marks.
-    - A composite with a single indicator represents that observed variable,
-      which allows observed variables in the structural model (a latent
-      variable with a single indicator gives the same model). A variable
-      cannot load on a composite; the error message explains how to specify
-      such a model with a single-indicator construct and 'beta'.
-    - Supported: single and multiple groups with equality constraints, mean
-      structures, the ML, FIML, ULS, WLS and DWLS estimators, penalized
-      estimation (PML, PFIML), the usual model modification and search
-      functions, and conversion to and from lavaan. Not (yet) supported:
-      ordinal data and correlation input. The family is experimental:
-      arguments and defaults may still change.
-    - Implemented in both the R and the C++ (default) pipelines, with analytic
-      gradients and Fisher information that build on the lvm derivatives. The
-      two pipelines give identical results, and models with fully estimated
-      composite indicator covariances reproduce lavaan (degrees of freedom
-      exactly; chi-square, estimates, standard errors and fit measures up to
-      the precision of the optimizer, see 'Estimation' below), including
-      multi-group and FIML models. See the new test file test_cvm.R.
-    - Composites are scaled by fixing the weight of one indicator to 1: by
-      default the indicator with the largest standardized starting weight
-      (new argument 'bad_marker_crit', default 1). One message names the
-      composites for which this is not the first indicator. The weights of
-      the other indicators are relative to the scaling indicator, so that
-      scaling by an indicator with a small weight gives large weights for
-      the others, and reverses the composite when that weight has another
-      sign than the other weights. The optimizer then stopped 5 and 8
-      chi-square points before the optimum in two examples (with a
-      development default of 0.1, with which only a first indicator with a
-      starting weight below a tenth of the largest was replaced).
-      'bad_marker_crit = 0' always uses the first indicator, and a value
-      between 0 and 1 only replaces a first indicator with a starting weight
-      below that proportion of the largest (lavaan also replaces a first
-      indicator with a starting weight near zero). A warning is given when a
-      composite with estimated weights is not related to any other construct
-      (its weights are then not identified). prune() can remove the last
-      relation of a composite with the other constructs and then gives this
-      warning as well: the estimates, standard errors and p-values of the
-      weights of that composite are then not meaningful, and the weights
-      still count as parameters in the degrees of freedom.
-    - Estimation uses the same optimizer and settings as all other model
-      families; runmodel() has no settings that are specific to this family.
-      Composite weights are only weakly identified, which makes the fit
-      function flat in the direction of the weights, so that the optimizer can
-      stop slightly before the optimum: the chi-square is typically accurate
-      to about two decimals. In 1500 simulated data sets with n = 250 it was
-      more than 0.01 too high in 18 (at most 0.24; up to 0.9 in models with a
-      saturated network, and at most 0.03 with n = 1000); the largest
-      difference between an estimate and the optimum was 0.005 standard errors
-      at the median and below 0.1 in 99% of the data sets, but 2.3 standard
-      errors in one weakly identified data set in which the optimizer stopped
-      on a flat ridge (with a very large reported standard error). Stricter
-      convergence criteria, which found the optimum there, can be set with
-      setoptimizer(), e.g. optim.args = list(control = list(rel.tol = 1e-10,
-      eval.max = 20000, iter.max = 10000)). Starting values for the weights
-      are obtained with partial least squares (mode B), and are adjusted when
-      needed such that the starting point is admissible. When the construct
-      part of the model is saturated (all constructs are composites that are
-      all related to each other, without effects in 'beta'), the maximum
-      likelihood weights minimize the determinant of the correlation matrix
-      of the composites (the GENVAR criterion of Kettenring, 1971). The
-      starting weights are then improved on this criterion: such a model
-      starts at the maximum likelihood estimates when the covariances within
-      the composites are saturated as well, and close to them otherwise. A
-      model with 83 indicators in 9 composites that needed 114 iterations
-      and about an hour from the mode B weights needs 8 iterations and 7
-      minutes, with the same chi-square. The intercepts of the
-      indicators of latent variables are started such that the implied means
-      equal the sample means: a latent variable that is predicted by
-      composites has a nonzero mean, so that these intercepts are not the
-      indicator means (starting them at the means made ULS and DWLS fits of
-      such models fail). After estimation, runmodel() warns when the optimizer
-      did not report convergence, when the indicator that scales a composite
-      has a small weight (a standardized weight below 1/25 of the largest of
-      the composite) or correlates negatively with that composite (a
-      reversed composite), when a composite with estimated weights is not
-      related to any other construct, when an element that is computed in this
-      family was freed by hand, or when a computed residual variance of a
-      composite is not positive. (A stricter tolerance and supplying the
-      expected Hessian to nlminb were tried during development and give more
-      precise fits in fewer iterations, but were not adopted in order to keep
-      estimation the same for all families; see the note in the source of
-      runmodel().)
-    - Penalized estimation: estimator = "PML" (or "PFIML" with missing data)
-      with the arguments 'penalty_lambda', 'penalty_alpha' and
-      'penalize_matrices', as in the other families. By default the network
-      structures in the model are penalized (omega_c / kappa_c,
-      omega_epsilon / kappa_epsilon and omega_zeta), never the weights;
-      refit() re-estimates the selected structure without the penalty. Note
-      that the proximal gradient optimizer used for penalized estimation is
-      a first-order method: in composite variable models it can need very
-      many iterations (minutes for some models with a dozen variables) and
-      it stops less close to the optimum in the weights than the
-      unpenalized estimators, so refit() should be used for the final
-      estimates.
-    - Verification (scripts and reports in the development folder): the
-      analytic Jacobian, gradient and Fisher information were checked
-      against an independent implementation of the model and numerical
-      differentiation in 68 model configurations; R and C++ results and
-      lavaan were compared in 91 models (R and C++ agree to 1e-7 in all of
-      them, and the chi-square is within 0.005 of lavaan where lavaan
-      estimates the same model); and simulations confirmed consistency,
-      standard errors, coverage, the chi-square distribution and the
-      recovery of the networks within composites and between constructs.
-  o fromlavaan() and tolavaan() now convert models with composites:
-    - fromlavaan() converts a lavaan model that contains composites (the
-      '<~' operator, lavaan >= 0.7) into an equivalent cvm() model; such
-      models were refused before. Weights, the scaling chosen by lavaan,
-      fixed values, equality constraints, multiple groups and missing data
-      (FIML) are carried over. lavaan by default fixes the variances and
-      covariances of composite indicators to their sample values
-      (composites.cov = "fixed"), whereas psychonetrics estimates them: with
-      complete data this gives the same chi-square, degrees of freedom,
-      estimates and standard errors of weights, loadings and regressions,
-      but another number of parameters; a warning explains this. With
-      composites.cov = "free" in lavaan everything matches. When the lavaan
-      model was not fitted or did not converge, the cvm() starting values
-      are used rather than the lavaan values (lavaan does not converge from
-      its own starting values on some composite models that psychonetrics
-      estimates without problems).
-    - tolavaan() converts a cvm() model with latent = "cov",
-      residual = "cov" and composite = "cov" into a fitted lavaan model or
-      a lavaan parameter table.
-    - Known differences that are due to lavaan (up to at least 0.7-3):
-      lavaan reports another intercept for a composite that is predicted by
-      another endogenous composite, and does not count a covariance between
-      composite indicators that is fixed to zero in its degrees of freedom.
-    - Conversion of models without composites is unchanged.
-  o runmodel(): the warning "Model might not have converged properly:
-    mean(abs(gradient)) > 1" now adds, for models of the lvm family that are
-    identified by fixing the first factor loadings, that
-    identification = "variance" may help. With identification = "loadings"
-    the starting values of a latent variable are scaled by its first
-    indicator, which gives poor starting values when that indicator is only
-    weakly related to the latent variable. A model with 9 factors and 83
-    indicators stopped more than 1,600 chi-square points above the optimum
-    (with this warning) and reached the optimum with
-    identification = "variance". The starting values themselves are not
-    changed; see ?lvm.
-  o transmod() now supports the composite variable family: the types
-    'composite', 'residual' and 'latent' of a cvm model can be transformed
-    between equivalent parameterizations. In particular,
-    transmod(x, composite = "ggm") turns a cvm model into the equivalent cnm
-    model and transmod(x, composite = "cov") does the reverse, without
-    estimating the model again (keep_computed = TRUE also transforms the
-    standard errors). The '_c' matrices are block diagonal; they can be
-    transformed when every block is saturated (or when they are diagonal),
-    and the elements between indicators of different composites stay fixed
-    to zero. 'latent' can be transformed between "cov" and "ggm".
-  o Bug fix in transmod() for all model families: when a diagonal structure
-    was transformed (e.g., transmod(x, residual = "ggm") on an lvm model with
-    the default diagonal residual covariances), all fixed elements of the new
-    parameterization (the zero partial correlations in this example) were
-    turned into one additional free parameter. The transformed model was
-    therefore not equivalent to the original model: after running it, it had
-    one degree of freedom less and a lower chi-square (in a two-factor
-    example: df 7 instead of 8, chi-square 4.32 instead of 5.37). Fixed
-    elements now remain fixed. Transformations of saturated structures were
-    not affected (identical results before and after).
-  o Bug fix in the R pipeline (usecpp(x, FALSE)) for all model families: the
-    derived standard deviation matrices returned by getmatrix() ('SD',
-    'SD_zeta', 'SD_epsilon', ...) when a covariance structure was estimated
-    with another parameterization had dimension n^2 x n^2 instead of n x n.
-    The C++ pipeline (the default) was not affected.
-  o Bug fix in the automatic penalty search of penalized estimation
-    (estimator = "PML" / "PFIML" with penalty_lambda = NA;
-    find_penalized_lambda()) for all model families. The search first fits
-    an unpenalized helper model to compute the largest penalty of the grid
-    (lambda_max). The cached C++ workspace of that helper model was then
-    re-used for the first fit of the grid, which was therefore not
-    penalized: at lambda_max, where all penalized parameters are zero by
-    definition, a GGM returned the unpenalized ML estimates. The cache is
-    now cleared before the grid search, and a cached workspace is only
-    re-used for a model with the same framework and estimator. Consequences:
-    - The wrong first fit only mattered when it had the best criterion
-      value of the grid (the unpenalized estimates were then returned,
-      labelled with the largest penalty) or when the best penalty is at or
-      close to lambda_max (the first fit is the starting point of the
-      second). In a comparison of 13 analyses, the selected penalty and all
-      estimates were unchanged (to 1e-12) in every ggm(), precision(),
-      gvar(), panelgvar() and Ising() analysis, including multi-group and
-      PFIML models. Two rnm() analyses with a full residual network, in
-      which the criterion prefers the largest penalties, now return the
-      empty residual network (the correct solution at lambda_max, with a
-      lower criterion value); one lnm() analysis changed in the third
-      decimal only.
-    - See the new regression test in test_ggm_varcov.R.
-  o The package version is now 0.18.
+  o Added the composite variable model family (experimental), following Schamberger, Schuberth, Henseler and Rosseel (2026, Behavior Research Methods):
+    o cvm() estimates structural equation models with latent variables ('lambda') and composites ('weights'), related through 'beta' and covariances or a network ('latent')
+    o cnm() is a wrapper for the composite network model (composite = "ggm"), which models a network of the indicators within every composite ('omega_c')
+    o The new '_c' matrices (sigma_c, lowertri_c, kappa_c, omega_c and delta_c, rho_c and SD_c; argument 'composite') model the covariances of the indicators within composites
+    o Variances and intercepts of composites are computed rather than estimated
+    o A composite with a single indicator can be used to include an observed variable in the structural model
+    o With latent = "ggm", a composite can either be part of the latent network or have incoming effects in 'beta', but not both
+    o Composites are scaled by fixing the weight of the indicator with the largest starting weight to 1 (see the 'bad_marker_crit' argument)
+    o Supports multiple groups, the ML, FIML, ULS, WLS, DWLS, PML and PFIML estimators and the model search functions; ordinal data and correlation input are not yet supported
+    o runmodel() warns when a composite is poorly scaled, reversed or not related to any other construct
+    o prune() warns when it removes the last relation of a composite with the other constructs
+  o fromlavaan() and tolavaan() now support models with composites (lavaan >= 0.7)
+  o transmod() now supports the cvm family (e.g., transmod(x, composite = "ggm") turns a cvm model into a cnm model)
+  o The warning of runmodel() on a large gradient now suggests identification = "variance" for lvm models
+  o Fixed a bug in transmod() where transforming a diagonal structure added a free parameter
+  o Fixed a bug in the R pipeline (usecpp(x, FALSE)) where derived SD matrices in getmatrix() had the wrong dimensions
+  o Fixed a bug in the automatic penalty search (PML / PFIML with penalty_lambda = NA) where the first fit of the grid was not penalized
 
 Changes in Version 0.17.7
-  o Fixed a test that failed when the tests are run under the C collation
-    locale (as devtools::check() and some CRAN check flavors do). The RI-CLPM
-    test compared sort(unique(...)) of the matrix names against
-    c("rho_zeta", "SD_zeta"), but sort() on character vectors is locale
-    dependent: the C locale orders "SD_zeta" before "rho_zeta", en_US.UTF-8
-    the other way around. The names are now compared as a set. Test suite
-    only; no package code changed.
+  o Fixed a test that failed under the C collation locale (test suite only)
 
 Changes in Version 0.17.6
-  o Fixed the CRAN test failures on the ATLAS, MKL and OpenBLAS check flavors
-    and on r-oldrel-macos-arm64. The tinytest suite simulated its data with
-    MASS::mvrnorm(), which transforms standard normal draws with the
-    eigendecomposition of the covariance matrix. Eigenvectors are determined
-    only up to a sign, and up to a rotation when eigenvalues are repeated, so
-    which decomposition LAPACK returns depends on the BLAS/LAPACK build. The
-    simulated data - and therefore the hard-coded reference values in
-    test_meta.R and test_var_panel.R - were consequently not reproducible
-    across platforms, even with a fixed seed.
-    The tests now draw from the multivariate normal through the Cholesky
-    factor, which is unique for a positive definite covariance matrix, via a
-    new rmvnorm() helper in inst/tinytest/_helpers.R. The reference values in
-    test_meta.R and test_var_panel.R were regenerated accordingly. This is a
-    change to the test suite only; no package code was touched and results are
-    identical to 0.17.5.
-  o The at_home() lavaan oracle comparison in test_robust_ml.R now passes
-    ordered = FALSE to lavaan::cfa(), which lavaan >= 0.7 requires when the
-    "WLSMV" estimator is used on continuous data.
+  o Fixed test failures on CRAN check flavors with other BLAS/LAPACK builds: the tests now simulate data through a Cholesky factor instead of MASS::mvrnorm() (test suite only)
+  o Updated a lavaan comparison test for lavaan >= 0.7
 
 Changes in Version 0.17.5
-  o The default 'criterion' of ri_clpm_search() (and its alias
-    ri_clpn_search()) is now "Chisq" instead of "BIC": each stationarity
-    constraint is retained when its chi-square difference test is not
-    significant at level 'alpha' (0.05 by default). This matches the
-    recommendation accompanying the guarded decision tree introduced in
-    0.17.2. The information criteria remain available, and passing
-    criterion = "BIC" explicitly reproduces the behavior of psychonetrics
-    0.17.4 and earlier. Nothing else about the search changed.
+  o The 'criterion' argument of ri_clpm_search() and ri_clpn_search() now defaults to "Chisq" instead of "BIC". Use criterion = "BIC" to recover old behavior
 
 Changes in Version 0.17.4
-  o New plot() method for psychonetrics models: a wrapper around qgraph in the
-    spirit of bootnet's plot method for estimateNetwork objects, with the same
-    overwritten defaults (cut = 0, theme = "colorblind", layout = "spring",
-    parallelEdge = TRUE) and everything else passed on to qgraph via '...'.
-    - plot(x) without further arguments picks sensible matrices per family:
-      the (co)variance matrix for the varcov family and meta_varcov, omega for
-      Ising / Blume-Capel, temporal + contemporaneous for var1/gvar and
-      tsdlvm1, temporal + contemporaneous + between-person for
-      panelvar/panelgvar, dlvm1, ml_var1 and ml_lvm, within + between for
-      ml_varcov, the latent/residual network for lnm/rnm/lrnm, the blocks for
-      ri_clpm/ri_clpn, and the full path diagram (via semPlot::semPaths and
-      tolavaan) for any other latent variable model. Models using the "PDC"
-      temporal parameterization get a PDC panel instead of beta.
-    - 'matrix' may be a VECTOR of matrices (unlike getmatrix), one panel each,
-      in the given order. 'group', 'threshold'/'alpha'/'adjust'/'mode' and the
-      RI-CLPM 'time' block selector behave as in getmatrix().
-    - How a matrix is drawn follows from what it is: omega and kappa give
-      undirected networks, sigma and rho give networks with two arrowheads per
-      edge, beta and PDC give directed networks with the autoregressions as
-      self-loops, and lambda is drawn as a reflective measurement diagram with
-      qgraph.loadings(). Covariance matrices are shown as correlation networks
-      and precision matrices as partial correlation networks (with a message
-      when verbose = TRUE); covariances = TRUE draws the unstandardized matrix
-      instead, with the diagonal as self-loops. Cholesky decompositions,
-      diagonal scaling matrices and mean vectors have no network
-      interpretation and give an informative error.
-    - Panels showing the same nodes are constrained to a common layout through
-      qgraph::averageLayout(), so that they are visually comparable, and each
-      panel is titled with what it shows. Set equalLayout = FALSE or
-      titles = FALSE to turn this off. Multiple groups give one row of panels
-      per group.
-  o Bug fix: the default 'matrices' of CIplot() for dlvm1 and ml_lvm models
-    took the type of the between-person block from 'within_residual' instead
-    of 'between_latent'. This only had an effect when the two types differed.
+  o Added a plot() method for psychonetrics models, which plots model matrices as networks using qgraph:
+    o Default matrices are chosen per model family, and 'matrix' can be a vector to plot several matrices
+    o Supports the 'group', 'time', 'threshold', 'alpha', 'adjust' and 'mode' arguments of getmatrix()
+    o Covariance and precision matrices are standardized by default; use covariances = TRUE for the unstandardized matrix
+    o Panels with the same nodes use the same layout (equalLayout = FALSE to disable) and are titled (titles = FALSE to disable)
+  o Fixed a bug in the default 'matrices' of CIplot() for dlvm1 and ml_lvm models
 
 Changes in Version 0.17.3
-  o RI-CLPM / RI-CLPN networks can now be extracted and plotted as blocks.
-    ri_clpm() is built on the lvm framework, so its model matrices span all
-    waves at once (the within-person components of every wave, followed by the
-    random intercepts), which made getting at the temporal, contemporaneous
-    and between-person networks a manual indexing exercise. getmatrix() and
-    CIplot() now accept the same matrix names that panelvar()/panelgvar() use,
-    together with a new 'time' argument selecting the wave:
-      getmatrix(x, "beta", time = 2)                # temporal network T2 -> T3
-      getmatrix(x, "PDC",  time = 2)                # ... as partial directed cors
-      getmatrix(x, "omega_zeta_within", time = 3)   # contemporaneous network
-      getmatrix(x, "omega_zeta_between")            # between-person network
-      getmatrix(x, "nu", time = 2) / "nu_between"   # intercepts / RI means
-      CIplot(x, "omega_zeta_within", time = 3)      # CIs of that block
-    - All parameterizations are supported (sigma_/omega_/kappa_/lowertri_/
-      rho_/SD_/delta_zeta, with the _within/_between suffix), and the plain
-      matrix name plus 'time' works as a shorthand.
-    - Blocks carry the variable names of the design matrix as dimnames, so
-      they can be handed straight to qgraph.
-    - The RI-CLPM has no PDC parameters of its own; getmatrix(x, "PDC", ...)
-      derives them from the temporal block and the innovation precision of the
-      target wave, which for a fully stationary model reproduces the
-      panelvar/panelgvar PDC exactly.
-    - Thresholding is applied to the full matrix and the block is then cut out
-      of the result, so a thresholded block is exactly the corresponding
-      submatrix of the thresholded full matrix (identical multiple-comparison
-      adjustment). diag = FALSE, in contrast, applies to the block, so that it
-      removes the autoregressive effects of a temporal block.
-    - Omitting 'time' returns one block per wave; waves whose parameters were
-      equated by ri_clpm_stationary() are collapsed into a single entry, so a
-      stationary structure gives one block instead of several identical ones.
-    - Plain matrix names without 'time' (e.g. getmatrix(x, "beta")) still
-      return the full latent-sized matrix, so existing code is unaffected.
-      CIplot() is the exception: for RI-CLPM models it always plots blocks,
-      since a confidence-interval plot of the full matrix mixes all waves and
-      the random intercepts. Its default 'matrices' for these models is now
-      the temporal, within-person and between-person block, mirroring the
-      panelvar default.
-  o ri_clpm() models store an explicit block index in
-    @extramatrices$ri_clpm_blocks. Models created with earlier versions are
-    handled by deriving the index from the stored design matrix.
+  o getmatrix() and CIplot() now support the matrix names of panelvar()/panelgvar() for ri_clpm() models (e.g., "beta", "PDC", "omega_zeta_within", "omega_zeta_between"), with a new 'time' argument to select the wave
+  o Omitting 'time' returns one block per wave (waves constrained equal are collapsed); plain matrix names without 'time' still return the full matrix
+  o CIplot() now plots the temporal, within-person and between-person blocks by default for ri_clpm() models
 
 Changes in Version 0.17.2
-  o ri_clpm_search() has been redesigned as a guarded decision tree. Where the
-    search used to be a strict chain that stopped at the first rejection, it
-    now follows the targets of inference:
-    - "temporal" is the only hard gate. If stationarity of the temporal
-      (cross-lagged) effects is rejected, the search stops entirely and the
-      unconstrained model is selected: there is then no single lag-1 temporal
-      network to report and the target of inference changes to a set of
-      per-transition temporal networks. The remaining steps are reported as
-      "not tested", and the print method explains this and advises checking
-      whether the waves are equally spaced (unequal measurement intervals
-      mimic temporal non-stationarity).
-    - "contemporaneous", "intercepts" and "innovation" are released rather
-      than fatal: a rejected constraint is simply not imposed (those
-      parameters stay wave-specific) and the search continues. Each of these
-      constraints is therefore tested exactly once, conditional only on the
-      constraints that survived their own test. This reaches endpoints the
-      old chain could not reach, such as wave-varying contemporaneous
-      relations with stationary intercepts and innovation variances.
-    - The closing panel(G)VAR step ("wave1_endogenous") is now gated on
-      covariance stationarity: it requires the temporal, contemporaneous and
-      innovation constraints to be retained, because a wave-varying
-      innovation covariance structure has no stationary distribution for an
-      endogenous first wave to be drawn from. Otherwise the step is reported
-      as "not applicable".
-    - When the intercept constraint was released, the panel(G)VAR comparison
-      model is now fit with stationary_means = FALSE, so that both models
-      carry a saturated (wave-specific) mean structure and the test isolates
-      the wave-1 exogenous covariance block. The degrees-of-freedom gap of
-      this comparison (the panel model is the constrained special case and
-      has m(m+1)/2 MORE degrees of freedom) is verified at run time, with a
-      warning when it deviates.
-    - Candidate models that did not converge, or that produced a negative or
-      non-finite chi-square or a non-finite criterion, are never retained;
-      such a fit counts as a rejection and the reason is reported.
-    o The new argument on_rejection = c("release", "stop") controls this.
-      The default "release" is the tree described above; "stop" reproduces
-      the pre-0.17.2 stop-at-first-rejection chain exactly, for
-      reproducibility of existing analyses. Both use the same code path.
-    o ri_clpm_search() now also returns a 'verdicts' data frame with one row
-      per step (temporal, contemporaneous, intercepts, innovation,
-      wave1_endogenous) and the columns tested, decision ("retained",
-      "released", "rejected (gate)", "not tested", "not applicable"),
-      Chisq_diff, DF_diff, p_value, dAIC, dBIC and note, plus the element
-      on_rejection. 'selected_name' now describes the selected model
-      compactly, e.g. "temporal+contemporaneous+innovation (means free)" or
-      "panelVAR (means free)". The existing elements (selected, models,
-      comparison, path, criterion, alpha) are unchanged, and the default
-      criterion remains "BIC". The print method shows the verdict table.
-  o New RI-CLPN wrapper functions. The GGM-parameterized RI-CLPM is the
-    random-intercept cross-lagged panel NETWORK model (RI-CLPN): the
-    contemporaneous and between-person structures are then partial
-    correlation networks. ri_clpn() calls ri_clpm() with type = "ggm" as its
-    default (still overridable), mirroring how panelgvar() wraps panelvar().
-    ri_clpn_stationary() and ri_clpn_search() are pure aliases of
-    ri_clpm_stationary() and ri_clpm_search(), so that a network-
-    parameterized analysis can be written entirely in RI-CLPN notation.
+  o Redesigned ri_clpm_search() as a decision tree:
+    o If stationarity of the temporal effects is rejected, the search stops and the unconstrained model is selected
+    o Rejected "contemporaneous", "intercepts" and "innovation" constraints are released and the search continues
+    o The final panel(G)VAR step is only tested if the temporal, contemporaneous and innovation constraints are retained
+    o Models that did not converge are never retained
+    o Added the 'on_rejection' argument. Use on_rejection = "stop" to recover old behavior (stop at the first rejection)
+    o The output now includes a 'verdicts' data frame with one row per step
+  o Added ri_clpn() (ri_clpm() with type = "ggm") and the aliases ri_clpn_stationary() and ri_clpn_search()
 
 Changes in Version 0.17.1
-  o New wave-specific mean structure for the stationary panel models:
-    panelvar(), panelgvar() and dlvm1() (alias dlvm()) gained the argument
-    stationary_means (default TRUE). The default is the existing behavior and
-    all existing models are bit-identical to before.
-    - With stationary_means = FALSE the panelvar/panelgvar mean structure
-      becomes wave-specific: 'mu' is a nVar * nTime matrix with one free mean
-      per variable-wave combination in the design, so the mean structure is
-      exactly saturated (m(T-1) extra parameters).
-    - In dlvm1() the item intercepts 'nu' become wave-specific (nVar * nTime,
-      also m(T-1) extra parameters) while the latent means 'mu_eta' stay fixed
-      to zero for identification. Wave-specific intercepts and wave-specific
-      latent means are not jointly identified; placing the level shifts in the
-      intercepts saturates the mean structure, which is what keeps the baseline
-      model (an observed-variable panelvar model) nested in the fitted model.
-    This is the classical trend-stationary case: the level shifts are period
-    effects exogenous to the dynamics, the within-person deviation process
-    remains covariance-stationary, and the implied covariance matrix is
-    identical to the stationary-means model. Free innovation variances are not
-    offered here (a wave-varying innovation covariance has no stationary
-    distribution for wave 1 to be drawn from); that case is covered by
-    ri_clpm().
-  o The baseline model of both panel frameworks now mirrors the target model's
-    mean structure, so that the baseline stays nested in the fitted model:
-    with stationary_means = FALSE the baseline gets wave-specific means as
-    well. The baselines of stationary-means models are unchanged
-    (bit-identical). As a consequence, incremental fit indices (CFI, TLI, ...)
-    are not directly comparable between a stationary-means and a
-    wave-specific-means fit of the same data, because the two use different
-    baselines by design; use a chi-square difference test (compare()) instead.
-  o panelvar(), panelgvar() and dlvm1() now give an informative error when the
-    'means' argument (sample means) is given a character value.
+  o Added the 'stationary_means' argument to panelvar(), panelgvar() and dlvm1(). Use stationary_means = FALSE for wave-specific means (panelvar/panelgvar) or intercepts (dlvm1)
+  o The baseline model now uses the same mean structure as the fitted model. Note: incremental fit indices are not comparable between models with stationary_means = TRUE and FALSE
+  o panelvar(), panelgvar() and dlvm1() now give an informative error when 'means' is a character
 
 Changes in Version 0.17.0
-  o ri_clpm() now uses type = "cor" (correlations with separate standard
-    deviations) as its default latent parameterization instead of "cov". This
-    separates the innovation correlations (rho_zeta) from the innovation
-    standard deviations (SD_zeta), so that a stationary contemporaneous-
-    correlation constraint and a stationary innovation-variance constraint
-    become two distinct, cleanly nested steps. The unconstrained model fit
-    (chi-square, degrees of freedom, number of parameters) is unchanged; only
-    the parameterization differs. Passing type = "cov" (or any other type)
-    explicitly restores the previous behavior.
-  o ri_clpm_search() now adds the stationarity constraints in the order
-    unconstrained -> equal temporal effects -> equal contemporaneous relations
-    (innovation correlations / GGM) -> equal intercepts -> equal innovation
-    variances -> full panel(G)VAR, matching the usual RI-CLPM analysis
-    workflow. As before, the innovation-variance step never equates the
-    innovation variances with the exogenous wave-1 variances nor with the
-    between-person (random intercept) variances.
+  o ri_clpm() now defaults to type = "cor" instead of "cov". Use type = "cov" to recover old behavior
+  o ri_clpm_search() now adds constraints in the order: temporal effects, contemporaneous relations, intercepts, innovation variances, panel(G)VAR
 
 Changes in Version 0.16.9
-  o The ordinal-data regression tests (GitHub issue #54) now probe whether the
-    'pbv' package's C++ API is usable and are skipped when it is not. On some
-    check setups (e.g. win-builder R-devel) a stale 'pbv' binary lacks the
-    Rcpp validation hook, which made every ordinal-data call error and halted
-    the whole test suite.
+  o Tests with ordinal data are now skipped when the 'pbv' package cannot be used (test suite only)
 
 Changes in Version 0.16.8
-  o The saturated log-likelihood method that was ultimately used is now
-    recorded in the fitted object (GitHub issue #53):
-    x@baseline_saturated$satMethodUsed is "numeric", "analytic", or
-    "analytic_fallback" (the latter when saturated = "default" fell back to
-    the analytic formula because the saturated model optimization failed),
-    and the new 0/1 fit measure 'satLL_analytic' indicates whether the
-    analytic formula was used. Being numeric, satLL_analytic is retained by
-    aggregate_bootstraps(): its bootstrap average is the proportion of
-    (converged) bootstrap samples in which the analytic saturated
-    log-likelihood was used.
-  o Consistent with its documentation, saturated = "model" no longer silently
-    falls back to the analytic saturated log-likelihood when the saturated
-    model optimization fails; the fallback only applies to
-    saturated = "default".
-  o Fixed a stepup() failure with ordinal data (GitHub issue #54): freeing a
-    parameter using its expected parameter change (EPC) as starting value
-    could place the model in an improper (non-positive definite) region,
-    where the fit functions return a constant penalty with a flat gradient.
-    The optimizer then stalled on that plateau, which surfaced as
-    "missing value where TRUE/FALSE needed" or as spurious "model did not
-    improve" results in stepup(). Three fixes:
-    - freepar() now checks that EPC-based starting values leave the implied
-      matrices proper, and falls back to small starting values otherwise.
-    - runmodel() detects an optimizer that "converged" on the improper-region
-      penalty plateau and retries once from emergency starting values.
-    - stepup() now handles an NA chi-square difference test gracefully
-      (returning the previous model with a message) and, when the requested
-      criterion (e.g. the default "bic") is not available for the estimator
-      (information criteria are not defined for the (D)WLS estimators used
-      with ordinal data), skips the criterion check with a single informative
-      warning instead of erroring.
+  o The method used for the saturated log-likelihood is now stored in x@baseline_saturated$satMethodUsed, and the new fit measure 'satLL_analytic' indicates if the analytic formula was used (GitHub issue #53)
+  o saturated = "model" no longer falls back to the analytic saturated log-likelihood; only saturated = "default" does
+  o Fixed stepup() failing with ordinal data (GitHub issue #54):
+    o freepar() now uses small starting values when EPC-based starting values are improper
+    o runmodel() now retries with emergency starting values when the optimizer stalls at improper values
+    o stepup() now handles a missing chi-square difference test or criterion
 
 Changes in Version 0.16.7
-  o Fixes for R-devel (found via win-builder): the example covariance matrices
-    in the dlvm1, panelvar, and latentgrowth help pages no longer use the
-    deprecated structure(.Dim=, .Dimnames=) names (now dim= and dimnames=),
-    and the unit tests that cross-validate against internal lavaan kernels
-    (lav_mvnorm_cluster_information_expected, lav_model_h1_information_observed)
-    now skip gracefully when those internals are absent, as in lavaan >= 0.7
-    where they were renamed with changed interfaces. The same quantities remain
-    covered by internal analytic-vs-numeric checks.
-  o Naming cleanup: the plain names are now the primary names of several model
-    families, with the historical *1 names (the "1" referred to the lag order;
-    no lag-2 frameworks are planned) remaining fully supported aliases:
-    dlvm() = dlvm1(), tsdlvm() = tsdlvm1(), meta_var() = meta_var1(), and
-    ml_var()/ml_gvar() = ml_var1()/ml_gvar1() (see below). var1() and gvar()
-    are unchanged: exporting var() would mask stats::var, and "var1" reads
-    naturally as VAR(1). In addition, 'within' and 'between' are now the
-    preferred argument names for the contemporaneous and between-person
-    structures in the latent-free frameworks panelvar() and ml_var()
-    (ml_var1() now accepts them too); the *_latent names remain accepted
-    everywhere.
-  o ml_var()/ml_gvar()/ml_var1()/ml_gvar1() default to estimator = "auto":
-    full-information ML (through the panelvar framework) when the
-    measurement-occasion grid has at most 10 occasions per subject - the
-    panel-data regime, matching the behavior (and estimates) of ml_var() in
-    psychonetrics 0.15 - and the two-level summary-statistics pseudo-ML for
-    longer series, where full-information ML is infeasible. A message states
-    which estimator was selected; set 'estimator' explicitly to override.
-  o ml_var1()/ml_gvar1() now support estimator = "FIML": the model is dispatched
-    to the panelvar() framework, with the measurement occasions (idvar / dayvar /
-    beepvar) mapped to the waves of a panel model, so the exact multi-level
-    VAR(1) likelihood is optimized with full-information ML (missing responses
-    and missed beeps handled by FIML; a night break is bridged by one
-    structurally missing occasion). This is exact but much slower than the
-    default two-level summary-statistics estimator; it replaces the historical
-    dlvm1-based FIML route of ml_var()/ml_gvar().
-  o ml_var() and ml_gvar() are now aliases for ml_var1() and ml_gvar1() (their
-    'contemporaneous' and 'between' arguments map to 'within_latent' and
-    'between_latent'). They were deprecated wrappers around dlvm1() with
-    estimator = "FIML"; the new default estimator = "auto" (see above) keeps
-    the 0.15 behavior for panel-like data and switches to the summary-
-    statistics estimator for longer series. ml_tsdlvm1() and ml_ts_lvgvar()
-    (the latent versions) remain deprecated wrappers for dlvm1().
-  o Added a summary() method for psychonetrics models: the print output extended
-    with the main fit measures (log-likelihood, number of parameters, AIC, BIC,
-    RMSEA, CFI, TLI). Previously summary() silently fell through to the default
-    method and showed nothing useful.
-  o meta_var1()/meta_gvar() now fail early with an informative error when more
-    than 11 variables are used (the p(p+1)/2 + p^2 meta-level outcomes then
-    exceed internal 32-bit sparse-matrix limits; estimation previously aborted
-    mid-way with a cryptic "SpMat::init(): requested size is too large" error),
-    and warn when the number of studies is smaller than the number of meta-level
-    outcomes while a full random-effects structure is estimated (heavily
-    overparameterized; results may be unstable). For subjects of a single
-    intensive longitudinal study, ml_var1()/ml_gvar1() is recommended instead.
-    The meta_var1 estimator itself was verified by simulation to recover the
-    generating temporal and contemporaneous networks (see extra/).
-  o NEW (experimental): ml_varcov() and its wrappers ml_ggm() and ml_corr() add
-    a multi-level (two-level) variance-covariance family: the within-cluster and
-    between-cluster (co)variance matrices of clustered data are modelled
-    directly, with no latent layer. This is the multi-level analogue of the
-    varcov() family, and the multi-level Gaussian graphical model (ml_ggm) is
-    its headline use case. Each level is parameterized independently through the
-    'within' and 'between' arguments (each "cov", "chol", "prec", "ggm" or
-    "cor"), with native matrix names sigma_within / sigma_between,
-    omega_within / omega_between, and so on. Both estimators of ml_lvm() are
-    supported and behave identically to their ml_lvm() equivalents: the
-    two-level sufficient-statistics ML estimator (estimator = "ML"; cost
-    independent of the number of units per cluster) and wide-format
-    full-information ML (estimator = "FIML"; supports missing data). It is the
-    special case of ml_lvm() with loadings equal to the identity and no residual
-    variance, but is implemented as its own framework with its own (simpler)
-    analytic derivatives in both R and C++. Verification: analytic gradients
-    match numeric differentiation for all 25 within x between type combinations
-    under both estimators; the fit function and gradient agree with
-    ml_lvm's to machine precision at identical parameter values; R and C++
-    agree to machine precision; and parameter recovery / confidence-interval
-    coverage were validated in a simulation study. The multi-level GGM is also
-    available, via a different (nodewise multilevel regression) estimator, as
-    mlGGM() in the mlVAR package.
-  o Fixed ml_lvm() (and ml_varcov()) failing -- or, for exchangeable cluster
-    positions, silently permuting observations -- when the data rows were not
-    sorted by cluster: the internal within-cluster ID was assigned in
-    cluster-sorted order rather than row order. Cluster labels reused across
-    different groups of a multi-group analysis now also correctly denote
-    different clusters.
-  o Fixed samplestats() crashing with "missing value where TRUE/FALSE needed"
-    when heavy missingness left some pairwise covariances undefined (e.g. a
-    wide-format FIML analysis with sparsely observed cluster positions); the
-    correlation-input auto-detection now treats undefined diagonals as
-    "not correlation input" (the NA-covariance warning is still given).
+  o Added dlvm(), tsdlvm(), meta_var(), ml_var() and ml_gvar() as primary names for dlvm1(), tsdlvm1(), meta_var1(), ml_var1() and ml_gvar1(); the old names remain supported
+  o 'within' and 'between' are now the preferred argument names in panelvar() and ml_var(); the *_latent names remain supported
+  o ml_var() and ml_gvar() now default to estimator = "auto": FIML (through panelvar) with at most 10 occasions per subject, and the two-level pseudo-ML estimator otherwise
+  o ml_var1() and ml_gvar1() now support estimator = "FIML"
+  o Added a summary() method for psychonetrics models
+  o Added (experimental) ml_varcov() and the wrappers ml_ggm() and ml_corr() for multi-level variance-covariance models; supports the "ML" and "FIML" estimators
+  o meta_var1() and meta_gvar() now give an informative error with more than 11 variables, and a warning when the number of studies is small
+  o Fixed ml_lvm() failing or permuting observations when the data were not sorted by cluster
+  o Fixed samplestats() crashing when some pairwise covariances could not be computed
+  o Fixes for R-devel in examples and tests
 
 Changes in Version 0.16.6
-  o NEW (experimental): ml_var1() and its GGM-defaults wrapper ml_gvar1() add a
-    multi-level (random intercept) lag-1 vector autoregression / graphical VAR
-    for intensive longitudinal (ESM) data. A within-person stationary VAR(1)
-    process (temporal network beta, contemporaneous network omega_zeta_within)
-    is combined with a between-person random-intercept structure (network
-    omega_zeta_between) - the three multi-level GVAR networks. The model targets
-    the same estimand as panelvar()/panelgvar() but is estimated by applying the
-    two-level sufficient-statistics ML machinery (ml_lvm) to the lag-embedded
-    ("Toeplitz") data, so its per-evaluation cost is independent of the number of
-    time points (2p x 2p matrices only) where the full-likelihood panelvar route
-    becomes infeasible. This is a working-independence pseudo-likelihood (as in
-    var1): use panelvar()/panelgvar() for few-waves panel data. Estimates of beta
-    and omega_zeta_within are consistent and track the full-likelihood estimates
-    closely; the between-person variances carry a small O(1/T) upward finite-length
-    bias and the pseudo-likelihood standard errors are somewhat anti-conservative
-    for the contemporaneous network (see ?ml_var1). Validated against lavaan
-    two-level models (the saturated model, and the structured model in the
-    saturated-innovations cov/cov case, which admits an exact lavaan
-    reparameterization; the GGM/typed cases rest on numeric-derivative checks
-    and the panelgvar benchmark) and against panelgvar. Complete-pairs
-    (listwise) handling of incomplete lag pairs in this first version. The model
-    layer is implemented in R only for now (no C++ acceleration).
-  o Internal: tsData() gained an includeID argument (default FALSE) that attaches
-    the subject id to each augmented lag-pair row; used by ml_var1() to define
-    clusters. With includeID = FALSE the output is byte-identical to before, so
-    var1()/gvar()/tsdlvm1() are unaffected.
+  o Added (experimental) ml_var1() and the wrapper ml_gvar1(): multi-level VAR(1) and graphical VAR models for intensive longitudinal data, using a two-level pseudo-ML estimator
 
 Changes in Version 0.16.5
-  o NEW: sampling weights (pseudo-maximum-likelihood) via the sampling_weights
-    argument of varcov()/lvm() (and the ggm/precision/... wrappers). The moments
-    are computed as weighted means/covariances and the model is fit with robust
-    (MLR) Huber-White sandwich standard errors and a Yuan-Bentler-Mplus scaled
-    test statistic, matching lavaan's sampling.weights= to numerical precision
-    (single- and multi-group; estimates, SEs, scaled chi-square and robust fit
-    indices). Complete-data continuous input only.
-  o Documented that, unlike lavaan (auto.cov.lv.y = TRUE), psychonetrics does not
-    free the residual covariances among endogenous latent variables by default;
-    free them via sigma_zeta to reproduce a lavaan SEM (this also makes fixed_x
-    models with latent regressions match lavaan exactly). Removed a now-obsolete
-    caveat in the fixed_x documentation (the baseline is conditioned on x since
-    this release).
-  o Fixed fromlavaan(): a single-group lavaan fit WITHOUT a mean structure
-    (the default for cfa()/sem()) was converted with colliding parameter
-    indices, silently equating observed intercepts with loadings/variances
-    (chi-square Inf, wrong df). Meanstructure = TRUE fits were unaffected.
-  o Fixed fixed_x: the baseline (and saturated) reference models are now
-    conditioned on the exogenous block, matching lavaan. Previously the
-    baseline was an unconditioned independence model over all variables,
-    producing a negative baseline.df, an inflated baseline chi-square, NaN
-    TLI and incorrect CFI/TLI for every fixed_x model.
-  o Fixed the scaled chi-square difference test in compare() for the
-    scaled-shifted (MLMV/WLSMV) and mean-and-variance-adjusted (MLMVS)
-    estimators. compare() now auto-selects the appropriate difference test
-    (the exact Satorra (2000) test for those estimators, Satorra-Bentler
-    (2001) for MLM/MLR), matching lavaan's lavTestLRT; previously the default
-    Satorra-Bentler-2001 test used the wrong (test-specific) scaling factor
-    for scaled-shifted/mean-var fits and returned an incorrect statistic. The
-    mean-adjusted scaling factor is now also stored as
-    chisq.scaling.factor.sb. A latent bug that returned NA for any scaled
-    difference test against a saturated (df 0) reference model was also fixed.
-  o Performance: the asymptotic covariance Gamma of the sample statistics is no
-    longer computed for plain (non-robust) maximum-likelihood fits; it is
-    computed only for the robust ML estimators that need it (and lazily by
-    setestimator()). This removes a large constructor-time and memory cost for
-    high-dimensional models (e.g. ~12 s and ~84 MB at p = 80).
-  o Performance: the robust-ML sandwich building blocks (including the
-    expensive numeric observed-information Jacobian for MLR) are now computed
-    once per addfit() call and reused for the scaled test and the FIML-C robust
-    fit indices, instead of being rebuilt several times.
-  o Added a df <= 0 guard to the robust-ML scaled test (compute_ml_scaled_test)
-    for consistency with the MLR path.
+  o Added sampling weights via the 'sampling_weights' argument of varcov() and lvm(), with robust standard errors and a scaled test statistic (complete continuous data only)
+  o Documented that residual covariances among endogenous latent variables are not freed by default (unlike lavaan)
+  o Fixed fromlavaan() for single-group lavaan models without a mean structure
+  o Fixed the baseline and saturated models of fixed_x models, which are now conditioned on the exogenous variables (CFI and TLI were incorrect)
+  o Fixed the scaled chi-square difference test in compare() for the MLMV, MLMVS and WLSMV estimators
+  o Faster model construction and robust ML estimation for models with many variables
 
 Changes in Version 0.16.4
-  o NEW: the temporal effects of all lag-1 frameworks can now be
-    parameterized directly in terms of partial directed correlations (PDC),
-    the standardized temporal network that is usually interpreted in
-    graphical VAR analyses: temporal = "PDC" in var1()/gvar(),
-    panelvar()/panelgvar() and tsdlvm1()/ts_lvgvar(), and
-    temporal_latent = "PDC" / temporal_residual = "PDC" in dlvm1() (the
-    latter for the residual autoregression beta_epsilon, giving a
-    PDC_epsilon matrix). The PDC parameter matrix encodes from = row and
-    to = column (the transposed orientation relative to beta, matching
-    getmatrix(..., "PDC")), and its elements are bounded in (-1, 1).
-  o The PDC parameterization is a smooth, zero- and sign-preserving
-    reparameterization of beta given the innovation structure
-    (beta[j,i] = PDC[i,j] * sqrt(kappa_ii * sigma_jj) / sqrt(1 - PDC[i,j]^2)),
-    so any pattern-constrained PDC model is fit-equivalent to the
-    corresponding raw model: same likelihood, degrees of freedom and implied
-    covariance structure, and the fitted PDC parameters equal
-    computePDC()/getmatrix(raw fit, "PDC") exactly at the optimum (verified
-    numerically per family). The gain is inference on the interpreted
-    scale: Wald standard errors, confidence intervals (CIplot()),
-    modification indices, prune()/stepup(), and cross-group equality
-    constraints (groupequal("PDC")) all apply directly to the PDC elements
-    - e.g. testing whether the standardized temporal network is equal
-    across groups while innovation variances differ.
-  o Implemented in both the R and C++ engines via a block-triangular
-    reparameterization of the model Jacobian (the beta column block is
-    post-multiplied by d vec(beta)/d vec(PDC), and the dependence of beta on
-    the innovation (co)variances is routed into the innovation columns).
-    Analytic gradients verified against numeric ones for all innovation
-    types (cov, chol, prec, ggm, cor) in every family, and the PDC standard
-    errors verified against delta-method standard errors from the raw
-    parameterization.
-  o CIplot() displays PDC edges in the correct direction (from = row ->
-    to = column); prune(), stepup(), modelsearch(), unionmodel(),
-    intersectionmodel(), partialprune() and penalized estimation select the
-    PDC matrix by default for PDC-parameterized models. transmod() does not
-    transform temporal parameterizations (re-specify the model instead; a
-    saturated PDC model is fit-equivalent to the saturated raw model).
-  o checkFisher() is now exact for FIML models: the expected-model reference
-    (expectedmodel()) also replaces the scatter matrices of single-row
-    missingness patterns (previously stored as zero and skipped) by their
-    implied expectations. Before this fix, FIML models containing
-    single-row patterns - notably var1()/tsdlvm1(), whose lag-augmented
-    data always contain one boundary row - showed a spurious O(1/n)
-    deviation (about 0.5 percent) between the analytic and numeric Fisher
-    information in checkFisher(), even though the analytic information was
-    correct. Estimation, standard errors and fit measures are unaffected
-    (expectedmodel() is only used by the numeric Fisher verification
-    tooling).
+  o Added the PDC (partial directed correlation) parameterization of temporal effects: temporal = "PDC" in var1()/gvar(), panelvar()/panelgvar() and tsdlvm1(), and temporal_latent = "PDC" and temporal_residual = "PDC" in dlvm1()
+    o The PDC matrix encodes from = row and to = column
+    o CIplot(), the model search functions and penalized estimation use the PDC matrix by default for these models
+  o checkFisher() is now exact for FIML models
 
 Changes in Version 0.16.3
-  o NEW: dlvm1() gained a 'beta_epsilon' argument: lag-1 temporal effects at
-    the residual level, epsilon_t = beta_epsilon epsilon_(t-1) + u_t. The
-    default "zero" reproduces the previous white-noise residual structure
-    exactly (verified against 0.16.2 reference fits: identical estimates,
-    standard errors, degrees of freedom and likelihoods). "diag" gives each
-    indicator its own residual autoregression, modeling item-specific
-    carry-over (autocorrelated uniquenesses) with a geometrically decaying
-    structure; "full" and custom pattern matrices are also supported, as are
-    cross-group equality constraints (equal = "beta_epsilon" and
-    groupequal("beta_epsilon")).
-  o When beta_epsilon is non-zero, sigma_epsilon_within (and its typed
-    variants: chol, prec, ggm, cor) parameterizes the innovation covariance
-    of the residual process; the implied stationary residual covariance is
-    available via getmatrix(model, "sigma_epsilon_within_stationary").
-    Together with sigma_epsilon_between (the perfectly stable item
-    component), this gives each indicator a STARTS-like decomposition:
-    stable trait + autoregressive part + latent dynamics.
-  o Identification: a non-zero beta_epsilon requires at least three waves
-    (a warning is issued with two); four or more are recommended. Since the
-    white-noise model is nested (beta_epsilon = 0), modification indices for
-    the beta_epsilon elements provide a direct diagnostic for residual
-    autocorrelation, and the LRT against the default model is the natural
-    test.
-  o Implemented in both the R and C++ engines; analytic gradients verified
-    against numeric ones for diag/full beta_epsilon across residual types
-    (cov, chol, ggm, cor), multi-group models with equality constraints,
-    FIML, and missing-wave designs, and the implied covariance structure
-    verified against an independent implementation and a large Monte Carlo
-    simulation of the generating process.
+  o Added the 'beta_epsilon' argument to dlvm1() for lag-1 temporal effects between residuals ("zero" by default; "diag", "full" or a matrix)
+  o getmatrix(x, "sigma_epsilon_within_stationary") returns the implied stationary residual covariances
+  o A non-zero beta_epsilon requires at least three waves
 
 Changes in Version 0.16.2
-  o NEW: panelvar() and panelgvar() are now implemented as their own model
-    framework ("panelvar") rather than as a dlvm1 model with dummy matrices
-    (identity factor loadings and zero residual variances). The model is
-    unchanged -- a within-person stationary VAR(1) process plus a
-    between-person (random intercept) structure -- and results are identical
-    to the previous route (same estimates, standard errors, degrees of
-    freedom and fit measures; the existing panel reference values reproduce
-    exactly). Estimation skips all factor-loading algebra in both the R and
-    C++ engines, making runmodel() roughly 1.3-2.6 times faster (the gain
-    grows with the number of variables and waves). Analytic gradients of the
-    new framework are verified against numeric ones for all within/between
-    types (cov, chol, prec, ggm, cor), including multi-group models with
-    equality constraints, FIML, and designs with missing waves.
-  o The panelvar/panelgvar model matrices keep their dlvm1 names (beta,
-    sigma_zeta_within, sigma_zeta_between and their typed variants), so
-    getmatrix(), prune(), stepup(), transmod(), CIplot(), esa() and
-    modelsearch() keep working unchanged. The mean structure is now a single
-    'mu' matrix of observed stationary means (previously the observed
-    intercepts appeared as 'nu' with latent means 'mu_eta' fixed to zero);
-    equality constraints requested on 'nu' are mapped to 'mu' for backward
-    compatibility. Variable names now default to the design-matrix rownames
-    (or V1, V2, ...) instead of Eta_1, Eta_2, ....
-  o panellvgvar() (the latent panel GVAR) is unaffected and still uses the
-    dlvm1 framework.
+  o panelvar() and panelgvar() are now implemented as their own model framework instead of through dlvm1(), which is faster and gives the same results
+  o The means of panelvar/panelgvar models are now in the 'mu' matrix (previously 'nu'), and variable names default to the rownames of the design matrix
 
 Changes in Version 0.16.1
-  o NEW: the correlation parameterization (type = "cor"; a correlation matrix
-    rho with a diagonal matrix of standard deviations SD, such that
-    sigma = SD (I + rho) SD) is now available for every typed covariance
-    structure in the package, alongside "cov", "chol", "prec" and "ggm":
-    - lvm() latent and residual structures (rho_zeta/SD_zeta and
-      rho_epsilon/SD_epsilon), including lnm()/rnm()/lrnm() and meta_lvm()
-    - var1()/gvar() contemporaneous (innovation) structure (rho_zeta/SD_zeta),
-      including meta_var1()/meta_gvar()
-    - tsdlvm1()/ts_lvgvar() contemporaneous and residual structures
-    - dlvm1() and ml_lvm() within/between latent and residual structures,
-      including panelvar()/panelgvar()/panellvgvar() and ml_lnm()/ml_rnm()/
-      ml_lrnm(), and ri_clpm() (type = "cor")
-    No new derivatives were needed: the existing analytic rho/SD Jacobian
-    blocks (used by varcov(type = "cor") and the meta-analytic random
-    effects) are chained into each family's gradient, in both the R and
-    C++ engines. transmod() can transform saturated/diagonal structures
-    to and from "cor", and CIplot() selects rho matrices for cor-typed
-    models.
-  o With identification = "variance", cor-typed latent structures are
-    identified by fixing the latent standard deviations (the diagonal of
-    the SD matrix) to 1, so the latent covariance structure becomes a
-    correlation matrix (I + rho).
-  o The "cor" parameterization is fit-equivalent to the "cov"
-    parameterization when saturated (verified numerically for all families:
-    identical log-likelihoods, degrees of freedom and implied covariance
-    structures; analytic gradients verified against numeric ones in both
-    the R and C++ engines).
+  o Added type = "cor" (correlations 'rho' and standard deviations 'SD') to all typed covariance structures in lvm(), var1(), tsdlvm1(), dlvm1(), ml_lvm(), meta_lvm(), meta_var1(), ri_clpm() and their wrappers
+  o With identification = "variance" the latent standard deviations are fixed to 1 for type = "cor"
 
 Changes in Version 0.16
-  o Version 0.16 is a major feature release that consolidates the 0.15.x
-    development series. It bundles a large internal code audit (numerous
-    bug fixes, robustness and performance improvements across all model
-    families, and a new automated test suite) together with substantial new
-    modeling functionality, all validated against lavaan. The detailed
-    per-version changelog is retained below.
-
-  o NEW: a fast sufficient-statistics two-level maximum-likelihood estimator for
-    multi-level latent variable models (ml_lvm(estimator = "ML")), supporting
-    complete and within-cluster-missing data.
-
-  o NEW: robust maximum-likelihood estimators MLM, MLMV, MLMVS and MLR
-    (robust/sandwich standard errors, scaled chi-square statistics and robust
-    RMSEA/CFI/TLI), with Satorra-Bentler-family scaled chi-square difference
-    tests in compare().
-
-  o NEW: lavaan interoperability via fromlavaan() and tolavaan(), standardized
-    (std.all) solutions with delta-method standard errors, the wishart
-    likelihood, and fixed exogenous covariates (fixed_x).
-
-  o The estimators, fit measures, standard errors and converters listed above
-    were validated against lavaan as a numerical oracle. Several of the new
-    methods carry an experimental note (shown when verbose = TRUE) and may still
-    change.
+  o Version 0.16 consolidates the 0.15.x versions. The most important additions are:
+    o A fast two-level ML estimator for ml_lvm()
+    o The robust ML estimators MLM, MLMV, MLMVS and MLR, with scaled chi-square difference tests in compare()
+    o fromlavaan() and tolavaan() to convert models from and to lavaan
+    o Standardized solutions, the wishart likelihood and fixed exogenous covariates (fixed_x)
+    o A large number of bug fixes and an automated test suite
 
 Changes in Version 0.15.31
-  o This release adds new modeling functionality validated against lavaan: a
-    fast two-level maximum-likelihood estimator for multi-level latent variable
-    models, robust maximum-likelihood estimators (MLM/MLMV/MLMVS/MLR) with
-    scaled test statistics and robust fit indices, scaled chi-square difference
-    tests, converters to and from lavaan, standardized solutions, the wishart
-    likelihood, and fixed exogenous covariates. All new features are opt-in;
-    existing analyses are unaffected. Several new methods carry an experimental
-    note (shown when verbose = TRUE).
-
-  o MULTI-LEVEL: ml_lvm() gains a sufficient-statistics two-level ML estimator
-    (estimator = "ML"; McDonald & Goldstein, 1989; Muthen, 1990), which
-    optimizes the numerically identical objective as the wide-format FIML
-    estimator but is dramatically faster for large clusters (e.g. a 100-cluster
-    model with cluster sizes 18-25 fits in under a second versus ~90 seconds
-    with FIML). Standard errors and modification indices use an analytic
-    expected Fisher information (verified against lavaan's kernel to ~1e-13),
-    with full C++ implementations. Within-cluster missing data (MCAR/MAR) is
-    supported (matching lavaan::sem(..., missing = "ml"); R-based, numeric
-    information). The estimator argument now defaults to "default", which picks
-    "ML" for complete data with largest cluster > 5 units and "FIML" otherwise;
-    explicit estimator = "FIML" reproduces previous results exactly. Saturated
-    and baseline reference models, chi-square, df, CFI and TLI agree with
-    lavaan's two-level SEM; sample-size-dependent measures (RMSEA, BIC) use the
-    number of clusters J (so RMSEA is larger than lavaan's by a factor
-    sqrt(N/J)).
-
-  o ROBUST ML: added robust maximum-likelihood estimators selectable via the
-    model constructors or setestimator(): "MLM", "MLMV", "MLMVS" (Browne-1984
-    robust.sem sandwich standard errors with the Satorra-Bentler,
-    scaled-and-shifted, and mean-and-variance-adjusted scaled chi-square,
-    respectively) and "MLR" (Huber-White sandwich standard errors with the
-    Yuan-Bentler-Mplus scaled chi-square), plus robust RMSEA/CFI/TLI. Point
-    estimates are unchanged maximum likelihood. "MLR" supports missing data via
-    FIML, with the FIML-corrected (Savalei, 2010) robust fit indices, matching
-    lavaan's estimator = "MLR", missing = "fiml". The Satorra-Bentler family is
-    complete-data only. All quantities were validated against lavaan.
-
-  o The multi-group scaled (WLSMV / Satorra-Bentler) test statistic now
-    accumulates trace((U Gamma)^2) on the global block-diagonal stack rather
-    than per group. The per-group form was only correct without cross-group
-    equality constraints; multi-group equality-constrained scaled chi-squares
-    now match lavaan (the same correction lavaan made in 0.6-13). Single-group
-    output is unchanged.
-
-  o compare() now reports a Satorra-Bentler-family scaled chi-square difference
-    test (columns Chisq_diff_scaled, p_value_scaled) for nested models fitted
-    with a robust or scaled estimator. A new scaled.test.method argument selects
-    "satorra.bentler.2001" (default), "satorra.bentler.2010", or "satorra.2000"
-    (scaled-and-shifted; appropriate for MLMV/WLSMV). Output for non-robust
-    estimators is unchanged. Reproduces lavaan's lavTestLRT().
-
-  o LAVAAN INTEROPERABILITY: added fromlavaan(), which converts a fitted lavaan
-    object (or model syntax + data) into an equivalent psychonetrics lvm
-    (latent = "cov", residual = "cov"), reproducing estimates, standard errors,
-    chi-square, df and log-likelihood for standard ML fits (multi-group,
-    equality constraints, std.lv and FIML supported; unsupported features raise
-    informative errors). Added tolavaan(), which converts a psychonetrics lvm
-    (cov/cov) into a fitted lavaan object or a lavaan parameter table.
-
-  o parameters(x, standardized = TRUE) now returns the completely standardized
-    (std.all) solution with delta-method standard errors for the lvm and varcov
-    families (new std and se_std columns), matching lavaan::standardizedSolution().
-
-  o Added likelihood = "wishart" to lvm() and varcov() (complete-data Gaussian
-    ML): uses the unbiased (n-1) sample covariance with (n-1)-scaled chi-square
-    and standard errors, matching lavaan(likelihood = "wishart"). The default
-    likelihood = "normal" (n denominator) is unchanged.
-
-  o Added fixed_x to lvm() and varcov(): fixes declared exogenous covariates'
-    means and mutual (co)variances to their sample values (conditioning on x),
-    matching lavaan(fixed.x = TRUE); estimates, standard errors, chi-square, df
-    and the conditional log-likelihood match lavaan. Incremental fit indices use
-    psychonetrics' unconditional baseline.
-
-  o usecpp() keeps the two-level ML estimator with missing data on the R path
-    (it has no C++ implementation) instead of failing with a cryptic error.
+  o Added a two-level ML estimator to ml_lvm() (estimator = "ML"), which is much faster than FIML for large clusters. The 'estimator' argument now defaults to "default"; use estimator = "FIML" to recover old behavior
+  o Added the robust ML estimators "MLM", "MLMV", "MLMVS" and "MLR" (robust standard errors, scaled test statistics and robust fit indices)
+  o compare() now reports a scaled chi-square difference test for robust estimators (see the 'scaled.test.method' argument)
+  o Added fromlavaan() and tolavaan() to convert lvm models from and to lavaan
+  o parameters(x, standardized = TRUE) now returns the standardized solution with standard errors for the lvm and varcov families
+  o Added likelihood = "wishart" to lvm() and varcov()
+  o Added the 'fixed_x' argument to lvm() and varcov() for fixed exogenous covariates
+  o Fixed the scaled test statistic of multi-group models with equality constraints
 
 Changes in Version 0.15.30
-  o This release implements the remaining findings of a large internal code
-    audit: bug fixes across all model families, robustness and performance
-    improvements, a documentation overhaul, and a new automated test suite.
-
-  o ESTIMATION AND OPTIMIZATION:
-  o Fixed an inverted positive-definiteness flag and re-enabled the optimizer
-    penalty for improper (non-positive-definite) implied covariance matrices.
-    Previously the ML objective was unbounded below at such points, which
-    could make optimizers (notably nlminb, the default) diverge to absurd
-    estimates on panel models (panelvar/panelgvar) and SEM models. Both the
-    C++ and R fit paths now return a large penalty instead.
-  o Fixed the experimental "LBFGS++" optimizer reporting convergence at
-    infeasible points (non-finite objective, penalty bound, NA parameters, or
-    iteration limit); such runs now trigger runmodel's emergency restart or a
-    clear error. Also fixed runmodel's recovery logic for the C++ optimizer
-    branches: NA optimizer output now triggers an emergency restart, and
-    failed recoveries stop with an informative error.
-  o Fixed emergencystart() constraining the wrong edges to zero in its glasso
-    restart (free edges were zeroed instead of structurally fixed ones).
-  o latentgrowth() (and lvm models with fully fixed nu and free nu_eta) now
-    uses least-squares starting values for the latent means, fixing frequent
-    non-convergence on growth data with nonzero means.
-  o Fixed elastic-net penalized ML (0 < alpha < 1) applying the ridge
-    component twice in the proximal-gradient optimizer; LASSO (alpha = 1)
-    results are unaffected. The default beta_min for penalized-model lambda
-    selection is now "numerical" (1e-05), matching the documentation.
-  o Fixed an operator-precedence bug in the internal spectral shift used for
-    start values (it added 0.001 to every element instead of shifting the
-    diagonal and could leave matrices exactly singular). Start values of
-    dlvm1/panelgvar-type models on difficult data may change slightly
-    (typically improving convergence). The GGM correlation-input runtime path
-    no longer applies a spectral shift, aligning the R and C++ paths.
-  o solve_symmetric: the log-determinant plugin for non-positive-definite
-    matrices now also catches NaN. Fixed a potential stale-cache issue in the
-    C++ optimization workspace (cached model now protected from garbage
-    collection). refit()-ed models now select the same default optimizer as
-    freshly specified models; runmodel() warns when bounded = TRUE is ignored
-    by ucminf.
-
-  o GENERAL BUG FIXES:
-  o fullFIML = TRUE (row-wise FIML) errored with "Not a matrix." for all
-    standard model families; the C++ FIML fit, gradient, expected Hessian and
-    log-likelihood now handle both single implied matrices and per-row lists.
-  o Fixed equal = "omega_zeta" being silently ignored (and "lowertri_zeta"
-    wrongly applied instead) in lvm/lnm/lrnm models with a latent network.
-  o factorscores() now correctly accounts for structural regressions (beta)
-    in the regression method and adds the model-implied latent means to both
-    methods, fixing wrong scores in SEM-style and multi-group models.
-  o Fixed varcov(covtype = "choose"): detected unbiased (n-1) input
-    covariances are now correctly rescaled to ML.
-  o Fixed multiple-comparison p-value adjustment (prune/adjust): the
-    correction is now over unique parameters rather than parameter-table
-    rows, so equality-constrained parameters are no longer over-penalized.
-  o Fixed prune(recursive = TRUE) resetting alpha to 0.01 (and dropping
-    mode/startreduce/limit) in passes after the first.
-  o Likelihood-based fit measures (logl, AIC, BIC, ebic) are now retained
-    when chisq/baseline measures are unavailable (e.g. baseline_saturated =
-    FALSE). Fixed the ebic.75 fit measure (used gamma 0.7 instead of 0.75).
-  o Fixed getmatrix(..., diag = FALSE) zeroing the wrong elements.
-  o runmodel(analyticFisher = FALSE) now actually uses the numeric Fisher
-    information on the default C++ path. Fixed the identification check in
-    greedy stepup() inspecting the previous model's information.
-  o Standard errors: inversion-failure/pseudoinverse warnings are no longer
-    suppressed when verbose = FALSE; negative inverse-information variances
-    now yield NA standard errors with a warning (R and C++ paths).
-  o setestimator() now resets the computed flag, propagates the estimator to
-    baseline/saturated models, and validates required sample statistics.
-  o varcov-family models (ggm, corr, ...) now give an informative error when
-    corinput = TRUE is combined with a meanstructure under (penalized) ML,
-    instead of crashing during optimization.
-  o Fixed parequal() argument handling (named runmodel arguments leaked into
-    the constraint set). fixpar() and friends now error on mistyped variable
-    labels instead of silently doing nothing. compare() reports NA p-values
-    for equal-df models and warns on negative chi-square differences.
-  o Fixed lvm/lnm/meta_lvm with latent = "ggm" and a single latent variable
-    crashing at construction. lvm() now warns when there are more latent
-    than observed variables. bifactor() uses deterministic starting values.
-
-  o ISING / BLUME-CAPEL:
-  o The partition function and moment computations now use log-sum-exp
-    accumulation: extreme parameter values no longer produce Inf/NaN fits,
-    gradients, or Fisher information (results unchanged in the normal
-    regime). Long state-space enumerations can now be interrupted.
-  o Raw data are now validated against the responses argument (stray values
-    error instead of silently biasing the fit); only missing = "listwise" is
-    supported and other options error at construction; the free inverse
-    temperature beta is now bounded at 0; groupequal("delta") now correctly
-    frees the group-specific beta in Blume-Capel models.
-
-  o TIME SERIES / PANEL MODELS:
-  o Fixed sigma_within (and sigma_crosssection) reporting in dlvm1-family
-    models: the between-person residual covariance was added instead of the
-    within-person residual covariance (estimation was not affected).
-  o ri_clpm stationarity constraints ("innovation"/"contemporaneous") now
-    select parameters structurally per wave; pruned/fixpar'd models
-    previously produced corrupted equality constraints and now constrain
-    correctly or stop with an informative error. Unpruned behavior unchanged
-    (wave 1 and the random-intercept block remain free).
-  o tsData(): grouped data previously ignored lags, scale, center and
-    centerWithin; lags other than 1 erroneously produced lag-1 columns. Both
-    fixed. var1()/gvar() gain a centerWithin argument (default FALSE).
-  o ml_lvm: variable names containing regex metacharacters (e.g. "y.1") are
-    no longer silently dropped (same fix in dlvm1/ri_clpm wide matching);
-    the C++ implied structure now correctly subsets by the design matrix for
-    incomplete designs, matching the R implementation; the default vars now
-    excludes the groups column. dlvm1-family constructors error informatively
-    with fewer than two waves. dlvm1 "version2" start values now use the
-    between-person residual covariance estimate for epsilon_between.
-
-  o META-ANALYTIC MODELS:
-  o meta_varcov now genuinely supports covariance matrices as input (covs=
-    defaults to corinput = FALSE as documented); previously covariances were
-    silently modeled as correlations and corinput = FALSE crashed.
-  o New Vmethod options "OS_individual" and "OS_pooled" in meta_varcov: the
-    Olkin-Siotani (1976) sampling covariance of sample correlations
-    (validated against metaSEM::asyCov), recommended when heterogeneity
-    (random-effects) variances are of substantive interest. The default
-    Vmethod is unchanged for backward compatibility with published analyses.
-  o Fixed meta_varcov/meta_ggm with estimator = "ML" and meta_lvm with
-    residual = "prec" crashing at the first gradient evaluation. Fixed
-    bivariate (single-correlation) meta_varcov crashing at construction.
-    Meta models now error informatively when two variables are never
-    observed together in any study. meta_lvm uses the C++ Jacobian for the
-    Fisher information when cpp = TRUE.
-
-  o PERFORMANCE:
-  o The joint equality score test used by addMIs/runmodel on multi-group
-    models factorizes the bordered information system once: up to several
-    hundred times faster on large equality-constrained models (identical
-    results). The matrices argument of addMIs() is now implemented.
-  o Commutation matrices are constructed directly in sparse form and, with
-    the other algebra helper matrices, cached per dimension: substantially
-    faster model construction (about 3x for a 30-node GGM). The sparse
-    Fisher-information path is now reachable for sparse model Jacobians.
-  o Ising state enumeration avoids per-state matrix copies and the
-    log-likelihood reuses the prepared partition function (about 1.3-1.6x
-    faster Ising runmodel). Plus assorted micro-optimizations.
-
-  o INFRASTRUCTURE, DOCUMENTATION AND TESTS:
-  o Added an automated test suite (tinytest) covering the psychonetrics.org
-    examples plus targeted regression tests for the fixes in this release,
-    with reference values cross-checked against lavaan. tinytest added to
-    Suggests; removed unused dependencies GA, combinat, VCA and abind.
-  o loop_psychonetrics() and replicator() gain a seed argument for
-    reproducible (parallel) simulations; aggregate_bootstraps()'s
-    remove_problematic argument is now respected.
-  o Large documentation cleanup: fixed a broken example in partialprune.Rd,
-    corrected the documented MIs() type values, documented lambda = "full",
-    corrected Cholesky equations and stale paragraphs in the family pages,
-    added missing \value sections, fixed broken examples, removed the
-    unimplemented "MUML" option from ml_lvm(), added a ggplot2 guard to
-    CIplot(), and fixed many typos.
-  o Added inst/COPYRIGHTS and a DESCRIPTION Copyright field documenting the
-    bundled LBFGS++ (MIT) headers; removed a linker flag that stripped debug
-    symbols (CRAN policy); dev-checklist files excluded from the build.
+  o Fixed the penalty for improper (non-positive definite) implied covariance matrices, which could make the optimizer diverge in panel and SEM models
+  o Fixed the "LBFGS++" optimizer reporting convergence at infeasible points
+  o Fixed emergencystart() constraining the wrong edges to zero
+  o latentgrowth() now uses least-squares starting values for the latent means
+  o Fixed elastic-net penalized ML applying the ridge penalty twice (LASSO was not affected)
+  o Fixed a bug in the spectral shift used for starting values; starting values of dlvm1 models may change slightly
+  o Fixed fullFIML = TRUE giving an error
+  o Fixed equal = "omega_zeta" being ignored in lvm models
+  o Fixed factorscores() for models with regressions and latent means
+  o Fixed varcov(covtype = "choose") not rescaling unbiased covariances
+  o Fixed the p-value adjustment in prune() for parameters with equality constraints
+  o Fixed prune(recursive = TRUE) resetting 'alpha' and other arguments after the first step
+  o Fixed the ebic.75 fit measure; likelihood-based fit measures are now also returned without a baseline model
+  o Fixed getmatrix(..., diag = FALSE) setting the wrong elements to zero
+  o Fixed runmodel(analyticFisher = FALSE) not using the numeric Fisher information
+  o Standard errors are now NA (with a warning) when the estimated variance is negative
+  o Fixed setestimator(), parequal() and lvm models with latent = "ggm" and a single latent variable
+  o fixpar() and related functions now give an error for unknown variable labels
+  o Ising and Blume-Capel models: improved numerical stability, data are now checked against 'responses', and only missing = "listwise" is supported
+  o Fixed groupequal("delta") in Blume-Capel models
+  o Fixed the 'sigma_within' matrix returned for dlvm1 models (estimation was not affected)
+  o Fixed the stationarity constraints of ri_clpm models after pruning
+  o Fixed tsData() ignoring 'lags', 'scale', 'center' and 'centerWithin' for grouped data
+  o Added the 'centerWithin' argument to var1() and gvar()
+  o Fixed variable names with special characters being dropped in ml_lvm, dlvm1 and ri_clpm
+  o meta_varcov() now supports covariance matrices as input
+  o Added the "OS_individual" and "OS_pooled" options for 'Vmethod' in meta_varcov()
+  o Fixed several crashes in meta_varcov(), meta_ggm() and meta_lvm()
+  o The 'matrices' argument of addMIs() is now implemented
+  o loop_psychonetrics() and replicator() gain a 'seed' argument
+  o aggregate_bootstraps() now respects the 'remove_problematic' argument
+  o Removed the "MUML" option from ml_lvm(), which was not implemented
+  o Faster modification indices in multi-group models, model construction and Ising models
+  o Added an automated test suite (tinytest) and removed the unused dependencies GA, combinat, VCA and abind
+  o Large documentation cleanup
 
 Changes in Version 0.15.29
-  o Bugfix: the "loadings" identification used by lvm(), ml_lvm(), dlvm1() and
-    tsdlvm1() could silently overwrite a user-fixed (or built-in) nonzero
-    factor loading. To identify a factor's scale the identifier fixed the first
-    "eligible" loading in each column to 1, where "eligible" included loadings
-    already FIXED at a nonzero value. When the first such loading was fixed at a
-    value other than 1, it was overwritten -- changing the model. This notably
-    affected latentgrowth() with non-default time scores: e.g.
-    latentgrowth(vars, data, time = c(0,2,4,6)) had its slope loadings altered
-    from 0,2,4,6 to 0,1,4,6, fitting a different growth model. The identifier
-    now skips a factor whose column already contains a fixed nonzero loading
-    (the scale is already identified) and otherwise fixes the first FREE loading
-    to 1. Standard CFA behaviour (first free loading fixed to 1) is unchanged,
-    and a user-supplied marker loading fixed at any nonzero value is now
-    preserved.
+  o Fixed the "loadings" identification overwriting a loading that was fixed to a nonzero value (e.g., in latentgrowth() with non-default time scores)
 
 Changes in Version 0.15.28
-  o Bugfix: the multi-level latent variable model (ml_lvm) analytic Jacobian
-    omitted the derivative of the implied means with respect to the
-    between-subject regressions (beta_between). The implied mean is
-    mu = nu + lambda %*% (I - beta_between)^-1 %*% nu_eta, which depends on
-    beta_between whenever the latent intercepts nu_eta are nonzero, but the
-    d/d-beta_between block of the mean rows was never filled (in both the R and
-    C++ derivative paths). This produced an incorrect gradient/Jacobian column
-    for any ml_lvm with free between-subject regressions and free (nonzero)
-    latent means -- reachable since the 0.15.18 nu_eta identification fix. The
-    analogous block is now filled via d_mu_beta_lvm() / d_mu_beta_lvm_cpp(),
-    matching the single-level lvm. Within-cluster latents have mean zero, so
-    beta_within correctly contributes no mean term.
+  o Fixed the Jacobian of ml_lvm models with between-subject regressions and latent means
 
 Changes in Version 0.15.27
-  o Bugfix: runmodel(addInformation = FALSE) crashed the whole call in the C++
-    standard-error path with "Mat::operator(): index out of bounds". addSEs_cpp()
-    read the @information slot unconditionally, but with addInformation = FALSE
-    that slot is empty (a 0x0 matrix), so indexing into the inverted matrix went
-    out of bounds. It now recomputes the Fisher information on demand when the
-    slot is absent, mirroring getVCOV(). The R getVCOV() path had the same latent
-    bug -- its is.null() check never fired for the default empty "matrix" slot,
-    silently returning all-NA standard errors -- and now also treats a zero-size
-    information matrix as absent. Both paths produce identical, correct SEs.
+  o Fixed runmodel(addInformation = FALSE) crashing
 
 Changes in Version 0.15.26
-  o Bugfix: changedata() unconditionally accessed colnames(data), so the
-    documented summary-statistics usage changedata(x, covs=, nobs=) crashed
-    with 'argument "data" is missing'. The data-dependent label check is now
-    guarded, and the covs/means/nobs input path is forwarded to samplestats()
-    and the baseline/saturated constructors, mirroring how the model
-    constructors accept either raw data or summary statistics.
-  o Bugfix: changedata() always recomputed @sample@nobs including the mean
-    block (nVar*(nVar+1)/2*nGroup + nVar*nGroup), which corrupted the degrees
-    of freedom for models built with meanstructure = FALSE (e.g. a saturated
-    model reported df = 4 instead of 0). The mean block is now counted only
-    when the model has a mean structure, matching bootstrap() and the model
-    constructors.
+  o Fixed changedata() with summary statistics (covs and nobs) as input
+  o Fixed changedata() giving incorrect degrees of freedom for models without a mean structure
 
 Changes in Version 0.15.25
-  o Bugfix: transmod() attached incorrect standard errors and p-values to the
-    transformed model (e.g. transmod(type="ggm") on a covariance model, or the
-    reverse). The transformed estimates were correct, but addSEs() reused the
-    Fisher information copied verbatim from the original model - which still
-    described the pre-transformation parameterization - because getVCOV()
-    reuses a model's stored @information whenever it is non-NULL. transmod()
-    now recomputes the Fisher information on the transformed model before
-    adding standard errors, so the SEs and p-values match those of an
-    equivalent model fit directly. Point estimates are unchanged.
+  o Fixed transmod() returning incorrect standard errors and p-values
 
 Changes in Version 0.15.24
-  o Bugfix: in multi-group models, the type="free" and type="equal" modification
-    index passes in addMIs() wrote their expected parameter changes to the
-    "normal" epc column instead of epc_free and epc_equal. As a result, in any
-    multi-group runmodel() (which runs normal -> free -> equal passes) the normal
-    EPC column was overwritten twice while epc_free and epc_equal remained NA.
-    MIs(type="free") and MIs(type="equal") now report their correct EPC columns,
-    and the normal EPC is no longer clobbered. Single-group results are unchanged.
+  o Fixed MIs(type = "free") and MIs(type = "equal") returning the wrong expected parameter changes in multi-group models
 
 Changes in Version 0.15.23
-  o Bugfix: bootstrap() resampled rows from the pooled data, ignoring the
-    grouping structure of multi-group models. This had three consequences:
-    (1) resampling was not stratified, so group sizes drifted between
-    replications; (2) the rebuilt sample derived its group order from the
-    first resampled row, which - whenever that row belonged to a different
-    group than the original first group - permuted the group ids relative to
-    x@parameters, so a group's parameters were fit to another group's data
-    (e.g. a two-group model with very different group means produced nonsense
-    estimates and failed to converge); and (3) the recomputed @sample@nobs
-    always included a mean block, corrupting the degrees of freedom for
-    meanstructure = FALSE models. bootstrap() now resamples within each group
-    (preserving group sizes), rebuilds the data in the original group order so
-    group ids stay aligned with the parameter table, and computes nobs as
-    nVar*(nVar+1)/2*nGroup + meanstructure*nVar*nGroup (matching the model
-    constructor). Single-group models are unaffected.
+  o Fixed bootstrap() for multi-group models: cases are now resampled within groups
 
 Changes in Version 0.15.22
-  o Bugfix: for multi-group Ising() and BlumeCapel() models specified as
-    Ising(data, groups = "group") without an explicit 'vars' argument, the
-    grouping column was included when auto-detecting the response options (and
-    in the 'min_sum' sum-score check). With numeric group codes this silently
-    added the codes as extra response options - e.g. binary 0/1 data with a
-    numeric group column was fit as a 3-state {0,1,2} model, giving wrong
-    thresholds - and with character group labels it failed later with an
-    opaque type error. The grouping column is now excluded from the response
-    detection and the min_sum check (matching how samplestats() derives
-    'vars'), and a non-numeric response set is now rejected up front with a
-    clear error message. Single-group models, and models with explicit 'vars'
-    or 'responses' arguments, are unaffected.
+  o Fixed multi-group Ising() and BlumeCapel() models including the group variable when detecting the response options
 
 Changes in Version 0.15.21
-  o Bugfix: the C++ derivative routine for variance-covariance models
-    (used by the gradient and Fisher information when cpp = TRUE) wrote the
-    precision-matrix (kappa) derivative block into the wrong Jacobian columns:
-    it reused the row offset of the variance block instead of the parameter-
-    column offset. When the mean structure was present this happened to
-    coincide with the correct columns, but for precision() models fitted
-    without a mean structure (e.g. precision(covs = S, nobs = n) or
-    precision(data, meanstructure = FALSE)) the column indices exceeded the
-    width of the Jacobian and Armadillo aborted with "Mat::submat(): indices
-    out of bounds" for every estimator. The column range now matches the
-    sigma/cholesky blocks (and the R implementation). precision() models
-    without a mean structure now run; mean-structure models are unaffected.
+  o Fixed precision() models without a mean structure giving an error
 
 Changes in Version 0.15.20
-  o Bugfix: standard errors for the ULS and DWLS estimators (used e.g. for
-    ordinal data via estimator = "DWLS"/"WLSMV") were computed with the naive
-    (Delta'WDelta)^-1 / n formula, which is only correct when the weight
-    matrix W equals the inverse of the asymptotic covariance Gamma of the
-    sample statistics. For ULS and (especially) DWLS this is not the case, so
-    the reported standard errors were biased (e.g. ordinal DWLS loading and
-    threshold SEs deviated by roughly 10-12% from lavaan's robust WLSMV
-    standard errors, while the point estimates matched). psychonetrics now
-    computes the robust sandwich covariance
-      (Delta'WDelta)^-1 (Delta'W Gamma W Delta) (Delta'WDelta)^-1 / n
-    for ULS and DWLS, matching lavaan's se = "robust" output. Full WLS
-    (W = Gamma^-1) and the ML/FIML estimators are unaffected, as the sandwich
-    reduces to the naive form there. When Gamma is unavailable (for instance
-    when a model is fit to a covariance matrix rather than raw data) the
-    non-robust standard errors are returned together with a warning. The
-    robust covariance also propagates to confidence intervals, prune() and all
-    other consumers of the parameter standard errors.
+  o Standard errors of the ULS and DWLS estimators are now robust (sandwich) standard errors, matching lavaan
 
 Changes in Version 0.15.19
-  o Bugfix: for multi-group models with ordinal data (e.g. ggm() and other
-    models with ordered = ... , groups = ... and estimator = "WLS"/"DWLS"),
-    the per-group polychoric correlations, thresholds and WLS weight
-    matrices were computed on the full pooled sample instead of each group's
-    own rows. Every group therefore received identical (pooled) sample
-    statistics, so multi-group ordinal models were silently fit to pooled
-    data. Each group is now correctly computed from its own observations.
-    Single-group ordinal models and continuous (non-ordinal) multi-group
-    models were unaffected.
+  o Fixed multi-group models with ordinal data using the sample statistics of the pooled data in every group
 
 Changes in Version 0.15.18
-  o Bugfix: the identification routine for the multi-level latent variable
-    models (ml_lvm() and the ml_lnm/ml_rnm/ml_lrnm wrappers) referred to the
-    latent-intercept matrix by the wrong name ("mu_eta" instead of
-    "nu_eta"), so the latent intercepts were never fixed for identification.
-    This left the mean structure rank-deficient: latent-intercept standard
-    errors were nonsensical (~1e6) and the model degrees of freedom were
-    inflated. The latent intercepts are now correctly fixed (in group 1 only
-    for multi-group models, as for lvm()), matching the corresponding
-    two-level SEM. Estimates and log-likelihood of previously fitted models
-    are unaffected; only the standard errors and degrees of freedom change.
+  o Fixed the identification of the latent intercepts in ml_lvm() models. Note: this changes standard errors and degrees of freedom, not the estimates
 
 Changes in Version 0.15.17
-  o BlumeCapel() now gives an error (instead of a warning) when fewer than
-    three response options are supplied. With only two responses the
-    quadratic 'delta' term is not identifiable (x^2 is constant across the
-    two states), so it is confounded with the thresholds; use Ising() for
-    binary data.
+  o BlumeCapel() now gives an error instead of a warning with fewer than three response options
 
 Changes in Version 0.15.16
-  o New function allequal(): constrains all free elements of a model
-    matrix to be equal within each group (a single shared parameter per
-    group), separately per group (not across groups; use groupequal() in
-    addition for that). Useful e.g. to model all thresholds (tau) or all
-    Blume-Capel quadratic potentials (delta) equal, or to fit an
-    equal-edge-weight network (omega). Optional 'row', 'col' and 'group'
-    arguments restrict which elements/groups are affected.
+  o Added the allequal() function to constrain all free elements of a matrix to be equal within each group
 
 Changes in Version 0.15.15
-  o New model: BlumeCapel(). The Ising distribution has been generalized
-    to the 'Spin' distribution, which adds a per-node quadratic potential
-    delta:
-        P(X = x) propto exp( sum_i tau_i x_i - sum_i delta_i x_i^2
-                             + sum_{i<j} omega_ij x_i x_j ).
-    Two models are built on this distribution: the Ising model (delta
-    fixed to zero, exactly reproducing the previous Ising behavior) and
-    the new BlumeCapel model (delta freely estimated). BlumeCapel()
-    shares the Ising() engine, fit, gradient, expected Hessian and
-    standard errors. For the ternary -1/0/1 coding this is the usual
-    Blume-Capel model; any ordered response set is allowed (a warning is
-    raised when the coding departs from the conventional one).
-  o Ising() now warns when 'responses' is not -1/1 or 0/1, since the
-    behavior is then not exactly that of the classical Ising model.
-  o Internally, the model distribution previously labelled "Ising" is now
-    labelled "Spin"; both the Ising and BlumeCapel models use it. This is
-    transparent to users.
+  o Added the BlumeCapel() model, which extends the Ising model with a quadratic term ('delta') per node
+  o Ising() now gives a warning when 'responses' is not -1/1 or 0/1
 
 Changes in Version 0.15.14
-  o Ising() no longer requires the response options to be integers. Any
-    set of two or more distinct ordered response values is accepted in
-    'responses' (or detected from the data), integer or not.
+  o Ising() now supports non-integer response options
 
 Changes in Version 0.15.13
-  o The Ising model has been generalized to more than two response
-    options. Ising() now accepts any number of ordered integer response
-    options in 'responses' (e.g., c(-1,0,1) or seq(-5,5)), encoded
-    identically across all variables and detected automatically from the
-    data when not supplied. The parameterization is unchanged (one
-    threshold per variable in 'tau' and a pairwise network in 'omega');
-    only the partition function, expected values and (expected) Hessian
-    now sum over all length(responses)^nNode response patterns. With two
-    response options the results are identical to before. Only
-    non-integer responses raise an error.
-  o New argument 'maxStates' to Ising() (default 2^maxNodes) caps the
-    number of response patterns the exact ML estimator may enumerate,
-    since this cost grows as length(responses)^nNode. For binary data
-    the default reproduces the historical 'maxNodes' limit; raise it to
-    fit larger multi-state models when feasible.
+  o Ising() now supports more than two response options
+  o Added the 'maxStates' argument to Ising()
 
 Changes in Version 0.15.12
-  o The random intercept cross-lagged panel model (RI-CLPM) framework
-    has been finalized. ri_clpm() now accepts the same data input as
-    the dlvm1 family: wide-format data with a design matrix, or
-    long-format data via 'idvar' (and optionally 'beepvar'), with the
-    format auto-detected. A 'standardize' argument ("z", "z_per_wave"
-    or "quantile") was added. ri_clpm() models now also build an
-    independence baseline so that incremental fit indices (CFI/TLI)
-    are available.
-  o New function ri_clpm_search() runs a sequential stationarity
-    search: starting from the unconstrained model it adds, one at a
-    time, stationarity of intercepts, temporal effects, contemporaneous
-    relations and innovation variances, and finally the panelVAR model
-    (wave 1 endogenous), retaining each constraint only if it does not
-    worsen fit according to AIC, BIC, or a chi-square difference test.
-  o Fix: parequal() constrained parameters incorrectly (a misplaced
-    parenthesis passed the indices as unlist()'s 'recursive'
-    argument), which broke the temporal / contemporaneous / innovation
-    branches of ri_clpm_stationary().
+  o ri_clpm() now accepts wide-format and long-format data, supports the 'standardize' argument and includes a baseline model
+  o Added ri_clpm_search() to search for stationarity constraints
+  o Fixed a bug in parequal() that affected ri_clpm_stationary()
 
 Changes in Version 0.15.11
-  o New convenience setters update_baseline() and update_saturated()
-    overwrite the @baseline_saturated$baseline / $saturated slots of
-    a psychonetrics model. Together with `baseline_saturated = FALSE`
-    on the model constructor they make it straightforward to attach
-    hand-built reference models before calling runmodel().
+  o Added update_baseline() and update_saturated() to replace the baseline and saturated models
 
 Changes in Version 0.15.10
-  o Fix: the internal saturated reference model no longer inherits
-    cross-group equality from the target. Previously the saturated
-    builders in 10 model files (varcov / ggm, lvm, ml_lvm, var1,
-    dlvm1, tsdlvm1, Ising, plus changedata() / bootstrap()) passed
-    `equal = equal` into the saturated, so a multi-group model fit
-    with e.g. `equal = "omega"` produced a saturated whose covariance
-    structure was constrained equal across groups too. The saturated
-    is meant to be a fully-unrestricted per-group reference, so this
-    inflated chi-square pvalues and could produce nonsensical
-    negative df (the target was no longer nested in the saturated:
-    e.g. ggm(equal="omega") on 4 vars / 2 groups gave df = -4).
-
-    The recommended pipeline of imposing cross-group equality via
-    groupequal() after model construction was unaffected by this bug;
-    only the `equal = ...` shortcut at construction time triggered it.
-    After the fix, both pipelines produce sensible chi-square tests
-    and incremental fit indices.
-
-  o Fix (issue #51, jwe4ec): baseline.df was not adjusted for the
-    case where the saturated reference model has fewer free
-    parameters than nobs. The target df already had this adjustment;
-    baseline.df now mirrors it. With the saturated-equal fix above
-    this correction is usually zero, but it now also handles the
-    case where the user supplies a custom non-fully-saturated
-    saturated via @baseline_saturated$saturated. Affects the chi-
-    square reference for the baseline test and any incremental fit
-    indices that depend on baseline.df (CFI, TLI, NFI, RFI, IFI,
-    RNI, NNFI).
+  o Fixed the saturated model inheriting cross-group equality constraints from the 'equal' argument, which gave incorrect chi-square tests and degrees of freedom
+  o Fixed baseline.df when the saturated model is not fully saturated (GitHub issue #51)
 
 Changes in Version 0.15.9
-  o Performance: the expected Fisher information for Ising models is
-    now computed entirely in C++ in a single 2^N state-enumeration pass
-    (psychonetrics_FisherInformation_cpp -> expected_hessian_Ising_full_cpp).
-    The previous path made an R callback to expected_hessian_Ising_group,
-    which itself called IsingSampler::IsingLikelihood (one full state
-    enumeration plus materialization of a 2^N x N states matrix) and
-    then expHessianCpp (which made three more passes through all
-    2^N states: expHcpp, expH2cpp, and the main moment-accumulation
-    loop). The new single-pass implementation also fills only the
-    canonical lower-tri shapes of the 3rd- and 4th-order moment
-    tensors that the Hessian assembly actually reads, eliminating the
-    O(2^N N^4) dense fill in favour of O(2^N N^4 / 8).
-
-    Per-call benchmarks (multi-group Ising):
-      N=10 G=2  : 11.8x
-      N=12 G=2  : 21.2x
-      N=14 G=2  : 28.2x
-    End-to-end partialprune() at N=15 G=2 (sample 800/group) drops
-    from ~700s (0.15.7) to ~43s. Output is bit-identical (max abs
-    diff in the @information slot: 6.7e-16, machine epsilon).
-
-    The R-level expected_hessian_Ising / expected_hessian_Ising_group
-    functions and the Rcpp::export expHessianCpp are kept as-is for
-    callers outside the cpp Fisher-information path.
+  o The expected Fisher information of Ising models is now computed in C++, which is much faster
 
 Changes in Version 0.15.8
-  o partialprune() gains an 'identify' argument (default TRUE) that is
-    threaded through prune(), unionmodel(), intersectionmodel(),
-    groupequal(), and groupfree(). Setting identify = FALSE prevents
-    identify() from being called on the intermediate models, so user-
-    fixed parameters (e.g. fixpar(\"beta\", 1, 1, value = 1) in a multi-
-    group Ising) are not re-freed when omega equality constraints are
-    introduced. Default behavior (identify = TRUE) is unchanged.
+  o Added the 'identify' argument to partialprune()
 
 Changes in Version 0.15.7
-  o Performance: partialprune() inner refits skip addMIs(). The
-    repeat-loop only consumes the BIC and the joint score-test
-    statistic mi_free_joint, so addMIs's three Fisher-information
-    builds (type = normal / free / equal) are wasted on every
-    iteration. mi_free_joint is repopulated directly via
-    .equalityScoreTestInner(joint_only = TRUE) on each candidate fit
-    so the next selection still has the data it needs.
-
-    addSEs and addInformation are kept enabled because the post-loop
-    prune() reads p-values (from addSEs) and @information (from
-    addInformation) on the final curMod; disabling them changed the
-    post-loop prune behavior on multi-group cases where the inner
-    loop iterated more than once.
-
-    For useMIs = "simple" we fall back to a full addMIs() call inside
-    the loop so the legacy per-parameter mi_free column is still
-    populated (the simple branch reads it).
-
-    Final partialprune() output is unchanged: the user-facing returned
-    model is produced by the regular post-loop runmodel() / prune()
-    chain, which uses default flags and populates MIs / SEs / @information.
+  o partialprune() is now faster
 
 Changes in Version 0.15.6
-  o Performance: addMIs() now skips the univariate score-test loop in
-    .equalityScoreTestInner() (added in 0.15.4), which was computed on
-    every runmodel() call but never consumed -- only the joint score-test
-    statistic populates the parameter table. The univariate output is
-    still produced on demand when equalityScoreTest() or MIs(type="free")
-    are called. partialprune() no longer pays this cost on every inner
-    refit. Speedup scales with the number of groups: ~1.2x for G=2,
-    ~1.5x for G=3, ~2.5x for G=4 on a small Ising example. Final
-    partialprune() output is bit-identical to 0.15.5.
+  o addMIs() is now faster in multi-group models
 
 Changes in Version 0.15.5
-  o partialprune() gains a new argument release_model = c("pruned",
-    "saturated"), defaulting to "pruned". This changes the alternative
-    model used in the stepwise BIC comparison when deciding whether to
-    release an equality constraint: with "pruned" the just-released
-    parameter is immediately fixed to zero in any group where the
-    initial per-group prune (Step 1) had already removed it, before
-    refitting and comparing BIC. The equality-constrained model is
-    therefore tested against the asymmetric structure suggested by the
-    initial per-group prune rather than against a fully saturated
-    per-group alternative, which improves specificity at low sample
-    sizes. Set release_model = "saturated" to reproduce the 0.15.4
-    behavior.
+  o Added the 'release_model' argument to partialprune(), which defaults to "pruned". Use release_model = "saturated" to recover old behavior
 
 Changes in Version 0.15.4
-  o New function equalityScoreTest() that computes the score (Lagrange
-    multiplier) test for cross-group equality constraints in a multi-group
-    model. Returns both per-group univariate score statistics and a joint
-    multivariate score statistic (one per equality-constrained parameter,
-    df = G - 1). With the default method = "jacobian" the test
-    reproduces lavaan::lavTestScore exactly (to numerical precision)
-    for both balanced and unbalanced multi-group samples. A faster
-    method = "schur" alternative is available for complex models; it
-    inverts only the smaller "currently free" block of the information
-    matrix and matches lavaan in balanced samples.
-  o The parameter table now carries three new columns: mi_free_joint,
-    pmi_free_joint, and df_free_joint, populated whenever modification
-    indices of type "free" are computed.
-  o MIs() now prints two tables for type = "free": the existing summed
-    per-group univariate statistics (header updated to "Top N summed
-    equality-free modification indices") and a new "Top N joint
-    equality-free modification indices" table based on the multivariate
-    score test.
-  o partialprune() gains a new argument useMIs = c("joint","simple"). The
-    default "joint" ranks candidate equality releases by the joint score
-    test (correctly accounting for cross-group covariance for G >= 3).
-    Set useMIs = "simple" to reproduce the psychonetrics <= 0.15.3
-    behavior of summing per-group univariate MIs. The two options are
-    equivalent for two-group models.
+  o Added equalityScoreTest() for the score test of cross-group equality constraints
+  o The parameter table now includes the columns mi_free_joint, pmi_free_joint and df_free_joint
+  o MIs() now also prints joint modification indices for type = "free"
+  o Added the 'useMIs' argument to partialprune(), which defaults to "joint". Use useMIs = "simple" to recover old behavior
 
 Changes in Version 0.15.3
-  o Fixed meta_ggm() crashing with "non-numeric argument to mathematical
-    function" when using Vestimation = "per_study". The SRMR computation
-    in addfit() assumed sigma was a numeric matrix, but for meta_varcov
-    models with per-study estimation it is a list of per-study matrices.
-    SRMR now gracefully returns NA for such models.
-  o Fixed stepup() breaking equality constraints set by groupequal() in
-    multi-group models (GitHub issue #50). stepup() previously relied on
-    the @equal slot to detect cross-group equality constraints, but
-    groupequal() never populated it, so stepup() always freed parameters
-    for a single group - silently breaking the constraint. stepup() now
-    infers equality constraints directly from the parameters table
-    (shared non-zero par indices), which is the canonical representation.
-    groupequal() and groupfree() also now maintain the @equal slot for
-    backwards compatibility with model reconstruction code.
-  o stepup(greedy = TRUE) now falls back to the non-greedy path when
-    any searched matrix has cross-group equality constraints. The greedy
-    branch previously bypassed freepar()/groupequal() and assigned unique
-    par indices to each added parameter, which would silently break
-    equality constraints. Single-group models and multi-group models
-    without equality constraints take the fast greedy path as before.
+  o Fixed meta_ggm() crashing with Vestimation = "per_study"
+  o Fixed stepup() breaking equality constraints set by groupequal() (GitHub issue #50)
+  o stepup(greedy = TRUE) now uses the non-greedy search when equality constraints are present
 
 Changes in Version 0.15.2
-  o Fixed incorrect (negative) chi-square and fit indices for FIML
-    estimation with high-dimensional panel data. By default, the saturated
-    model is still estimated numerically (using nlminb for robustness), but
-    if the optimizer fails (saturated LL < model LL), the saturated
-    log-likelihood is now automatically computed analytically from
-    pattern-specific sample statistics, following the approach used by
-    lavaan and Mplus.
-  o Added 'saturated' argument to runmodel() with options "default"
-    (model-based with automatic analytical fallback), "analytic" (skip
-    optimization, use analytical formula directly -- recommended for
-    high-dimensional panel data), and "model" (force numerical optimization
-    with no fallback).
+  o Fixed negative chi-square values in FIML estimation of high-dimensional panel data: the saturated log-likelihood is now computed analytically when the saturated model fails
+  o Added the 'saturated' argument to runmodel()
 
 Changes in Version 0.15.1
-  o panelgvar() and panelvar() now accept both wide-format (design matrix)
-    and long-format (character vector of variable names) data, matching the
-    flexibility of the underlying dlvm1(). Previously these convenience
-    wrappers only accepted wide-format data. For long-format usage, pass
-    vars as a character vector and provide idvar (and optionally beepvar)
-    via ... (GitHub issue #48).
-  o Updated dlvm1 family documentation to reflect long-format support in
-    panelgvar() and panelvar(), with examples.
-  o Replaced all Rf_error() calls in C++ code with Rcpp::stop() for proper
-    C++ stack unwinding and destructor calls, avoiding potential memory
-    leaks (GitHub issue #49).
+  o panelgvar() and panelvar() now accept long-format data (GitHub issue #48)
+  o Replaced Rf_error() with Rcpp::stop() in the C++ code (GitHub issue #49)
 
 Changes in Version 0.15
-  o The package has gone through a large overhaul in the 0.14.x series of
-    package versions. The most important changes are listed below.
-  o Major C++ optimization of the estimation pipeline, resulting in ~45%
-    cumulative speedup. This includes direct parameter-to-matrix
-    mapping, OptimWorkspace caching of constant data across iterations,
-    cache-aware prepareModel to skip redundant computations, and the new
-    LBFGS++ pure C++ optimizer.
-  o Added ordinal data support and WLSMV estimation for the lvm framework.
-    lvm() now accepts ordinal variables via the 'ordered' argument, with
-    WLS, DWLS, and ULS estimators. The WLSMV scaled test statistic
-    (Asparouhov & Muthen, 2010) provides scaled chi-square, scaled RMSEA,
-    and scaled incremental fit indices matching lavaan output.
-  o Restructured dlvm1() to accept both wide-format and long-format data,
-    unifying the interface for panel data models. Deprecated ml_tsdlvm1(),
-    ml_gvar(), ml_var(), and related wrappers in favor of dlvm1() and
-    panelvar() / panelgvar().
-  o Penalized maximum likelihood (PML) and penalized FIML (PFIML) estimation
-    with automatic lambda selection via EBIC-based grid search. Includes
-    beta_min thresholding, warm starts across the lambda path, and refit()
-    for refitting parameters without regularization.
-  o New meta_lvm() model family for single-stage meta-analytic latent variable
-    modeling (extending the MAGNA framework to CFA/SEM), and new meta_var1()
-    / meta_gvar() for meta-analytic VAR(1) network models pooling temporal
-    and contemporaneous structures across studies.
-  o New write_psychonetrics() function for exporting comprehensive
-    Mplus/LISREL-style output to a text file, intended for supplementary
-    materials in publications.
-  o Standardized input arguments across all model families: new 'cors',
-    'groupvar', and 'corinput' arguments with consistent validation via
-    standardize_input(). Meta-analytic models now accept raw data input.
-  o Added SRMR (Standardized Root Mean Square Residual) fit measure using
-    Bentler (1995) standardization. Ising models now also compute
-    model-implied means and covariances enabling SRMR computation.
-  o Improved starting values: OLS-based beta starting values for SEM models,
-    fixed the 'equal' argument in multi-group lvm() models.
-  o New loop_psychonetrics() convenience function for parallel bootstrapping
-    and simulations with automatic variable export and progress bars.
-  o Changed default missing data handling to missing = "auto", automatically
-    switching to FIML/PFIML when missing data is detected.
-  o Automatic fallback to approximate standard errors when the Fisher
-    information matrix cannot be inverted.
-  o lvm() now accepts lambda = "full" to specify a full loading matrix where
-    all cross-loadings are free. Requires the 'latents' argument to be
-    specified. FA-based starting values use promax-rotated loadings directly
-    (no permutation matching needed for full lambda).
-  o penalize() now accepts a matrix for the 'lambda' argument, enabling
-    per-element penalty specification: 0 = don't penalize, NA = auto-select
-    via EBIC grid search, numeric > 0 = fixed penalty strength. Parameters
-    that are fixed at zero in the model are automatically freed when a
-    non-zero penalty is specified, combining freepar() and penalize() in
-    one step. Works for both symmetric (e.g., sigma_epsilon) and
-    non-symmetric (e.g., lambda) matrices.
-  o Various bugfixes for Ising Fisher information, dlvm1 Jacobian
-    construction, dplyr/ggplot2 deprecation warnings, and CRAN compliance.
+  o Version 0.15 consolidates the 0.14.x versions. The most important changes are:
+    o Faster estimation through optimized C++ code, and the new "LBFGS++" optimizer
+    o Ordinal data support and WLSMV estimation in lvm()
+    o dlvm1() now accepts wide-format and long-format data; ml_tsdlvm1(), ml_gvar(), ml_var() and related wrappers are deprecated
+    o Penalized ML (PML) and penalized FIML (PFIML) estimation with automatic selection of the penalty, and refit()
+    o Added meta_lvm(), meta_var1() and meta_gvar()
+    o Added write_psychonetrics() and loop_psychonetrics()
+    o Added the 'cors', 'groupvar' and 'corinput' arguments to all model families
+    o Added the SRMR fit measure
+    o Missing data handling now defaults to missing = "auto" (FIML when data are missing)
+    o Approximate standard errors are used when the Fisher information matrix cannot be inverted
+    o lvm() now accepts lambda = "full"
+    o penalize() now accepts a matrix for the 'lambda' argument
+    o Improved starting values for 'beta' and various bug fixes
 
 Changes in Version 0.14.28
-  o Ising models now compute model-implied means (mu) and covariances (sigma)
-    from the exact Ising expectations after optimization. This enables SRMR
-    and other residual-based fit measures for Ising models (previously returned
-    NA). The computation uses the existing isingExpectation() C++ function:
-    mu = E[X] and sigma = E[XX'] - E[X]E[X]'.
+  o Ising models now compute model-implied means and covariances, which enables the SRMR fit measure
 
 Changes in Version 0.14.27
-  o Removed roptim-based C++ optimizers (cpp_L-BFGS-B, cpp_BFGS, cpp_CG,
-    cpp_SANN, cpp_Nelder-Mead) from the public interface. These optimizers
-    are no longer available via setoptimizer() or documented in help pages.
-    Users should use "nlminb" (default), "ucminf", "nloptr_TNEWTON", or
-    "LBFGS++" instead.
-  o Replaced deprecated ggplot2::aes_string() calls with
-    ggplot2::aes(.data[[]]) in CIplot() and ESA plot methods.
-  o Fixed delta matrix starting values when using delta_* = "zero":
-    diagonal elements fixed at zero now correctly show est = 0 in the
-    parameter table instead of data-derived starting values.
-  o Added SRMR (Standardized Root Mean Square Residual) fit measure.
-    Uses Bentler (1995) standardization, matching lavaan's default
-    srmr_bentler. Includes mean residuals when a mean structure is
-    present. Under FIML, uses the saturated model's EM-estimated
-    covariance as the observed statistic (matching lavaan's h1 approach).
-    Multi-group models use an N-weighted average across groups.
-  o The 'beta_min' argument in find_penalized_lambda() and runmodel() now
-    accepts "numerical" (default, uses 1e-05), "theoretical"
-    (uses sqrt(log(p)/n)), or a numeric value. The previous default was
-    the theoretical formula; the new default is the fixed numerical threshold.
-  o Added C++ pipeline for meta_var1/meta_gvar models. The C++ implementation
-    (cpp=TRUE, the default) uses OptimWorkspace caching and
-    formModelMatrices_direct for efficient parameter-to-matrix mapping.
-  o C++ implied model (implied_meta_var1_cpp) computes BetaStar, Sigma0,
-    Sigma1, and meta-analytic mu/sigma/kappa entirely in C++.
-  o C++ derivatives (d_phi_theta_meta_var1_cpp) reuse existing var1 C++
-    derivative helpers for the mean part and varcov helpers for the
-    random effects variance part.
-  o C++ prepare (prepare_meta_var1_cpp) follows the meta_lvm_prepare_cpp
-    pattern with D_c override for the ML gradient.
-  o Registered meta_var1 in all C++ dispatchers: prepareModel_cpp,
-    impliedModel_cpp, psychonetrics_gradient_cpp_inner, and
-    psychonetrics_FisherInformation_cpp_inner.
+  o Removed the roptim-based C++ optimizers (cpp_L-BFGS-B, cpp_BFGS, cpp_CG, cpp_SANN, cpp_Nelder-Mead). Use "nlminb" (default), "ucminf", "nloptr_TNEWTON" or "LBFGS++" instead
+  o Added the SRMR fit measure
+  o The 'beta_min' argument of find_penalized_lambda() and runmodel() now accepts "numerical" (default), "theoretical" or a numeric value
+  o Added a C++ implementation of meta_var1/meta_gvar models
+  o Fixed the starting values of delta matrices when using delta_* = "zero"
+  o Replaced deprecated ggplot2::aes_string() calls
 
 Changes in Version 0.14.26
-  o New meta_var1() model family: meta-analytic VAR(1) model for pooling
-    temporal and contemporaneous network structures across multiple studies.
-    Uses a one-stage random effects framework. Accepts either raw time-series
-    data (via data + studyvar) or pre-computed Toeplitz covariance matrices
-    (via covs + nobs).
-  o New meta_gvar() wrapper: convenience function that calls meta_var1()
-    with contemporaneous = "ggm" for graphical VAR estimation.
-  o meta_var1/meta_gvar model the stationary covariance (Sigma0) and lag-1
-    cross-covariance (Sigma1) blocks, excluding the nuisance exogenous
-    covariance block from the Toeplitz matrix.
-  o Derivatives for meta_var1 reuse existing var1 Jacobian helpers
-    (d_sigma0_beta_var1_cpp, etc.) for the mean part, and meta_lvm random
-    effects Jacobians for the variance part.
-  o R-only implementation (no C++ yet); model@cpp is set to FALSE.
-  o If studyvar is not assigned but idvar is, studyvar is set to idvar
-    with a warning. If both are assigned, idvar functions within each study
-    for collating time series.
+  o Added meta_var1() for meta-analytic VAR(1) models, and the wrapper meta_gvar() for graphical VAR models
+  o Both accept raw time-series data (data and studyvar) or Toeplitz covariance matrices (covs and nobs)
 
 Changes in Version 0.14.24
-  o Standardized input arguments across model families. All model constructors
-    (varcov, lvm, var1, tsdlvm1, dlvm1, meta_varcov, meta_lvm) now accept a
-    consistent set of input arguments:
-    - New 'cors' argument: supply correlation matrices directly (with 'nobs').
-      In varcov/meta_varcov, 'corinput' defaults to TRUE. In other families,
-      correlations are treated as covariances with a warning.
-    - New 'groupvar' argument: replaces the deprecated 'groups' argument. If both
-      are supplied, 'groupvar' takes precedence with a deprecation warning.
-    - New 'corinput' argument added to lvm, var1, tsdlvm1, and dlvm1 signatures
-      (errors if set to TRUE, as correlation input is only supported in varcov
-      and meta_varcov).
-  o Meta-analytic models (meta_varcov, meta_lvm) now support raw data input via
-    'data' + 'studyvar' arguments. Correlation/covariance matrices and sample
-    sizes are computed internally per study.
-  o meta_varcov() now also accepts covariance matrices via 'covs' argument.
-  o meta_lvm() now also accepts correlation matrices via 'cors' argument.
-  o Shared input validation consolidated into standardize_input() helper function,
-    providing consistent error messages for mutual exclusion violations, missing
-    required arguments, and unsupported combinations.
-  o Fixed pre-existing bug in meta_varcov() baseline/saturated model construction
-    where R's missing() function was passed as the 'missing' argument to varcov()
-    instead of a string value.
+  o Standardized the input arguments of all model families:
+    o Added the 'cors' argument to supply correlation matrices
+    o Added the 'groupvar' argument, which replaces the deprecated 'groups' argument
+    o Added the 'corinput' argument to lvm, var1, tsdlvm1 and dlvm1 (correlation input is only supported in varcov and meta_varcov)
+  o meta_varcov() and meta_lvm() now support raw data input via 'data' and 'studyvar'
+  o meta_varcov() now accepts covariance matrices ('covs') and meta_lvm() now accepts correlation matrices ('cors')
+  o Fixed a bug in the baseline and saturated models of meta_varcov()
 
 Changes in Version 0.14.23
-  o Strip debug symbols from compiled shared library via linker flags in Makevars,
-    reducing installed libs/ size on CRAN macOS builds (from ~29MB to ~2MB).
-  o Added C++ pipeline for meta_lvm (implied, prepare, derivatives), providing
-    ~2.8x speedup over the R-only implementation.
-  o Fixed meta_lvm.Rd documentation to match actual function signature.
+  o Added a C++ implementation of meta_lvm models
+  o Reduced the installed size of the package
+  o Fixed the documentation of meta_lvm()
 
 Changes in Version 0.14.22
-  o meta_lvm() now accepts covariance matrices (not just correlations). The data vector
-    includes diagonal elements (variances) alongside off-diagonal covariances, with free
-    sigma_epsilon diagonal. V matrix computation, implied model, and derivatives updated
-    to handle the full vech (with diagonal).
-  o Fixed checkJacobian() and checkFisher() to respect the model's @cpp slot: models
-    with cpp=FALSE (e.g., meta_lvm) now correctly use R-only fit/gradient/Fisher functions
-    instead of always defaulting to C++ versions.
-  o Fixed R CMD check --as-cran issues:
-    o panelvar()/panelgvar() now handle missing data argument correctly
-    o dlvm1() guards against missing data in auto-detect and samplestats calls
-    o penalty_lambda documentation updated to match code default (NA, not 0)
-    o Removed stray browser() calls from var1 implied and identify functions
-    o Fixed non-ASCII character in NA2020.Rd reference
-  o Removed continuous-data corinput from lvm(): correlations passed as covs are now
-    treated as covariances with free diagonal. Ordinal corinput retained internally.
+  o meta_lvm() now accepts covariance matrices
+  o checkJacobian() and checkFisher() now respect the 'cpp' setting of the model
+  o lvm() no longer supports correlation input for continuous data: correlations supplied as 'covs' are treated as covariances
+  o Fixed R CMD check issues
 
 Changes in Version 0.14.20
-  o Added meta_lvm() function for single-stage meta-analytic latent variable modeling.
-    Combines a latent variable model (CFA/SEM) for the mean structure of pooled
-    covariance/correlation matrices with a random-effects model for between-study
-    heterogeneity. Extends the MAGNA framework to latent variable models. Supports all
-    standard parameterizations for latent (cov/chol/prec/ggm), residual (cov/chol/prec/ggm),
-    and random effects (chol/cov/prec/ggm/cor) structures.
+  o Added meta_lvm() for single-stage meta-analytic latent variable modeling
 
 Changes in Version 0.14.18
-  o Standard errors now auto-fallback to approximate SEs when the Fisher information matrix
-    cannot be inverted (e.g., due to zero cells in crosstables in multi-group Ising models).
-    Previously this returned NA standard errors; now approximate SEs are computed automatically
-    with an informative warning
+  o Approximate standard errors are now computed (with a warning) when the Fisher information matrix cannot be inverted
 
 Changes in Version 0.14.17
-  o Fixed the 'equal' argument in multi-group lvm() models:
-    o The equal= argument (e.g., equal="lambda") now correctly constrains parameters across groups
-    o Previously, the equality flag was passed as a positional argument to fixMatrix, causing it to
-      be silently ignored
-    o Additionally fixed corrupted starting values when equal= is used: the lambda structure matrix
-      contains integer codes (>1) for equality constraints, but these were used as multipliers for
-      FA-derived starting values, producing extreme values that prevented convergence
-    o Both loadings and variance identification now work correctly with equal=
-    o Results from equal= now match those from the groupequal() workflow
-  o Added OLS-based starting values for the beta (structural) matrix in lvm()/sem():
-    o For each endogenous latent, OLS regression on FA-implied latent covariance provides initial
-      beta coefficients
-    o Disturbance covariance (sigma_zeta) is adjusted via (I-B)*Cov(eta)*(I-B)' instead of using
-      the raw FA factor correlations
-    o Guard rails for near-singular covariance, ill-conditioned predictor blocks, extreme
-      coefficients, and near-singular (I-B)
-    o Falls back to previous zero-initialization on any numerical issue
-    o New 'start' argument: "default" for OLS-based, "simple" for zero-initialization
-  o Added loop_psychonetrics() convenience function for parallel bootstrapping and simulations:
-    o Replaces boilerplate of makeCluster / clusterExport / parLapply / stopCluster
-    o Variables referenced in the expression are automatically detected and exported to workers
-    o Uses pbapply progress bars and safe cluster cleanup via on.exit
-    o Works with aggregate_bootstraps() and CIplot() for bootstrap analysis
-  o Added the NA2020 dataset: 8 self-report items (n=501) from Isvoranu (2020) for GGM examples
+  o Fixed the 'equal' argument in multi-group lvm() models
+  o Added OLS-based starting values for 'beta' in lvm(). Use start = "simple" to recover old behavior
+  o Added loop_psychonetrics() for parallel bootstrapping and simulations
+  o Added the NA2020 dataset
 
 Changes in Version 0.14.16
-  o Added automatic lambda selection for PML/PFIML estimation via EBIC-based grid search:
-    o New function find_penalized_lambda() searches over a log-spaced grid of 50 lambda values
-    o Lambda now defaults to NA in all model constructors, signaling automatic selection
-    o runmodel() automatically triggers the grid search when NA lambdas are detected
-    o Lambda_max computed analytically from KKT conditions at the null-penalized model
-    o Warm starts across the lambda path for efficient computation
-    o Supports criterion selection: "bic", "ebic.25", "ebic.5" (default), "ebic.75", "ebic1"
-    o Users can still specify a fixed lambda (e.g., penalty_lambda = 0.1) for manual control
-  o Added beta_min thresholding for penalized estimates:
-    o Near-zero estimates below beta_min are set to exactly zero after convergence
-    o Default threshold: sqrt(log(p)/n) where p = number of penalized parameters
-    o Applied both during EBIC evaluation (for degree-of-freedom counting) and on the final model
-    o Reduces numerical noise from ISTA optimizer, improving specificity
-    o Exposed as user argument in runmodel() and find_penalized_lambda()
-  o EBIC for penalized model selection uses unpenalized log-likelihood at penalized estimates
-    (Convention A), with npar = unpenalized free params + nonzero penalized params after threshold
-  o Print and write methods now display lambda search results (selected lambda, criterion value,
-    beta_min) and show "auto (not yet selected)" for models with NA lambda before estimation
-  o NA-safe comparisons throughout the codebase for penalty_lambda column (print, write, refit,
-    penalize, unpenalize, C++ workspace builder)
+  o Added automatic selection of the penalty in PML/PFIML estimation: 'penalty_lambda' now defaults to NA, and find_penalized_lambda() selects the penalty with an EBIC-based grid search
+  o Added the 'beta_min' argument to set small penalized estimates to zero
+  o The print and write methods now show the results of the penalty search
 
 Changes in Version 0.14.15
-  o Added PFIML (Penalized Full Information Maximum Likelihood) estimator:
-    o Combines FIML with L1/L2 penalty for penalized estimation with missing data
-    o Available for all Gaussian models (varcov, lvm, var1, dlvm1, tsdlvm1)
-    o Uses proximal gradient optimizer (same as PML)
-    o refit() switches PFIML back to FIML for post-selection inference
-  o Changed default missing data handling to missing = "auto" for all Gaussian models:
-    o ML automatically switches to FIML when missing data is detected
-    o PML automatically switches to PFIML when missing data is detected
-    o LS estimators (ULS, WLS, DWLS) default to listwise deletion
-    o Users can still override with explicit missing = "listwise" or missing = "pairwise"
-    o No change for Ising models (missing = "listwise" default remains)
-  o Penalty setup in model constructors now supports PFIML:
-    o estimator = "PML" and estimator = "PFIML" both trigger penalty initialization
-    o Baseline/saturated models use the appropriate unpenalized estimator (ML or FIML)
-  o Added experimental feature warnings for features introduced in the 0.14.x branch:
-    o PML, PFIML, LBFGS++ optimizer, ordinal data in lvm()/varcov(), WLSMV scaled test statistic
-    o Warnings appear once per session and only while version < 0.15
-    o Users are directed to report unexpected behavior to GitHub issues
+  o Added the PFIML estimator (penalized FIML) to all Gaussian models
+  o Missing data handling now defaults to missing = "auto": ML switches to FIML and PML to PFIML when data are missing
+  o Added warnings for experimental features of the 0.14.x versions
 
 Changes in Version 0.14.14
-  o Unified dlvm1() to accept both wide-format and long-format data:
-    o New 'datatype' argument with options "auto" (default), "wide", and "long"
-    o Auto-detects format from 'vars': matrix = wide, character vector = long
-    o New 'idvar' and 'beepvar' arguments for long-format data
-    o Long-to-wide conversion handled internally (previously required ml_tsdlvm1)
-  o Added 'standardize' argument to dlvm1() with options:
-    o "none" (default): no standardization
-    o "z": global z-scores per variable across all waves (does not impose stationarity)
-    o "quantile": quantile normalization across all waves
-    o "z_per_wave": independent z-scores per wave column (imposes stationarity)
-  o Added panellvgvar() as the canonical wrapper for panel latent variable GVAR models
-  o Deprecated functions (still work but emit warnings):
-    o ml_tsdlvm1() - use dlvm1() with long-format data instead
-    o ml_gvar() - use dlvm1() with within_latent="ggm", between_latent="ggm"
-    o ml_var() - use dlvm1() with desired within_latent and between_latent
-    o ml_ts_lvgvar() - use panellvgvar() instead
-    o panel_lvgvar() - use panellvgvar() instead
+  o dlvm1() now accepts wide-format and long-format data (new 'datatype', 'idvar' and 'beepvar' arguments)
+  o Added the 'standardize' argument to dlvm1()
+  o Added panellvgvar()
+  o Deprecated ml_tsdlvm1(), ml_gvar(), ml_var(), ml_ts_lvgvar() and panel_lvgvar()
 
 Changes in Version 0.14.13
-  o Added write_psychonetrics() function for exporting comprehensive model output to a text file:
-    o Produces Mplus/LISREL-style output with logo, sample info, model specification, parameter
-      estimates, fit measures, model matrices, modification indices, and logbook
-    o Intended for sharing as supplementary materials to papers
-    o Supports uncomputed models: shows starting values with clear warnings, omitting SEs, p-values,
-      fit measures, and modification indices
-    o Model matrices section shows only modeled matrices (not derived/implied quantities)
-    o Matrix output uses 2-digit rounding with dots for fixed zeros
-  o Fixed prune() error when no parameters to test in the requested matrix:
-    o adjust_p_values() now correctly returns a numeric vector (not the S4 model object) when nTest == 0
-  o Fixed backward compatibility for models saved without the WLS.Gamma slot:
-    o Added .hasSlot() guard to prevent "no slot of name 'WLS.Gamma'" warnings
+  o Added write_psychonetrics() to export model output to a text file
+  o Fixed prune() giving an error when there are no parameters to test
+  o Fixed warnings for models saved with older versions
 
 Changes in Version 0.14.12
-  o Added WLSMV scaled test statistic (mean-and-variance adjusted chi-square) for WLS/DWLS/ULS estimators:
-    o Implements the scaled-shifted test (Asparouhov & Muthen, 2010) matching lavaan's WLSMV output
-    o New fit measures: chisq.scaled, df.scaled, pvalue.scaled, chisq.scaling.factor
-    o Scaled incremental fit indices: cfi.scaled, tli.scaled, nfi.scaled, rfi.scaled, ifi.scaled, rni.scaled, nnfi.scaled
-    o Scaled RMSEA: rmsea.scaled
-    o Baseline model also receives scaled test statistic (baseline.chisq.scaled, etc.)
-    o Added WLS.Gamma slot to store the full asymptotic covariance matrix (Gamma) per group
-    o Added LS_Gamma() helper function for computing Gamma from raw data
-    o Scaling factors match lavaan to 6+ decimal places for both ordinal and continuous data
-    o Supports single-group and multi-group models
-  o Changed the default estimator for ordinal data from WLS to DWLS, matching lavaan's convention
-  o Added "WLSMV" as an estimator alias for "DWLS" in lvm() and varcov()
-  o Fixed the DWLS weight matrix for ordinal data:
-    o Previously used diag(Gamma^{-1}) (diagonal of the full inverse), which differs from standard
-    o Now uses 1/diag(Gamma) (reciprocal of the diagonal), matching the lavaan convention
-  o Fixed (n+1)/n scaling bug in ULS fit function, gradient, and expected Hessian (R and C++):
-    o The weight matrix normalisation factor was (n+1)/n instead of 1, causing small systematic bias
+  o Added the WLSMV scaled test statistic and scaled fit measures for the WLS, DWLS and ULS estimators
+  o The default estimator for ordinal data is now DWLS instead of WLS
+  o Added "WLSMV" as an alias for the "DWLS" estimator in lvm() and varcov()
+  o Fixed the DWLS weight matrix for ordinal data
+  o Fixed a scaling bug in the ULS estimator
 
 Changes in Version 0.14.11
-  o Added corinput support to the lvm framework:
-    o lvm() now accepts a 'corinput' argument to specify that the input is a correlation matrix
-    o When corinput=TRUE, residual variances (diagonal of sigma_epsilon) are derived from the constraint diag(sigma) = 1
-    o Diagonal sigma_epsilon parameters are fixed and derived in the implied function, not freely estimated
-    o Supports WLS, DWLS, and ULS estimators; defaults to WLS when corinput=TRUE
-    o Variance identification is automatically enforced
-    o Both R and C++ code paths updated (implied and derivatives)
-  o Fixed a bug in the identity weight matrix dimension in samplestats for corinput/meanstructure combinations
-  o Fixed a bug in lvm Jacobian row removal when both corinput=TRUE and meanstructure=FALSE for continuous data
+  o Added the 'corinput' argument to lvm()
+  o Fixed two bugs for combinations of corinput and meanstructure
 
 Changes in Version 0.14.10
-  o Added ordinal data support to the lvm framework (Muthen, 1984 three-stage estimator):
-    o lvm() now accepts an 'ordered' argument (character vector or TRUE) to specify ordinal variables
-    o Supports WLS, DWLS, and ULS estimators for ordinal CFA/SEM
-    o Polychoric correlations and thresholds are estimated from ordinal data
-    o Variance identification is automatically enforced for ordinal models
-    o Both R and C++ code paths (implied, prepare, derivatives) handle ordinal/continuous seamlessly
-  o Added nloptr_TNEWTON as a new optimizer, available via setoptimizer(x, "nloptr_TNEWTON"):
-    o Uses NLopt's preconditioned truncated Newton with restarts (NLOPT_LD_TNEWTON_PRECOND_RESTART)
-    o Builds a local quadratic model and solves the Newton system via preconditioned conjugate-gradient
-    o Supports box constraints and analytic gradients
-    o Added nloptr to Imports
-  o Fixed CRAN NOTE: commented out stray std::cout in vendored LBFGS++ header (LineSearchMoreThuente.h)
+  o Added ordinal data support to lvm() via the 'ordered' argument (WLS, DWLS and ULS estimators)
+  o Added the "nloptr_TNEWTON" optimizer
+  o Fixed a CRAN NOTE
 
 Changes in Version 0.14.9
-  o Tuned LBFGS++ convergence parameters for better performance on ill-conditioned models:
-    o Switched primary convergence criterion from gradient norm to relative function change (delta = 1e-8), matching nlminb behavior
-    o Increased L-BFGS history size from 6 to 10 for better Hessian approximation on larger models
-    o Relaxed gradient tolerance (epsilon = 1e-5) to avoid unnecessary iterations on ill-conditioned FIML problems
-    o ~4x faster on complex dlvm1/panel models (e.g., 8.6s -> 2.0s on 84-parameter panelgvar)
-  o Removed unused variable declarations to eliminate all compiler warnings from psychonetrics C++ source
+  o Tuned the "LBFGS++" optimizer for better performance
+  o Removed compiler warnings
 
 Changes in Version 0.14.8
-  o Added LBFGS++ (LBFGSpp) as a new pure C++ optimizer, available via setoptimizer(x, "LBFGS++"):
-    o Vendored header-only LBFGS++ library (MIT license) into inst/include/
-    o Combined function+gradient evaluation exploits the prepareModel cache for efficiency
-    o ~1.6x faster than the existing roptim-based cpp_L-BFGS-B optimizer on benchmark models
-    o Added RcppEigen to LinkingTo for Eigen header support
+  o Added the "LBFGS++" optimizer, available via setoptimizer(x, "LBFGS++")
 
 Changes in Version 0.14.7
-  o Fixed R CMD check --as-cran issues:
-    o Guarded semPlot example with requireNamespace() since it is a Suggested package
-    o Replaced defunct dplyr::summarize_each_() with summarize(across()) in lvm example
-    o Added build artifacts and non-package files to .Rbuildignore
+  o Fixed R CMD check issues
 
 Changes in Version 0.14.6
-  o Fixed Ising model Fisher information for the beta (inverse temperature) parameter:
-    o Added missing beta factor in beta-threshold and beta-network cross-derivative blocks of the expected Hessian
-    o Fixed expectedmodel() to replace sample sufficient statistics with model-implied expectations for Ising models
+  o Fixed the Fisher information of the beta (inverse temperature) parameter in Ising models
 
 Changes in Version 0.14.5
-  o Optimized dlvm1 Jacobian construction (d_phi_theta_dlvm1_group_cpp):
-    o Added dense Kronecker helpers (kronecker_I_X_dense, kronecker_X_I_dense) to avoid slow sparse element-by-element insertion when the result is used as a dense matrix
-    o Precompute the constant "between" Kronecker block once instead of recomputing it for every lag
-    o Pre-extract all grouplist values before the loop to eliminate repeated string-based hash lookups
-    o Fixed copy-paste bug: removed duplicate Jac.submat write for sigma_zeta_between in the lag loop
+  o Faster Jacobian computation for dlvm1 models
 
 Changes in Version 0.14.4
-  o Fixed dplyr 1.1.0 deprecation warning about one-column matrices in filter() calls
+  o Fixed a dplyr deprecation warning
 
 Changes in Version 0.14.3
-  o Cache-aware prepareModel_cpp: skip redundant prepare when fit and gradient are called at the same parameter vector
-  o ~24% speedup in full model fitting (e.g., 9-variable CFA: ~155ms -> ~118ms)
+  o Faster estimation by skipping redundant computations in C++
 
 Changes in Version 0.14.2
-  o Expanded OptimWorkspace to cache all constant S4 model/sample data (extramatrices, types, sample stats, etc.)
-  o All prepare_*_cpp and implied_*_cpp_core functions now read from cached workspace instead of S4 slots
-  o prepareModel_cpp post-processing now reads from workspace instead of S4 slots
+  o Faster estimation by caching constant model data in C++
 
 Changes in Version 0.14.1
-  o Performance optimization: replaced O(nMat * nPar) parameter-to-matrix mapping with O(nFreePar) direct index mapping
-  o Eliminated S4 model cloning during optimization iterations by bypassing updateModel_cpp in all prepare functions
-  o Refactored all 8 implied_*_cpp functions into _core variants that accept pre-formed matrices
-  o All 8 prepare_*_cpp functions now use formModelMatrices_cpp_direct + implied_*_cpp_core pipeline
-  o Added OptimWorkspace: static cache for MatrixMapping, M matrix, and parameter indices across optimization iterations
-  o ~25% speedup in full model fitting (e.g., 9-variable CFA: ~200ms -> ~155ms)
+  o Faster estimation through a direct mapping of parameters to model matrices in C++
 
 Changes in Version 0.13.2
   o Fixed a bug in 'intersectionmodel' not properly clearing removed parameters
