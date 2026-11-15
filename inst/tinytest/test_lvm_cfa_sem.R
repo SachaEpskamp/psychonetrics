@@ -125,3 +125,15 @@ sigma_zeta2 <- getmatrix(mod_sem, "sigma_zeta")
 expect_equal(dim(sigma_zeta2), c(3L, 3L))
 invisible(capture.output(pars_sem <- parameters(mod_sem)))
 expect_true(is.data.frame(pars_sem))
+
+## ---- Hint in the warning on a large gradient ----
+# For models that are identified by fixing the first factor loadings, the
+# warning of runmodel() on a large gradient suggests identification =
+# "variance" (the starting values of a latent variable are scaled by its first
+# indicator). No hint when the variances are fixed, or without free loadings:
+expect_true(grepl("identification = 'variance'",
+                  psychonetrics:::lvm_convergence_hint(lvm(hs_data, lambda = lambda))))
+expect_identical(psychonetrics:::lvm_convergence_hint(mod_cfa), "")
+growth_data <- as.data.frame(matrix(rnorm(400), 100, 4))
+expect_identical(psychonetrics:::lvm_convergence_hint(
+  latentgrowth(vars = matrix(names(growth_data), 1), data = growth_data)), "")

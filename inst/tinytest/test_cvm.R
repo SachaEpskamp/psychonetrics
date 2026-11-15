@@ -331,6 +331,54 @@ mod_first <- cvm(covs = Sb, nobs = 1000, covtype = "ML", lambda = lamb, weights 
 pf <- mod_first@parameters
 expect_equal(pf$row[pf$matrix == "weights" & pf$col == 2 & pf$fixed & pf$est == 1], 4)
 
+# By default (bad_marker_crit = 1) a composite is scaled by the indicator with
+# the largest standardized starting weight, and one message names the
+# composites for which that is not the first indicator. With a smaller value
+# the first indicator is only replaced when its starting weight is below that
+# proportion of the largest, and the message states that rule:
+expect_message(cvm(covs = Sb, nobs = 1000, covtype = "ML", lambda = lamb, weights = wtsb,
+                   beta = betab, latents = c("f1", "cc")), "largest \\(standardized\\) starting weight to 1.*cc \\(y5\\)")
+expect_message(cvm(covs = Sb, nobs = 1000, covtype = "ML", lambda = lamb, weights = wtsb,
+                   beta = betab, latents = c("f1", "cc"), bad_marker_crit = 0.1), "smaller than 0.1 times")
+# Composite c3 of the first model (weights 1, .4, .6 with standard deviations
+# 2.45, 2.24 and 1.41) has its largest standardized weight on the first
+# indicator, which is then kept:
+expect_equal(pars$row[pars$matrix == "weights" & pars$col == 3 & pars$fixed & pars$est == 1], 7)
+
+## ---- 8a. Scaling: a composite that is reversed relative to its scaling indicator ----
+# Composite cc of y4-y6 with weights (-.1, 1, .6): the first indicator has a
+# small negative weight but correlates positively with the composite. Scaled
+# by that indicator (weight fixed to 1) the composite is reversed, which gives
+# a warning after the model is run; the default scaling does not:
+wr <- c(-.1, 1, .6)
+dr <- drop(t(wr) %*% Tb %*% wr)
+br <- 0.5 / sqrt(dr)
+Ar <- matrix(c(1, 0, br, 1), 2)
+Vr <- Ar %*% diag(c(1 - br^2 * dr, dr)) %*% t(Ar)
+Lr <- rbind(cbind(c(1, .8, .9), 0), cbind(0, Tb %*% wr / dr))
+Thr <- matrix(0, 6, 6); diag(Thr)[1:3] <- .5
+Thr[4:6, 4:6] <- Tb - (Tb %*% wr) %*% t(Tb %*% wr) / dr
+Sr <- Lr %*% Vr %*% t(Lr) + Thr
+dimnames(Sr) <- list(nm[1:6], nm[1:6])
+expect_warning(fit_rev <- runmodel(cvm(covs = Sr, nobs = 1000, covtype = "ML", lambda = lamb, weights = wtsb,
+                                       beta = betab, latents = c("f1", "cc"), bad_marker_crit = 0)),
+               "correlates negatively")
+expect_true(getmatrix(fit_rev, "lambda")[4, 2] < 0)
+fit_notrev <- suppressMessages(runmodel(cvm(covs = Sr, nobs = 1000, covtype = "ML", lambda = lamb, weights = wtsb,
+                                            beta = betab, latents = c("f1", "cc"))))
+expect_silent(psychonetrics:::cvm_solution_warnings(fit_notrev))
+expect_true(abs(fit_rev@fitmeasures$chisq - fit_notrev@fitmeasures$chisq) < 1e-2)
+
+# A warning is also given when the scaling indicator has a small weight
+# relative to the other indicators (a standardized weight below 1/25 of the
+# largest). Here the composite of section 8 is scaled by y4 with weights
+# (1, 50, 30), without estimating the model again:
+mod_small <- fixpar(freepar(fit_bm, "weights", "y5", "cc", start = 50), "weights", "y4", "cc", value = 1)
+mod_small@parameters$est[mod_small@parameters$matrix == "weights" & mod_small@parameters$var1 == "y6" &
+                           mod_small@parameters$var2 == "cc"] <- 30
+mod_small@modelmatrices <- psychonetrics:::formModelMatrices(mod_small)
+expect_warning(psychonetrics:::cvm_solution_warnings(mod_small), "small weight relative to the other indicators")
+
 # The optimizer converges for the models above:
 expect_equal(fitC@optim$convergence, 0)
 expect_equal(fit_ggm@optim$convergence, 0)
@@ -366,6 +414,70 @@ expect_true(fit_refit@fitmeasures$chisq > fit_ml_c@fitmeasures$chisq - 1e-6)
 # Without a network in the model there is nothing to penalize by default:
 expect_warning(cvm(dat, vars = nm[7:13], weights = weights_c, beta = beta_c, latents = c("c3", "c4"),
                    estimator = "PML", penalty_lambda = 0.3), "No matrices to penalize")
+
+## ---- 8c. A saturated construct part: closed-form starting values ----
+# Three composites of three indicators in a saturated construct model (all
+# composites related, no effects). With saturated covariances within the
+# composites the chi-square is N (sum_k log|S_kk| + log|R_C| - log|S|), with
+# R_C the correlation matrix of the composites: the maximum likelihood weights
+# minimize |R_C| (GENVAR). The starting values are at that optimum:
+Tp <- kronecker(diag(3), matrix(c(1, .4, .3, .4, 1, .2, .3, .2, 1), 3))
+Wp <- matrix(0, 9, 3); Wp[1:3, 1] <- c(1, .8, .6); Wp[4:6, 2] <- c(1, .5, .7); Wp[7:9, 3] <- c(1, .6, .4)
+Dp <- diag(diag(t(Wp) %*% Tp %*% Wp))
+Rp <- matrix(c(1, .5, .3, .5, 1, .4, .3, .4, 1), 3)
+Lp <- Tp %*% Wp %*% solve(Dp)
+Sp <- Tp + Lp %*% (sqrt(Dp) %*% Rp %*% sqrt(Dp) - Dp) %*% t(Lp)
+set.seed(4)
+dat3 <- as.data.frame(rmvnorm(400, rep(0, 9), Sp))
+names(dat3) <- nm[1:9]
+S3 <- cov(dat3) * 399 / 400
+block3 <- rep(1:3, each = 3)
+logdet <- function(M) as.numeric(determinant(M, logarithm = TRUE)$modulus)
+logdet_RC <- function(w){
+  Wm <- matrix(0, 9, 3); Wm[cbind(1:9, block3)] <- w
+  logdet(cov2cor(t(Wm) %*% S3 %*% Wm))
+}
+opt3 <- optim(rep(1, 9), logdet_RC, method = "BFGS", control = list(reltol = 1e-14, maxit = 1000))
+chisq_closed <- 400 * (sum(sapply(1:3, function(k) logdet(S3[block3 == k, block3 == k]))) + opt3$value - logdet(S3))
+mod3 <- suppressMessages(cvm(dat3, weights = 1 * (Wp != 0), latents = c("A", "B", "C")))
+chisq_start <- 400 * (objective_at(mod3) - mod3@baseline_saturated$saturated@objective)
+expect_true(abs(chisq_start - chisq_closed) < 1e-3)
+fit3 <- runmodel(mod3)
+expect_equal(fit3@fitmeasures$df, 18)
+expect_true(abs(fit3@fitmeasures$chisq - chisq_closed) < 1e-3)
+# The mode B weights that are used otherwise do not minimize the criterion:
+adj3 <- matrix(TRUE, 3, 3); diag(adj3) <- FALSE
+V_modeB <- psychonetrics:::cvm_start_weights(S3, block3, rep(TRUE, 3), matrix(0, 9, 3), adj3)
+V_genvar <- psychonetrics:::cvm_start_weights(S3, block3, rep(TRUE, 3), matrix(0, 9, 3), adj3, genvar = TRUE)
+expect_true(logdet(t(V_genvar) %*% S3 %*% V_genvar) < logdet(t(V_modeB) %*% S3 %*% V_modeB))
+expect_true(abs(logdet(t(V_genvar) %*% S3 %*% V_genvar) - opt3$value) < 1e-6)
+
+## ---- 8d. prune() can isolate a composite, with a warning ----
+# The third composite is only weakly related to the other two (population
+# covariances as input, so that its two edges are not significant). prune()
+# removes both edges; the weights of the composite are then not identified,
+# which is reported once:
+Rw <- matrix(c(1, .5, .03, .5, 1, .02, .03, .02, 1), 3)
+Sw <- Tp + Lp %*% (sqrt(Dp) %*% Rw %*% sqrt(Dp) - Dp) %*% t(Lp)
+dimnames(Sw) <- list(nm[1:9], nm[1:9])
+fit_w <- suppressMessages(suppressWarnings(runmodel(cnm(covs = Sw, nobs = 500, covtype = "ML", weights = 1 * (Wp != 0),
+                                                        latent = "ggm", latents = c("A", "B", "C")))))
+expect_warning(fit_iso <- prune(fit_w, alpha = 0.01, matrices = "omega_zeta"), "removed all relations.*: C\\.")
+expect_true(all(getmatrix(fit_iso, "omega_zeta")[3, ] == 0))
+expect_true(getmatrix(fit_iso, "omega_zeta")[2, 1] != 0)
+expect_equal(psychonetrics:::cvm_unconnected_composites(fit_iso), "C")
+if (at_home()){
+  # With recursive pruning the warning is given once, and not again when a
+  # model with an isolated composite is pruned further:
+  warn_iso <- character(0)
+  fit_iso2 <- withCallingHandlers(prune(fit_w, alpha = 0.01, matrices = "omega_zeta", recursive = TRUE),
+                                  warning = function(w){ warn_iso <<- c(warn_iso, conditionMessage(w)); invokeRestart("muffleWarning") })
+  expect_equal(sum(grepl("removed all relations", warn_iso)), 1)
+  warn_iso <- character(0)
+  fit_iso3 <- withCallingHandlers(prune(fit_iso, alpha = 0.01, matrices = "omega_c"),
+                                  warning = function(w){ warn_iso <<- c(warn_iso, conditionMessage(w)); invokeRestart("muffleWarning") })
+  expect_equal(sum(grepl("removed all relations", warn_iso)), 0)
+}
 
 ## ---- 9. Longer-running checks ----
 if (at_home()){

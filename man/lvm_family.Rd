@@ -102,7 +102,7 @@ Optional matrix encoding the threshold parameters for ordinal variables. Each co
 Logical, should the model be automatically identified?
 }
   \item{identification}{
-Type of identification used. \code{"loadings"} to fix the first factor loadings to 1, and \code{"variance"} to fix the diagonal of the latent variable model matrix (sigma_zeta, lowertri_zeta, delta_zeta or kappa_zeta) to 1.
+Type of identification used. \code{"loadings"} to fix the first factor loadings to 1, and \code{"variance"} to fix the diagonal of the latent variable model matrix (sigma_zeta, lowertri_zeta, delta_zeta or kappa_zeta) to 1. With \code{"loadings"} the starting values of a latent variable are scaled by its first indicator. If that indicator is only weakly related to the latent variable, which is more likely in models with many indicators, these starting values can be poor and the optimizer can stop before the optimum; \code{\link{runmodel}} then warns that the gradient is large. Estimating the model with \code{identification = "variance"} can solve this.
 }
   \item{vars}{
 An optional character vector encoding the variables used in the analysis. Must equal names of the dataset in \code{data}.

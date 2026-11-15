@@ -235,3 +235,20 @@ identify_lvm <- function(x){
   # Return model:
   return(x)
 }
+
+# Hint that is added to the warning of runmodel() on a large gradient, for
+# models of the lvm family that are identified by fixing the first factor
+# loadings and that have free loadings. The starting values of a factor are
+# scaled by its first indicator: when that indicator is only weakly related to
+# the factor (more likely with many indicators), the starting values can be
+# poor and the optimizer can stop before the optimum. Fixing the variances of
+# the latent variables instead reached the optimum in such a model (nine
+# factors, 83 indicators).
+lvm_convergence_hint <- function(x){
+  pars <- x@parameters
+  if (identical(x@identification, "loadings") && any(!pars$fixed[pars$matrix == "lambda"])){
+    " With identification = 'loadings' the starting values depend on the first indicator of every latent variable; estimating the model with identification = 'variance' may help."
+  } else {
+    ""
+  }
+}

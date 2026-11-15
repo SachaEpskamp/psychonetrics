@@ -835,8 +835,9 @@ runmodel <- function(
     x <- updateModel(optim.out$par,x,updateMatrices = TRUE)
 
     # Composite variable models: warn when the solution may not be reliable
-    # (no convergence, a composite scaled by an indicator with a negligible
-    # weight, or a composite whose weights are not identified):
+    # (no convergence, a composite scaled by an indicator with a small weight
+    # or reversed relative to it, or a composite whose weights are not
+    # identified):
     if (x@model == "cvm"){
       cvm_solution_warnings(x)
     }
@@ -1145,7 +1146,8 @@ runmodel <- function(
 
 
     if (mean(abs(grad)) > 1){
-      warning("Model might not have converged properly: mean(abs(gradient)) > 1.")
+      warning(paste0("Model might not have converged properly: mean(abs(gradient)) > 1.",
+                     if (x@model == "lvm") lvm_convergence_hint(x) else ""))
     }
   }
 

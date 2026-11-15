@@ -493,9 +493,19 @@ cvm_expected_hessian <- function(x, model){
 
 # Warnings on the solution of a cvm model, given after estimation:
 #  - the optimizer did not report convergence;
-#  - the indicator that scales a composite (weight fixed to 1) has a negligible
-#    weight relative to the other indicators, so that the other weights become
-#    extremely large (the weights are not well defined in that scaling);
+#  - the indicator that scales a composite (weight fixed to 1) has a small
+#    weight relative to the other indicators: a standardized weight below 1/25
+#    of the largest of the composite, the ratio at which the starting weights
+#    of a composite are replaced by equal weights in cvm(). The other weights
+#    are then large and poorly determined in that scaling. In an example in
+#    which the first indicator was forced to scale the composite
+#    (bad_marker_crit = 0; standardized weight 1.4% of the largest at the
+#    solution) the optimizer stopped 6.4 chi-square points before the optimum;
+#  - the indicator that scales a composite correlates negatively with that
+#    composite: the composite is reversed relative to its scaling indicator
+#    (the weight of that indicator has another sign than its loading), which
+#    goes together with large weights and made the optimizer stop before the
+#    optimum in examples;
 #  - a composite with estimated weights is not related to any other construct
 #    (its weights are then not identified);
 #  - an element that is not a parameter of a cvm model was freed by hand (the
@@ -512,41 +522,61 @@ cvm_solution_warnings <- function(x){
                            " (consider other starting values or another optimizer, see setoptimizer())"))
   }
 
-  # Negligible weight of the indicator that scales a composite:
+  # Small weight of the indicator that scales a composite, or a composite that
+  # is reversed relative to that indicator:
   pars <- x@parameters
   comp <- which(as.vector(as.matrix(x@extramatrices$compvec)) == 1)
   block <- as.vector(as.matrix(x@extramatrices$blockvec))
   compInd <- which(block != 0)
   latents <- unique(pars$var1[pars$matrix == "nu_eta"])
+  # Composites with estimated weights that are not related to any other
+  # construct (their weights are arbitrary, so the scaling is not checked):
+  unconnected <- cvm_unconnected_composites(x)
   bad <- character(0)
+  reversed <- character(0)
   for (g in seq_along(x@modelmatrices)){
     W <- x@modelmatrices[[g]][["weights"]]
     Tc <- x@modelmatrices[[g]][["sigma_c"]]
     if (is.null(W) || is.null(Tc)) next
     W <- as.matrix(W)
+    Tc <- as.matrix(Tc)
     sds <- numeric(length(block))
-    sds[compInd] <- sqrt(pmax(diag(as.matrix(Tc)), 0))
+    sds[compInd] <- sqrt(pmax(diag(Tc), 0))
     for (k in comp){
       idx <- which(block == k)
       if (length(idx) < 2) next
+      name <- if (length(latents) >= k) latents[k] else as.character(k)
+      if (name %in% unconnected) next
       isMarker <- pars$matrix == "weights" & pars$col == k & pars$group_id == g & pars$fixed & pars$est != 0
       anyFree <- any(pars$matrix == "weights" & pars$col == k & pars$group_id == g & !pars$fixed)
       if (sum(isMarker) != 1 || !anyFree) next
+      rowMarker <- pars$row[isMarker]
       s <- abs(W[idx, k]) * sds[idx]
-      sMarker <- abs(W[pars$row[isMarker], k]) * sds[pars$row[isMarker]]
-      if (all(is.finite(s)) && max(s) > 0 && sMarker < 1e-3 * max(s)){
-        bad <- c(bad, if (length(latents) >= k) latents[k] else as.character(k))
+      sMarker <- abs(W[rowMarker, k]) * sds[rowMarker]
+      if (all(is.finite(s)) && max(s) > 0 && sMarker < max(s) / 25){
+        bad <- c(bad, name)
+      }
+      # Covariance of the scaling indicator with the composite:
+      idxc <- match(idx, compInd)
+      covMarker <- sum(Tc[match(rowMarker, compInd), idxc] * W[idx, k])
+      if (is.finite(covMarker) && sign(W[rowMarker, k]) * covMarker < 0){
+        reversed <- c(reversed, name)
       }
     }
   }
   if (length(bad) > 0){
     msgs <- c(msgs, paste0("the indicator that scales composite(s) ", paste(unique(bad), collapse = ", "),
-                           " (weight fixed to 1) has a negligible weight relative to the other indicators, so that the other weights are extremely large and not well defined in this scaling",
+                           " (weight fixed to 1) has a small weight relative to the other indicators (a standardized weight below 1/25 of the largest), so that the other weights are large and poorly determined in this scaling and the optimizer can stop before the optimum",
                            " (consider scaling the composite with another indicator: free the fixed weight with freepar() and fix the weight of another indicator to 1 with fixpar())"))
+  }
+  if (length(reversed) > 0){
+    msgs <- c(msgs, paste0("the indicator that scales composite(s) ", paste(unique(reversed), collapse = ", "),
+                           " (weight fixed to 1) correlates negatively with that composite, so that the composite is reversed relative to its scaling indicator;",
+                           " this does not change the fit of the model at the optimum, but the other weights tend to be large and the optimizer can stop before the optimum",
+                           " (consider scaling the composite with another indicator: use the default 'bad_marker_crit = 1' in cvm(), or free the fixed weight with freepar() and fix the weight of another indicator to 1 with fixpar())"))
   }
 
   # Composites with estimated weights that are not related to any other construct:
-  unconnected <- cvm_unconnected_composites(x)
   if (length(unconnected) > 0){
     msgs <- c(msgs, paste0("the following composite(s) have estimated weights but are not related to any other construct (no effects in 'beta' and no covariances / edges): ",
                            paste(unconnected, collapse = ", "), " (the weights of an isolated composite are not identified)"))

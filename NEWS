@@ -59,14 +59,27 @@ Changes in Version 0.18
       exactly; chi-square, estimates, standard errors and fit measures up to
       the precision of the optimizer, see 'Estimation' below), including
       multi-group and FIML models. See the new test file test_cvm.R.
-    - Composites are scaled by fixing the weight of their first indicator to
-      1. When the starting value of that weight is near zero relative to the
-      other weights (a bad marker indicator, for which the other weights
-      would become extremely large), the indicator with the largest starting
-      weight is used instead and a message is shown, as lavaan does; see the
-      new argument 'bad_marker_crit'. A warning is given when a composite
-      with estimated weights is not related to any other construct (its
-      weights are then not identified).
+    - Composites are scaled by fixing the weight of one indicator to 1: by
+      default the indicator with the largest standardized starting weight
+      (new argument 'bad_marker_crit', default 1). One message names the
+      composites for which this is not the first indicator. The weights of
+      the other indicators are relative to the scaling indicator, so that
+      scaling by an indicator with a small weight gives large weights for
+      the others, and reverses the composite when that weight has another
+      sign than the other weights. The optimizer then stopped 5 and 8
+      chi-square points before the optimum in two examples (with a
+      development default of 0.1, with which only a first indicator with a
+      starting weight below a tenth of the largest was replaced).
+      'bad_marker_crit = 0' always uses the first indicator, and a value
+      between 0 and 1 only replaces a first indicator with a starting weight
+      below that proportion of the largest (lavaan also replaces a first
+      indicator with a starting weight near zero). A warning is given when a
+      composite with estimated weights is not related to any other construct
+      (its weights are then not identified). prune() can remove the last
+      relation of a composite with the other constructs and then gives this
+      warning as well: the estimates, standard errors and p-values of the
+      weights of that composite are then not meaningful, and the weights
+      still count as parameters in the degrees of freedom.
     - Estimation uses the same optimizer and settings as all other model
       families; runmodel() has no settings that are specific to this family.
       Composite weights are only weakly identified, which makes the fit
@@ -83,14 +96,26 @@ Changes in Version 0.18
       setoptimizer(), e.g. optim.args = list(control = list(rel.tol = 1e-10,
       eval.max = 20000, iter.max = 10000)). Starting values for the weights
       are obtained with partial least squares (mode B), and are adjusted when
-      needed such that the starting point is admissible. The intercepts of the
+      needed such that the starting point is admissible. When the construct
+      part of the model is saturated (all constructs are composites that are
+      all related to each other, without effects in 'beta'), the maximum
+      likelihood weights minimize the determinant of the correlation matrix
+      of the composites (the GENVAR criterion of Kettenring, 1971). The
+      starting weights are then improved on this criterion: such a model
+      starts at the maximum likelihood estimates when the covariances within
+      the composites are saturated as well, and close to them otherwise. A
+      model with 83 indicators in 9 composites that needed 114 iterations
+      and about an hour from the mode B weights needs 8 iterations and 7
+      minutes, with the same chi-square. The intercepts of the
       indicators of latent variables are started such that the implied means
       equal the sample means: a latent variable that is predicted by
       composites has a nonzero mean, so that these intercepts are not the
       indicator means (starting them at the means made ULS and DWLS fits of
       such models fail). After estimation, runmodel() warns when the optimizer
       did not report convergence, when the indicator that scales a composite
-      has a negligible weight, when a composite with estimated weights is not
+      has a small weight (a standardized weight below 1/25 of the largest of
+      the composite) or correlates negatively with that composite (a
+      reversed composite), when a composite with estimated weights is not
       related to any other construct, when an element that is computed in this
       family was freed by hand, or when a computed residual variance of a
       composite is not positive. (A stricter tolerance and supplying the
@@ -143,6 +168,17 @@ Changes in Version 0.18
       another endogenous composite, and does not count a covariance between
       composite indicators that is fixed to zero in its degrees of freedom.
     - Conversion of models without composites is unchanged.
+  o runmodel(): the warning "Model might not have converged properly:
+    mean(abs(gradient)) > 1" now adds, for models of the lvm family that are
+    identified by fixing the first factor loadings, that
+    identification = "variance" may help. With identification = "loadings"
+    the starting values of a latent variable are scaled by its first
+    indicator, which gives poor starting values when that indicator is only
+    weakly related to the latent variable. A model with 9 factors and 83
+    indicators stopped more than 1,600 chi-square points above the optimum
+    (with this warning) and reached the optimum with
+    identification = "variance". The starting values themselves are not
+    changed; see ?lvm.
   o transmod() now supports the composite variable family: the types
     'composite', 'residual' and 'latent' of a cvm model can be transformed
     between equivalent parameterizations. In particular,

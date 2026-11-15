@@ -306,6 +306,12 @@ prune <- function(
   
   curPars <- max(x@parameters$par)
   
+  # Composite variable models: composites that are not related to any other
+  # construct before pruning (for the warning after pruning, see below):
+  if (x@model == "cvm"){
+    cvm_unconnected_before <- cvm_unconnected_composites(x)
+  }
+  
   # Set computed:
   x@computed <- FALSE
   
@@ -358,6 +364,23 @@ prune <- function(
   }  else {
     x@computed <- FALSE
     x@modelmatrices <- impliedModel(x, x@types, all = TRUE) 
+  }
+  
+  # Composite variable models: pruning may remove the last relation of a
+  # composite with the other constructs. This is allowed, but the weights of
+  # such a composite are not identified. runmodel() warns about this, but its
+  # warnings are suppressed above, so the warning is given here (once, in the
+  # step in which the composite became isolated):
+  if (x@model == "cvm"){
+    cvm_isolated <- setdiff(cvm_unconnected_composites(x), cvm_unconnected_before)
+    if (length(cvm_isolated) > 0){
+      warning(paste0("prune() removed all relations of the following composite(s) with the other constructs: ",
+                     paste(cvm_isolated, collapse = ", "),
+                     ". The weights of an isolated composite are not identified: their estimates, standard errors and p-values are not meaningful, ",
+                     "and the weights are still counted as parameters in the degrees of freedom. ",
+                     "Fix these weights with fixpar(), or keep the composite related to another construct (for example with freepar())."),
+              call. = FALSE)
+    }
   }
   
   # Recurse if needed:

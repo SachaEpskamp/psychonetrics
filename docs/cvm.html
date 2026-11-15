@@ -187,19 +187,19 @@ getmatrix(mod, "lambda")    # composite loadings</code></pre>
           <tr><th>Parameter</th><th>Estimate</th><th>SE</th></tr>
         </thead>
         <tbody>
-          <tr><td>Q5 &rarr; Originals</td><td>1 (fixed)</td><td></td></tr>
-          <tr><td>Q6 &rarr; Originals</td><td>2.72</td><td>0.89</td></tr>
-          <tr><td>Q7 &rarr; Originals</td><td>0.81</td><td>0.39</td></tr>
+          <tr><td>Q5 &rarr; Originals</td><td>0.37</td><td>0.12</td></tr>
+          <tr><td>Q6 &rarr; Originals</td><td>1 (fixed)</td><td></td></tr>
+          <tr><td>Q7 &rarr; Originals</td><td>0.30</td><td>0.12</td></tr>
           <tr><td>Q8 &rarr; Sequels</td><td>1 (fixed)</td><td></td></tr>
           <tr><td>Q9 &rarr; Sequels</td><td>&minus;0.23</td><td>0.22</td></tr>
-          <tr><td>Q10 &rarr; Sequels</td><td>1.22</td><td>0.37</td></tr>
-          <tr><td>Originals &rarr; Fan</td><td>0.17</td><td>0.050</td></tr>
+          <tr><td>Q10 &rarr; Sequels</td><td>1.23</td><td>0.38</td></tr>
+          <tr><td>Originals &rarr; Fan</td><td>0.47</td><td>0.061</td></tr>
           <tr><td>Sequels &rarr; Fan</td><td>0.13</td><td>0.040</td></tr>
         </tbody>
       </table>
     </div>
     <p>
-      The first weight of every composite is fixed to 1 to set its scale, so the other weights are relative to that indicator. Weights are estimated from the relations of a composite with the rest of the model, and therefore tend to have larger standard errors than factor loadings.
+      One weight of every composite is fixed to 1 to set its scale, so the other weights are relative to that indicator. By default this is the indicator with the largest standardized starting weight (here Q6 and Q8; a message reports that Originals is not scaled by its first indicator). Weights are estimated from the relations of a composite with the rest of the model, and therefore tend to have larger standard errors than factor loadings.
     </p>
   </section>
 
@@ -287,9 +287,9 @@ getmatrix(mod3, "omega_zeta")</code></pre>
   <section id="scaling">
     <h2>Scaling and Identification</h2>
     <ul>
-      <li><strong>Scaling.</strong> A composite is scaled by fixing the weight of one indicator to 1, by default the first. If the first indicator is a poor choice (its starting weight is near zero relative to the others, so that the other weights would become extremely large), another indicator is used and a message is shown; lavaan does the same. Set <code>bad_marker_crit = 0</code> to always use the first indicator.</li>
+      <li><strong>Scaling.</strong> A composite is scaled by fixing the weight of one indicator to 1: by default the indicator with the largest standardized starting weight (<code>bad_marker_crit = 1</code>). A message names the composites for which that is not the first indicator. Scaling by an indicator with a small weight makes the other weights large and can reverse the composite, in which case the optimizer can stop before the optimum; a warning is given when a composite correlates negatively with its scaling indicator. Set <code>bad_marker_crit = 0</code> to always use the first indicator, or a value between 0 and 1 to only replace a first indicator whose starting weight is below that proportion of the largest.</li>
       <li><strong>Choosing the scaling yourself.</strong> Free the fixed weight with <code>freepar()</code> and fix another with <code>fixpar()</code>. The same functions can fix all weights of a composite, for example to form a sum score. The scaling does not change the fit of the model, but it does change the weights and the effects of and on the composite.</li>
-      <li><strong>Isolated composites.</strong> A composite with estimated weights must be related to at least one other construct. The weights of a composite that is not related to anything are not identified, and a warning is given.</li>
+      <li><strong>Isolated composites.</strong> A composite with estimated weights must be related to at least one other construct. The weights of a composite that is not related to anything are not identified, and a warning is given. <code>prune()</code> can remove the last relation of a composite with the other constructs; it then gives this warning, and the weights of that composite should be fixed with <code>fixpar()</code>.</li>
       <li><strong>Latent variables</strong> are identified as in the lvm family (<code>identification = "loadings"</code> or <code>"variance"</code>).</li>
     </ul>
   </section>
@@ -301,7 +301,7 @@ getmatrix(mod3, "omega_zeta")</code></pre>
       The estimators <code>"ML"</code>, <code>"FIML"</code> (chosen automatically with missing data), <code>"ULS"</code>, <code>"WLS"</code> and <code>"DWLS"</code> are available, for single and multiple groups with equality constraints (<code>equal</code>, <code>groupequal()</code>) and with a mean structure. The model is implemented in both the R and the C++ pipeline, which give identical results.
     </p>
     <p>
-      Composite weights are only weakly identified, which makes the likelihood flat in some directions. Estimation starts from partial least squares estimates of the weights and uses the same optimizer and settings as all other model families. The optimizer can therefore stop slightly before the optimum: the chi-square is typically accurate to about two decimals. Stricter convergence criteria can be set with <code>setoptimizer()</code>, for example <code>setoptimizer(mod, "nlminb", optim.args = list(control = list(rel.tol = 1e-10, eval.max = 20000, iter.max = 10000)))</code>. A warning is given when the optimizer does not report convergence, when the indicator that scales a composite has a negligible weight, when a composite with estimated weights is not related to any other construct, or when the computed residual variance of a composite is not positive.
+      Composite weights are only weakly identified, which makes the likelihood flat in some directions. Estimation starts from partial least squares estimates of the weights and uses the same optimizer and settings as all other model families. When all constructs are composites that are all related to each other (and there are no effects in <code>beta</code>), the maximum likelihood weights minimize the determinant of the correlation matrix of the composites, and the starting weights are improved on that criterion, so that such a model starts at or close to its optimum. The optimizer can therefore stop slightly before the optimum: the chi-square is typically accurate to about two decimals. Stricter convergence criteria can be set with <code>setoptimizer()</code>, for example <code>setoptimizer(mod, "nlminb", optim.args = list(control = list(rel.tol = 1e-10, eval.max = 20000, iter.max = 10000)))</code>. A warning is given when the optimizer does not report convergence, when the indicator that scales a composite has a small weight relative to the other indicators or correlates negatively with the composite, when a composite with estimated weights is not related to any other construct, or when the computed residual variance of a composite is not positive.
     </p>
     <div class="note">
       <strong>Penalized estimation:</strong> <code>estimator = "PML"</code> penalizes the network structures in the model, after which <code>refit()</code> gives unpenalized estimates of the selected network. This works, but the optimizer used for penalized estimation is a first-order method and can be very slow for composite models (minutes for a model with a dozen variables). For now, <code>prune()</code> and <code>stepup()</code> are the faster route to a sparse network.

@@ -99,9 +99,11 @@ cvm_beta_start <- function(betaFixed, expLatSigma){
 #   comp:      logical, which constructs are composites
 #   facProxy:  variables x constructs matrix with proxy weights for the factors
 #   adjacency: constructs x constructs logical matrix, which constructs are related
+#   genvar:    logical, is the construct part of the model saturated? The mode B
+#              weights are then improved with cvm_genvar_weights()
 # Returns a variables x constructs matrix in which the column of every
 # composite holds its weights, scaled to a composite with unit variance.
-cvm_start_weights <- function(S, block, comp, facProxy, adjacency, maxit = 200, tol = 1e-8){
+cvm_start_weights <- function(S, block, comp, facProxy, adjacency, maxit = 200, tol = 1e-8, genvar = FALSE){
   nLat <- length(comp)
   nVar <- nrow(S)
   sds <- sqrt(diag(S))
@@ -157,7 +159,94 @@ cvm_start_weights <- function(S, block, comp, facProxy, adjacency, maxit = 200, 
 
   # Fall back to equal standardized weights:
   if (!ok) V <- Vunit
+
+  # Saturated construct part: the maximum likelihood weights have a closed form
+  # criterion, see cvm_genvar_weights():
+  if (genvar && length(multi) > 0){
+    V <- cvm_genvar_weights(S, block, V, multi)
+  }
   V
+}
+
+# Weights that minimize the determinant of the correlation matrix of the
+# composites (the GENVAR criterion of Kettenring, 1971, Biometrika), used as
+# starting values when the construct part of the model is saturated: all
+# constructs are composites that are all related to each other (covariances or
+# a network without zeros, and no effects in beta).
+#
+# In that model, with saturated covariances within the composites, the
+# chi-square is
+#   N * (sum_k log|S_kk| + log|R_C| - log|S|),
+# with S_kk the sample covariances of the indicators of composite k and R_C the
+# correlation matrix of the composites. The maximum likelihood estimates of the
+# weights therefore minimize |R_C| (and the covariances within and between the
+# composites are S_kk and W'SW). The mode B weights are consistent, but do not
+# minimize this criterion; starting from them, the optimizer needed many
+# iterations in large models (114 iterations and about an hour for 83 variables
+# in 9 composites, against 8 iterations from the weights below).
+#
+# The weights are improved one composite at a time. Given the other
+# composites, |R_C| is minimal when the multiple correlation of the composite
+# with the other composites is maximal: the first canonical variate of its
+# indicators with the other composites. Every step lowers the criterion.
+#   V:     variables x constructs matrix of starting weights (unit variance)
+#   multi: the composites with more than one indicator
+# Returns V with improved weights (unit variance), or V itself if the
+# criterion could not be improved.
+cvm_genvar_weights <- function(S, block, V, multi, maxit = 1000, tol = 1e-10){
+  nLat <- ncol(V)
+  if (nLat < 2 || length(multi) == 0) return(V)
+
+  # Log determinant of the correlation matrix of the constructs:
+  criterion <- function(V){
+    R <- cov2cor(t(V) %*% S %*% V)
+    d <- determinant(R, logarithm = TRUE)
+    if (d$sign > 0) as.numeric(d$modulus) else NA_real_
+  }
+
+  Vstart <- V
+  critStart <- tryCatch(criterion(V), error = function(e) NA_real_)
+  if (!is.finite(critStart)) return(Vstart)
+
+  res <- tryCatch({
+    # Cholesky factors of the covariances within the composites:
+    idxList <- lapply(seq_len(nLat), function(k) which(block == k))
+    cholList <- lapply(seq_len(nLat), function(k){
+      if (k %in% multi) chol(S[idxList[[k]], idxList[[k]], drop = FALSE]) else NULL
+    })
+    SV <- S %*% V
+    critOld <- critStart
+
+    for (it in seq_len(maxit)){
+      for (k in multi){
+        idx <- idxList[[k]]
+        others <- setdiff(seq_len(nLat), k)
+        # Covariances of the indicators with the other constructs, and the
+        # covariances of the other constructs:
+        Cko <- SV[idx, others, drop = FALSE]
+        Voo <- crossprod(V[, others, drop = FALSE], SV[, others, drop = FALSE])
+        A <- Cko %*% solve(Voo, t(Cko))
+        # First canonical variate: largest eigenvector of S_kk^-1 A:
+        R <- cholList[[k]]
+        M <- backsolve(R, t(backsolve(R, A, transpose = TRUE)), transpose = TRUE)
+        u <- eigen(0.5 * (M + t(M)), symmetric = TRUE)$vectors[, 1]
+        w <- backsolve(R, u)
+        # Keep the orientation of the composite:
+        if (sum(w * SV[idx, k]) < 0) w <- -w
+        V[idx, k] <- w
+        SV[, k] <- S[, idx, drop = FALSE] %*% w
+      }
+      critNew <- criterion(V)
+      if (!is.finite(critNew)) stop("criterion not finite")
+      converged <- critOld - critNew < tol
+      critOld <- critNew
+      if (converged) break
+    }
+    list(V = V, crit = critOld)
+  }, error = function(e) NULL)
+
+  if (is.null(res) || any(!is.finite(res$V)) || !(res$crit <= critStart)) return(Vstart)
+  res$V
 }
 
 # Composite variable model:
@@ -202,7 +291,7 @@ cvm <- function(
   # Identification:
   identify = TRUE,
   identification = c("loadings","variance"),
-  bad_marker_crit = 0.1, # A composite is scaled by another than its first indicator if the (standardized) starting weight of the first indicator is smaller than this proportion of the largest
+  bad_marker_crit = 1, # A composite is scaled by the indicator with the largest (standardized) starting weight if the starting weight of its first indicator is smaller than this proportion of the largest. 1: always the indicator with the largest starting weight; 0: always the first indicator
 
   # Rest:
   vars, # character indicating the variables Extracted if missing from data - group variable
@@ -444,6 +533,12 @@ cvm <- function(
   adjacency <- betaAny | t(betaAny) | covAny
   diag(adjacency) <- FALSE
 
+  # Is the construct part of the model saturated (all constructs are composites
+  # that are all related to each other, without effects in beta)? The starting
+  # weights can then be improved, see cvm_genvar_weights():
+  saturatedConstructs <- nLatent > 1 && length(facIdx) == 0 && !any(betaAny) &&
+    all(adjacency[upper.tri(adjacency)])
+
   # Factor part, using the lvm starting values on the factor indicators:
   if (length(facIdx) > 0 && nRes > 0){
     facSetup <- matrixsetup_lambda(lambda[resInd, facIdx, , drop = FALSE],
@@ -475,7 +570,7 @@ cvm <- function(
       expResidSigma[[g]] <- diag(diag(S)[resInd], nRes, nRes)
     }
 
-    proxyStart[[g]] <- cvm_start_weights(S, block, comp, facProxy, adjacency)
+    proxyStart[[g]] <- cvm_start_weights(S, block, comp, facProxy, adjacency, genvar = saturatedConstructs)
 
     # Covariances of the composite indicators:
     if (nComp > 0){
@@ -484,10 +579,16 @@ cvm <- function(
   }
 
   # Which indicator scales (is the marker of) every composite? The first
-  # indicator, unless its starting weight is near zero relative to the largest
-  # weight of the composite: the weights are then not well defined relative to
-  # that indicator, and the indicator with the largest weight is used instead.
+  # indicator, unless its (standardized) starting weight is smaller than
+  # 'bad_marker_crit' times the largest starting weight of the composite: the
+  # indicator with the largest starting weight is then used instead. With the
+  # default (1) a composite is always scaled by the indicator with the largest
+  # starting weight. Scaling by an indicator with a small weight makes the other
+  # weights large, and if that weight has another sign than the other weights
+  # the composite is reversed; the optimizer then stopped before the optimum
+  # in examples.
   marker <- rep(NA_integer_, nLatent)
+  rescaled <- character(0)
   for (k in compIdx){
     idx <- which(block == k)
     marker[k] <- idx[1]
@@ -498,12 +599,22 @@ cvm <- function(
       })))
       if (all(is.finite(stdw)) && max(stdw) > 0 && stdw[1] < bad_marker_crit * max(stdw)){
         marker[k] <- idx[which.max(stdw)]
-        message(paste0("The first indicator of composite '", latents[k], "' (", varnames[idx[1]],
-                       ") has a starting weight near zero relative to the other indicators; indicator '",
-                       varnames[marker[k]], "' is used to scale this composite instead (its weight is fixed to 1). ",
-                       "Set 'bad_marker_crit = 0' to always use the first indicator."))
+        rescaled <- c(rescaled, paste0(latents[k], " (", varnames[marker[k]], ")"))
       }
     }
+  }
+  if (length(rescaled) > 0){
+    message(paste0(
+      if (bad_marker_crit >= 1){
+        paste0("Composites are scaled by fixing the weight of the indicator with the largest (standardized) starting weight to 1. ",
+               "For the following composite(s) this is not the first indicator (scaling indicator in parentheses): ")
+      } else {
+        paste0("The (standardized) starting weight of the first indicator of the following composite(s) is smaller than ", format(bad_marker_crit),
+               " times the largest starting weight of the composite. These composites are scaled by fixing the weight of the indicator ",
+               "with the largest starting weight to 1 instead (in parentheses): ")
+      },
+      paste(rescaled, collapse = ", "),
+      ". Set 'bad_marker_crit = 0' to always use the first indicator."))
   }
 
   # Second pass: weights relative to the marker, and the covariances of the constructs:
