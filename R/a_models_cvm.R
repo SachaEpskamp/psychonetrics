@@ -320,6 +320,10 @@ cvm <- function(
   penalty_alpha = 1,   # Elastic net mixing: 1 = LASSO, 0 = ridge
   penalize_matrices  # Character vector of matrix names to penalize. Default: defaultPenalizeMatrices()
 ){
+  # Experimental-feature note, gated at the shared cutoff (silent from 0.19);
+  # fires once per session, unconditional of verbose (cnm() calls cvm()):
+  experimentalWarning("cvm() / cnm() composite variable model family")
+
   # Standardize input arguments:
   si <- standardize_input(
     data = if(missing(data)) NULL else data,

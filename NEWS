@@ -12,6 +12,7 @@ Changes in Version 0.18
     o prune() warns when it removes the last relation of a composite with the other constructs
   o fromlavaan() and tolavaan() now support models with composites (lavaan >= 0.7)
   o transmod() now supports the cvm family (e.g., transmod(x, composite = "ggm") turns a cvm model into a cnm model)
+  o The notes on experimental features are shown again (once per session) until version 0.19, and now also for cvm() and cnm()
   o The warning of runmodel() on a large gradient now suggests identification = "variance" for lvm models
   o Fixed a bug in transmod() where transforming a diagonal structure added a free parameter
   o Fixed a bug in the R pipeline (usecpp(x, FALSE)) where derived SD matrices in getmatrix() had the wrong dimensions

@@ -69,7 +69,7 @@ meta_lvm <- function(
   boot_resample
 ){
   
-  # Experimental-feature note, gated at the shared cutoff (silent from 0.17):
+  # Experimental-feature note, gated at the shared cutoff (silent from 0.19):
   experimentalWarning("meta_lvm()")
 
   # Standardize input arguments:

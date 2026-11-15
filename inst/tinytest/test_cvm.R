@@ -340,6 +340,21 @@ expect_message(cvm(covs = Sb, nobs = 1000, covtype = "ML", lambda = lamb, weight
                    beta = betab, latents = c("f1", "cc")), "largest \\(standardized\\) starting weight to 1.*cc \\(y5\\)")
 expect_message(cvm(covs = Sb, nobs = 1000, covtype = "ML", lambda = lamb, weights = wtsb,
                    beta = betab, latents = c("f1", "cc"), bad_marker_crit = 0.1), "smaller than 0.1 times")
+
+# The family is flagged experimental with the shared note, which is shown once
+# per session and is silent from version 0.19 on:
+if (utils::packageVersion("psychonetrics") < "0.19"){
+  exp_env <- psychonetrics:::.experimental_warned
+  rm(list = grep("cvm", ls(exp_env), value = TRUE), envir = exp_env)
+  expect_message(cnm(covs = Sb, nobs = 1000, covtype = "ML", lambda = lamb, weights = wtsb,
+                     beta = betab, latents = c("f1", "cc")), "is experimental in psychonetrics")
+  msgs_exp <- character(0)
+  withCallingHandlers(
+    cvm(covs = Sb, nobs = 1000, covtype = "ML", lambda = lamb, weights = wtsb,
+        beta = betab, latents = c("f1", "cc")),
+    message = function(m){ msgs_exp <<- c(msgs_exp, conditionMessage(m)); invokeRestart("muffleMessage") })
+  expect_false(any(grepl("experimental", msgs_exp)))
+}
 # Composite c3 of the first model (weights 1, .4, .6 with standard deviations
 # 2.45, 2.24 and 1.41) has its largest standardized weight on the first
 # indicator, which is then kept:

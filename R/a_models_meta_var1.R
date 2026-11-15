@@ -51,7 +51,7 @@ meta_var1 <- function(
   boot_resample
 ){
 
-  # Experimental-feature note, gated at the shared cutoff (silent from 0.17):
+  # Experimental-feature note, gated at the shared cutoff (silent from 0.19):
   experimentalWarning("meta_var1()")
 
   contemporaneous <- match.arg(contemporaneous)
