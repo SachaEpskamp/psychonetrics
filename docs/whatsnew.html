@@ -53,7 +53,7 @@
 <main class="container container-narrow">
 
   <p>
-    Version 0.16 adds a wave of new modeling functionality, every piece validated against <strong>lavaan</strong>: robust maximum-likelihood estimators with scaled test statistics and robust fit indices, a fast two-level ML estimator for multi-level latent variable models, converters to and from lavaan, completely-standardized solutions with standard errors, scaled chi-square difference tests, the Wishart likelihood, and fixed exogenous covariates. It also brings random-intercept cross-lagged panel models, the Blume-Capel model, multi-state Ising models, and genuinely covariance-based meta-analysis, together with a large stability and performance release. This page summarizes the highlights; the full changelog is in the package <a href="https://github.com/SachaEpskamp/psychonetrics/blob/master/NEWS">NEWS</a> file. All code snippets below were run against the package and cross-checked against lavaan 0.6-21.
+    Version 0.16 adds a wave of new modeling functionality, with results that align with <strong>lavaan</strong>: robust maximum-likelihood estimators with scaled test statistics and robust fit indices, a fast two-level ML estimator for multi-level latent variable models, converters to and from lavaan, completely-standardized solutions with standard errors, scaled chi-square difference tests, the Wishart likelihood, and fixed exogenous covariates. It also brings random-intercept cross-lagged panel models, the Blume-Capel model, multi-state Ising models, and genuinely covariance-based meta-analysis, together with a large stability and performance release. This page summarizes the highlights; the full changelog is in the package <a href="https://github.com/SachaEpskamp/psychonetrics/blob/master/NEWS">NEWS</a> file.
   </p>
 
   <div class="toc">
@@ -101,7 +101,7 @@ mod <- cnm(StarWars, weights = weights, beta = beta,
 
 mod %>% prune(alpha = 0.05) %>% getmatrix("omega_c")   # networks within the composites</code></pre>
     <p>
-      Multiple groups, mean structures, missing data (FIML) and the usual model search functions are supported, and models with covariance parameterizations convert to and from lavaan 0.7 with <a href="lavaan.html"><code>tolavaan()</code> and <code>fromlavaan()</code></a>. The family is <strong>experimental</strong>: it has been checked against lavaan and in simulations, but arguments and defaults may still change.
+      Multiple groups, mean structures, missing data (FIML) and the usual model search functions are supported, and models with covariance parameterizations convert to and from lavaan 0.7 with <a href="lavaan.html"><code>tolavaan()</code> and <code>fromlavaan()</code></a>. The family is <strong>experimental</strong>: arguments and defaults may still change.
     </p>
   </div>
 
@@ -146,7 +146,7 @@ getmatrix(mod, "PDC")                        # temporal network
 getmatrix(mod, "omega_zeta_within")          # contemporaneous network
 getmatrix(mod, "omega_zeta_between")         # between-persons network</code></pre>
     <p>
-      Two estimators are available. The two-level <strong>summary-statistics pseudo-ML</strong> (<code>estimator = "ML"</code>) compresses each subject's series once into two-level sufficient statistics, so its cost is independent of the number of time points &mdash; the right choice for long ESM series. <code>estimator = "FIML"</code> instead routes to the <a href="dlvm1.html">panelvar framework</a> for exact full-information ML on short (panel-like) occasion grids. The default <code>estimator = "auto"</code> picks between them at 10 occasions per subject and prints its choice. Estimates closely track both <code>panelvar()</code> and <code>mlVAR()</code> on the same data; see the <a href="ml_var.html#caveats">statistical caveats</a> for the pseudo-likelihood fine print.
+      Two estimators are available. The two-level <strong>summary-statistics pseudo-ML</strong> (<code>estimator = "ML"</code>) compresses each subject's series once into two-level sufficient statistics, so its cost is independent of the number of time points &mdash; the right choice for long ESM series. <code>estimator = "FIML"</code> instead routes to the <a href="dlvm1.html">panelvar framework</a> for exact full-information ML on short (panel-like) occasion grids. The default <code>estimator = "auto"</code> picks between them at 10 occasions per subject and prints its choice. See the <a href="ml_var.html#caveats">statistical caveats</a> for the pseudo-likelihood fine print.
     </p>
   </div>
 
@@ -182,7 +182,7 @@ getmatrix(mod, "omega_between")   # between-cluster partial-correlation network
 
 mod <- mod %>% prune(alpha = 0.05)   # prune non-significant edges as usual</code></pre>
     <p>
-      The framework has its own native matrix names (<code>sigma_within</code>, <code>omega_within</code>, <code>sigma_between</code>, <code>omega_between</code>, &hellip;) and simpler analytic derivatives, verified against numeric differentiation and an independent C++ implementation. The multi-level GGM is also available in the mlVAR package's <code>mlGGM()</code>, which uses a different estimator &mdash; nodewise multilevel regression (one mixed-effects model per variable); <code>psychonetrics::ml_ggm</code> instead estimates the full two-level covariance structure by maximum likelihood and additionally provides model fit indices and confirmatory testing.
+      The framework has its own native matrix names (<code>sigma_within</code>, <code>omega_within</code>, <code>sigma_between</code>, <code>omega_between</code>, &hellip;) and simpler analytic derivatives. The multi-level GGM is also available in the mlVAR package's <code>mlGGM()</code>, which uses a different estimator &mdash; nodewise multilevel regression (one mixed-effects model per variable); <code>psychonetrics::ml_ggm</code> instead estimates the full two-level covariance structure by maximum likelihood and additionally provides model fit indices and confirmatory testing.
     </p>
   </div>
 
@@ -210,7 +210,7 @@ mod <- mod %>% prune(alpha = 0.05)   # prune non-significant edges as usual</cod
     <ul>
       <li>Fit-equivalent to the raw parameterization for any zero pattern (the map is smooth, zero- and sign-preserving); the fitted PDC parameters equal <code>computePDC()</code> of the raw fit exactly at the optimum.</li>
       <li>Inference on the interpreted scale: Wald standard errors and CIs (<code>CIplot()</code>, arrows drawn from &rarr; to), modification indices, <code>prune()</code>/<code>stepup()</code> defaults, and cross-group equality constraints (<code>groupequal("PDC")</code>) &mdash; e.g. testing whether the standardized temporal network is invariant across groups while innovation variances differ.</li>
-      <li>Both engines (R and C++); gradients verified against numeric derivatives for all innovation types (cov, chol, prec, ggm, cor) in every family, and PDC standard errors verified against delta-method standard errors from the raw parameterization.</li>
+      <li>Implemented in both the R and C++ engines.</li>
     </ul>
   </div>
 
@@ -226,7 +226,7 @@ mod <- mod %>% prune(alpha = 0.05)   # prune non-significant edges as usual</cod
       <li>Together with <code>sigma_epsilon_between</code> (the perfectly stable item component), each indicator gets a STARTS-like decomposition: stable trait + autoregressive part + latent dynamics.</li>
       <li>The white-noise model is nested (<code>beta_epsilon = 0</code>), so modification indices on the <code>beta_epsilon</code> elements diagnose residual autocorrelation directly, and the likelihood-ratio test against the default model is the natural test.</li>
       <li>At least three waves are required (a warning is issued with two); four or more are recommended.</li>
-      <li>Implemented in both the R and C++ engines; gradients and implied structures verified against independent implementations and Monte Carlo simulation.</li>
+      <li>Implemented in both the R and C++ engines.</li>
     </ul>
   </div>
 
@@ -241,7 +241,6 @@ mod <- mod %>% prune(alpha = 0.05)   # prune non-significant edges as usual</cod
       <li>The model matrices keep their names (<code>beta</code>, <code>sigma_zeta_within</code>, <code>sigma_zeta_between</code> and typed variants), so <code>getmatrix()</code>, <code>prune()</code>, <code>stepup()</code>, <code>transmod()</code>, <code>CIplot()</code>, <code>esa()</code> and <code>modelsearch()</code> keep working unchanged.</li>
       <li>The mean structure is a single <code>mu</code> matrix of observed stationary means (previously the observed intercepts appeared as <code>nu</code> with latent means <code>mu_eta</code> fixed to zero).</li>
       <li>Variable names default to the design-matrix rownames instead of <code>Eta_1, Eta_2, ...</code>.</li>
-      <li>Analytic gradients verified against numeric ones for all within/between types (<code>cov</code>, <code>chol</code>, <code>prec</code>, <code>ggm</code>, <code>cor</code>), including multi-group models with equality constraints, FIML, and designs with missing waves.</li>
       <li><code>panellvgvar()</code> (the latent panel GVAR) is unaffected and still uses the <code>dlvm1()</code> framework.</li>
     </ul>
   </div>
@@ -257,7 +256,7 @@ mod <- mod %>% prune(alpha = 0.05)   # prune non-significant edges as usual</cod
       <li><strong><code>"MLM"</code>, <code>"MLMV"</code>, <code>"MLMVS"</code></strong> &mdash; Browne (1984) robust sandwich standard errors with the Satorra&ndash;Bentler, scaled-and-shifted, and mean-and-variance-adjusted scaled chi-square, respectively (complete data).</li>
       <li><strong><code>"MLR"</code></strong> &mdash; Huber&ndash;White sandwich standard errors with the Yuan&ndash;Bentler&ndash;Mplus scaled chi-square; <strong>supports missing data via FIML</strong> with the Savalei (2010) FIML-corrected robust fit indices.</li>
     </ul>
-    <p>All estimators also report robust <strong>RMSEA / CFI / TLI</strong>. Everything was validated against lavaan.</p>
+    <p>All estimators also report robust <strong>RMSEA / CFI / TLI</strong>. The results align with lavaan.</p>
     <pre><code class="language-r">library("psychonetrics")
 library("lavaan")
 library("dplyr")
@@ -420,7 +419,7 @@ compare(configural = mod_config, weak = mod_weak)</code></pre>
     <h2>Stability &amp; performance release <span class="version-tag">0.16</span></h2>
     <p class="whatsnew-meta">June 2026</p>
     <p>
-      Version 0.16 implements the findings of a large internal code audit: bug fixes across all model families, robustness improvements, substantial speedups, and a new automated test suite. No user action is needed &mdash; existing scripts keep working, but many run faster and more reliably.
+      Version 0.16 contains bug fixes across all model families, robustness improvements, substantial speedups, and a new automated test suite. No user action is needed &mdash; existing scripts keep working, but many run faster and more reliably.
     </p>
     <h4>Robustness</h4>
     <ul>
@@ -437,7 +436,7 @@ compare(configural = mod_config, weak = mod_weak)</code></pre>
     </ul>
     <h4>Quality assurance</h4>
     <ul>
-      <li>A new automated test suite (<code>tinytest</code>) covers the examples on this website plus targeted regression tests, with reference values cross-checked against <strong>lavaan</strong>.</li>
+      <li>A new automated test suite (<code>tinytest</code>) covers the examples on this website plus targeted regression tests.</li>
       <li>Large documentation cleanup and removal of unused dependencies.</li>
     </ul>
   </div>
@@ -447,7 +446,7 @@ compare(configural = mod_config, weak = mod_weak)</code></pre>
     <h2>Meta-analysis: covariance input &amp; Olkin&ndash;Siotani V methods <span class="version-tag">0.16</span></h2>
     <p class="whatsnew-meta">June 2026 &mdash; see the new <a href="meta.html">meta-analysis page</a></p>
     <p>
-      <code>meta_varcov()</code> now genuinely supports <strong>covariance matrices</strong> as input (previously covariances were silently modeled as correlations), and two new <code>Vmethod</code> options &mdash; <code>"OS_individual"</code> and <code>"OS_pooled"</code> &mdash; implement the Olkin&ndash;Siotani (1976) sampling covariance of sample correlations, validated against <code>metaSEM::asyCov</code>. These are recommended when the between-study heterogeneity (random-effects) variances are of substantive interest. The default <code>Vmethod</code> is unchanged, so published analyses reproduce exactly.
+      <code>meta_varcov()</code> now genuinely supports <strong>covariance matrices</strong> as input (previously covariances were silently modeled as correlations), and two new <code>Vmethod</code> options &mdash; <code>"OS_individual"</code> and <code>"OS_pooled"</code> &mdash; implement the Olkin&ndash;Siotani (1976) sampling covariance of sample correlations. These are recommended when the between-study heterogeneity (random-effects) variances are of substantive interest. The default <code>Vmethod</code> is unchanged, so published analyses reproduce exactly.
     </p>
     <pre><code class="language-r">library("psychonetrics")
 library("dplyr")
@@ -563,7 +562,7 @@ mod_refit <- mod_pml %>% refit</code></pre>
     </p>
     <pre><code class="language-r"># Two-level CFA: 60 clusters, 2 factors, 6 indicators
 mod_ml <- ml_lvm(Data, lambda = Lambda, clusters = "cluster") %>% runmodel
-mod_ml %>% fit    # verified: X2(20) = 15.92, p = 0.72, CFI = 1.00
+mod_ml %>% fit    # X2(20) = 15.92, p = 0.72, CFI = 1.00
 
 # Network variants: ml_lnm() (between-cluster latent network),
 # ml_rnm(), ml_lrnm()</code></pre>

@@ -201,13 +201,13 @@ compare(full = model, pruned = model_pruned)</code></pre>
   <!-- Caveats -->
   <section id="caveats">
     <h2>Statistical Caveats</h2>
-    <p>The summary-statistics estimator (<code>"ML"</code>) is a working-independence <em>pseudo</em> (composite) likelihood. Two caveats follow (see <code>?ml_var1</code> for simulation details):</p>
+    <p>The summary-statistics estimator (<code>"ML"</code>) is a working-independence <em>pseudo</em> (composite) likelihood. Three caveats follow:</p>
     <ul>
-      <li><strong>Between-person variances</strong> carry a small upward finite-length bias of order $O(1/T)$: around +9% at $T = 25$ and +3% at $T = 50$ measurements per subject, negligible by $T = 100$. The full-likelihood <code>panelvar()</code> route does not show this bias.</li>
-      <li><strong>Standard errors</strong> are pseudo-likelihood standard errors and can be anti-conservative, most noticeably for the contemporaneous network (reported SEs around 75&ndash;80% of the empirical sampling variation).</li>
+      <li><strong>Between-person variances</strong> carry a small upward finite-length bias of order $O(1/T)$, with $T$ the number of measurements per subject. The full-likelihood <code>panelvar()</code> route does not have this bias.</li>
+      <li><strong>Standard errors</strong> are pseudo-likelihood standard errors: they ignore the dependence between consecutive lag pairs and can therefore be anti-conservative.</li>
       <li><strong>Information criteria</strong> (AIC/BIC) are pseudo-likelihood criteria: fine for comparing ml_var models with each other, but not against models fit with other estimators.</li>
     </ul>
-    <p>Point estimates of the temporal and contemporaneous networks are consistent and closely track both the full-likelihood <code>panelvar()</code> estimates and <code>mlVAR()</code> estimates on the same data.</p>
+    <p>Point estimates of the temporal and contemporaneous networks are consistent.</p>
   </section>
 
   <!-- Naming & history -->

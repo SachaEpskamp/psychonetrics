@@ -83,7 +83,7 @@
       <li><code>cnm()</code>: the <strong>composite network model</strong>, a wrapper that models the indicators within every composite as a partial correlation network.</li>
     </ul>
     <div class="note">
-      <strong>Experimental:</strong> this family is new in psychonetrics 0.18. The estimates have been checked against lavaan and in simulations, but arguments, defaults and output may still change. Please report unexpected behavior on <a href="https://github.com/SachaEpskamp/psychonetrics/issues">GitHub</a>.
+      <strong>Experimental:</strong> this family is new in psychonetrics 0.18. Arguments, defaults and output may still change. Please report unexpected behavior on <a href="https://github.com/SachaEpskamp/psychonetrics/issues">GitHub</a>.
     </div>
   </section>
 
@@ -301,7 +301,7 @@ getmatrix(mod3, "omega_zeta")</code></pre>
       The estimators <code>"ML"</code>, <code>"FIML"</code> (chosen automatically with missing data), <code>"ULS"</code>, <code>"WLS"</code> and <code>"DWLS"</code> are available, for single and multiple groups with equality constraints (<code>equal</code>, <code>groupequal()</code>) and with a mean structure. The model is implemented in both the R and the C++ pipeline, which give identical results.
     </p>
     <p>
-      Composite weights are only weakly identified, which makes the likelihood flat in some directions. Estimation starts from partial least squares estimates of the weights and uses the same optimizer and settings as all other model families. When all constructs are composites that are all related to each other (and there are no effects in <code>beta</code>), the maximum likelihood weights minimize the determinant of the correlation matrix of the composites, and the starting weights are improved on that criterion, so that such a model starts at or close to its optimum. The optimizer can therefore stop slightly before the optimum: the chi-square is typically accurate to about two decimals. Stricter convergence criteria can be set with <code>setoptimizer()</code>, for example <code>setoptimizer(mod, "nlminb", optim.args = list(control = list(rel.tol = 1e-10, eval.max = 20000, iter.max = 10000)))</code>. A warning is given when the optimizer does not report convergence, when the indicator that scales a composite has a small weight relative to the other indicators or correlates negatively with the composite, when a composite with estimated weights is not related to any other construct, or when the computed residual variance of a composite is not positive.
+      Estimation starts from partial least squares estimates of the weights and uses the same optimizer and settings as all other model families. When all constructs are composites that are all related to each other (and there are no effects in <code>beta</code>), the maximum likelihood weights minimize the determinant of the correlation matrix of the composites, and the starting weights are improved on that criterion, so that such a model starts at or close to its optimum. Composite weights are only weakly identified, which makes the likelihood flat in some directions: the optimizer can stop slightly before the optimum. Stricter convergence criteria can be set with <code>setoptimizer()</code>, for example <code>setoptimizer(mod, "nlminb", optim.args = list(control = list(rel.tol = 1e-10, eval.max = 20000, iter.max = 10000)))</code>. A warning is given when the optimizer does not report convergence, when the indicator that scales a composite has a small weight relative to the other indicators or correlates negatively with the composite, when a composite with estimated weights is not related to any other construct, or when the computed residual variance of a composite is not positive.
     </p>
     <div class="note">
       <strong>Penalized estimation:</strong> <code>estimator = "PML"</code> penalizes the network structures in the model, after which <code>refit()</code> gives unpenalized estimates of the selected network. This works, but the optimizer used for penalized estimation is a first-order method and can be very slow for composite models (minutes for a model with a dozen variables). For now, <code>prune()</code> and <code>stepup()</code> are the faster route to a sparse network.
@@ -334,19 +334,13 @@ mod_from_lavaan <- fromlavaan(fit, run = TRUE)</code></pre>
   <!-- Status -->
   <section id="status">
     <h2>Experimental Status and Limitations</h2>
-    <p>The family is new in version 0.18 and is marked experimental. What has been checked:</p>
-    <ul>
-      <li>The analytic gradient and Fisher information against an independent implementation of the model and numerical differentiation.</li>
-      <li>The R pipeline against the C++ pipeline, and both against lavaan wherever lavaan can estimate the same model, including multi-group and missing-data models.</li>
-      <li>Simulations of bias, standard errors, coverage, the chi-square distribution and the recovery of networks within composites and between constructs.</li>
-    </ul>
-    <p>Current limitations:</p>
+    <p>The family is new in version 0.18 and is marked experimental. Current limitations:</p>
     <ul>
       <li>Ordinal data and correlation input are not supported.</li>
       <li><code>latent</code> can only be <code>"cov"</code> or <code>"ggm"</code>.</li>
       <li>With <code>latent = "ggm"</code>, a composite cannot have both incoming effects and edges in the latent network.</li>
-      <li>In small samples (around 250 or fewer) with weak relations between constructs, the weights can be poorly determined: standard errors are then very large, and the optimizer can stop on a flat part of the likelihood. Check the warnings and the standard errors, estimate the model again with stricter convergence criteria, and consider another indicator to scale the composite.</li>
-      <li>The optimizer can stop slightly before the optimum in the weights: the chi-square is accurate to about two decimals (within 0.005 of lavaan in the models that were compared). <code>setoptimizer()</code> gives stricter convergence (see Estimation).</li>
+      <li>With small samples or weak relations between constructs, the weights can be poorly determined: standard errors are then very large, and the optimizer can stop on a flat part of the likelihood. Check the warnings and the standard errors, estimate the model again with stricter convergence criteria, and consider another indicator to scale the composite.</li>
+      <li>The optimizer can stop slightly before the optimum in the weights. <code>setoptimizer()</code> gives stricter convergence (see Estimation).</li>
       <li>Large models are slow: about 10 to 20 seconds for 36 variables, and minutes for 64 variables.</li>
       <li>Penalized estimation can be slow (see above).</li>
     </ul>

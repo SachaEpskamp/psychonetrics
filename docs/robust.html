@@ -55,7 +55,7 @@
 <main class="container container-narrow">
 
   <div class="note">
-    <strong>Experimental in 0.16.</strong> The robust estimators (MLM / MLMV / MLMVS / MLR) and the scaled &chi;&sup2;-difference tests are new in this release and are flagged experimental (a note is printed when <code>verbose = TRUE</code>). They have been validated against <a href="https://lavaan.org">lavaan</a>, but please <a href="https://github.com/SachaEpskamp/psychonetrics/issues">report</a> any unexpected behavior.
+    <strong>Experimental in 0.16.</strong> The robust estimators (MLM / MLMV / MLMVS / MLR) and the scaled &chi;&sup2;-difference tests are new in this release and are flagged experimental (a note is printed when <code>verbose = TRUE</code>). Please <a href="https://github.com/SachaEpskamp/psychonetrics/issues">report</a> any unexpected behavior.
   </div>
 
 
@@ -78,7 +78,7 @@
       Ordinary maximum likelihood (ML) for continuous data assumes multivariate normality. When that assumption is violated &mdash; skewed or heavy-tailed items, excess kurtosis &mdash; the ML <em>point estimates</em> remain consistent, but the model chi-square is inflated and the standard errors are biased. <strong>Robust maximum-likelihood estimators</strong> keep the ML estimates and correct the inference: they replace the naive standard errors with sandwich (robust) standard errors and rescale the chi-square so that its reference distribution is approximately correct.
     </p>
     <p>
-      Added in version 0.16 and validated against <strong>lavaan</strong>, psychonetrics implements the full robust-ML family. They are available for the <a href="lvm.html">lvm</a> and <a href="varcov.html">varcov</a> families and are selected either through the model constructors (<code>estimator = &hellip;</code>) or afterwards with <a href="#setestimator"><code>setestimator()</code></a>.
+      Since version 0.16, psychonetrics implements the full robust-ML family. They are available for the <a href="lvm.html">lvm</a> and <a href="varcov.html">varcov</a> families and are selected either through the model constructors (<code>estimator = &hellip;</code>) or afterwards with <a href="#setestimator"><code>setestimator()</code></a>.
     </p>
     <div class="note">
       <strong>Point estimates are unchanged maximum likelihood.</strong> Switching from <code>"ML"</code> to a robust estimator changes only the standard errors, the test statistic, and the fit indices &mdash; never the parameter estimates themselves.
@@ -255,7 +255,7 @@ Note: Chisq_diff_scaled / p_value_scaled use the Satorra & Bentler (2001)
       <li><code>"MLR"</code> additionally supports missing data via FIML; the Satorra&ndash;Bentler family is complete-data only.</li>
       <li>Select via the constructor (<code>estimator = "MLR"</code>) or with <code>setestimator()</code> (build with <code>storedata = TRUE</code>).</li>
       <li><code>compare()</code> reports a scaled chi-square difference test (<code>scaled.test.method</code>) reproducing lavaan's <code>lavTestLRT()</code>.</li>
-      <li>All quantities were validated against lavaan. For converting models to and from lavaan, see the <a href="lavaan.html">interoperability page</a>.</li>
+      <li>The results align with lavaan. For converting models to and from lavaan, see the <a href="lavaan.html">interoperability page</a>.</li>
     </ul>
   </section>
 

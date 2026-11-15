@@ -227,17 +227,13 @@ analysis); a full-information treatment of the augmented rows is planned for a l
 \bold{Statistical caveats.} Because the estimator treats consecutive lag pairs as
 independent (working-independence pseudo-likelihood, as in \code{\link{var1}}), two caveats
 apply. First, under positive temporal autocorrelation the between-person covariance
-\eqn{\Sigma_B}{Sigma_B} carries a small upward finite-length bias of order \eqn{O(1/T)}: in
-simulation (\eqn{p = 4}, \eqn{J = 60}, \eqn{\beta}{beta} spectral radius 0.5) the
-between-person variances were biased about +9\% at \eqn{T = 25} and +3\% at \eqn{T = 50},
-and negligibly by \eqn{T = 100}; a full-likelihood \code{\link{panelvar}} / \code{panelgvar}
-fit does not show this bias. Second, the Fisher-based standard errors are pseudo-likelihood
-standard errors and can be anti-conservative -- most noticeably for the contemporaneous
-(within) network, where reported standard errors were about 75--80\% of the empirical
-standard deviation, an under-statement that grows with temporal dependence and does not
-vanish as \eqn{T} grows. Point estimates of the temporal network \code{beta} and the
-contemporaneous network \code{omega_zeta_within} are consistent and closely track the
-full-likelihood \code{panelvar} estimates.
+\eqn{\Sigma_B}{Sigma_B} carries a small upward finite-length bias of order \eqn{O(1/T)};
+a full-likelihood \code{\link{panelvar}} / \code{panelgvar} fit does not have this bias.
+Second, the Fisher-based standard errors are pseudo-likelihood standard errors: they ignore
+the dependence between consecutive lag pairs and can therefore be anti-conservative.
+Point estimates of the
+temporal network \code{beta} and the contemporaneous network \code{omega_zeta_within}
+are consistent.
 
 The saturated (unrestricted) and baseline (independence) reference models used by
 \code{\link{runmodel}} for the fit measures are estimated within the \code{ml_var1}
