@@ -7,6 +7,7 @@ Changes in Version 0.18
     o A composite with a single indicator can be used to include an observed variable in the structural model
     o With latent = "ggm", a composite can either be part of the latent network or have incoming effects in 'beta', but not both
     o Composites are scaled by fixing the weight of the indicator with the largest starting weight to 1 (see the 'bad_marker_crit' argument)
+    o sumscores = TRUE fixes all weights to 1, such that every composite is the sum score of its indicators
     o Supports multiple groups, the ML, FIML, ULS, WLS, DWLS, PML and PFIML estimators and the model search functions; ordinal data and correlation input are not yet supported
     o runmodel() warns when a composite is poorly scaled, reversed or not related to any other construct
     o prune() warns when it removes the last relation of a composite with the other constructs

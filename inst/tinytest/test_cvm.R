@@ -494,6 +494,101 @@ if (at_home()){
   expect_equal(sum(grepl("removed all relations", warn_iso)), 0)
 }
 
+## ---- 8e. Sum scores: all weights fixed to 1 (sumscores = TRUE) ----
+# Composites c3 (y7-y9) and c4 (y10-y13) as sum scores that covary. Maximum
+# likelihood then has a closed form: the covariances within the composites are
+# the sample covariances, the covariances of the composites are those of the
+# sum scores, and the chi-square is N * (sum_k log|S_kk| + log|R_C| - log|S|),
+# with R_C the correlation matrix of the sum scores.
+ss_vars <- nm[7:13]
+ss_block <- rep(1:2, c(3, 4))
+ss_w <- 1 * outer(ss_block, 1:2, "==")
+ss_S <- cov(dat[, ss_vars]) * (nrow(dat) - 1) / nrow(dat)
+msgs_ss <- character(0)
+mod_ss <- withCallingHandlers(
+  cvm(dat, vars = ss_vars, weights = ss_w, latents = c("c3", "c4"), sumscores = TRUE),
+  message = function(m){ msgs_ss <<- c(msgs_ss, conditionMessage(m)); invokeRestart("muffleMessage") })
+# No message on the scaling of the composites:
+expect_false(any(grepl("scaled", msgs_ss)))
+# All weights are fixed to 1, as restrictions (not as identification constraints):
+p_ss <- mod_ss@parameters
+w_ss <- p_ss$matrix == "weights" & p_ss$est != 0
+expect_equal(sum(w_ss), 7)
+expect_true(all(p_ss$fixed[w_ss] & p_ss$est[w_ss] == 1 & !p_ss$identified[w_ss]))
+expect_false(any(p_ss$matrix == "weights" & !p_ss$fixed))
+fit_ss <- runmodel(mod_ss)
+expect_equal(fit_ss@fitmeasures$df, 7 * 8 / 2 - (3 * 4 / 2 + 4 * 5 / 2) - 1)
+ss_chisq <- nrow(dat) * (sum(sapply(1:2, function(k) determinant(ss_S[ss_block == k, ss_block == k])$modulus)) +
+                           determinant(cov2cor(t(ss_w) %*% ss_S %*% ss_w))$modulus - determinant(ss_S)$modulus)
+expect_true(abs(fit_ss@fitmeasures$chisq - ss_chisq) < 1e-4)
+expect_true(max(abs(getmatrix(fit_ss, "sigma_zeta") - t(ss_w) %*% ss_S %*% ss_w)) < 1e-4)
+expect_true(all(as.matrix(getmatrix(fit_ss, "weights")) == ss_w))
+expect_error(cvm(dat, vars = ss_vars, weights = ss_w, sumscores = "yes"), "sumscores")
+
+# With latent = "ggm" the latent network is the network of the sum scores: the
+# same partial correlations as ggm() on the sum scores, and the same chi-square
+# difference when an edge is removed:
+all_w <- 1 * outer(rep(1:4, c(3, 3, 3, 4)), 1:4, "==")
+sumdat <- as.data.frame(as.matrix(dat[, nm]) %*% all_w)
+names(sumdat) <- latents
+om_ss <- 1 - diag(4); om_ss[4, 1] <- om_ss[1, 4] <- 0
+fit_ssn <- runmodel(cvm(dat, vars = nm, weights = all_w, latents = latents, sumscores = TRUE, latent = "ggm"))
+fit_ssn0 <- runmodel(cvm(dat, vars = nm, weights = all_w, latents = latents, sumscores = TRUE, latent = "ggm",
+                         omega_zeta = om_ss))
+fit_sumggm <- runmodel(ggm(sumdat))
+fit_sumggm0 <- runmodel(ggm(sumdat, omega = om_ss))
+expect_true(max(abs(getmatrix(fit_ssn, "omega_zeta") - getmatrix(fit_sumggm, "omega"))) < 1e-4)
+expect_true(max(abs(getmatrix(fit_ssn0, "omega_zeta") - getmatrix(fit_sumggm0, "omega"))) < 1e-3)
+expect_equal(fit_ssn0@fitmeasures$df, fit_ssn@fitmeasures$df + 1)
+expect_true(abs((fit_ssn0@fitmeasures$chisq - fit_ssn@fitmeasures$chisq) - fit_sumggm0@fitmeasures$chisq) < 1e-3)
+
+# With common factors and effects (the model of section 2): nested in the model
+# with estimated weights (five weights fewer). Modification indices are
+# computed for the fixed weights, and a weight can be freed:
+fit_ss2 <- runmodel(cvm(dat, lambda = lambda, weights = weights, beta = beta,
+                        sigma_zeta = sigma_zeta, latents = latents, sumscores = TRUE))
+expect_equal(fit_ss2@optim$convergence, 0)
+expect_equal(fit_ss2@fitmeasures$df, fitC@fitmeasures$df + 5)
+expect_true(fit_ss2@fitmeasures$chisq > fitC@fitmeasures$chisq)
+p_ss2 <- fit_ss2@parameters
+expect_true(all(is.finite(p_ss2$mi[p_ss2$matrix == "weights" & p_ss2$est != 0])))
+fit_ss3 <- runmodel(freepar(fit_ss2, "weights", "y8", "c3"))
+expect_equal(fit_ss3@fitmeasures$df, fit_ss2@fitmeasures$df - 1)
+expect_true(fit_ss3@fitmeasures$chisq < fit_ss2@fitmeasures$chisq)
+expect_equal(sum(fit_ss3@parameters$matrix == "weights" & fit_ss3@parameters$fixed & fit_ss3@parameters$est == 1), 6)
+
+if (at_home()){
+  # The R pipeline gives the same solution:
+  fit_ss2R <- runmodel(usecpp(cvm(dat, lambda = lambda, weights = weights, beta = beta,
+                                  sigma_zeta = sigma_zeta, latents = latents, sumscores = TRUE), FALSE))
+  expect_true(abs(fit_ss2R@fitmeasures$chisq - fit_ss2@fitmeasures$chisq) < 1e-6)
+  expect_true(max(abs(fit_ss2R@parameters$est - fit_ss2@parameters$est)) < 1e-6)
+
+  # Comparison with lavaan (all weights fixed to 1):
+  if (requireNamespace("lavaan", quietly = TRUE)){
+    lav_ss <- ' f1 =~ y1 + y2 + y3
+                f2 =~ y4 + y5 + y6
+                c3 <~ 1*y7 + 1*y8 + 1*y9
+                c4 <~ 1*y10 + 1*y11 + 1*y12 + 1*y13
+                c4 ~ f1 + c3
+                f2 ~ f1 + c3 + c4
+                f1 ~~ c3 '
+    lav_fit_ss <- tryCatch(lavaan::sem(lav_ss, data = dat[, nm], meanstructure = TRUE, likelihood = "normal",
+                                       composites.cov = "free"),
+                           error = function(e) NULL)
+    if (!is.null(lav_fit_ss) && isTRUE(lavaan::lavInspect(lav_fit_ss, "converged"))){
+      expect_equal(as.numeric(lavaan::fitMeasures(lav_fit_ss, "df")), fit_ss2@fitmeasures$df)
+      expect_true(abs(as.numeric(lavaan::fitMeasures(lav_fit_ss, "chisq")) - fit_ss2@fitmeasures$chisq) < 5e-2)
+      pe_ss <- lavaan::parameterEstimates(lav_fit_ss)
+      b_ss <- fit_ss2@parameters[fit_ss2@parameters$matrix == "beta" & !fit_ss2@parameters$fixed, ]
+      b_lav <- pe_ss[pe_ss$op == "~", ]
+      b_lav <- b_lav[match(paste(b_ss$var1, b_ss$var2), paste(b_lav$lhs, b_lav$rhs)), ]
+      expect_true(max(abs(b_ss$est - b_lav$est)) < 1e-2)
+      expect_true(max(abs(b_ss$se - b_lav$se)) < 1e-2)
+    }
+  }
+}
+
 ## ---- 9. Longer-running checks ----
 if (at_home()){
 

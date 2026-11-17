@@ -292,6 +292,7 @@ cvm <- function(
   identify = TRUE,
   identification = c("loadings","variance"),
   bad_marker_crit = 1, # A composite is scaled by the indicator with the largest (standardized) starting weight if the starting weight of its first indicator is smaller than this proportion of the largest. 1: always the indicator with the largest starting weight; 0: always the first indicator
+  sumscores = FALSE, # Fix all weights to 1, so that every composite is the sum score of its indicators?
 
   # Rest:
   vars, # character indicating the variables Extracted if missing from data - group variable
@@ -357,6 +358,11 @@ cvm <- function(
 
   # Identification:
   identification <- match.arg(identification)
+
+  # Sum scores (all weights fixed to 1):
+  if (!is.logical(sumscores) || length(sumscores) != 1 || is.na(sumscores)){
+    stop("'sumscores' must be TRUE or FALSE.")
+  }
 
   # WLS weights:
   if (missing(WLS.W)){
@@ -574,7 +580,13 @@ cvm <- function(
       expResidSigma[[g]] <- diag(diag(S)[resInd], nRes, nRes)
     }
 
-    proxyStart[[g]] <- cvm_start_weights(S, block, comp, facProxy, adjacency, genvar = saturatedConstructs)
+    if (sumscores){
+      # Unit weights: every composite is the sum score of its indicators:
+      proxyStart[[g]] <- facProxy
+      for (k in compIdx) proxyStart[[g]][block == k, k] <- 1
+    } else {
+      proxyStart[[g]] <- cvm_start_weights(S, block, comp, facProxy, adjacency, genvar = saturatedConstructs)
+    }
 
     # Covariances of the composite indicators:
     if (nComp > 0){
@@ -590,13 +602,13 @@ cvm <- function(
   # starting weight. Scaling by an indicator with a small weight makes the other
   # weights large, and if that weight has another sign than the other weights
   # the composite is reversed; the optimizer then stopped before the optimum
-  # in examples.
+  # in examples. Not used with sumscores = TRUE (all weights are then fixed).
   marker <- rep(NA_integer_, nLatent)
   rescaled <- character(0)
   for (k in compIdx){
     idx <- which(block == k)
     marker[k] <- idx[1]
-    if (identify && length(idx) > 1 && is.numeric(bad_marker_crit) && bad_marker_crit > 0){
+    if (identify && !sumscores && length(idx) > 1 && is.numeric(bad_marker_crit) && bad_marker_crit > 0){
       # Standardized weights (weights times the indicator SD), averaged over groups:
       stdw <- rowMeans(do.call(cbind, lapply(seq_len(nGroup), function(g){
         abs(proxyStart[[g]][idx, k]) * sqrt(diag(Sstart[[g]])[idx])
@@ -631,7 +643,9 @@ cvm <- function(
     for (k in compIdx){
       idx <- which(block == k)
       w <- proxy[idx, k] / proxy[marker[k], k]
-      if (any(!is.finite(w)) || max(abs(w * sds[idx])) > 25 * sds[marker[k]]){
+      if (sumscores){
+        w <- rep(1, length(idx))
+      } else if (any(!is.finite(w)) || max(abs(w * sds[idx])) > 25 * sds[marker[k]]){
         # Equal standardized weights:
         w <- sds[marker[k]] / sds[idx]
       }
@@ -789,6 +803,17 @@ cvm <- function(
       pars$partable$fixed[rows] <- TRUE
       pars$partable$identified[rows] <- TRUE
     }
+  }
+
+  # Sum scores: fix all weights to 1. These are restrictions of the model
+  # rather than identification constraints (as when weights are fixed with
+  # fixpar()), so they are not marked as 'identified' and modification indices
+  # are computed for them:
+  if (sumscores){
+    rows <- which(pars$partable$matrix == "weights" & !pars$partable$fixed)
+    pars$partable$est[rows] <- 1
+    pars$partable$par[rows] <- 0
+    pars$partable$fixed[rows] <- TRUE
   }
   pars$partable <- parRelabel(pars$partable)
 
