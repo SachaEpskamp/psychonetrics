@@ -21,6 +21,8 @@ Changes in Version 0.18
   o Fixed a bug in transmod() where transforming a diagonal structure added a free parameter
   o Fixed a bug in the R pipeline (usecpp(x, FALSE)) where derived SD matrices in getmatrix() had the wrong dimensions
   o Fixed a bug in the automatic penalty search (PML / PFIML with penalty_lambda = NA) where the first fit of the grid was not penalized
+  o Fixed a bug in the FIML log-likelihood where the fit measures (and the automatic penalty search) were incorrect for variance-covariance matrices with a large determinant, such as with large variances or many variables
+  o runmodel() now re-estimates the saturated model from the model-implied means and covariances when it has a lower FIML log-likelihood than the model, before falling back to the analytic saturated log-likelihood
 
 Changes in Version 0.17.7
   o Fixed a test that failed under the C collation locale (test suite only)

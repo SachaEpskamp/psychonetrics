@@ -237,9 +237,28 @@ sat_53@parameters$est[sel_dia] <- 100
 m_53f <- m_53
 m_53f@baseline_saturated$saturated <- sat_53
 m_53f@baseline_saturated$satMethod <- "default"
-expect_warning(m_53f <- addfit(m_53f), pattern = "analytical saturated LL")
-expect_equal(m_53f@baseline_saturated$satMethodUsed, "analytic_fallback")
-expect_equal(m_53f@fitmeasures$satLL_analytic, 1)
+# (0.18: a saturated model that ends below the model is first re-estimated from
+# the model-implied means and covariances, so this no longer needs the fallback.)
+w_53f <- character(0)
+m_53f <- withCallingHandlers(addfit(m_53f), warning = function(w){
+  w_53f <<- c(w_53f, conditionMessage(w)); invokeRestart("muffleWarning")
+})
+expect_false(any(grepl("analytical saturated LL", w_53f)))
+expect_equal(m_53f@baseline_saturated$satMethodUsed, "numeric")
+expect_equal(m_53f@fitmeasures$satLL_analytic, 0)
+expect_true(abs(m_53f@fitmeasures$chisq - m_53@fitmeasures$chisq) < 1e-3)
+# The fallback remains for a saturated model that cannot reproduce the model
+# (here the baseline model is put in its place):
+m_53b <- m_53
+m_53b@baseline_saturated$saturated <- m_53@baseline_saturated$baseline
+m_53b@baseline_saturated$satMethod <- "default"
+w_53b <- character(0)
+m_53b <- withCallingHandlers(addfit(m_53b), warning = function(w){
+  w_53b <<- c(w_53b, conditionMessage(w)); invokeRestart("muffleWarning")
+})
+expect_true(any(grepl("analytical saturated LL", w_53b)))
+expect_equal(m_53b@baseline_saturated$satMethodUsed, "analytic_fallback")
+expect_equal(m_53b@fitmeasures$satLL_analytic, 1)
 # saturated = "model": documented as numeric with NO fallback:
 m_53m <- m_53
 m_53m@baseline_saturated$saturated <- sat_53
@@ -247,3 +266,58 @@ m_53m@baseline_saturated$satMethod <- "model"
 m_53m <- suppressWarnings(addfit(m_53m))
 expect_equal(m_53m@baseline_saturated$satMethodUsed, "numeric")
 expect_equal(m_53m@fitmeasures$satLL_analytic, 0)
+
+## ---- Saturated model re-estimated from the model-implied moments (0.18) ----
+# A model with misfit of which the saturated model stopped far too early: the
+# chi-square of the model must be recovered, without the analytic fallback.
+data("NA2020", package = "psychonetrics")
+onef_r <- function(d) suppressWarnings(suppressMessages(
+  runmodel(lvm(d, lambda = matrix(1, ncol(d), 1), identification = "variance"))
+))
+m_re <- onef_r(NA2020)
+sat_re <- m_re@baseline_saturated$saturated
+sel_re <- sat_re@parameters$matrix != "mu" & sat_re@parameters$row != sat_re@parameters$col
+sat_re@parameters$est[sel_re] <- 0
+m_re2 <- m_re
+m_re2@baseline_saturated$saturated <- sat_re
+m_re2@baseline_saturated$satMethod <- "default"
+w_re <- character(0)
+m_re2 <- withCallingHandlers(addfit(m_re2), warning = function(w){
+  w_re <<- c(w_re, conditionMessage(w)); invokeRestart("muffleWarning")
+})
+expect_false(any(grepl("analytical saturated LL", w_re)))
+expect_equal(m_re2@baseline_saturated$satMethodUsed, "numeric")
+expect_equal(m_re2@fitmeasures$chisq, m_re@fitmeasures$chisq, tolerance = 1e-4)
+expect_equal(m_re2@fitmeasures$df, m_re@fitmeasures$df)
+
+# A just-identified model with missing data has a chi-square of zero:
+w_ji <- character(0)
+m_ji <- withCallingHandlers(suppressMessages(
+  runmodel(lvm(NA2020[, 1:3], lambda = matrix(1, 3, 1), identification = "variance"))
+), warning = function(w){
+  w_ji <<- c(w_ji, conditionMessage(w)); invokeRestart("muffleWarning")
+})
+expect_false(any(grepl("analytical saturated LL", w_ji)))
+expect_equal(m_ji@baseline_saturated$satMethodUsed, "numeric")
+expect_equal(m_ji@fitmeasures$df, 0)
+expect_true(abs(m_ji@fitmeasures$chisq) < 1e-3)
+
+## ---- FIML fit measures do not depend on the units of the data (0.18) ----
+# Multiplying the data by a constant c lowers every log-likelihood by
+# (number of observed values) * log(c) and leaves the chi-squares unchanged,
+# also when the determinant of the variance-covariance matrix is large.
+nobs_u <- sum(!is.na(NA2020))
+m_u2 <- onef_r(NA2020 * 2)
+expect_equal(m_u2@fitmeasures$logl, m_re@fitmeasures$logl - nobs_u * log(2), tolerance = 1e-6)
+expect_equal(m_u2@fitmeasures$unrestricted.logl,
+             m_re@fitmeasures$unrestricted.logl - nobs_u * log(2), tolerance = 1e-6)
+expect_equal(m_u2@fitmeasures$baseline.logl,
+             m_re@fitmeasures$baseline.logl - nobs_u * log(2), tolerance = 1e-6)
+expect_equal(m_u2@fitmeasures$chisq, m_re@fitmeasures$chisq, tolerance = 1e-4)
+expect_equal(m_u2@fitmeasures$baseline.chisq, m_re@fitmeasures$baseline.chisq, tolerance = 1e-4)
+expect_equal(m_u2@fitmeasures$cfi, m_re@fitmeasures$cfi, tolerance = 1e-4)
+expect_equal(m_u2@fitmeasures$bic, m_re@fitmeasures$bic + 2 * nobs_u * log(2), tolerance = 1e-6)
+vc_u1 <- suppressWarnings(suppressMessages(runmodel(varcov(NA2020))))
+vc_u10 <- suppressWarnings(suppressMessages(runmodel(varcov(NA2020 * 10))))
+expect_equal(vc_u10@fitmeasures$logl, vc_u1@fitmeasures$logl - nobs_u * log(10), tolerance = 1e-5)
+

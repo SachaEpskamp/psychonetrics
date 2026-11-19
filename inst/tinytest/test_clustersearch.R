@@ -213,6 +213,17 @@ if (at_home()){
   expect_equal(res_na$model@estimator, "FIML")
   expect_equal(unname(asSets(res_na$partitions[["2"]])), truth)
 
+  # The fit measures stored in every model agree with the path, also for
+  # composites with missing data (baseline and saturated model with means)
+  res_nac <- quiet(clustersearch(datNA, verbose = FALSE))
+  expect_equal(res_nac$model@estimator, "FIML")
+  expect_true(max(abs(sapply(res_nac$models, function(m) m@fitmeasures$chisq) - res_nac$path$chisq)) < 1e-3)
+  expect_true(all(sapply(res_nac$models, function(m) m@fitmeasures$baseline.df) == 15))
+  expect_true(all(sapply(res_nac$models, function(m)
+    "mu" %in% m@baseline_saturated$saturated@parameters$matrix)))
+  expect_true(all(sapply(res_d$models, function(m) m@fitmeasures$baseline.df) == 15))
+  expect_true(max(abs(sapply(res_d$models, function(m) m@fitmeasures$chisq) - res_d$path$chisq)) < 1e-3)
+
   # A subset of the variables
   res_v <- quiet(clustersearch(dat, vars = vars[1:4], verbose = FALSE))
   expect_equal(res_v$vars, vars[1:4])

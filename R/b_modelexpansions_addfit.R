@@ -1160,6 +1160,86 @@ fiml_saturated_loglikelihood <- function(x) {
   total_ll / 2
 }
 
+# Re-estimate the saturated model of a fitted Gaussian model, starting from the
+# model-implied means and variance-covariance matrices. At that starting point
+# the saturated model has the log-likelihood of the model itself, so the
+# re-estimated saturated log-likelihood cannot be lower than that of the model.
+# Used by addfit() when the numerically estimated saturated model ended with a
+# lower log-likelihood than the model. Returns list(model, LL), or NULL when
+# the saturated model cannot be started at the model-implied moments (another
+# parameterization or other variables, constraints, or not more observations
+# than variables, in which case the saturated model is not estimable):
+saturated_restart <- function(x, LL){
+  sat <- x@baseline_saturated$saturated
+  if (is.null(sat) || !is(sat, "psychonetrics")) return(NULL)
+  if (x@distribution != "Gaussian" || sat@distribution != "Gaussian") return(NULL)
+  pars <- sat@parameters
+  if (!all(pars$matrix %in% c("mu", "sigma", "lowertri", "kappa", "omega", "delta", "rho", "SD"))) return(NULL)
+
+  # Model-implied moments (as used for the log-likelihood of the model):
+  prep <- prepareModel(parVector(x), x)
+  nGroup <- length(prep$groupModels)
+  if (nGroup != nrow(sat@sample@groups)) return(NULL)
+
+  for (g in seq_len(nGroup)){
+    sigma <- prep$groupModels[[g]]$sigma
+    mu <- prep$groupModels[[g]]$mu
+    if (is.list(sigma) || is.list(mu)) return(NULL)
+    sigma <- as.matrix(sigma)
+    mu <- as.numeric(as.matrix(mu))
+    nVar <- nrow(sigma)
+    if (nVar != nrow(sat@sample@variables) || sat@sample@groups$nobs[g] <= nVar) return(NULL)
+    if (any(!is.finite(sigma)) || any(!is.finite(mu))) return(NULL)
+    sigma <- 0.5 * (sigma + t(sigma))
+
+    # The parameter matrices of the saturated model that give these moments:
+    inGroup <- pars$group_id == g & !pars$fixed
+    mats <- unique(pars$matrix[inGroup])
+    vals <- list(mu = matrix(mu, ncol = 1), sigma = sigma)
+    if ("lowertri" %in% mats){
+      vals$lowertri <- t(chol(sigma))
+    }
+    if (any(c("kappa", "omega", "delta") %in% mats)){
+      kappa <- solve(sigma)
+      vals$kappa <- kappa
+      vals$delta <- diag(1 / sqrt(diag(kappa)), nVar)
+      vals$omega <- - vals$delta %*% kappa %*% vals$delta
+      diag(vals$omega) <- 0
+    }
+    if (any(c("rho", "SD") %in% mats)){
+      vals$SD <- diag(sqrt(diag(sigma)), nVar)
+      vals$rho <- stats::cov2cor(sigma)
+    }
+    for (m in mats){
+      sel <- inGroup & pars$matrix == m
+      pars$est[sel] <- vals[[m]][cbind(pars$row[sel], pars$col[sel])]
+    }
+  }
+  sat@parameters <- pars
+
+  # The saturated model must be able to reproduce the model (up to numerical
+  # precision); otherwise it is not a saturated version of this model:
+  LL0 <- psychonetrics_logLikelihood(sat)
+  if (!is.finite(LL0) || LL0 < LL - 1e-8 * max(1, abs(LL))) return(NULL)
+
+  # Re-estimate from this starting point:
+  sat@computed <- FALSE
+  sat1 <- tryCatch(suppressWarnings(
+    runmodel(sat, addfit = FALSE, addMIs = FALSE, verbose = FALSE, addSEs = FALSE,
+             addInformation = FALSE, analyticFisher = FALSE)
+  ), error = function(e) NULL)
+  if (!is.null(sat1)){
+    LL1 <- tryCatch(psychonetrics_logLikelihood(sat1), error = function(e) NA_real_)
+    if (is.finite(LL1) && LL1 >= LL0) return(list(model = sat1, LL = LL1))
+  }
+
+  # The optimizer did not improve on the starting point; keep the starting point:
+  sat <- updateModel(parVector(sat), sat, updateMatrices = TRUE)
+  sat@computed <- TRUE
+  sat@objective <- psychonetrics_fitfunction(parVector(sat), sat)
+  list(model = sat, LL = LL0)
+}
+
 # Per-group Gaussian ML discrepancy F_g of a fitted varcov / lvm model: the
 # normal-theory fit function evaluated at the model-implied moments against the
 # stored sample moments,
@@ -1283,19 +1363,33 @@ addfit <- function(
     # Model:
     LL <-  psychonetrics_logLikelihood(x)
 
-    # Fallback: if model-based saturated LL < model LL (optimizer failed),
-    # use analytical saturated LL for FIML and warn. Only for
-    # saturated = "default": "analytic" is already analytic, and "model" is
-    # documented as numeric with no fallback:
+    # If the model-based saturated LL < model LL, the optimizer of the saturated
+    # model stopped too early (the saturated model cannot fit worse than the
+    # model). Only for saturated = "default": "analytic" is already analytic,
+    # and "model" is documented as numeric with no fallback:
     if (!is.na(satLL) && !is.na(LL) && satLL < LL &&
         sat_method == "default" &&
         x@estimator == "FIML" && length(x@sample@fimldata) > 0) {
-      satLL_fallback <- fiml_saturated_loglikelihood(x)
-      if (satLL_fallback >= LL) {
-        warning("Saturated model optimization did not converge properly (saturated LL < model LL). ",
-                "Using analytical saturated LL instead. Consider using saturated = 'analytic' in runmodel().")
-        satLL <- satLL_fallback
-        sat_method_used <- "analytic_fallback"
+
+      # First re-estimate the saturated model from the model-implied means and
+      # variance-covariance matrices, where its LL equals the model LL:
+      sat_restart <- tryCatch(saturated_restart(x, LL), error = function(e) NULL)
+      if (!is.null(sat_restart)){
+        x@baseline_saturated$saturated <- sat_restart$model
+        # (a remaining difference is within the numerical precision of the
+        # starting point, at which the two log-likelihoods are equal)
+        satLL <- max(sat_restart$LL, LL)
+      }
+
+      # Fallback if that was not possible: analytical saturated LL, with a warning:
+      if (satLL < LL){
+        satLL_fallback <- fiml_saturated_loglikelihood(x)
+        if (satLL_fallback >= LL) {
+          warning("Saturated model optimization did not converge properly (saturated LL < model LL). ",
+                  "Using analytical saturated LL instead. Consider using saturated = 'analytic' in runmodel().")
+          satLL <- satLL_fallback
+          sat_method_used <- "analytic_fallback"
+        }
       }
     }
   } else {

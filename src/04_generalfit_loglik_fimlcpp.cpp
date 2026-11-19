@@ -72,7 +72,9 @@ double logLikelihood_gaussian_subgroup_fiml_cpp_inner(
     logdet = log(det(kappa_p));
     double logepsilon = log(epsilon);
     if (logdet < logepsilon){
-      logdet = logepsilon;
+      // sigma_p is positive definite here, so use its exact log determinant
+      // (from the eigenvalues, which cannot underflow) instead of a bound:
+      logdet = -sum(log(ev));
     }
     if (logdet == R_PosInf){
       logdet = real(log_det(kappa_p));

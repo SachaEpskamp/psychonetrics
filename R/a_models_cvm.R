@@ -1018,6 +1018,7 @@ cvm <- function(
                                                 missing = missing,
                                                 equal = equal,
                                                 estimator = base_est,
+                                                meanstructure = meanstructure,
                                                 baseline_saturated = FALSE, sampleStats = sampleStats)
 
     ### Saturated model ###
@@ -1031,6 +1032,7 @@ cvm <- function(
                                                  nobs = nobs,
                                                  missing = missing,
                                                  estimator = base_est,
+                                                 meanstructure = meanstructure,
                                                  baseline_saturated = FALSE, sampleStats = sampleStats)
 
     # if not FIML, Treat as computed:
