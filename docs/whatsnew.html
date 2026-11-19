@@ -60,6 +60,7 @@
     <h4>On this page</h4>
     <ol>
       <li><a href="#cvm">0.18 &mdash; Composite variable models: cvm() &amp; cnm()</a></li>
+      <li><a href="#clustersearch">0.18 &mdash; Searching for clusters of variables: clustersearch()</a></li>
       <li><a href="#penaltysearch">0.18 &mdash; Bug fix in the automatic penalty search (PML / PFIML)</a></li>
       <li><a href="#transmodfix">0.18 &mdash; Bug fix in transmod() for diagonal structures</a></li>
       <li><a href="#mlvar">0.16.7 &mdash; Multi-level VAR &amp; GVAR for ESM data: ml_var() &amp; ml_gvar()</a></li>
@@ -102,6 +103,23 @@ mod <- cnm(StarWars, weights = weights, beta = beta,
 mod %>% prune(alpha = 0.05) %>% getmatrix("omega_c")   # networks within the composites</code></pre>
     <p>
       Multiple groups, mean structures, missing data (FIML) and the usual model search functions are supported, and models with covariance parameterizations convert to and from lavaan 0.7 with <a href="lavaan.html"><code>tolavaan()</code> and <code>fromlavaan()</code></a>. The family is <strong>experimental</strong>: arguments and defaults may still change.
+    </p>
+  </div>
+
+  <!-- ===================== 0.18 clustersearch ===================== -->
+  <div class="whatsnew-item" id="clustersearch">
+    <h2>Searching for clusters of variables: clustersearch() <span class="version-tag">0.18</span></h2>
+    <p class="whatsnew-meta">November 2026 &mdash; experimental; see the <a href="cvm.html#clustersearch">composite variable page</a></p>
+    <p>
+      <code>clustersearch()</code> searches for clusters of variables that are modeled as <strong>composites</strong> (the default) or as <strong>latent variables</strong>. Starting from the saturated model, it repeatedly combines the two clusters of which the combination gives the lowest BIC, and returns the model of every step together with the model with the lowest BIC. The result can be plotted as a dendrogram with the BIC on the same axis.
+    </p>
+    <pre><code class="language-r">res <- clustersearch(NA2020)                         # composites (cvm)
+res_latent <- clustersearch(NA2020, cluster = "latent")  # latent variables (lvm)
+
+plot(res)
+res$model</code></pre>
+    <p>
+      Network models (<code>type = "ggm"</code>), other criteria, multiple groups, missing data (FIML) and multiple cores (<code>nCores</code>) are supported. The function is <strong>experimental</strong>: arguments and defaults may still change.
     </p>
   </div>
 

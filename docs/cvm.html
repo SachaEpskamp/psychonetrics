@@ -64,6 +64,7 @@
       <li><a href="#cnm">The Composite Network Model: cnm()</a></li>
       <li><a href="#mixed">Combining a Latent Variable and a Composite</a></li>
       <li><a href="#latentnetwork">A Network of Constructs</a></li>
+      <li><a href="#clustersearch">Searching for Clusters: clustersearch()</a></li>
       <li><a href="#scaling">Scaling and Identification</a></li>
       <li><a href="#estimation">Estimation</a></li>
       <li><a href="#lavaan">Relation to lavaan</a></li>
@@ -283,6 +284,35 @@ getmatrix(mod3, "omega_zeta")</code></pre>
     </div>
   </section>
 
+  <!-- Cluster search -->
+  <section id="clustersearch">
+    <h2>Searching for Clusters: clustersearch() <span class="badge-new">Experimental (0.18)</span></h2>
+    <p>
+      When it is not known in advance which variables form a composite, <code>clustersearch()</code> searches for clusters of variables. The search starts with the saturated model, in which all variables are freely related. In every step it combines the two clusters (or variables that are not yet clustered) of which the combination gives the lowest BIC, until two clusters are left. Every cluster is a composite of its variables, and all clusters and remaining variables are freely related. The model with the lowest BIC over all steps is selected:
+    </p>
+    <pre><code class="language-r">data(NA2020)
+
+res <- clustersearch(NA2020)
+res          # the steps of the search and the selected model
+plot(res)    # dendrogram with the BIC on the same axis
+
+res$clusters         # the variables of every cluster
+res$model            # the selected model, a regular cvm model
+res$models[["4"]]    # the model of another step, here with four clusters</code></pre>
+    <p>
+      For the eight items on sleep and well-being in the <code>NA2020</code> data, the selected model has three composites: worrying about sleep with sleep interfering with daily functioning; a regular sleep schedule, being happy with one's health and feeling alone; and being optimistic, being happy and being happy with one's love life (BIC = 14999.90, against 15058.33 for the saturated model).
+    </p>
+    <ul>
+      <li><code>cluster = "latent"</code> searches for latent variables instead of composites, using the <a href="lvm.html">lvm family</a>. All clusters in a search are of the same kind. For a cluster of two variables the two give the same fit; they differ from three variables on.</li>
+      <li><code>type = "ggm"</code> returns network models: <code>cnm</code> models for composites and latent network models for latent variables.</li>
+      <li><code>criterion</code> sets the fit measure that is minimized (for example <code>"aic"</code> or <code>"ebic.5"</code>), and <code>nCores</code> estimates the candidate models of a step in parallel.</li>
+      <li>Arguments on the data and the estimator (such as <code>groupvar</code>, <code>covs</code> and <code>nobs</code>, or <code>sumscores = TRUE</code> for sum scores) are passed on to <code>cvm()</code> or <code>lvm()</code>.</li>
+    </ul>
+    <div class="note">
+      <strong>Keep in mind:</strong> the search is greedy. A combination is never undone, and a cluster of three or more variables can only be found by first combining two of its variables. The number of candidate models grows quickly with the number of variables (28 in the first step for 8 variables, 190 for 20), so the search can take long for many variables.
+    </div>
+  </section>
+
   <!-- Scaling -->
   <section id="scaling">
     <h2>Scaling and Identification</h2>
@@ -357,6 +387,7 @@ mod_from_lavaan <- fromlavaan(fit, run = TRUE)</code></pre>
       <li>The <code>_c</code> matrices describe the indicators of composites, not the relations between composites</li>
       <li>Variances and intercepts of composites are computed, not estimated</li>
       <li>Models can be converted to and from lavaan with <code>tolavaan()</code> and <code>fromlavaan()</code></li>
+      <li><code>clustersearch()</code> searches for clusters of variables that form composites (or latent variables)</li>
       <li>The family is experimental in version 0.18</li>
     </ul>
 

@@ -118,6 +118,12 @@ export(lrnm)
 # Composite variable models (factor- and composite-based SEM):
 export(cvm)
 export(cnm)
+
+# Search for clusters of variables (composites or latent variables):
+export(clustersearch)
+S3method(print, clustersearch)
+S3method(plot, clustersearch)
+
 export(bifactor)
 export(latentgrowth)
 
