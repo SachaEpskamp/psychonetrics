@@ -118,6 +118,7 @@ export(lrnm)
 # Composite variable models (factor- and composite-based SEM):
 export(cvm)
 export(cnm)
+export(dependency_share)
 
 # Search for clusters of variables (composites or latent variables):
 export(clustersearch)

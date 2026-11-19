@@ -13,6 +13,7 @@ Changes in Version 0.18
     o prune() warns when it removes the last relation of a composite with the other constructs
     o cvm() stops with an error when the indicators of a composite are linearly dependent, and warns when they are nearly so
   o Added clustersearch() (experimental), an agglomerative search for clusters of variables that are modeled as composites (cluster = "composite", the default) or latent variables (cluster = "latent"), with print and plot (dendrogram) methods
+  o Added dependency_share() (experimental), which computes the share of the dependence between composites that is carried by a composite model (cvm() or cnm())
   o fromlavaan() and tolavaan() now support models with composites (lavaan >= 0.7)
   o transmod() now supports the cvm family (e.g., transmod(x, composite = "ggm") turns a cvm model into a cnm model)
   o The notes on experimental features are shown again (once per session) until version 0.19, and now also for cvm() and cnm()
