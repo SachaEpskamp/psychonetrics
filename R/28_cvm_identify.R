@@ -386,13 +386,19 @@ cvm_unconnected_composites <- function(x){
 # explain more than its variance. In that case the starting values of the
 # structural part (effects, and covariances / edges between constructs) are
 # shrunk towards zero until the starting point is admissible (with all of these
-# at zero the model is always admissible).
+# at zero the model is always admissible). If that does not help, the
+# covariance structure of the composite indicators is the cause (for example
+# starting values per group that are combined by equality constraints): the
+# indicators within every composite are then started as independent
+# (cvm_independent_start), which is always admissible, and the structural part
+# is shrunk again if needed. A warning is given if the starting values are
+# still not admissible.
 cvm_admissible_start <- function(x, maxtry = 25){
   # Make the estimates of equality constrained parameters consistent:
   x <- updateModel(parVector(x), x, updateMatrices = FALSE)
 
   admissible <- function(x){
-    imp <- tryCatch(implied_cvm(x, all = FALSE), error = function(e) NULL)
+    imp <- tryCatch(suppressWarnings(implied_cvm(x, all = FALSE)), error = function(e) NULL)
     if (is.null(imp)) return(FALSE)
     all(vapply(imp, function(g){
       if (!isTRUE(g$proper_composites)) return(FALSE)
@@ -406,15 +412,60 @@ cvm_admissible_start <- function(x, maxtry = 25){
   pars <- x@parameters
   structural <- which(!pars$fixed & (pars$matrix == "beta" |
                                        (pars$matrix %in% c("sigma_zeta", "omega_zeta") & pars$row != pars$col)))
-  if (length(structural) == 0) return(x)
 
-  try <- 0
-  while (try < maxtry && !admissible(x)){
-    x@parameters$est[structural] <- 0.5 * x@parameters$est[structural]
-    try <- try + 1
+  # Shrink the structural part until the starting values are admissible:
+  shrink <- function(x){
+    ok <- admissible(x)
+    try <- 0
+    while (!ok && length(structural) > 0 && try < maxtry){
+      x@parameters$est[structural] <- 0.5 * x@parameters$est[structural]
+      try <- try + 1
+      ok <- admissible(x)
+    }
+    list(x = x, ok = ok)
   }
+  res <- shrink(x)
+  if (res$ok) return(res$x)
 
-  x
+  # Independent indicators within the composites:
+  res <- shrink(cvm_independent_start(x))
+  if (!res$ok){
+    warning(paste0("No admissible starting values could be found for this composite variable model: the covariance matrix implied by the ",
+                   "starting values is not positive definite. Estimation may fail or stop before the optimum; check the model and the data ",
+                   "(for example for indicators that are nearly linearly dependent)."), call. = FALSE)
+  }
+  res$x
+}
+
+# Starting values in which the indicators within every composite are
+# independent, with their sample variances: zero (partial) correlations and
+# covariances, and the scalings / precisions / standard deviations that go with
+# the sample variances. Only free parameters of the "_c" matrices are changed.
+cvm_independent_start <- function(x){
+  pars <- x@parameters
+  for (g in seq_len(nrow(x@sample@groups))){
+    vars <- diag(as.matrix(x@sample@covs[[g]]))
+    inGroup <- pars$group_id == g & !pars$fixed
+    isDiag <- pars$row == pars$col
+    v <- vars[pars$var1_id]
+    ok <- is.finite(v) & v > 0
+
+    # Off-diagonal elements:
+    offdiag <- inGroup & !isDiag & pars$matrix %in% c("sigma_c", "omega_c", "kappa_c", "lowertri_c", "rho_c")
+    pars$est[offdiag] <- 0
+
+    # Diagonal elements:
+    rows <- which(inGroup & isDiag & ok & pars$matrix == "sigma_c")
+    pars$est[rows] <- v[rows]
+    rows <- which(inGroup & isDiag & ok & pars$matrix %in% c("delta_c", "lowertri_c", "SD_c"))
+    pars$est[rows] <- sqrt(v[rows])
+    rows <- which(inGroup & isDiag & ok & pars$matrix == "kappa_c")
+    pars$est[rows] <- 1 / v[rows]
+  }
+  x@parameters <- pars
+
+  # Make the estimates of equality constrained parameters consistent:
+  updateModel(parVector(x), x, updateMatrices = FALSE)
 }
 
 # Starting values for the intercepts of the indicators of common factors.
@@ -433,7 +484,9 @@ cvm_admissible_start <- function(x, maxtry = 25){
 # indicators are not changed: these are the sample means themselves.
 cvm_start_intercepts <- function(x){
   if (!isTRUE(x@meanstructure)) return(x)
-  imp <- tryCatch(implied_cvm(x, all = TRUE), error = function(e) NULL)
+  # (warnings on starting values that are not admissible are given by
+  # cvm_admissible_start())
+  imp <- tryCatch(suppressWarnings(implied_cvm(x, all = TRUE)), error = function(e) NULL)
   if (is.null(imp)) return(x)
 
   pars <- x@parameters

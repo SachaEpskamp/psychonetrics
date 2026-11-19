@@ -1,7 +1,7 @@
 Changes in Version 0.18
   o Added the composite variable model family (experimental), following Schamberger, Schuberth, Henseler and Rosseel (2026, Behavior Research Methods):
     o cvm() estimates structural equation models with latent variables ('lambda') and composites ('weights'), related through 'beta' and covariances or a network ('latent')
-    o cnm() is a wrapper for the composite network model (composite = "ggm"), which models a network of the indicators within every composite ('omega_c')
+    o cnm() is a wrapper for the composite network model (composite = "ggm"), which models a network of the indicators within every composite ('omega_c') and by default also a network of the constructs (latent = "ggm")
     o The new '_c' matrices (sigma_c, lowertri_c, kappa_c, omega_c and delta_c, rho_c and SD_c; argument 'composite') model the covariances of the indicators within composites
     o Variances and intercepts of composites are computed rather than estimated
     o A composite with a single indicator can be used to include an observed variable in the structural model
@@ -11,10 +11,12 @@ Changes in Version 0.18
     o Supports multiple groups, the ML, FIML, ULS, WLS, DWLS, PML and PFIML estimators and the model search functions; ordinal data and correlation input are not yet supported
     o runmodel() warns when a composite is poorly scaled, reversed or not related to any other construct
     o prune() warns when it removes the last relation of a composite with the other constructs
+    o cvm() stops with an error when the indicators of a composite are linearly dependent, and warns when they are nearly so
   o fromlavaan() and tolavaan() now support models with composites (lavaan >= 0.7)
   o transmod() now supports the cvm family (e.g., transmod(x, composite = "ggm") turns a cvm model into a cnm model)
   o The notes on experimental features are shown again (once per session) until version 0.19, and now also for cvm() and cnm()
   o The warning of runmodel() on a large gradient now suggests identification = "variance" for lvm models
+  o Corrected the item wording, citation and page numbers in the documentation of the NA2020 dataset
   o Fixed a bug in transmod() where transforming a diagonal structure added a free parameter
   o Fixed a bug in the R pipeline (usecpp(x, FALSE)) where derived SD matrices in getmatrix() had the wrong dimensions
   o Fixed a bug in the automatic penalty search (PML / PFIML with penalty_lambda = NA) where the first fit of the grid was not penalized

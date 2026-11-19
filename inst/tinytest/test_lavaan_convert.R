@@ -295,7 +295,7 @@ if (utils::packageVersion("lavaan") >= "0.7.0"){
 }
 
 ## Fast: guards.
-expect_error(tolavaan(cnm(HS, vars = vars9, lambda = Lc, weights = Wc, beta = Bc, sigma_zeta = Szc)),
+expect_error(tolavaan(cnm(HS, vars = vars9, lambda = Lc, weights = Wc, beta = Bc, latent = "cov", sigma_zeta = Szc)),
              "composite = 'cov'")
 expect_error(tolavaan(cvm(HS, vars = vars9, lambda = Lc, weights = Wc, latent = "ggm")), "latent = 'cov'")
 

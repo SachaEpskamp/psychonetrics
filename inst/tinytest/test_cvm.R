@@ -181,7 +181,7 @@ expect_true(max(abs(pc - getmatrix(fit_net, "omega_zeta"))) < 1e-8)
 
 ## ---- 5. Composite network model and model search ----
 fit_cnm <- runmodel(cnm(dat, lambda = lambda, weights = weights, beta = beta,
-                        sigma_zeta = sigma_zeta, latents = latents))
+                        latent = "cov", sigma_zeta = sigma_zeta, latents = latents))
 expect_equal(fit_cnm@submodel, "cnm")
 expect_true(abs(fit_cnm@fitmeasures$chisq - fitC@fitmeasures$chisq) < 5e-2)
 # omega_c equals the partial correlations of the composite indicator covariances:
@@ -195,6 +195,23 @@ fit_pruned <- suppressWarnings(stepup(prune(fit_cnm, alpha = 0.01)))
 expect_true(fit_pruned@fitmeasures$df >= fit_cnm@fitmeasures$df)
 expect_true(all(getmatrix(fit_pruned, "omega_c")[1:3, 4:7] == 0))
 expect_error(cnm(dat, weights = weights, composite = "cov"))
+
+# By default cnm() also models the constructs as a network (latent = "ggm").
+# Here that is an equivalent model: the latent network has the single edge
+# between the exogenous constructs f1 and c3:
+fit_cnm_ggm <- runmodel(cnm(dat, lambda = lambda, weights = weights, beta = beta, latents = latents))
+expect_equal(fit_cnm_ggm@types$latent, "ggm")
+expect_equal(fit_cnm_ggm@types$composite, "ggm")
+expect_equal(fit_cnm_ggm@fitmeasures$df, fit_cnm@fitmeasures$df)
+expect_true(abs(fit_cnm_ggm@fitmeasures$chisq - fit_cnm@fitmeasures$chisq) < 5e-2)
+# 'latent' can still be set, also as an unnamed argument or through '...':
+expect_equal(cnm(dat, lambda, weights, "cov", beta = beta, latents = latents)@types$latent, "cov")
+cnm_dots <- function(...) cnm(dat, lambda = lambda, weights = weights, beta = beta, latents = latents, ...)
+expect_equal(cnm_dots()@types$latent, "ggm")
+expect_equal(cnm_dots(latent = "cov")@types$latent, "cov")
+# 'sigma_zeta' is not used with the default, which gives an error:
+expect_error(cnm(dat, lambda = lambda, weights = weights, beta = beta, sigma_zeta = sigma_zeta, latents = latents),
+             "sigma_zeta")
 
 ## ---- 5b. transmod(): switching between equivalent cvm and cnm models ----
 # The '_c' matrices are block diagonal (one block per composite). Every
@@ -588,6 +605,47 @@ if (at_home()){
     }
   }
 }
+
+## ---- 8f. (Nearly) linearly dependent indicators within a composite ----
+# The indicators of c3 (y7-y9) and c4 (y10-y13) are replaced by nonsingular
+# combinations that are close to each other. The model with two covarying
+# composites is invariant to such a transformation (the weights absorb it), and
+# its chi-square has a closed form in the canonical correlations of the two
+# sets: -N * sum_{i >= 2} log(1 - r_i^2). The starting values of the "_c"
+# matrices are formed per composite and are proper for such data, also for the
+# network and precision types:
+col_dat <- as.data.frame(cbind(
+  as.matrix(dat[, nm[7:9]]) %*% t(matrix(1, 3, 3) + diag(0.3 * c(1, -1, 1.5))),
+  as.matrix(dat[, nm[10:13]]) %*% t(matrix(1, 4, 4) + diag(0.3 * c(1, -1, 1.5, -1.5)))))
+names(col_dat) <- ss_vars
+col_r <- cancor(col_dat[, 1:3], col_dat[, 4:7])$cor
+col_chisq <- -nrow(col_dat) * sum(log(1 - col_r[-1]^2))
+for (type in if (at_home()) c("ggm", "prec", "chol") else "ggm"){
+  # A warning names the composites with nearly dependent indicators:
+  expect_warning(mod_col <- cvm(col_dat, weights = ss_w, latents = c("c3", "c4"), composite = type),
+                 "nearly linearly dependent.*c3.*c4")
+  expect_true(psychonetrics:::psychonetrics_fitfunction(psychonetrics:::parVector(mod_col), mod_col) < 1e10)
+  fit_col <- suppressWarnings(runmodel(mod_col))
+  expect_true(abs(fit_col@fitmeasures$chisq - col_chisq) < 1e-3)
+}
+
+# No warning for the original indicators, and an error when an indicator is a
+# combination of other indicators of the same composite:
+warn_col <- character(0)
+mod_imp <- withCallingHandlers(cnm(dat[, ss_vars], weights = ss_w, latents = c("c3", "c4")),
+                               warning = function(w){ warn_col <<- c(warn_col, conditionMessage(w)); invokeRestart("muffleWarning") })
+expect_false(any(grepl("linearly dependent", warn_col)))
+dep_dat <- dat[, ss_vars]
+dep_dat$y9 <- dep_dat$y7 + dep_dat$y8
+expect_error(cvm(dep_dat, weights = ss_w, latents = c("c3", "c4")), "linearly dependent.*c3")
+
+# Starting values that are not admissible because of the covariance structure
+# within the composites are replaced by independent indicators:
+mod_imp@parameters$est[mod_imp@parameters$matrix == "omega_c" & !mod_imp@parameters$fixed] <- 0.9
+expect_true(objective_at(mod_imp) >= 1e10)
+mod_imp <- psychonetrics:::cvm_admissible_start(mod_imp)
+expect_true(objective_at(mod_imp) < 1e10)
+expect_true(all(mod_imp@parameters$est[mod_imp@parameters$matrix == "omega_c"] == 0))
 
 ## ---- 9. Longer-running checks ----
 if (at_home()){

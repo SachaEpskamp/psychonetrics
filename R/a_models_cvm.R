@@ -249,6 +249,128 @@ cvm_genvar_weights <- function(S, block, V, multi, maxit = 1000, tol = 1e-10){
   res$V
 }
 
+# Check the indicators of every composite for linear dependencies, using the
+# eigenvalues of their sample correlation matrix:
+#  - (numerically) singular: the indicators are linearly dependent (for example
+#    a total score next to its items, or more indicators than observations).
+#    The weights of such a composite are not identified and the covariances
+#    within the composite cannot be estimated, so an error is given;
+#  - condition number above 'crit': the indicators are nearly linearly
+#    dependent. The model can be estimated, but the weights are poorly
+#    determined (as regression weights of collinear predictors), so a warning
+#    is given.
+#   covs:  list with the sample covariance matrix of every group
+#   block: composite (column) of every variable, 0 if not a composite indicator
+cvm_check_collinearity <- function(covs, block, compIdx, latents, sumscores = FALSE, crit = 1000){
+  dependent <- character(0)
+  cond <- numeric(0)
+  for (g in seq_along(covs)){
+    S <- as.matrix(covs[[g]])
+    for (k in compIdx){
+      idx <- which(block == k)
+      if (length(idx) < 2) next
+      Sk <- S[idx, idx, drop = FALSE]
+      if (any(!is.finite(Sk)) || any(diag(Sk) <= 0)) next
+      ev <- eigen(cov2cor(Sk), symmetric = TRUE, only.values = TRUE)$values
+      if (min(ev) <= sqrt(.Machine$double.eps) * max(ev)){
+        dependent <- c(dependent, latents[k])
+      } else if (max(ev) / min(ev) > crit){
+        cond[latents[k]] <- max(cond[latents[k]], max(ev) / min(ev), na.rm = TRUE)
+      }
+    }
+  }
+  if (length(dependent) > 0){
+    stop(paste0("The indicators of the following composite(s) are linearly dependent (their sample correlation matrix is singular): ",
+                paste(unique(dependent), collapse = ", "),
+                ". A composite variable model cannot be estimated for such a composite. Remove indicators that are a combination of other ",
+                "indicators of the same composite (for example a total score next to its items), and make sure that a composite ",
+                "does not have more indicators than there are observations."), call. = FALSE)
+  }
+  if (length(cond) > 0){
+    warning(paste0("The indicators of the following composite(s) are nearly linearly dependent (condition number of their sample correlation matrix in parentheses): ",
+                   paste0(names(cond), " (", format(signif(cond, 3), scientific = FALSE, trim = TRUE), ")", collapse = ", "), ". ",
+                   if (!sumscores) "The weights of such a composite are poorly determined, and the " else "The ",
+                   "optimizer may not report convergence."), call. = FALSE)
+  }
+  invisible(NULL)
+}
+
+# Starting values of the covariance structure of the composite indicators (the
+# "_c" matrices) for the types "ggm", "prec" and "chol", formed per composite.
+#
+# The "_c" matrices are block diagonal, with one block per composite. The
+# matrixsetup functions that are shared with the other families form starting
+# values for all variables at once: with glasso and zeros between the
+# composites for the network and precision types, and from the Cholesky factor
+# of the full matrix for the Cholesky type. With highly correlated indicators
+# within a composite glasso can then return a matrix that is not positive
+# definite (the starting values were improper, after which estimation started
+# from the emergency starting values of runmodel() and stopped far from the
+# optimum in examples), and the blocks of the Cholesky factor of a matrix are
+# not the Cholesky factors of its blocks. Here every block is treated on its
+# own:
+#  - no zeros within the block: the inverse (or Cholesky factor) of the sample
+#    covariances of the indicators of the composite;
+#  - zeros within the block (network and precision types): glasso on the block;
+#  - if the result is not positive definite: independent indicators.
+#   expcov: list with the sample covariances of the composite indicators per group
+#   block:  composite of every composite indicator
+cvm_block_start <- function(modMatrices, type, expcov, block, nGroup){
+  if (!type %in% c("ggm", "prec", "chol")) return(modMatrices)
+
+  # Precision matrix of a block, given which off-diagonal elements are in the model:
+  blockPrecision <- function(S, free){
+    p <- nrow(S)
+    independent <- diag(1 / diag(S), p, p)
+    if (p == 1) return(independent)
+    zeroes <- which(!free & diag(p) != 1, arr.ind = TRUE)
+    K <- tryCatch({
+      if (nrow(zeroes) == 0){
+        solve(S)
+      } else if (nrow(zeroes) == p * (p - 1)){
+        independent
+      } else {
+        glasso(S, rho = 1e-10, zero = zeroes)$wi
+      }
+    }, error = function(e) NULL)
+    if (is.null(K) || any(!is.finite(K))) return(independent)
+    K <- 0.5 * (K + t(K))
+    K[!free & diag(p) != 1] <- 0
+    ev <- eigen(K, symmetric = TRUE, only.values = TRUE)$values
+    if (min(ev) <= sqrt(.Machine$double.eps) * max(abs(ev))) return(independent)
+    K
+  }
+
+  for (g in seq_len(nGroup)){
+    S <- as.matrix(expcov[[g]])
+    for (k in unique(block)){
+      idx <- which(block == k)
+      p <- length(idx)
+      Sk <- S[idx, idx, drop = FALSE]
+      if (any(!is.finite(Sk)) || any(diag(Sk) <= 0)) next
+
+      if (type == "chol"){
+        pattern <- matrix(modMatrices$lowertri_c[[1]][idx, idx, g] != 0, p, p)
+        L <- tryCatch(t(chol(Sk)), error = function(e) diag(sqrt(diag(Sk)), p, p))
+        modMatrices$lowertri_c$start[idx, idx, g] <- pattern * L
+      } else if (type == "prec"){
+        pattern <- matrix(modMatrices$kappa_c[[1]][idx, idx, g] != 0, p, p)
+        K <- blockPrecision(Sk, pattern | t(pattern))
+        modMatrices$kappa_c$start[idx, idx, g] <- pattern * K
+      } else {
+        pattern <- matrix(modMatrices$omega_c[[1]][idx, idx, g] != 0, p, p)
+        K <- blockPrecision(Sk, pattern | t(pattern))
+        omega <- -cov2cor(K)
+        diag(omega) <- 0
+        modMatrices$omega_c$start[idx, idx, g] <- (pattern | t(pattern)) * omega
+        inModel <- diag(matrix(modMatrices$delta_c[[1]][idx, idx, g] != 0, p, p))
+        modMatrices$delta_c$start[idx, idx, g] <- diag(inModel / sqrt(diag(K)), p, p)
+      }
+    }
+  }
+  modMatrices
+}
+
 # Composite variable model:
 cvm <- function(
   data, # Dataset
@@ -519,6 +641,10 @@ cvm <- function(
     stop("Length of 'latents' is not equal to number of constructs in the model.")
   }
 
+  # The indicators of a composite may not be linearly dependent (error), and
+  # a warning is given when they are nearly so:
+  cvm_check_collinearity(model@sample@covs, block, compIdx, latents, sumscores = sumscores)
+
   ### Starting values ###
   lambdaStart <- vector("list", nGroup)
   weightsStart <- vector("list", nGroup)
@@ -782,11 +908,21 @@ cvm <- function(
   # Varcov of the composite indicators (block diagonal over composites):
   if (nComp > 0){
     blockComp <- block[compInd]
+    # The starting values of the network, precision and Cholesky types are
+    # formed per composite below (cvm_block_start), so the shared setup
+    # functions only need the variances here:
+    expCompSetup <- expCompSigma
+    if (composite %in% c("ggm", "prec", "chol")){
+      expCompSetup <- lapply(expCompSigma, function(S){
+        if (any(!is.finite(S))) S else diag(diag(S), nrow(S), ncol(S))
+      })
+    }
     modMatrices <- addBlock(modMatrices, composite, "c",
                             args = list(sigma = sigma_c, lowertri = lowertri_c, omega = omega_c,
                                         delta = delta_c, kappa = kappa_c, rho = rho_c, SD = SD_c),
-                            expcov = expCompSigma, n = nComp, labels = varnames[compInd], ids = compInd,
+                            expcov = expCompSetup, n = nComp, labels = varnames[compInd], ids = compInd,
                             pattern = function(x, name, kind) cvm_blockpattern(x, blockComp, nGroup, name, kind))
+    modMatrices <- cvm_block_start(modMatrices, composite, expCompSigma, blockComp, nGroup)
   }
 
   # Generate the full parameter table:
@@ -945,11 +1081,20 @@ cvm <- function(
 
 # Composite network model (cnm): a cvm in which the covariances of the
 # composite indicators are modeled as a Gaussian graphical model, resulting in
-# one network of indicators per composite (omega_c).
+# one network of indicators per composite (omega_c). By default the constructs
+# are modeled as a network as well (latent = "ggm", omega_zeta).
 cnm <- function(...){
-  dots <- list(...)
-  if (!is.null(dots[["composite"]])){
+  # Which arguments of cvm() are supplied (also when abbreviated or unnamed)?
+  given <- tryCatch(names(as.list(match.call(cvm, sys.call()))[-1]),
+                    error = function(e) names(list(...)))
+  if ("composite" %in% given){
     stop("'composite' cannot be set in cnm(): the composite indicators are modeled as a network (composite = 'ggm'). Use cvm() for other types.")
   }
-  cvm(..., composite = "ggm")
+  if ("latent" %in% given){
+    return(cvm(..., composite = "ggm"))
+  }
+  if ("sigma_zeta" %in% given){
+    stop("'sigma_zeta' is not used by default in cnm(): the constructs are modeled as a network (latent = 'ggm'), which is specified with 'omega_zeta'. Set latent = 'cov' to model the covariances of the constructs with 'sigma_zeta'.")
+  }
+  cvm(..., latent = "ggm", composite = "ggm")
 }

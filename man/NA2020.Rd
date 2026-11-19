@@ -5,13 +5,13 @@
 Network Analysis 2020 Self-Report Data
 }
 \description{
-A subset of self-report data collected in 2020 by Adela-Maria Isvoranu as part of a graduate-level course on network analysis at the University of Amsterdam. Students in the course collected the data from a convenience sample. The full dataset contains responses to 87 items covering topics such as sleep, well-being, and social functioning. This subset contains 8 items used in Chapter 6 of the textbook \emph{Network Psychometrics with R} (Epskamp, Isvoranu, & Haslbeck, 2022) to demonstrate Gaussian Graphical Model estimation with psychonetrics. All items are rated on a 1--7 Likert scale. The dataset contains some missing values, making it suitable for demonstrating FIML estimation.
+A subset of self-report data collected in 2020 by Adela-Maria Isvoranu as part of a graduate-level course on network analysis at the University of Amsterdam. Students in the course collected the data from a convenience sample. The full dataset contains responses to 87 items covering topics such as sleep, well-being, and social functioning. This subset contains 8 items used in Chapter 6 (Epskamp, Haslbeck, Isvoranu, & Van Borkulo, 2022) of the textbook \emph{Network Psychometrics with R} (Isvoranu, Epskamp, Waldorp, & Borsboom, 2022) to demonstrate Gaussian Graphical Model estimation with psychonetrics. Responses to all items range from 1 to 7. The last three items (Q75, Q77 and Q80) were asked with reference to the last 3 months. The dataset contains some missing values, making it suitable for demonstrating FIML estimation.
 }
 \usage{data("NA2020")}
 \format{
   A data frame with 501 observations on 8 variables.
   \describe{
-    \item{\code{regular_sleep}}{I try to keep a regular sleep pattern (Q10)}
+    \item{\code{regular_sleep}}{I try to keep a regular sleep schedule (Q10)}
     \item{\code{worried_sleep}}{I am worried about my current sleeping behavior (Q13)}
     \item{\code{sleep_interfere}}{My sleep interferes with my daily functioning (Q14)}
     \item{\code{happy_health}}{I am happy with my physical health (Q68)}
@@ -25,7 +25,7 @@ A subset of self-report data collected in 2020 by Adela-Maria Isvoranu as part o
 The full dataset is available at \url{https://osf.io/45n6d/}. Data collected by Adela-Maria Isvoranu as part of a graduate course on network analysis at the University of Amsterdam (2020).
 }
 \references{
-Epskamp, S., Haslbeck, J. M. B., Isvoranu, A. M., & Van Borkulo, C. D. (2022). Pairwise Markov random fields. In A. M. Isvoranu, S. Epskamp, L. J. Waldorp, & D. Borsboom (Eds.), Network psychometrics with R: A guide for behavioral and social scientists (pp. 95--118). Routledge.
+Epskamp, S., Haslbeck, J. M. B., Isvoranu, A.-M., & Van Borkulo, C. D. (2022). Pairwise Markov random fields. In A.-M. Isvoranu, S. Epskamp, L. J. Waldorp, & D. Borsboom (Eds.), Network psychometrics with R: A guide for behavioral and social scientists (pp. 93--110). Routledge. \doi{10.4324/9781003111238-8}
 }
 \examples{
 data(NA2020)

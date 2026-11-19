@@ -80,7 +80,7 @@
     </p>
     <ul>
       <li><code>cvm()</code>: the general model, with factor loadings (<code>lambda</code>), composite weights (<code>weights</code>), regressions between the constructs (<code>beta</code>) and three covariance structures that can each be parameterized in several ways.</li>
-      <li><code>cnm()</code>: the <strong>composite network model</strong>, a wrapper that models the indicators within every composite as a partial correlation network.</li>
+      <li><code>cnm()</code>: the <strong>composite network model</strong>, a wrapper that models the indicators within every composite as a partial correlation network, and by default the constructs as well (<code>latent = "ggm"</code>).</li>
     </ul>
     <div class="note">
       <strong>Experimental:</strong> this family is new in psychonetrics 0.18 and marked experimental &mdash; a note is shown once per session. Arguments, defaults and output may still change. Please report unexpected behavior on <a href="https://github.com/SachaEpskamp/psychonetrics/issues">GitHub</a>.
@@ -207,7 +207,7 @@ getmatrix(mod, "lambda")    # composite loadings</code></pre>
   <section id="cnm">
     <h2>The Composite Network Model: cnm()</h2>
     <p>
-      With <code>composite = "ggm"</code>, or the wrapper <code>cnm()</code>, the indicators within each composite are modeled as a Gaussian graphical model: <code>omega_c</code> contains one partial correlation network per composite. With all edges included this is the same model as above in another parameterization. The networks can then be made sparse with the usual tools:
+      With <code>composite = "ggm"</code>, or the wrapper <code>cnm()</code>, the indicators within each composite are modeled as a Gaussian graphical model: <code>omega_c</code> contains one partial correlation network per composite. <code>cnm()</code> by default also models the constructs as a network (<code>latent = "ggm"</code>, <code>omega_zeta</code>); set <code>latent = "cov"</code> to model their covariances instead. With all edges included this is the same model as above in another parameterization. The networks can then be made sparse with the usual tools:
     </p>
     <pre><code class="language-r">mod_cnm <- cnm(StarWars, weights = weights, beta = beta, vars = vars,
                latents = c("Fan", "Originals", "Sequels")) %>% runmodel
@@ -290,6 +290,7 @@ getmatrix(mod3, "omega_zeta")</code></pre>
       <li><strong>Scaling.</strong> A composite is scaled by fixing the weight of one indicator to 1: by default the indicator with the largest standardized starting weight (<code>bad_marker_crit = 1</code>). A message names the composites for which that is not the first indicator. Scaling by an indicator with a small weight makes the other weights large and can reverse the composite, in which case the optimizer can stop before the optimum; a warning is given when a composite correlates negatively with its scaling indicator. Set <code>bad_marker_crit = 0</code> to always use the first indicator, or a value between 0 and 1 to only replace a first indicator whose starting weight is below that proportion of the largest.</li>
       <li><strong>Choosing the scaling yourself.</strong> Free the fixed weight with <code>freepar()</code> and fix another with <code>fixpar()</code>. The scaling does not change the fit of the model, but it does change the weights and the effects of and on the composite.</li>
       <li><strong>Sum scores.</strong> With <code>sumscores = TRUE</code> all weights are fixed to 1, so that every composite is the sum score of its indicators and the structural model is a model for the sum scores. This model is nested in the model with estimated weights, so the two can be compared with <code>compare()</code>. Modification indices are computed for the fixed weights, and single weights can be freed with <code>freepar()</code>. Use <code>fixpar()</code> to fix the weights of only some composites.</li>
+      <li><strong>Dependent indicators.</strong> The indicators of a composite may not be linearly dependent (for example a total score next to its items): the weights are then not identified, and <code>cvm()</code> stops with an error. When the indicators are nearly dependent (a condition number of their correlation matrix above 1000) a warning is given, as the weights are then poorly determined.</li>
       <li><strong>Isolated composites.</strong> A composite with estimated weights must be related to at least one other construct. The weights of a composite that is not related to anything are not identified, and a warning is given. <code>prune()</code> can remove the last relation of a composite with the other constructs; it then gives this warning, and the weights of that composite should be fixed with <code>fixpar()</code>.</li>
       <li><strong>Latent variables</strong> are identified as in the lvm family (<code>identification = "loadings"</code> or <code>"variance"</code>).</li>
     </ul>
