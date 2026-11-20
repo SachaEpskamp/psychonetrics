@@ -113,6 +113,27 @@ freepar <- function(
   # Relabel:
   x@parameters   <- parRelabel(x@parameters)
 
+  # If EPC-based starting values were used, verify that they are within the
+  # bounds of the freed parameters. An EPC can overshoot beyond a bound (e.g.,
+  # a partial correlation larger than 1 in absolute value). The implied
+  # covariance matrix can still be positive definite at such a value, so that
+  # the check below does not detect it, but the optimizer then starts on the
+  # bound and ends in a worse solution. In that case fall back to small
+  # starting values, if these are within the bounds themselves:
+  if (usedEPC){
+    startEst <- x@parameters$est[whichFree]
+    startSmall <- 0.0001 * sign(startEst)
+    lower <- x@parameters$minimum[whichFree]
+    upper <- x@parameters$maximum[whichFree]
+    outside <- whichFree[which((startEst <= lower | startEst >= upper) & startSmall > lower & startSmall < upper)]
+    if (length(outside) > 0){
+      if (verbose){
+        message("EPC-based starting values are outside the bounds of the parameter(s); falling back to small starting values.")
+      }
+      x@parameters$est[outside] <- 0.0001 * sign(x@parameters$est[outside])
+    }
+  }
+
   # If EPC-based starting values were used, verify that they leave the
   # implied model matrices proper (positive definite). An EPC can overshoot
   # into an improper region, where the fit functions return a constant 1e20

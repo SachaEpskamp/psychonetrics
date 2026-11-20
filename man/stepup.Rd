@@ -55,7 +55,7 @@ to skip the current parameter, \code{"continue"} will ignore the situation, and 
 will break the algorithm and return a list with the last two models.
 }
 \item{startEPC}{
-Logical, should the starting value be set at the expected parameter change?
+Logical, should the starting value be set at the expected parameter change? A small starting value is used instead when the expected parameter change gives a value that is not admissible (e.g., outside the bounds of the parameter).
 }
   \item{\dots}{
 Arguments sent to \code{\link{runmodel}}

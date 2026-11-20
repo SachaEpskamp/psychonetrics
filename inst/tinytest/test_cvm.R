@@ -213,6 +213,28 @@ expect_equal(cnm_dots(latent = "cov")@types$latent, "cov")
 expect_error(cnm(dat, lambda = lambda, weights = weights, beta = beta, sigma_zeta = sigma_zeta, latents = latents),
              "sigma_zeta")
 
+## ---- 5a. Default matrices of the model search functions ----
+# prune(), stepup(), modelsearch() and the related functions use all networks
+# in the model by default: between the constructs (omega_zeta), within the
+# composites (omega_c) and between the residuals of the factor indicators
+# (omega_epsilon, here with one edge):
+omega_epsilon <- matrix(0, 6, 6); omega_epsilon[4, 1] <- omega_epsilon[1, 4] <- 1
+fit_three <- runmodel(cnm(dat, lambda = lambda, weights = weights, latents = latents,
+                          residual = "ggm", omega_epsilon = omega_epsilon))
+networks <- c("omega_zeta", "omega_c", "omega_epsilon")
+expect_true(setequal(psychonetrics:::cvm_default_matrices(fit_three), networks))
+expect_true(setequal(psychonetrics:::defaultPenalizeMatrices(fit_three), networks))
+# Edges are removed from all three networks (no refit needed to see this):
+n_edges <- function(m) sapply(networks, function(mat){
+  sum(!m@parameters$fixed[m@parameters$matrix == mat & m@parameters$row != m@parameters$col])
+})
+pruned_three <- suppressWarnings(prune(fit_three, alpha = 1e-10, runmodel = FALSE))
+expect_true(all(n_edges(pruned_three) < n_edges(fit_three)))
+# Only the networks that are in the model are used:
+expect_true(setequal(psychonetrics:::cvm_default_matrices(fit_cnm_ggm), c("omega_zeta", "omega_c")))
+expect_equal(psychonetrics:::cvm_default_matrices(fit_cnm), "omega_c")
+expect_equal(length(psychonetrics:::cvm_default_matrices(fitC)), 0)
+
 ## ---- 5b. transmod(): switching between equivalent cvm and cnm models ----
 # The '_c' matrices are block diagonal (one block per composite). Every
 # parameterization of a block diagonal covariance matrix is block diagonal, so

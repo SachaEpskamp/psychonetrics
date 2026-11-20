@@ -213,6 +213,39 @@ expect_true(m_ord_su@objective < 1e10)
 expect_true(m_ord_su@fitmeasures$chisq < m_ord@fitmeasures$chisq)
 }
 
+## ---- stepup(): EPC starting value outside the bounds of a parameter ----
+# (0.18 fix: the expected parameter change of a partial correlation can be
+# larger than 1. The implied covariance matrix is still positive definite at
+# that value, the optimizer started on the bound, ended in a worse solution,
+# and stepup() did not add the edge.)
+# Population covariance matrix of two factors with four indicators each and
+# one residual partial correlation (between y1 and y2):
+Lam_epc <- matrix(0, 8, 2); Lam_epc[1:4, 1] <- 1; Lam_epc[5:8, 2] <- 1
+Theta_epc <- diag(8); Theta_epc[2, 2] <- 1.36; Theta_epc[1, 2] <- Theta_epc[2, 1] <- 0.6
+Sigma_epc <- 0.64 * Lam_epc %*% matrix(c(1, .4, .4, 1), 2, 2) %*% t(Lam_epc) + Theta_epc
+dimnames(Sigma_epc) <- list(paste0("y", 1:8), paste0("y", 1:8))
+m_epc <- suppressWarnings(suppressMessages(
+  runmodel(rnm(covs = Sigma_epc, nobs = 500, covtype = "ML", lambda = Lam_epc))
+))
+edge21 <- function(m){
+  m@parameters[m@parameters$matrix == "omega_epsilon" & m@parameters$row == 2 & m@parameters$col == 1, ]
+}
+# The expected value of the edge is not a partial correlation:
+expect_true(edge21(m_epc)$est + edge21(m_epc)$epc > 1)
+# freepar() then uses a small starting value:
+expect_true(abs(edge21(freepar(m_epc, "omega_epsilon", 2, 1, verbose = FALSE))$est) < 0.01)
+# A starting value that is given by hand is not changed:
+expect_equal(edge21(freepar(m_epc, "omega_epsilon", 2, 1, start = 0.3, verbose = FALSE))$est, 0.3)
+# stepup() adds the edge and recovers the population value:
+m_epc_su <- suppressWarnings(suppressMessages(
+  stepup(m_epc, matrices = "omega_epsilon")
+))
+expect_false(edge21(m_epc_su)$fixed)
+expect_equal(m_epc_su@fitmeasures$df, m_epc@fitmeasures$df - 1)
+expect_true(m_epc_su@fitmeasures$chisq < 1e-2)
+Kappa_epc <- solve(Theta_epc)
+expect_true(abs(edge21(m_epc_su)$est + Kappa_epc[1, 2] / sqrt(Kappa_epc[1, 1] * Kappa_epc[2, 2])) < 1e-2)
+
 ## ---- satMethodUsed / satLL_analytic tracking (GitHub issue #53) ----
 # (0.16.8: the saturated-LL method ultimately used is recorded in
 # @baseline_saturated$satMethodUsed and as the numeric fit measure
